@@ -72,11 +72,7 @@ public abstract class BlockBLOB extends Block {
                 throw new RxParserException("BlockBLOB", e.getMessage());
             }
 
-            try {
-                writableData = data.getWritableBLOB();
-            } catch (BLOB.BLOBException be) {
-                throw new RxParserException("BlockBLOB", be.getMessage());
-            }
+            writableData = data.getWritableBLOB();
         }
 
         @Override
