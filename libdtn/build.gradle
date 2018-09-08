@@ -5,10 +5,10 @@ dependencies {
     api 'io.reactivex.rxjava2:rxjava:2.1.1'
 
     //tuples, triples, immutable pairs, etc.
-    implementation (group: 'org.apache.commons', name: 'commons-lang3', version: '3.4')
+    api (group: 'org.apache.commons', name: 'commons-lang3', version: '3.4')
 
     // ByteArrayDataOutput ByteStreams
-    implementation (group: 'com.google.guava', name: 'guava', version: 'r05')
+    api (group: 'com.google.guava', name: 'guava', version: 'r05')
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
