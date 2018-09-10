@@ -18,18 +18,18 @@ public abstract class ShortState extends ObjectState<Short> {
     }
 
     @Override
-    public void onNext(ByteBuffer next) throws RxParserException {
+    public ParserState onNext(ByteBuffer next) throws RxParserException {
         if (!oneMore && next.remaining() >= 2) {
-            onSuccess(next.getShort());
-            return;
+            return onSuccess(next.getShort());
         }
         if (oneMore) {
-            onSuccess(ByteBuffer.wrap(new byte[]{b, next.get()}).getShort());
+            return onSuccess(ByteBuffer.wrap(new byte[]{b, next.get()}).getShort());
         } else {
             b = next.get();
             oneMore = true;
+            return this;
         }
     }
 
-    public abstract void onSuccess(Short s) throws RxParserException;
+    public abstract ParserState onSuccess(Short s) throws RxParserException;
 }

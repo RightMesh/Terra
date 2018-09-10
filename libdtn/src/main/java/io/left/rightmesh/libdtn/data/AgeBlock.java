@@ -1,7 +1,7 @@
 package io.left.rightmesh.libdtn.data;
 
 import io.left.rightmesh.libdtn.data.bundleV6.SDNV;
-import io.left.rightmesh.libdtn.utils.rxparser.RxState;
+import io.left.rightmesh.libdtn.utils.rxparser.ParserState;
 import io.reactivex.Flowable;
 
 import java.nio.ByteBuffer;
@@ -16,7 +16,7 @@ public class AgeBlock extends ExtensionBlock {
 
     public static final int type = 10;
 
-    long age = 0;
+    public long age = 0;
     long time_start;
     long time_end;
 
@@ -46,28 +46,4 @@ public class AgeBlock extends ExtensionBlock {
     public void stop() {
         time_end = System.nanoTime();
     }
-
-    /** BundleV6 */
-    @Override
-    public long getDataSize() {
-        return new SDNV(age + (time_end - time_start)).getBytes().length;
-    }
-
-    @Override
-    public Flowable<ByteBuffer> serializeData() {
-        return Flowable.just(
-                ByteBuffer.wrap(new SDNV(age + (time_end - time_start)).getBytes()));
-    }
-
-    @Override
-    public RxState parseData() {
-        return deserializeAgeBlockData;
-    }
-
-    private RxState deserializeAgeBlockData = new SDNV.SDNVState() {
-        @Override
-        public void onSuccess(SDNV sdnv_value) {
-            age = sdnv_value.getValue();
-        }
-    };
 }

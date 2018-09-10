@@ -1,7 +1,7 @@
 package io.left.rightmesh.libdtn.data;
 
 import io.left.rightmesh.libdtn.core.processor.ProcessingException;
-import io.left.rightmesh.libdtn.utils.rxparser.RxState;
+import io.left.rightmesh.libdtn.utils.rxparser.ParserState;
 import io.reactivex.Flowable;
 
 import java.nio.ByteBuffer;
@@ -35,30 +35,6 @@ public abstract class Block extends BlockHeader {
                 return new UnknownExtensionBlock(type);
         }
     }
-
-    /**
-     * return the size of data for this block.,
-     *
-     * @return
-     */
-    public abstract long getDataSize();
-
-    /**
-     * serializeData is called by AsyncSerializer.
-     *
-     * @return RxState instance
-     */
-    public abstract Flowable<ByteBuffer> serializeData();
-
-    /**
-     * parseData is called by the AsyncParser whenever the current block data
-     * must be deserialized. It SHOULD only thrown RxParserException if the data cannot be
-     * properly deserialized. For validation and processing of this block see the other callbacks.
-     *
-     * @return RxState instance
-     */
-    public abstract RxState parseData();
-
 
     /**
      * This is called during deserialization.

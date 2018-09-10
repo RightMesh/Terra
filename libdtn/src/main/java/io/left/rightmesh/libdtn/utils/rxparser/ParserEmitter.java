@@ -8,12 +8,12 @@ import java.nio.ByteBuffer;
 /**
  * ParserEmitter is the class that do the actual business of parsing and emitting items.
  * It is created by RxParser upon subscription. This class is abstract and child class are
- * expected to implement initState() to provide the first RxState to send data to for
+ * expected to implement initState() to provide the first ParserState to send data to for
  * parsing. The logic of actual parsing is left to the child class however the following has
  * to be respected:
  *
  * <ul>
- *     <li>Empty ByteBuffer will not and must not be passed to RxState.onNext</li>
+ *     <li>Empty ByteBuffer will not and must not be passed to ParserState.onNext</li>
  *     <li>An empty ByteBuffer received from upstream signals that state machine must be reset</li>
  *     <li>Every parsed item T must be emitted with a call to emit()</li>
  * </ul>
@@ -29,19 +29,13 @@ public abstract class ParserEmitter<T> implements Observer<ByteBuffer>, Disposab
     private Observer<? super T> downstream;
 
     /** The current deserialization state. */
-    private RxState state;
+    private ParserState state;
 
     /** disposed subscription. */
     private boolean disposed = false;
 
     protected ParserEmitter(Observer<? super T> downstream) {
         this.downstream = downstream;
-    }
-
-    protected void changeState(RxState newState) throws RxParserException {
-        state.onExit();
-        state = newState;
-        state.onEnter();
     }
 
     @Override
@@ -55,7 +49,7 @@ public abstract class ParserEmitter<T> implements Observer<ByteBuffer>, Disposab
      *
      * @return the initial {@see State}
      */
-    public abstract RxState initState();
+    public abstract ParserState initState();
 
     /**
      * If a zero-sized ByteBuffer is received, it is a signal that this state machine must reset.
@@ -86,12 +80,20 @@ public abstract class ParserEmitter<T> implements Observer<ByteBuffer>, Disposab
             // reset signal
             if (b.remaining() == 0) {
                 onReset();
-                changeState(initState());
+                state.onExit();
+                state = initState();
+                state.onEnter();
                 return;
             }
 
             while (b.hasRemaining()) {
-                state.onNext(b);
+                ParserState next = state.onNext(b);
+
+                if(next != state) {
+                    state.onExit();
+                    next.onEnter();
+                    state = next;
+                }
             }
         } catch (RxParserException rde) {
             dispose();

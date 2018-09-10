@@ -52,7 +52,7 @@ public class RxParser<T> extends Observable<T> {
     @Override
     protected void subscribeActual(Observer<? super T> s) {
         ParserEmitter<T> emitter = factory.<T>create(s);
-        s.onSubscribe((Disposable)emitter);
+        s.onSubscribe(emitter);
         source.subscribe((Observer)emitter);
     }
 

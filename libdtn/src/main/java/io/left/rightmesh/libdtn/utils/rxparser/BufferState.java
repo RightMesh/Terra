@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
 public abstract class BufferState extends ObjectState<ByteBuffer> {
     private ByteBuffer buffer;
 
-    public void resizeBuffer(int size) {
+    public void allocate(int size) {
         buffer = ByteBuffer.allocate(size);
     }
 
@@ -29,7 +29,7 @@ public abstract class BufferState extends ObjectState<ByteBuffer> {
     }
 
     @Override
-    public void onNext(ByteBuffer next) throws RxParserException {
+    public ParserState onNext(ByteBuffer next) throws RxParserException {
         if (buffer.remaining() >= next.remaining()) {
             buffer.put(next);
         } else {
@@ -40,8 +40,9 @@ public abstract class BufferState extends ObjectState<ByteBuffer> {
 
         if (!buffer.hasRemaining()) {
             buffer.flip();
-            onSuccess(buffer);
+            return onSuccess(buffer);
         }
+        return this;
     }
 
     @Override
@@ -55,5 +56,5 @@ public abstract class BufferState extends ObjectState<ByteBuffer> {
      * @param buffer of data
      * @throws RxParserException if an exception happened during deserialization.
      */
-    public abstract void onSuccess(ByteBuffer buffer) throws RxParserException;
+    public abstract ParserState onSuccess(ByteBuffer buffer) throws RxParserException;
 }

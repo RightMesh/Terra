@@ -3,12 +3,15 @@ package io.left.rightmesh.libdtn.data.bundleV6;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 
+import io.left.rightmesh.libdtn.data.AgeBlock;
 import io.left.rightmesh.libdtn.data.Block;
+import io.left.rightmesh.libdtn.data.BlockBLOB;
 import io.left.rightmesh.libdtn.data.BlockHeader;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.Dictionary;
 import io.left.rightmesh.libdtn.data.EID;
 import io.left.rightmesh.libdtn.data.PrimaryBlock;
+import io.left.rightmesh.libdtn.data.ScopeControlHopLimitBlock;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 
@@ -177,11 +180,31 @@ public class AsyncSerializer {
      * @return Flowable
      * @throws IOException if issue with OutputStream
      */
-    public Flowable<ByteBuffer> serialize(Block block) {
+    public Flowable<ByteBuffer> serialize(AgeBlock block) {
+        ByteBuffer age = ByteBuffer.wrap(new SDNV(block.age).getBytes());
         return serialize((BlockHeader) block)
                 .concatWith(
-                        Flowable.just(ByteBuffer.wrap(new SDNV(((BlockHeader) block).dataSize).getBytes())))
-                .concatWith(block.serializeData());
+                        Flowable.just(
+                                ByteBuffer.wrap(new SDNV(age.remaining()).getBytes()),
+                                age));
+    }
+
+    public Flowable<ByteBuffer> serialize(ScopeControlHopLimitBlock block) {
+        ByteBuffer count = ByteBuffer.wrap(new SDNV(block.count).getBytes());
+        ByteBuffer limit = ByteBuffer.wrap(new SDNV(block.limit).getBytes());
+        return serialize((BlockHeader) block)
+                .concatWith(
+                        Flowable.just(
+                                ByteBuffer.wrap(new SDNV(count.remaining() + limit.remaining()).getBytes()),
+                                count,
+                                limit));
+    }
+
+    public Flowable<ByteBuffer> serialize(BlockBLOB block) {
+        return serialize((BlockHeader) block)
+                .concatWith(
+                        Flowable.just(ByteBuffer.wrap(new SDNV(block.data.size()).getBytes())))
+                .concatWith(block.data.observe());
     }
 
     /**

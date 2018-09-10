@@ -46,6 +46,29 @@ public class RxTCP {
         }
     }
 
+    private interface NIOConnectCallback {
+        void onConnectEvent(SelectionKey key);
+    }
+
+    private interface NIOAcceptCallback {
+        void onAcceptEvent(SelectionKey key);
+    }
+
+    private interface NIOReadCallback {
+        void onReadEvent(SelectionKey key);
+    }
+
+    private interface NIOWriteCallback {
+        void onWriteEvent(SelectionKey key);
+    }
+
+    private static class NIOCallback {
+        NIOConnectCallback c = null;
+        NIOAcceptCallback a = null;
+        NIOReadCallback r = null;
+        NIOWriteCallback w = null;
+    }
+
     /**
      * NIOEngine is an event loop for the Java NIO. It listens for the Selector and pushes event
      * whenever there are any.
@@ -65,14 +88,12 @@ public class RxTCP {
         }
 
         private Selector selector;
-        private PublishSubject subject;
         private Queue<RegisterJob> registerJobQueue;
         private Thread niothread;
 
         NIOEngine() throws IOException {
             registerJobQueue = new ConcurrentLinkedQueue<>();
             selector = Selector.open();
-            subject = PublishSubject.<SelectionKey>create();
             createNIOEventLoop();
         }
 
@@ -89,13 +110,13 @@ public class RxTCP {
          * observe the events thrown by the NIO engine.
          *
          * @return Observable to observe the NIO events
+         * public Observable<SelectionKey> events() {
+         * return subject;
+         * }
          */
-        public Observable<SelectionKey> events() {
-            return subject;
-        }
 
         private void createNIOEventLoop() {
-            Observable.<SelectionKey>create(s -> {
+            new Thread(() -> {
                 try {
                     niothread = Thread.currentThread();
                     niothread.setName("NIO Thread - DO NOT BLOCK");
@@ -108,15 +129,33 @@ public class RxTCP {
                             if (!key.isValid()) {
                                 continue;
                             }
-                            s.onNext(key);
+
+                            Object o = key.attachment();
+                            if ((o != null) && (o instanceof NIOCallback)) {
+                                NIOCallback cb = (NIOCallback) o;
+                                if (key.isReadable() && (cb.r != null)) {
+                                    cb.r.onReadEvent(key);
+                                }
+                                if (key.isWritable() && (cb.w != null)) {
+                                    cb.w.onWriteEvent(key);
+                                }
+                                if (key.isAcceptable() && (cb.a != null)) {
+                                    cb.a.onAcceptEvent(key);
+                                }
+                                if (key.isConnectable() && (cb.c != null)) {
+                                    cb.c.onConnectEvent(key);
+                                }
+                            }
                         }
 
                         // check if there is any registration waiting
                         while (registerJobQueue.size() > 0) {
                             RegisterJob job = registerJobQueue.poll();
-                            SelectionKey key;
                             try {
-                                key = job.channel.register(selector, job.op);
+                                SelectionKey key = job.channel.register(selector, job.op);
+                                if (key.attachment() == null) {
+                                    key.attach(new NIOCallback());
+                                }
                                 job.s.onSuccess(key);
                             } catch (IOException io) {
                                 job.s.onError(io);
@@ -124,12 +163,34 @@ public class RxTCP {
                         }
                     }
                 } catch (IOException io) {
-                    s.onError(io);
+                    // do nothing
                 } finally {
-                    selector.close();
+                    /*
+                     * tell callback that an error happened
+                    for(SelectionKey key : selector.keys()) {
+                        NIOCallback cb = ((NIOCallback)key.attachment());
+                        if(cb.a != null) {
+                            cb.a.onAcceptEvent(null);
+                        }
+                        if(cb.c != null) {
+                            cb.c.onConnectEvent(null);
+                        }
+                        if(cb.r != null) {
+                            cb.r.onReadEvent(null);
+                        }
+                        if(cb.w != null) {
+                            cb.w.onWriteEvent(null);
+                        }
+                    }
+                    */
+                    try {
+                        selector.close();
+                    } catch (IOException io) {
+                        // ignore
+                    }
                     selector = null;
                 }
-            }).subscribeOn(Schedulers.io()).subscribe(subject);
+            }).start();
         }
 
         /**
@@ -209,16 +270,14 @@ public class RxTCP {
                 nio().register(channel, SelectionKey.OP_ACCEPT).subscribe(
                         registeredKey -> {
                             key = registeredKey;
-                            nio().events()
-                                    .filter(SelectionKey::isAcceptable)
-                                    .filter(k -> k.channel() == channel)
-                                    .subscribe(k -> {
-                                        try {
-                                            s.onNext(factory.create(channel.accept()));
-                                        } catch (IOException io) {
-                                            // silently ignore it
-                                        }
-                                    });
+                            // accept callback
+                            ((NIOCallback) key.attachment()).a = (key) -> {
+                                try {
+                                    s.onNext(factory.create(channel.accept()));
+                                } catch (IOException io) {
+                                    // silently ignore it
+                                }
+                            };
                         },
                         s::onError);
             }).observeOn(Schedulers.io());
@@ -252,7 +311,6 @@ public class RxTCP {
         private int port;
         private ConnectionFactory factory;
         private SocketChannel channel;
-        private Disposable nioConnectEventSubscriber = null;
 
         /**
          * Create a connection request for a given host and port. By default it will create
@@ -301,34 +359,30 @@ public class RxTCP {
                     channel.configureBlocking(false);
                     nio.register(channel, SelectionKey.OP_CONNECT).subscribe(
                             registeredKey -> {
-                                nioConnectEventSubscriber = nio.events()
-                                        .filter(k -> k.channel() == channel)
-                                        .filter(SelectionKey::isConnectable)
-                                        .subscribe(
-                                                k -> {
-                                                    registeredKey.interestOps(0);
-                                                    nioConnectEventSubscriber.dispose();
+                                // connect callback
+                                ((NIOCallback) registeredKey.attachment()).c = (key) -> {
+                                    key.interestOps(0);
+                                    ((NIOCallback) key.attachment()).c = null;
 
-                                                    try {
-                                                        if (channel.finishConnect()) {
-                                                            s.onSuccess(factory.create(this.channel));
-                                                        } else {
-                                                            s.onError(new Throwable("could not connect"));
-                                                        }
-                                                    } catch (IOException io) {
-                                                        s.onError(new Throwable("could not connect"));
-                                                    }
-                                                },
-                                                s::onError,
-                                                () -> s.onError(new Throwable("could not connect"))
-                                        );
+                                    try {
+                                        if (channel.finishConnect()) {
+                                            s.onSuccess(factory.create(this.channel));
+                                        } else {
+                                            s.onError(new Throwable("could not connect"));
+                                        }
+                                    } catch (IOException io) {
+                                        s.onError(new Throwable("could not connect"));
+                                    }
+                                };
                                 channel.connect(new InetSocketAddress(host, port));
                             }
                     );
                 } catch (IOException io) {
                     s.onError(new Throwable("could not connect"));
                 }
-            }).observeOn(Schedulers.io());
+            }).
+
+                    observeOn(Schedulers.io());
         }
         // CHECKSTYLE END IGNORE LineLength
     }
@@ -357,11 +411,6 @@ public class RxTCP {
         public SocketChannel channel;
         private NIOEngine nio;
         private SelectionKey key;
-
-        // upstream subscribers: should be disposed if the peer disconnect
-        // and the channel closes
-        private Disposable nioReadEventSubscriber = null;
-        private Disposable nioWriteEventSubscriber = null;
 
         // job queue
         private LinkedBlockingQueue<JobOrder> jobOrderQueue;
@@ -418,12 +467,11 @@ public class RxTCP {
                 }
                 jobOrderQueue.clear();
 
-                // dispose nio event listener
-                if (nioWriteEventSubscriber != null) {
-                    nioWriteEventSubscriber.dispose();
+                if (((NIOCallback)key.attachment()).w != null) {
+                    ((NIOCallback)key.attachment()).w = null;
                 }
-                if (nioReadEventSubscriber != null) {
-                    nioReadEventSubscriber.dispose();
+                if (((NIOCallback)key.attachment()).r != null) {
+                    ((NIOCallback)key.attachment()).r = null;
                 }
 
                 // effectively close the channel
@@ -450,42 +498,33 @@ public class RxTCP {
          * @return Observable ByteBuffer stream read from the socket
          */
         public Observable<ByteBuffer> recv() {
-            if (nioReadEventSubscriber != null) {
+            if (((NIOCallback)key.attachment()).r != null) {
                 return Observable.error(new Throwable("an observer is already subscribed"));
             }
             return Observable.create(s -> {
                 ByteBuffer buffer = ByteBuffer.allocate(2048);
-                nioReadEventSubscriber = nio.events()
-                        .filter(k -> k.channel() == channel)
-                        .filter(SelectionKey::isReadable)
-                        .subscribe(
-                                k -> { // new read() event
-                                    if (s.isDisposed()) { // the Observer has gone
-                                        turnOffNIOEvent(SelectionKey.OP_READ);
-                                        nioReadEventSubscriber.dispose();
-                                        nioReadEventSubscriber = null;
-                                        return;
-                                    }
+                NIOReadCallback rc =  (key) -> {
+                    if (s.isDisposed()) { // the Observer has gone
+                        turnOffNIOEvent(SelectionKey.OP_READ);
+                        ((NIOCallback) key.attachment()).r = null;
+                        return;
+                    }
 
-                                    try {
-                                        buffer.clear();
-                                        int numRead = channel.read(buffer);
-                                        if (numRead == -1) {
-                                            throw new IOException("Channel closed");
-                                        }
-                                        buffer.flip();
-                                        s.onNext(buffer.slice());
+                    try {
+                        buffer.clear();
+                        int numRead = channel.read(buffer);
+                        if (numRead == -1) {
+                            throw new IOException("Channel closed");
+                        }
+                        buffer.flip();
+                        s.onNext(buffer.slice());
 
-                                    } catch (IOException io) { // peer disconnected
-                                        cleanup();
-                                        s.onError(io);
-                                    }
-                                },
-                                e -> { // exception with selector, should be extremely rare
-                                    cleanup();
-                                    s.onError(e);
-                                });
-                turnOnNIOEvent(SelectionKey.OP_READ);
+                    } catch (IOException io) { // peer disconnected
+                        cleanup();
+                        s.onError(io);
+                    }
+                };
+                turnOnNIOEvent(SelectionKey.OP_READ, rc);
             });
         }
 
@@ -524,7 +563,7 @@ public class RxTCP {
                         return Observable.create(s -> {
                             this.order = new JobOrder(s, job);
                             jobOrderQueue.put(this.order);
-                            turnOnNIOEvent(SelectionKey.OP_WRITE); // will wake up to check the queue
+                            turnOnNIOEvent(SelectionKey.OP_WRITE, null); // will wake up to check the queue
                         });
                     }
                 } finally {
@@ -613,7 +652,7 @@ public class RxTCP {
                 if (cancelled) {
                     currentOrder = null;
                     trackOrder.onError(new Throwable("Order cancelled"));
-                    turnOnNIOEvent(SelectionKey.OP_WRITE); // check queue
+                    turnOnNIOEvent(SelectionKey.OP_WRITE, null); // check queue
                     return;
                 }
 
@@ -646,7 +685,7 @@ public class RxTCP {
                                 Completable.create(t -> {
                                     sendBufferTask = t;
                                     sendBuffer = byteBuffer;
-                                    turnOnNIOEvent(SelectionKey.OP_WRITE);
+                                    turnOnNIOEvent(SelectionKey.OP_WRITE, null);
                                 }).subscribe(
                                         () -> request(1),
                                         e -> { // error sending buffer
@@ -660,14 +699,14 @@ public class RxTCP {
                             public void onError(Throwable throwable) {
                                 currentOrder = null;
                                 trackOrder.onError(throwable);
-                                turnOnNIOEvent(SelectionKey.OP_WRITE); // will check the queue
+                                turnOnNIOEvent(SelectionKey.OP_WRITE, null); // will check the queue
                             }
 
                             @Override
                             public void onComplete() {
                                 currentOrder = null;
                                 trackOrder.onComplete();
-                                turnOnNIOEvent(SelectionKey.OP_WRITE); // will check the queue
+                                turnOnNIOEvent(SelectionKey.OP_WRITE, null); // will check the queue
                             }
                         });
             }
@@ -719,40 +758,36 @@ public class RxTCP {
          *
          * </pre>
          */
-        private void prepareWritePipeline() {
-            nioWriteEventSubscriber = nio.events()
-                    .filter(k -> k.channel() == channel)
-                    .filter(SelectionKey::isWritable)
-                    .subscribe(
-                            k -> { // new write opportunity
+        private void prepareWritePipeline() throws IOException {
+            // write callback
+            NIOWriteCallback wc = (key) -> {
+                // an order is placed so we can send the buffer
+                if ((currentOrder != null) && (currentOrder.sendBuffer != null)
+                        && currentOrder.sendBuffer.hasRemaining()) {
+                    try {
+                        int byteWritten = channel.write(currentOrder.sendBuffer);
+                        currentOrder.sent(byteWritten); // update the sendBuffer
+                    } catch (IOException io) {
+                        currentOrder.error(io);
+                        cleanup();
+                    }
+                    return;
+                }
 
-                                // an order is placed so we can send the buffer
-                                if ((currentOrder != null) && (currentOrder.sendBuffer != null)
-                                        && currentOrder.sendBuffer.hasRemaining()) {
-                                    try {
-                                        int byteWritten = channel.write(currentOrder.sendBuffer);
-                                        currentOrder.sent(byteWritten); // update the sendBuffer
-                                    } catch (IOException io) {
-                                        currentOrder.error(io);
-                                        cleanup();
-                                    }
-                                    return;
-                                }
-
-                                // no order so we check the queue
-                                turnOffNIOEvent(SelectionKey.OP_WRITE);
-                                checkQueue();
-                            },
-                            e -> cleanup(),
-                            () -> cleanup());
+                // no order so we check the queue
+                turnOffNIOEvent(SelectionKey.OP_WRITE);
+                checkQueue();
+            };
+            turnOnNIOEvent(SelectionKey.OP_WRITE, wc);
         }
 
         /**
          * Turn on SelectionKey.READ or SelectionKey.WRITE event listener.
+         * If o is not null, it also updates its corresponding callback
          *
          * @param op to turn on
          */
-        private void turnOnNIOEvent(int op) {
+        private void turnOnNIOEvent(int op, Object o) {
             try {
                 lock.lock();
 
@@ -762,7 +797,17 @@ public class RxTCP {
 
                 if (key == null) {
                     nio.register(channel, op).subscribe(
-                            registeredKey -> key = registeredKey,
+                            registeredKey -> {
+                                key = registeredKey;
+                                if(o != null) {
+                                    NIOCallback cb = (NIOCallback)key.attachment();
+                                    if(op == SelectionKey.OP_READ) {
+                                        cb.r = (NIOReadCallback)o;
+                                    } else {
+                                        cb.w = (NIOWriteCallback)o;
+                                    }
+                                }
+                            },
                             e -> key = null);
                     return;
                 }
@@ -772,6 +817,14 @@ public class RxTCP {
                     int opsOn = (ops | op);
                     if (ops != opsOn) {
                         key.interestOps(opsOn);
+                        if(o != null) {
+                            NIOCallback cb = (NIOCallback)key.attachment();
+                            if(op == SelectionKey.OP_READ) {
+                                cb.r = (NIOReadCallback)o;
+                            } else {
+                                cb.w = (NIOWriteCallback)o;
+                            }
+                        }
                         key.selector().wakeup();
                     }
                 }

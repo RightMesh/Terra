@@ -1,6 +1,7 @@
 package io.left.rightmesh.libdtn.data.bundleV6;
 
 import io.left.rightmesh.libdtn.utils.rxparser.ObjectState;
+import io.left.rightmesh.libdtn.utils.rxparser.ParserState;
 import io.left.rightmesh.libdtn.utils.rxparser.RxParserException;
 
 import java.io.IOException;
@@ -123,7 +124,7 @@ public class SDNV implements Comparable<SDNV>, Serializable {
         }
 
         @Override
-        public void onNext(ByteBuffer next)
+        public ParserState onNext(ByteBuffer next)
                 throws RxParserException {
             sdnv_value = sdnv_value << 7;
             b = next.get();
@@ -136,10 +137,9 @@ public class SDNV implements Comparable<SDNV>, Serializable {
             }
 
             if (((byte) b & (byte) 0x80) == 0) {
-                onSuccess(new SDNV(sdnv_value));
-                sdnv_value = 0;
-                read = 0;
+                return onSuccess(new SDNV(sdnv_value));
             }
+            return this;
         }
 
         @Override

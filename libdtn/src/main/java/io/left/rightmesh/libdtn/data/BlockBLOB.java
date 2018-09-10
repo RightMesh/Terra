@@ -4,8 +4,8 @@ import io.left.rightmesh.libdtn.storage.BLOB;
 import io.left.rightmesh.libdtn.storage.BundleStorage;
 import io.left.rightmesh.libdtn.storage.NullBLOB;
 import io.left.rightmesh.libdtn.storage.WritableBLOB;
+import io.left.rightmesh.libdtn.utils.rxparser.ParserState;
 import io.left.rightmesh.libdtn.utils.rxparser.RxParserException;
-import io.left.rightmesh.libdtn.utils.rxparser.RxState;
 import io.reactivex.Flowable;
 
 import java.io.IOException;
@@ -48,55 +48,5 @@ public abstract class BlockBLOB extends Block {
             sb.append(": length=").append(data.size());
         }
         return sb.toString();
-    }
-
-    @Override
-    public long getDataSize() {
-        return data.size();
-    }
-
-    @Override
-    public RxState parseData() {
-        return blob_payload_parser;
-    }
-
-    private RxState blob_payload_parser = new RxState() {
-
-        WritableBLOB writableData = null;
-
-        @Override
-        public void onEnter() throws RxParserException {
-            try {
-                data = BLOB.createBLOB((int) dataSize);
-            } catch (BundleStorage.StorageFullException e) {
-                throw new RxParserException("BlockBLOB", e.getMessage());
-            }
-
-            writableData = data.getWritableBLOB();
-        }
-
-        @Override
-        public void onNext(ByteBuffer next) throws RxParserException {
-            try {
-                while (next.hasRemaining()) {
-                    writableData.write(next.get());
-                }
-            } catch (IOException io) {
-                throw new RxParserException("BlockBLOB", io.getMessage());
-            } catch (WritableBLOB.BLOBOverflowException boe) {
-                throw new RxParserException("BlockBLOB", boe.getMessage());
-            }
-        }
-
-        @Override
-        public void onExit() {
-            writableData.close();
-            writableData = null;
-        }
-    };
-
-    @Override
-    public Flowable<ByteBuffer> serializeData() {
-        return data.observe();
     }
 }

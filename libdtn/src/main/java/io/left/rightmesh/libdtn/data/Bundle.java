@@ -153,7 +153,7 @@ public class Bundle extends PrimaryBlock {
      */
     public void printDebug() {
         System.out.print("bundle to= " + destination.toString() + " content=");
-        getPayloadBlock().serializeData().subscribe(
+        getPayloadBlock().data.observe().subscribe(
                 b -> {
                     System.out.print(new String(b.array()));
                 }

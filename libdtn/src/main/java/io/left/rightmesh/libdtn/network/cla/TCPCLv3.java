@@ -11,9 +11,9 @@ import io.left.rightmesh.libdtn.network.Peer;
 import io.left.rightmesh.libdtn.network.RxTCP;
 import io.left.rightmesh.libdtn.utils.rxparser.BufferState;
 import io.left.rightmesh.libdtn.utils.rxparser.ParserEmitter;
+import io.left.rightmesh.libdtn.utils.rxparser.ParserState;
 import io.left.rightmesh.libdtn.utils.rxparser.RxParser;
 import io.left.rightmesh.libdtn.utils.rxparser.RxParserException;
-import io.left.rightmesh.libdtn.utils.rxparser.RxState;
 import io.left.rightmesh.libdtn.utils.rxparser.ShortState;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
@@ -417,7 +417,7 @@ public class TCPCLv3 implements ConvergenceLayer {
             }
 
             @Override
-            public RxState initState() {
+            public ParserState initState() {
                 return idle;
             }
 
@@ -427,70 +427,70 @@ public class TCPCLv3 implements ConvergenceLayer {
             }
 
             // first we receive the contact header
-            private RxState idle = new RxState() {
+            private ParserState idle = new ParserState() {
                 @Override
-                public void onNext(ByteBuffer next) throws RxParserException {
-                    changeState(contact_header_magic);
+                public ParserState onNext(ByteBuffer next) throws RxParserException {
+                    return contact_header_magic;
                 }
             };
 
-            private RxState contact_header_magic = new BufferState(magic) {
+            private ParserState contact_header_magic = new BufferState(magic) {
                 @Override
-                public void onSuccess(ByteBuffer buffer) throws RxParserException {
+                public ParserState onSuccess(ByteBuffer buffer) throws RxParserException {
                     debug("TCPCLv3", "magic=" + new String(magic));
                     if (!new String(magic).equals("dtn!")) {
                         throw new RxParserException(new String(magic)
                                 + " isn't the magic word");
                     }
-                    changeState(contact_header_version);
+                    return contact_header_version;
                 }
             };
 
-            private RxState contact_header_version = new RxState() {
+            private ParserState contact_header_version = new ParserState() {
                 @Override
-                public void onNext(ByteBuffer next) throws RxParserException {
+                public ParserState onNext(ByteBuffer next) throws RxParserException {
                     int version = next.get();
                     debug("TCPCLv3", "version=" + version);
                     if (version != 3) {
                         throw new RxParserException("bad TCPCLv3 version ("
                                 + version + " != 3)");
                     }
-                    changeState(contact_header_flags);
+                    return contact_header_flags;
                 }
             };
 
-            private RxState contact_header_flags = new RxState() {
+            private ParserState contact_header_flags = new ParserState() {
                 @Override
-                public void onNext(ByteBuffer next) throws RxParserException {
+                public ParserState onNext(ByteBuffer next) throws RxParserException {
                     flags = next.get();
                     debug("TCPCLv3", "parameters=" + flags);
-                    changeState(contact_header_keepalive_interval);
+                    return contact_header_keepalive_interval;
                 }
             };
 
-            private RxState contact_header_keepalive_interval = new ShortState() {
+            private ParserState contact_header_keepalive_interval = new ShortState() {
                 @Override
-                public void onSuccess(Short s) throws RxParserException {
+                public ParserState onSuccess(Short s) throws RxParserException {
                     interval = s;
                     debug("TCPCLv3", "interval=" + interval);
-                    changeState(contact_header_local_eid_length);
+                    return contact_header_local_eid_length;
                 }
             };
 
             private SDNV.SDNVState contact_header_local_eid_length =
                     new SDNV.SDNVState() {
                         @Override
-                        public void onSuccess(SDNV sdnv_value) throws RxParserException {
+                        public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
                             eid_length = sdnv_value.getValue();
                             debug("TCPCLv3", "eid_length=" + eid_length);
-                            contact_header_local_eid.resizeBuffer((int) eid_length);
-                            changeState(contact_header_local_eid);
+                            contact_header_local_eid.allocate((int) eid_length);
+                            return contact_header_local_eid;
                         }
                     };
 
             private BufferState contact_header_local_eid = new BufferState() {
                 @Override
-                public void onSuccess(ByteBuffer buffer) throws RxParserException {
+                public ParserState onSuccess(ByteBuffer buffer) throws RxParserException {
                     try {
                         eid_array = buffer.array();
                         eid = new EID(new String(eid_array));
@@ -499,7 +499,7 @@ public class TCPCLv3 implements ConvergenceLayer {
                     }
                     onRecvContactHeader(
                             new ContactHeader(eid, new ParameterFlags(flags), interval));
-                    changeState(segment_type);
+                    return segment_type;
                 }
             };
 
@@ -508,9 +508,9 @@ public class TCPCLv3 implements ConvergenceLayer {
             int code_flags;
             long segment_length;
 
-            private RxState segment_type = new RxState() {
+            private ParserState segment_type = new ParserState() {
                 @Override
-                public void onNext(ByteBuffer next) throws RxParserException {
+                public ParserState onNext(ByteBuffer next) throws RxParserException {
                     byte code = next.get();
                     code_type = code >> 4;
                     code_flags = code & 0x0F;
@@ -518,49 +518,47 @@ public class TCPCLv3 implements ConvergenceLayer {
                     debug("TCPCLv3", "code_flags=" + code_flags);
 
                     if (code_type == MessageType.DATA_SEGMENT.value()) {
-                        changeState(data_segment_length);
-                        return;
+                        return data_segment_length;
                     }
                     if (code_type == MessageType.ACK_SEGMENT.value()) {
-                        changeState(ack_segment);
-                        return;
+                        return ack_segment;
                     }
                     if (code_type == MessageType.REFUSE_BUNDLE.value()) {
-                        changeState(refuse_bundle);
-                        return;
+                        return refuse_bundle;
                     }
                     if (code_type == MessageType.KEEPALIVE.value()) {
-                        changeState(keep_alive);
-                        return;
+                        return keep_alive;
                     }
                     if (code_type == MessageType.SHUTDOWN.value()) {
-                        changeState(shutdown);
-                        return;
+                        return shutdown;
                     }
                     if (code_type == MessageType.LENGTH.value()) {
-                        changeState(bundle_length);
+                        return bundle_length;
                     }
+                    return this;
                 }
             };
 
-            private RxState data_segment_length = new SDNV.SDNVState() {
+            private ParserState data_segment_length = new SDNV.SDNVState() {
                 @Override
-                public void onSuccess(SDNV sdnv_value) throws RxParserException {
+                public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
                     segment_length = sdnv_value.getValue();
                     debug("TCPCLv3", "data_segment_length=" + segment_length);
-                    changeState(data_segment_payload);
+                    return data_segment_payload;
                 }
             };
 
-            private RxState data_segment_payload = new RxState() {
+            private ParserState data_segment_payload = new ParserState() {
                 @Override
-                public void onNext(ByteBuffer next) throws RxParserException {
+                public ParserState onNext(ByteBuffer next) throws RxParserException {
                     int bytes = next.remaining();
                     if (bytes <= segment_length) {
                         segment_length -= bytes;
                         emit(next);
                         if (segment_length == 0) {
-                            changeState(segment_type);
+                            return segment_type;
+                        } else {
+                            return this;
                         }
                     } else {
 
@@ -575,83 +573,83 @@ public class TCPCLv3 implements ConvergenceLayer {
                         // increase the position
                         next.position(next.position() + (int) segment_length);
 
-                        changeState(segment_type);
+                        return segment_type;
                     }
                 }
             };
 
-            private RxState ack_segment = new SDNV.SDNVState() {
+            private ParserState ack_segment = new SDNV.SDNVState() {
                 @Override
-                public void onSuccess(SDNV sdnv_value) throws RxParserException {
+                public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
                     // sdnv_value is the ack
                     debug("TCPCLv3", "ack_segment=" + sdnv_value);
-                    changeState(segment_type);
+                    return segment_type;
                 }
             };
 
-            private RxState refuse_bundle = new RxState() {
+            private ParserState refuse_bundle = new ParserState() {
                 @Override
-                public void onNext(ByteBuffer next) throws RxParserException {
+                public ParserState onNext(ByteBuffer next) throws RxParserException {
                     // nothing to read
                     debug("TCPCLv3", "refuse_bundle");
-                    changeState(segment_type);
+                    return segment_type;
                 }
             };
 
 
-            private RxState bundle_length = new SDNV.SDNVState() {
+            private ParserState bundle_length = new SDNV.SDNVState() {
                 @Override
-                public void onSuccess(SDNV sdnv_value) throws RxParserException {
+                public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
                     // sdnv_value is the length of the bundle
                     debug("TCPCLv3", "bundle_length=" + bundle_length);
-                    changeState(segment_type);
+                    return segment_type;
                 }
             };
 
-            private RxState keep_alive = new RxState() {
+            private ParserState keep_alive = new ParserState() {
                 @Override
-                public void onNext(ByteBuffer next) throws RxParserException {
+                public ParserState onNext(ByteBuffer next) throws RxParserException {
                     // nothing to read, it is just a keep alive
                     debug("TCPCLv3", "keep_alive");
-                    changeState(segment_type);
+                    return segment_type;
                 }
             };
 
-            private RxState shutdown = new RxState() {
+            private ParserState shutdown = new ParserState() {
                 @Override
-                public void onNext(ByteBuffer next) throws RxParserException {
+                public ParserState onNext(ByteBuffer next) throws RxParserException {
                     debug("TCPCLv3", "shutdown");
                     // R bit set, Read reason code
                     if ((code_flags & 0x02) == 0x02) {
-                        changeState(shutdown_reason_code);
+                        return shutdown_reason_code;
                     } else {
                         terminate();
-                        changeState(idle);
+                        return idle;
                     }
                 }
             };
 
-            private RxState shutdown_reason_code = new RxState() {
+            private ParserState shutdown_reason_code = new ParserState() {
                 @Override
-                public void onNext(ByteBuffer next) throws RxParserException {
+                public ParserState onNext(ByteBuffer next) throws RxParserException {
                     int reason_code = next.get();
                     debug("TCPCLv3", "shutdown_reason_code=" + reason_code);
                     if ((code_flags & 0x01) == 0x01) {
-                        changeState(shutdown_reconnection_delay);
+                        return shutdown_reconnection_delay;
                     } else {
                         terminate();
-                        changeState(idle);
+                        return idle;
                     }
                 }
             };
 
-            private RxState shutdown_reconnection_delay = new SDNV.SDNVState() {
+            private ParserState shutdown_reconnection_delay = new SDNV.SDNVState() {
                 @Override
-                public void onSuccess(SDNV sdnv_value) throws RxParserException {
+                public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
                     // sdnv_value is the reconnection delay
                     debug("TCPCLv3", "shutdown_reconnection_delay=" + sdnv_value.getValue());
                     terminate();
-                    changeState(idle);
+                    return idle;
                 }
             };
         }
