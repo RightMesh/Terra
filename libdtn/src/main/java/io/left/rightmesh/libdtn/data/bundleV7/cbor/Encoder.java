@@ -35,9 +35,33 @@ public class Encoder {
     private ByteBuffer out;
 
     Encoder(ByteBuffer buffer) {
-        this.out = out;
+        this.out = buffer;
     }
 
+    /**
+     * cbor_encode_object will try to encode the object given as a parameter. The Object must be an
+     * instance of one of the following class:
+     * <lu>
+     *     <li>Double</li>
+     *     <li>Float</li>
+     *     <li>Long</li>
+     *     <li>Integer</li>
+     *     <li>Short</li>
+     *     <li>Byte</li>
+     *     <li>Boolean</li>
+     *     <li>String</li>
+     *     <li>Map</li>
+     *     <li>Collection</li>
+     *     <li>Object[]</li>
+     * </lu>
+     *
+     * <p>For Map, Collection and array, the encapsulated data must also be one of the listed type.
+     *
+     * @param o object to be encoded
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     * @throws CBOR.CborEncodingUnknown if object is not accepted type
+     */
     public Encoder cbor_encode_object(Object o) throws BufferOverflowException, CBOR.CborEncodingUnknown {
         if(o instanceof Double) {
             cbor_encode_double(((Double) o));
@@ -70,6 +94,15 @@ public class Encoder {
         return this;
     }
 
+    /**
+     * cbor_encode_collection will try to encode the collection given as a paremeter. The item
+     * embedded in this collection must be encodable with cbor_encode_object.
+     *
+     * @param c collection to encode
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     * @throws CBOR.CborEncodingUnknown if object is not accepted type
+     */
     public Encoder cbor_encode_collection(Collection c) throws BufferOverflowException, CBOR.CborEncodingUnknown {
         cbor_start_array(c.size());
         for(Object o : c) {
@@ -78,6 +111,15 @@ public class Encoder {
         return this;
     }
 
+    /**
+     * cbor_encode_map will try to encode the map given as a paremeter. The keys and items
+     * embedded in this map must be encodable with cbor_encode_object.
+     *
+     * @param m Map to encode
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     * @throws CBOR.CborEncodingUnknown if object is not accepted type
+     */
     public Encoder cbor_encode_map(Map m) throws BufferOverflowException, CBOR.CborEncodingUnknown {
         cbor_start_map(m.size());
         for(Object o : m.keySet()) {
@@ -87,6 +129,16 @@ public class Encoder {
         return this;
     }
 
+
+    /**
+     * Starts an array of length given. if length is negative, the array is assumed to be of size
+     * indefinite. This encoder makes no check if a break ever appear later so a later call to
+     * cbor_stop_array must be done to ensure cbor-validity.
+     *
+     * @param length of the array
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     */
     public Encoder cbor_start_array (long length) throws BufferOverflowException {
         if(length < 0) {
             encode_number((byte) CborArrayType, IndefiniteLength);
@@ -96,11 +148,26 @@ public class Encoder {
         return this;
     }
 
+    /**
+     * Close an opened array. This encoder makes no check wether a container was opened earlier.
+     *
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     */
     public Encoder cbor_stop_array () throws BufferOverflowException {
         out.put((byte)BreakByte);
         return this;
     }
 
+    /**
+     * Starts a map of length given. if length is negative, the map is assumed to be of size
+     * indefinite. This encoder makes no check if a break ever appear later so it must be added
+     * manually to ensure cbor-validity.
+     *
+     * @param length of the map
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     */
     public Encoder cbor_start_map (long length) throws BufferOverflowException {
         if(length < 0) {
             encode_number((byte) CborMapType, IndefiniteLength);
@@ -110,11 +177,27 @@ public class Encoder {
         return this;
     }
 
+    /**
+     * Close an opened map. This encoder makes no check wether a container was opened earlier.
+     *
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     */
     public Encoder cbor_stop_map () throws BufferOverflowException {
         out.put((byte)BreakByte);
         return this;
     }
 
+    /**
+     * Starts a byte string of length given. if length is negative, the string is assumed to be of
+     * size indefinite. While this byte string is open, chunks must be added with
+     * {@see cbor_put_byte_string_chunk}. This encoder makes no check if a break ever appear later
+     * so it must be added manually to ensure cbor-validity.
+     *
+     * @param length of the string
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     */
     public Encoder cbor_start_byte_string (long length) throws BufferOverflowException {
         if(length < 0) {
             encode_number((byte) CborByteStringType, IndefiniteLength);
@@ -124,16 +207,40 @@ public class Encoder {
         return this;
     }
 
+    /**
+     * Add a fixed length byte string.
+     *
+     * @param chunk to add
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     */
     public Encoder cbor_put_byte_string_chunk (byte[] chunk) throws BufferOverflowException {
         cbor_encode_byte_string(chunk);
         return this;
     }
 
+    /**
+     * Close an opened byte string. This encoder makes no check wether a container was opened
+     * earlier.
+     *
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     */
     public Encoder cbor_stop_byte_string () throws BufferOverflowException {
         out.put((byte)BreakByte);
         return this;
     }
 
+    /**
+     * Starts a text string of length given. if length is negative, the string is assumed to be of
+     * size indefinite. While this text string is open, chunks must be added with
+     * {@see cbor_put_text_string_chunk}. This encoder makes no check if a break ever appear later
+     * so it must be added manually to ensure cbor-validity.
+     *
+     * @param length of the string
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     */
     public Encoder cbor_start_text_string (long length) throws BufferOverflowException {
         if(length < 0) {
             encode_number((byte) CborTextStringType, IndefiniteLength);
@@ -143,46 +250,110 @@ public class Encoder {
         return this;
     }
 
+    /**
+     * Add a fixed length text string.
+     *
+     * @param chunk to add
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     */
     public Encoder cbor_put_text_string_chunk (String chunk) throws BufferOverflowException {
         cbor_encode_text_string(chunk);
         return this;
     }
 
+    /**
+     * Close an opened text string. This encoder makes no check wether a container was opened
+     * earlier.
+     *
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     */
     public Encoder cbor_stop_text_string () throws BufferOverflowException {
         out.put((byte)BreakByte);
         return this;
     }
 
+    /**
+     * Add a fixed length byte string.
+     *
+     * @param array to add
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     */
     public Encoder cbor_encode_byte_string(byte[] array) throws BufferOverflowException {
         encode_string((byte)CborByteStringType, array);
         return this;
     }
 
+    /**
+     * Add a fixed length text string. This encoder makes no check that the str supplied is
+     * a UTF-8 text string.
+     *
+     * @param str to add
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     */
     public Encoder cbor_encode_text_string(String str) throws BufferOverflowException {
         encode_string((byte)CborTextStringType, str.getBytes());
         return this;
     }
 
+    /**
+     * add a tag to the CBOR stream.
+     *
+     * @param tag to add
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     */
     public Encoder cbor_encode_tag(long tag) throws BufferOverflowException {
         encode_number((byte)CborTagType, tag);
         return this;
     }
 
+    /**
+     * encode a double floating point number.
+     *
+     * @param value to add
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     */
     public Encoder cbor_encode_double(double value) throws BufferOverflowException {
         encode_number((byte)CborDoubleType, Double.doubleToRawLongBits(value));
         return this;
     }
 
+    /**
+     * encode a single floating point number.
+     *
+     * @param value to add
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     */
     public Encoder cbor_encode_float(float value) throws BufferOverflowException {
         encode_number((byte)CborFloatType, Float.floatToRawIntBits(value));
         return this;
     }
 
+    /**
+     * encode a half floating point number.
+     *
+     * @param value to add
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     */
     public Encoder cbor_encode_half_float(float value) throws BufferOverflowException {
         encode_number((byte)CborHalfFloatType, halfPrecisionToRawIntBits(value));
         return this;
     }
 
+    /**
+     * add a simple value {@see Constants.CborSimpleValues}.
+     *
+     * @param value to add
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     */
     public Encoder cbor_encode_simple_value(byte value) throws BufferOverflowException, CBOR.CborErrorIllegalSimpleType {
         if (value >= HalfPrecisionFloat && value <= Break)
             throw new CBOR.CborErrorIllegalSimpleType();
@@ -190,6 +361,13 @@ public class Encoder {
         return this;
     }
 
+    /**
+     * encode a positive or negative byte/short/integer/long number.
+     *
+     * @param value to add
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     */
     public Encoder cbor_encode_int(long value) throws BufferOverflowException {
         long ui = value >> 63;
         byte majorType = (byte)(ui & 0x20);
@@ -198,16 +376,29 @@ public class Encoder {
         return this;
     }
 
+    /**
+     * encode an unsigned positive byte/short/integer/long number.
+     *
+     * @param ui to add
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     */
     public Encoder cbor_encode_uint(long ui) throws BufferOverflowException {
         encode_number( (byte)(UnsignedIntegerType << MajorTypeShift), ui);
         return this;
     }
 
+    /**
+     * encode a negative byte/short/integer/long number.
+     *
+     * @param absolute_value to add, value must be absolute
+     * @return this encoder
+     * @throws BufferOverflowException if the buffer is full
+     */
     public Encoder cbor_encode_negative_uint(long absolute_value) throws BufferOverflowException {
         encode_number((byte)(NegativeIntegerType << MajorTypeShift), absolute_value - 1);
         return this;
     }
-
 
     private void encode_number(byte shifted_mt, long ui) throws BufferOverflowException {
         if (ui < Value8Bit) {
