@@ -9,7 +9,6 @@ import io.left.rightmesh.libdtn.data.BlockHeader;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.Dictionary;
 import io.left.rightmesh.libdtn.data.EID;
-import io.left.rightmesh.libdtn.data.PayloadBlock;
 import io.left.rightmesh.libdtn.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.data.ScopeControlHopLimitBlock;
 import io.left.rightmesh.libdtn.storage.BLOB;
@@ -258,7 +257,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             dictLength = (int) sdnv_value.getValue();
             debug("AsyncParser", "dictLength=" + sdnv_value.getValue());
-            primary_block_dict_byte_array.allocate(dictLength);
+            primary_block_dict_byte_array.realloc(dictLength);
             return primary_block_dict_byte_array;
         }
     };
@@ -430,7 +429,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
 
     private ParserState blob_block_payload = new ParserState() {
         WritableBLOB writableData = null;
-        
+
         @Override
         public void onEnter() throws RxParserException {
             debug("AsyncParser", "start_bundle_payload");

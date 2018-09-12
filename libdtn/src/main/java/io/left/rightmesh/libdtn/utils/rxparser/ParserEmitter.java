@@ -61,7 +61,7 @@ public abstract class ParserEmitter<T> implements Observer<ByteBuffer>, Disposab
     /**
      * Must be called by the child class whenever an item was deserialized.
      * If a ByteBuffer.remaining() of zero is received
-     * from upstream, it triggers a reset. Similarly, emitting a ByteBuffer.allocate(0) will
+     * from upstream, it triggers a reset. Similarly, emitting a ByteBuffer.realloc(0) will
      * trigger a reset from downstream.
      *
      * @param item to be emitted

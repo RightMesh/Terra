@@ -11,7 +11,16 @@ import java.nio.ByteBuffer;
 public abstract class BufferState extends ObjectState<ByteBuffer> {
     private ByteBuffer buffer;
 
-    public void allocate(int size) {
+    public BufferState realloc(int size) {
+        if(size == buffer.capacity()) {
+            buffer.clear();
+        } else {
+            buffer = ByteBuffer.allocate(size);
+        }
+        return this;
+    }
+
+    public BufferState(int size) {
         buffer = ByteBuffer.allocate(size);
     }
 

@@ -483,7 +483,7 @@ public class TCPCLv3 implements ConvergenceLayer {
                         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
                             eid_length = sdnv_value.getValue();
                             debug("TCPCLv3", "eid_length=" + eid_length);
-                            contact_header_local_eid.allocate((int) eid_length);
+                            contact_header_local_eid.realloc((int) eid_length);
                             return contact_header_local_eid;
                         }
                     };

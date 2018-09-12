@@ -1,7 +1,13 @@
 package io.left.rightmesh.libdtn.utils.rxparser;
 
+import java.nio.ByteBuffer;
+
 /**
  * @author Lucien Loiseau on 10/09/18.
  */
-public class ByteState {
+public abstract class ByteState extends ObjectState<Byte> {
+    @Override
+    public ParserState onNext(ByteBuffer next) throws RxParserException {
+        return onSuccess(next.get());
+    }
 }
