@@ -99,7 +99,7 @@ public class CborParser {
             }
         }
 
-        if (parserQueue.size() == 0) {
+        if (state == null && parserQueue.size() == 0) {
             return true;
         }
         return false;

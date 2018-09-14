@@ -1,5 +1,6 @@
 package io.left.rightmesh.libdtn.data.bundleV7.cbor;
 
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -24,8 +25,8 @@ public class CBOR {
     public static class CborEncodingUnknown extends Exception {
     }
 
-    public static CborEncoder getCborEncoder(ByteBuffer buffer) {
-        return new CborEncoder(buffer);
+    public static CborEncoder getCborEncoder() {
+        return new CborEncoder();
     }
 
     public static CborParser getCborParser() {

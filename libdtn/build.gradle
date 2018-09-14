@@ -11,7 +11,9 @@ test {
 }
 
 dependencies {
-    // reactive programming
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    // RxJava library for reactive programming
     api 'io.reactivex.rxjava2:rxjava:2.1.1'
 
     //tuples, triples, immutable pairs, etc.
@@ -21,8 +23,6 @@ dependencies {
     api (group: 'com.google.guava', name: 'guava', version: 'r05')
 
     testImplementation 'junit:junit:4.12'
-
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8

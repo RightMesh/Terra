@@ -495,7 +495,7 @@ public class CBORParserTest {
             b = dec.cbor_parse_generic(
                     (arr) -> {
                         assertEquals(true, arr instanceof ArrayItem);
-                        Collection<DataItem> c = ((ArrayItem)arr).value();
+                        Collection<DataItem> c = ((ArrayItem) arr).value();
                         assertEquals(3, c.size());
                     }).read(hexToBuf("0x9f01820203820405ff"));
             assertEquals(true, b);
@@ -509,21 +509,90 @@ public class CBORParserTest {
             b = dec.cbor_parse_generic(
                     (mi) -> {
                         assertEquals(true, mi instanceof MapItem);
-                        Map<DataItem, DataItem> map = (Map)mi.item;
+                        Map<DataItem, DataItem> map = (Map) mi.item;
                         assertEquals(m.size(), map.size());
                         for (DataItem itemKey : map.keySet()) {
                             assertEquals(true, itemKey instanceof TextStringItem);
-                            String key = (String)itemKey.item;
+                            String key = (String) itemKey.item;
                             DataItem itemValue = map.get(itemKey);
                             assertEquals(true, itemValue instanceof TextStringItem);
-                            String value = (String)itemValue.item;
+                            String value = (String) itemValue.item;
                             assertEquals(true, m.containsKey(key));
                             assertEquals(true, m.get(key).equals(value));
                         }
                     }
             ).read(hexToBuf("0xa56161614161626142616361436164614461656145"));
+            assertEquals(true, b);
 
-            dec.cbor_parse_generic((i) -> {}).read(hexToBuf("0xbf61610161629f0203ffff"));
+            b = dec.cbor_parse_generic((i) -> {
+            }).read(hexToBuf("0xbf61610161629f0203ffff"));
+            assertEquals(true, b);
+
+        } catch (RxParserException rpe) {
+            rpe.printStackTrace();
+            fail();
+        }
+    }
+
+    @Test
+    public void encodeAppendixA_Array_And_Hashes_Indefinite() {
+        try {
+            CborParser dec = CBOR.getCborParser();
+            boolean b;
+
+            b = dec.cbor_parse_generic((i) -> {
+            }).read(hexToBuf("0x9f018202039f0405ffff"));
+            assertEquals(true, b);
+
+            b = dec.cbor_parse_generic((i) -> {
+            }).read(hexToBuf("0x9f01820203820405ff"));
+            assertEquals(true, b);
+
+            b = dec.cbor_parse_generic((i) -> {
+            }).read(hexToBuf("0x83018202039f0405ff"));
+            assertEquals(true, b);
+
+            b = dec.cbor_parse_generic((i) -> {
+            }).read(hexToBuf("0x83019f0203ff820405"));
+            assertEquals(true, b);
+
+            b = dec.cbor_parse_generic((i) -> {
+            }).read(hexToBuf("0x9f0102030405060708090a0b0c0d0e0f101112131415161718181819ff"));
+            assertEquals(true, b);
+
+            b = dec.cbor_parse_generic((i) -> {
+            }).read(hexToBuf("0xbf61610161629f0203ffff"));
+            assertEquals(true, b);
+
+            b = dec.cbor_parse_generic((i) -> {
+            }).read(hexToBuf("0x826161bf61626163ff"));
+            assertEquals(true, b);
+        } catch (RxParserException rpe) {
+            rpe.printStackTrace();
+            fail();
+        }
+    }
+
+
+    @Test
+    public void parseAsyncBuffer() {
+        try {
+            CborParser dec = CBOR.getCborParser();
+            boolean b;
+
+            b = dec.cbor_parse_generic((i) -> {
+            }).read(hexToBuf("0x9f0102030405060708090a0b0c"));
+            assertEquals(false, b);
+            b = dec.read(hexToBuf("0x0d0e0f101112131415161718181819ff"));
+            assertEquals(true, b);
+
+
+            b = dec.cbor_parse_generic((i) -> {
+            }).read(hexToBuf("0xa561616141"));
+            assertEquals(false, b);
+            b = dec.read(hexToBuf("0x61626142616361436164614461656145"));
+            assertEquals(true, b);
+            
         } catch (RxParserException rpe) {
             rpe.printStackTrace();
             fail();

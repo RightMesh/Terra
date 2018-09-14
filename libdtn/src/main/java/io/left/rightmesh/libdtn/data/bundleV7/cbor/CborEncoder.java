@@ -35,54 +35,67 @@ import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Map;
 
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
+
 public class CborEncoder {
 
-    private ByteBuffer out;
+    private ByteBuffer current;
+    private Flowable<ByteBuffer> flow;
 
-    CborEncoder(ByteBuffer buffer) {
-        this.out = buffer;
+    public CborEncoder() {
+        flow = Flowable.empty();
+        current = ByteBuffer.allocate(2048);
+    }
+
+    private void add(Flowable<ByteBuffer> encode) {
+        flow = flow.concatWith(encode);
+    }
+
+    public Flowable<ByteBuffer> encode() {
+        return flow;
     }
 
     /**
      * cbor_encode_object will try to encode the object given as a parameter. The Object must be an
      * instance of one of the following class:
      * <lu>
-     *     <li>Double</li>
-     *     <li>Float</li>
-     *     <li>Long</li>
-     *     <li>Integer</li>
-     *     <li>Short</li>
-     *     <li>Byte</li>
-     *     <li>Boolean</li>
-     *     <li>String</li>
-     *     <li>Map</li>
-     *     <li>Collection</li>
-     *     <li>Object[]</li>
+     * <li>Double</li>
+     * <li>Float</li>
+     * <li>Long</li>
+     * <li>Integer</li>
+     * <li>Short</li>
+     * <li>Byte</li>
+     * <li>Boolean</li>
+     * <li>String</li>
+     * <li>Map</li>
+     * <li>Collection</li>
+     * <li>Object[]</li>
      * </lu>
-     *
+     * <p>
      * <p>For Map, Collection and array, the encapsulated data must also be one of the listed type.
      *
      * @param o object to be encoded
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
+     * @throws BufferOverflowException  if the buffer is full
      * @throws CBOR.CborEncodingUnknown if object is not accepted type
      */
-    public CborEncoder cbor_encode_object(Object o) throws BufferOverflowException, CBOR.CborEncodingUnknown {
-        if(o instanceof Double) {
+    public CborEncoder cbor_encode_object(Object o) throws CBOR.CborEncodingUnknown {
+        if (o instanceof Double) {
             cbor_encode_double(((Double) o));
-        } else if(o instanceof Float) {
+        } else if (o instanceof Float) {
             cbor_encode_float(((Float) o));
-        } else if(o instanceof Number) {
+        } else if (o instanceof Number) {
             cbor_encode_int(((Number) o).longValue());
-        } else if(o instanceof String) {
-            cbor_encode_text_string((String)o);
-        } else if(o instanceof Boolean) {
-            cbor_encode_boolean((Boolean)o);
-        } else if(o instanceof Map) {
-            cbor_encode_map((Map)o);
-        } else if(o instanceof Collection) {
-            cbor_encode_collection((Collection)o);
-        } else if(o != null) {
+        } else if (o instanceof String) {
+            cbor_encode_text_string((String) o);
+        } else if (o instanceof Boolean) {
+            cbor_encode_boolean((Boolean) o);
+        } else if (o instanceof Map) {
+            cbor_encode_map((Map) o);
+        } else if (o instanceof Collection) {
+            cbor_encode_collection((Collection) o);
+        } else if (o != null) {
             Class<?> type = o.getClass();
             if (type.isArray()) {
                 int len = Array.getLength(o);
@@ -100,18 +113,15 @@ public class CborEncoder {
     }
 
     public CborEncoder cbor_encode_boolean(boolean b) {
-        encode_number((byte)(CborSimpleType), b ? TrueValue : FalseValue);
-        return this;
+        return encode_number((byte) (CborSimpleType), b ? TrueValue : FalseValue);
     }
 
     public CborEncoder cbor_encode_null() {
-        encode_number((byte)(CborSimpleType), NullValue);
-        return this;
+        return encode_number((byte) (CborSimpleType), NullValue);
     }
 
     public CborEncoder cbor_encode_undefined() {
-        encode_number((byte)(CborSimpleType), UndefinedValue);
-        return this;
+        return encode_number((byte) (CborSimpleType), UndefinedValue);
     }
 
     /**
@@ -120,12 +130,12 @@ public class CborEncoder {
      *
      * @param c collection to encode
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
+     * @throws BufferOverflowException  if the buffer is full
      * @throws CBOR.CborEncodingUnknown if object is not accepted type
      */
-    public CborEncoder cbor_encode_collection(Collection c) throws BufferOverflowException, CBOR.CborEncodingUnknown {
+    public CborEncoder cbor_encode_collection(Collection c) throws  CBOR.CborEncodingUnknown {
         cbor_start_array(c.size());
-        for(Object o : c) {
+        for (Object o : c) {
             cbor_encode_object(o);
         }
         return this;
@@ -137,12 +147,12 @@ public class CborEncoder {
      *
      * @param m Map to encode
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
+     * @throws BufferOverflowException  if the buffer is full
      * @throws CBOR.CborEncodingUnknown if object is not accepted type
      */
-    public CborEncoder cbor_encode_map(Map m) throws BufferOverflowException, CBOR.CborEncodingUnknown {
+    public CborEncoder cbor_encode_map(Map m) throws  CBOR.CborEncodingUnknown {
         cbor_start_map(m.size());
-        for(Object o : m.keySet()) {
+        for (Object o : m.keySet()) {
             cbor_encode_object(o);
             cbor_encode_object(m.get(o));
         }
@@ -159,13 +169,12 @@ public class CborEncoder {
      * @return this encoder
      * @throws BufferOverflowException if the buffer is full
      */
-    public CborEncoder cbor_start_array (long length) throws BufferOverflowException {
-        if(length < 0) {
-            out.put((byte)CborArrayWithIndefiniteLength);
+    public CborEncoder cbor_start_array(long length) {
+        if (length < 0) {
+            return put((byte) CborArrayWithIndefiniteLength);
         } else {
-            encode_number((byte) CborArrayType, length);
+            return encode_number((byte) CborArrayType, length);
         }
-        return this;
     }
 
     /**
@@ -174,9 +183,8 @@ public class CborEncoder {
      * @return this encoder
      * @throws BufferOverflowException if the buffer is full
      */
-    public CborEncoder cbor_stop_array () throws BufferOverflowException {
-        out.put((byte)BreakByte);
-        return this;
+    public CborEncoder cbor_stop_array() {
+        return put((byte) BreakByte);
     }
 
     /**
@@ -188,13 +196,12 @@ public class CborEncoder {
      * @return this encoder
      * @throws BufferOverflowException if the buffer is full
      */
-    public CborEncoder cbor_start_map (long length) throws BufferOverflowException {
-        if(length < 0) {
-            out.put((byte)CborMapWithIndefiniteLength);
+    public CborEncoder cbor_start_map(long length) {
+        if (length < 0) {
+            return put((byte) CborMapWithIndefiniteLength);
         } else {
-            encode_number((byte) CborMapType, length);
+            return encode_number((byte) CborMapType, length);
         }
-        return this;
     }
 
     /**
@@ -203,9 +210,8 @@ public class CborEncoder {
      * @return this encoder
      * @throws BufferOverflowException if the buffer is full
      */
-    public CborEncoder cbor_stop_map () throws BufferOverflowException {
-        out.put((byte)BreakByte);
-        return this;
+    public CborEncoder cbor_stop_map() {
+        return put((byte) BreakByte);
     }
 
     /**
@@ -218,13 +224,12 @@ public class CborEncoder {
      * @return this encoder
      * @throws BufferOverflowException if the buffer is full
      */
-    public CborEncoder cbor_start_byte_string (long length) throws BufferOverflowException {
-        if(length < 0) {
-            out.put((byte)CborByteStringWithIndefiniteLength);
+    public CborEncoder cbor_start_byte_string(long length) {
+        if (length < 0) {
+            return put((byte) CborByteStringWithIndefiniteLength);
         } else {
-            encode_number((byte) CborByteStringType, length);
+            return encode_number((byte) CborByteStringType, length);
         }
-        return this;
     }
 
     /**
@@ -234,9 +239,8 @@ public class CborEncoder {
      * @return this encoder
      * @throws BufferOverflowException if the buffer is full
      */
-    public CborEncoder cbor_put_byte_string_chunk (byte[] chunk) throws BufferOverflowException {
-        cbor_encode_byte_string(chunk);
-        return this;
+    public CborEncoder cbor_put_byte_string_chunk(byte[] chunk) {
+        return cbor_encode_byte_string(chunk);
     }
 
     /**
@@ -246,9 +250,8 @@ public class CborEncoder {
      * @return this encoder
      * @throws BufferOverflowException if the buffer is full
      */
-    public CborEncoder cbor_stop_byte_string () throws BufferOverflowException {
-        out.put((byte)BreakByte);
-        return this;
+    public CborEncoder cbor_stop_byte_string() {
+        return put((byte) BreakByte);
     }
 
     /**
@@ -261,13 +264,12 @@ public class CborEncoder {
      * @return this encoder
      * @throws BufferOverflowException if the buffer is full
      */
-    public CborEncoder cbor_start_text_string (long length) throws BufferOverflowException {
-        if(length < 0) {
-            out.put((byte)CborTextStringWithIndefiniteLength);
+    public CborEncoder cbor_start_text_string(long length) {
+        if (length < 0) {
+            return put((byte) CborTextStringWithIndefiniteLength);
         } else {
-            encode_number((byte) CborTextStringType, length);
+            return encode_number((byte) CborTextStringType, length);
         }
-        return this;
     }
 
     /**
@@ -277,9 +279,8 @@ public class CborEncoder {
      * @return this encoder
      * @throws BufferOverflowException if the buffer is full
      */
-    public CborEncoder cbor_put_text_string_chunk (String chunk) throws BufferOverflowException {
-        cbor_encode_text_string(chunk);
-        return this;
+    public CborEncoder cbor_put_text_string_chunk(String chunk) {
+        return cbor_encode_text_string(chunk);
     }
 
     /**
@@ -289,9 +290,8 @@ public class CborEncoder {
      * @return this encoder
      * @throws BufferOverflowException if the buffer is full
      */
-    public CborEncoder cbor_stop_text_string () throws BufferOverflowException {
-        out.put((byte)BreakByte);
-        return this;
+    public CborEncoder cbor_stop_text_string() {
+        return put((byte) BreakByte);
     }
 
     /**
@@ -301,9 +301,8 @@ public class CborEncoder {
      * @return this encoder
      * @throws BufferOverflowException if the buffer is full
      */
-    public CborEncoder cbor_encode_byte_string(byte[] array) throws BufferOverflowException {
-        encode_string((byte)CborByteStringType, array);
-        return this;
+    public CborEncoder cbor_encode_byte_string(byte[] array) {
+        return encode_string((byte) CborByteStringType, array);
     }
 
     /**
@@ -314,9 +313,8 @@ public class CborEncoder {
      * @return this encoder
      * @throws BufferOverflowException if the buffer is full
      */
-    public CborEncoder cbor_encode_text_string(String str) throws BufferOverflowException {
-        encode_string((byte)CborTextStringType, str.getBytes());
-        return this;
+    public CborEncoder cbor_encode_text_string(String str) {
+        return encode_string((byte) CborTextStringType, str.getBytes());
     }
 
     /**
@@ -326,9 +324,8 @@ public class CborEncoder {
      * @return this encoder
      * @throws BufferOverflowException if the buffer is full
      */
-    public CborEncoder cbor_encode_tag(long tag) throws BufferOverflowException {
-        encode_number((byte)CborTagType, tag);
-        return this;
+    public CborEncoder cbor_encode_tag(long tag) {
+        return encode_number((byte) CborTagType, tag);
     }
 
     /**
@@ -338,9 +335,15 @@ public class CborEncoder {
      * @return this encoder
      * @throws BufferOverflowException if the buffer is full
      */
-    public CborEncoder cbor_encode_double(double value) throws BufferOverflowException {
-        out.put((byte)CborDoublePrecisionFloat);
-        out.putDouble(value);
+    public CborEncoder cbor_encode_double(double value) {
+        add(Flowable.create(s -> {
+            ByteBuffer out = ByteBuffer.allocate(9);
+            out.put((byte) CborDoublePrecisionFloat);
+            out.putDouble(value);
+            out.flip();
+            s.onNext(out);
+            s.onComplete();
+        }, BackpressureStrategy.BUFFER));
         return this;
     }
 
@@ -351,9 +354,15 @@ public class CborEncoder {
      * @return this encoder
      * @throws BufferOverflowException if the buffer is full
      */
-    public CborEncoder cbor_encode_float(float value) throws BufferOverflowException {
-        out.put((byte)CborSinglePrecisionFloat);
-        out.putFloat(value);
+    public CborEncoder cbor_encode_float(float value) {
+        add(Flowable.create(s -> {
+            ByteBuffer out = ByteBuffer.allocate(5);
+            out.put((byte) CborSinglePrecisionFloat);
+            out.putFloat(value);
+            out.flip();
+            s.onNext(out);
+            s.onComplete();
+        }, BackpressureStrategy.BUFFER));
         return this;
     }
 
@@ -364,9 +373,15 @@ public class CborEncoder {
      * @return this encoder
      * @throws BufferOverflowException if the buffer is full
      */
-    public CborEncoder cbor_encode_half_float(float value) throws BufferOverflowException {
-        out.put((byte)CborHalfPrecisionFloat);
-        out.putShort(halfPrecisionToRawIntBits(value));
+    public CborEncoder cbor_encode_half_float(float value) {
+        add(Flowable.create(s -> {
+            ByteBuffer out = ByteBuffer.allocate(3);
+            out.put((byte) CborHalfPrecisionFloat);
+            out.putShort(halfPrecisionToRawIntBits(value));
+            out.flip();
+            s.onNext(out);
+            s.onComplete();
+        }, BackpressureStrategy.BUFFER));
         return this;
     }
 
@@ -377,14 +392,12 @@ public class CborEncoder {
      * @return this encoder
      * @throws BufferOverflowException if the buffer is full
      */
-    public CborEncoder cbor_encode_simple_value(byte value) throws BufferOverflowException {
-        if((value & 0xff) <= Break) {
-            encode_number((byte)(SimpleTypesType << MajorTypeShift), value);
+    public CborEncoder cbor_encode_simple_value(byte value) {
+        if ((value & 0xff) <= Break) {
+            return encode_number((byte) (SimpleTypesType << MajorTypeShift), value);
         } else {
-            out.put((byte)CborSimpleValue1ByteFollow);
-            out.put(value);
+            return put((byte) CborSimpleValue1ByteFollow, value);
         }
-        return this;
     }
 
     /**
@@ -394,12 +407,11 @@ public class CborEncoder {
      * @return this encoder
      * @throws BufferOverflowException if the buffer is full
      */
-    public CborEncoder cbor_encode_int(long value) throws BufferOverflowException {
+    public CborEncoder cbor_encode_int(long value) {
         long ui = value >> 63;
-        byte majorType = (byte)(ui & 0x20);
+        byte majorType = (byte) (ui & 0x20);
         ui ^= value;
-        encode_number(majorType, ui);
-        return this;
+        return encode_number(majorType, ui);
     }
 
     /**
@@ -409,9 +421,8 @@ public class CborEncoder {
      * @return this encoder
      * @throws BufferOverflowException if the buffer is full
      */
-    public CborEncoder cbor_encode_uint(long ui) throws BufferOverflowException {
-        encode_number( (byte)(UnsignedIntegerType << MajorTypeShift), ui);
-        return this;
+    public CborEncoder cbor_encode_uint(long ui) {
+        return encode_number((byte) (UnsignedIntegerType << MajorTypeShift), ui);
     }
 
     /**
@@ -421,36 +432,76 @@ public class CborEncoder {
      * @return this encoder
      * @throws BufferOverflowException if the buffer is full
      */
-    public CborEncoder cbor_encode_negative_uint(long absolute_value) throws BufferOverflowException {
-        encode_number((byte)(NegativeIntegerType << MajorTypeShift), absolute_value - 1);
-        return this;
+    public CborEncoder cbor_encode_negative_uint(long absolute_value) {
+        return encode_number((byte) (NegativeIntegerType << MajorTypeShift), absolute_value - 1);
+
     }
 
-    private void encode_number(byte shifted_mt, long ui) throws BufferOverflowException {
-        if (ui < Value8Bit) {
-            out.put((byte) (shifted_mt | ui & 0xff));
-        } else if (ui < 0x100L) {
-            out.put((byte)(shifted_mt | Value8Bit));
-            out.put((byte)ui);
-        } else if (ui < 0x10000L) {
-            out.put((byte)(shifted_mt | Value16Bit));
-            out.putShort((short)ui);
-        } else if (ui < 0x100000000L) {
-            out.put((byte)(shifted_mt | Value32Bit));
-            out.putInt((int)ui);
+    private CborEncoder encode_string(byte shifted_mt, byte[] array) {
+        int len = (array == null) ? 0 : array.length;
+        if (array == null) {
+            return encode_number(shifted_mt, len);
         } else {
-            out.put((byte)(shifted_mt | Value64Bit));
-            out.putLong(ui);
+            encode_number(shifted_mt, len);
+            add(Flowable.just(ByteBuffer.wrap(array)));
+            return this;
         }
     }
 
-    private void encode_string(byte shifted_mt, byte[] array) throws BufferOverflowException {
-        int len = (array == null) ? 0 : array.length;
-        encode_number(shifted_mt, len);
-        out.put(array);
+    private CborEncoder put(byte b) {
+        add(Flowable.create(s -> {
+            ByteBuffer out = ByteBuffer.allocate(1);
+            out.put(b);
+            out.flip();
+            s.onNext(out);
+            s.onComplete();
+        },BackpressureStrategy.BUFFER));
+        return this;
     }
 
-    private short halfPrecisionToRawIntBits(float value) throws BufferOverflowException {
+    private CborEncoder put(byte b1, byte b2) {
+        add(Flowable.create(s -> {
+            ByteBuffer out = ByteBuffer.allocate(2);
+            out.put(b1);
+            out.put(b2);
+            out.flip();
+            s.onNext(out);
+            s.onComplete();
+        },BackpressureStrategy.BUFFER));
+        return this;
+    }
+
+    private CborEncoder encode_number(final byte shifted_mt, final long ui) {
+        add(Flowable.create(s -> {
+            ByteBuffer out;
+            if (ui < Value8Bit) {
+                out = ByteBuffer.allocate(1);
+                out.put((byte) (shifted_mt | ui & 0xff));
+            } else if (ui < 0x100L) {
+                out = ByteBuffer.allocate(2);
+                out.put((byte) (shifted_mt | Value8Bit));
+                out.put((byte) ui);
+            } else if (ui < 0x10000L) {
+                out = ByteBuffer.allocate(3);
+                out.put((byte) (shifted_mt | Value16Bit));
+                out.putShort((short) ui);
+            } else if (ui < 0x100000000L) {
+                out = ByteBuffer.allocate(5);
+                out.put((byte) (shifted_mt | Value32Bit));
+                out.putInt((int) ui);
+            } else {
+                out = ByteBuffer.allocate(9);
+                out.put((byte) (shifted_mt | Value64Bit));
+                out.putLong(ui);
+            }
+            out.flip();
+            s.onNext(out);
+            s.onComplete();
+        }, BackpressureStrategy.BUFFER));
+        return this;
+    }
+
+    private short halfPrecisionToRawIntBits(float value) {
         int fbits = Float.floatToIntBits(value);
         int sign = (fbits >>> 16) & 0x8000;
         int val = (fbits & 0x7fffffff) + 0x1000;
@@ -460,24 +511,24 @@ public class CborEncoder {
             if ((fbits & 0x7fffffff) >= 0x47800000) { // is or must become NaN/Inf
                 if (val < 0x7f800000) {
                     // was value but too large, make it +/-Inf
-                    return (short)(sign | 0x7c00);
+                    return (short) (sign | 0x7c00);
                 }
-                return (short)((sign | 0x7c00 | (fbits & 0x007fffff) >>> 13)); // keep NaN (and Inf) bits
+                return (short) ((sign | 0x7c00 | (fbits & 0x007fffff) >>> 13)); // keep NaN (and Inf) bits
             }
-            return (short)(sign | 0x7bff); // unrounded not quite Inf
+            return (short) (sign | 0x7bff); // unrounded not quite Inf
         }
         if (val >= 0x38800000) {
             // remains normalized value
-            return (short)(sign | val - 0x38000000 >>> 13); // exp - 127 + 15
+            return (short) (sign | val - 0x38000000 >>> 13); // exp - 127 + 15
         }
         if (val < 0x33000000) {
             // too small for subnormal
-            return (short)(sign); // becomes +/-0
+            return (short) (sign); // becomes +/-0
         }
 
         val = (fbits & 0x7fffffff) >>> 23;
         // add subnormal bit, round depending on cut off and div by 2^(1-(exp-127+15)) and >> 13 | exp=0
-        return (short)(sign | ((fbits & 0x7fffff | 0x800000) + (0x800000 >>> val - 102) >>> 126 - val));
+        return (short) (sign | ((fbits & 0x7fffff | 0x800000) + (0x800000 >>> val - 102) >>> 126 - val));
     }
 
 }
