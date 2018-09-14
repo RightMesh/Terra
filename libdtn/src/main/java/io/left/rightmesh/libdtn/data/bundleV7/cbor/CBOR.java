@@ -1,11 +1,17 @@
 package io.left.rightmesh.libdtn.data.bundleV7.cbor;
 
 import java.nio.ByteBuffer;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Map;
 
+import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborArrayType;
 import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborByteStringType;
 import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborDoubleType;
 import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborIntegerType;
+import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborMapType;
 import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborNullType;
+import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborSimpleType;
 import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborTagType;
 import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborTextStringType;
 import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborUndefinedType;
@@ -22,100 +28,48 @@ public class CBOR {
         return new CborEncoder(buffer);
     }
 
-    public static CborParser getCborDecoder() {
+    public static CborParser getCborParser() {
         return new CborParser();
     }
 
     /**
      * A decoded Cbor data item.
      */
-    public static class DataItem<T> {
+    public static class DataItem {
         public int cborType;
-        public T item;
+        public Object item;
+        public LinkedList<Long> tags;
 
         public DataItem(int cborType) {
             this.cborType = cborType;
+            tags = new LinkedList<>();
         }
 
-        public DataItem(int cborType, T item) {
+        public DataItem(int cborType, Object item) {
             this.cborType = cborType;
             setItem(item);
         }
 
-        void setItem(T item) {
+        public DataItem(int cborType, Object item, LinkedList<Long> tags) {
+            this.cborType = cborType;
+            setTaggedItem(tags, item);
+        }
+
+        void addTags(LinkedList<Long> tags) {
+            this.tags = tags;
+        }
+
+        void setItem(Object item) {
             this.item = item;
         }
-    }
 
-
-    public static class NullItem extends DataItem<Long> implements CborParser.ParseableItem {
-        public NullItem() {
-            super(CborNullType);
-        }
-
-        @Override
-        public CborParser getItemParser() {
-            return getCborDecoder().cbor_parse_null();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if(o == null) {
-                return false;
-            }
-            if(o instanceof NullItem) {
-                return true;
-            }
-            return false;
+        void setTaggedItem(LinkedList<Long> tags, Object item) {
+            addTags(tags);
+            setItem(item);
         }
     }
 
-    public static class UndefinedItem extends DataItem<Long> implements CborParser.ParseableItem {
-        public UndefinedItem() {
-            super(CborUndefinedType);
-        }
-
-        @Override
-        public CborParser getItemParser() {
-            return getCborDecoder().cbor_parse_undefined();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if(o == null) {
-                return false;
-            }
-            if(o instanceof UndefinedItem) {
-                return true;
-            }
-            return false;
-        }
-    }
-
-    public static class BreakItem extends DataItem<Long> implements CborParser.ParseableItem {
-        public BreakItem() {
-            super(CborUndefinedType);
-        }
-
-        @Override
-        public CborParser getItemParser() {
-            return getCborDecoder().cbor_parse_break();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if(o == null) {
-                return false;
-            }
-            if(o instanceof BreakItem) {
-                return true;
-            }
-            return false;
-        }
-    }
-
-
-    public static class IntegerItem extends DataItem<Long> implements CborParser.ParseableItem {
+    public static class IntegerItem extends DataItem implements CborParser.ParseableItem {
         public IntegerItem() {
             super(CborIntegerType);
         }
@@ -124,9 +78,17 @@ public class CBOR {
             super(CborIntegerType, l);
         }
 
+        public IntegerItem(LinkedList<Long> tags, long l) {
+            super(CborIntegerType, l, tags);
+        }
+
+        public long value() {
+            return (Long)item;
+        }
+
         @Override
         public CborParser getItemParser() {
-            return getCborDecoder().cbor_parse_int(this::setItem);
+            return getCborParser().cbor_parse_int(this::setTaggedItem);
         }
 
         @Override
@@ -141,36 +103,7 @@ public class CBOR {
         }
     }
 
-
-    public static class TagItem extends DataItem<Long> implements CborParser.ParseableItem {
-        public TagItem() {
-            super(CborTagType);
-        }
-
-        public TagItem(long l) {
-            super(CborTagType, l);
-        }
-
-        @Override
-        public CborParser getItemParser() {
-            return getCborDecoder().cbor_parse_tag(this::setItem);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if(o == null) {
-                return false;
-            }
-            if(o instanceof TagItem) {
-                return ((TagItem) o).item.equals(this.item);
-            }
-            return false;
-        }
-    }
-
-
-
-    public static class FloatingPointItem extends DataItem<Double> implements CborParser.ParseableItem {
+    public static class FloatingPointItem extends DataItem implements CborParser.ParseableItem {
         public FloatingPointItem() {
             super(CborDoubleType);
         }
@@ -179,9 +112,17 @@ public class CBOR {
             super(CborDoubleType, d);
         }
 
+        public FloatingPointItem(LinkedList<Long> tags, double d) {
+            super(CborDoubleType, d, tags);
+        }
+
+        public double value() {
+            return (Double)item;
+        }
+
         @Override
         public CborParser getItemParser() {
-            return getCborDecoder().cbor_parse_float(this::setItem);
+            return getCborParser().cbor_parse_float(this::setTaggedItem);
         }
 
         @Override
@@ -196,7 +137,7 @@ public class CBOR {
         }
     }
 
-    public static class ByteStringItem extends DataItem<ByteBuffer> implements CborParser.ParseableItem {
+    public static class ByteStringItem extends DataItem implements CborParser.ParseableItem {
         public ByteStringItem() {
             super(CborByteStringType);
         }
@@ -205,9 +146,17 @@ public class CBOR {
             super(CborByteStringType, b);
         }
 
+        public ByteStringItem(LinkedList<Long> tags, ByteBuffer b) {
+            super(CborByteStringType, b, tags);
+        }
+
+        public ByteBuffer value() {
+            return (ByteBuffer)item;
+        }
+
         @Override
         public CborParser getItemParser() {
-            return getCborDecoder().cbor_parse_byte_string_unsafe(this::setItem);
+            return getCborParser().cbor_parse_byte_string_unsafe(this::setTaggedItem);
         }
 
         @Override
@@ -222,7 +171,7 @@ public class CBOR {
         }
     }
 
-    public static class TextStringItem extends DataItem<String> implements CborParser.ParseableItem {
+    public static class TextStringItem extends DataItem implements CborParser.ParseableItem {
         public TextStringItem() {
             super(CborTextStringType);
         }
@@ -231,16 +180,26 @@ public class CBOR {
             super(CborTextStringType, str);
         }
 
+        public TextStringItem(LinkedList<Long> tags, String str) {
+            super(CborTextStringType, str, tags);
+        }
+
+        public String value() {
+            return (String)item;
+        }
 
         @Override
         public CborParser getItemParser() {
-            return getCborDecoder().cbor_parse_text_string_unsafe(this::setItem);
+            return getCborParser().cbor_parse_text_string_unsafe(this::setTaggedItem);
         }
 
         @Override
         public boolean equals(Object o) {
             if(o == null) {
                 return false;
+            }
+            if(o instanceof String) {
+                return item.equals(o);
             }
             if(o instanceof TextStringItem) {
                 return ((TextStringItem) o).item.equals(this.item);
@@ -249,7 +208,142 @@ public class CBOR {
         }
     }
 
-    public static class BooleanItem extends DataItem<Boolean> implements CborParser.ParseableItem {
+    public static class ArrayItem extends DataItem implements CborParser.ParseableItem {
+        public ArrayItem() {
+            super(CborArrayType);
+        }
+
+        public ArrayItem(Collection c) {
+            super(CborArrayType, c);
+        }
+
+        public ArrayItem(LinkedList<Long> tags, Collection c) {
+            super(CborArrayType, c, tags);
+        }
+
+        public Collection value() {
+            return (Collection) item;
+        }
+
+        @Override
+        public CborParser getItemParser() {
+            // todo
+            return null;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if(o == null) {
+                return false;
+            }
+            if(o instanceof ArrayItem) {
+                return ((ArrayItem) o).item.equals(this.item);
+            }
+            return false;
+        }
+    }
+
+    public static class MapItem extends DataItem implements CborParser.ParseableItem {
+        public MapItem() {
+            super(CborMapType);
+        }
+
+        public MapItem(Map m) {
+            super(CborMapType, m);
+        }
+
+        public MapItem(LinkedList<Long> tags, Map m) {
+            super(CborMapType, m, tags);
+        }
+
+        public Map value() {
+            return (Map)item;
+        }
+
+        @Override
+        public CborParser getItemParser() {
+            // todo
+            return null;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if(o == null) {
+                return false;
+            }
+            if(o instanceof MapItem) {
+                return ((MapItem) o).item.equals(this.item);
+            }
+            return false;
+        }
+    }
+
+    public static class TagItem extends DataItem implements CborParser.ParseableItem {
+        public TagItem() {
+            super(CborTagType);
+        }
+
+        public TagItem(long l) {
+            super(CborTagType, l);
+        }
+
+        public long value() {
+            return (Long)item;
+        }
+
+        @Override
+        public CborParser getItemParser() {
+            return getCborParser().cbor_parse_tag(this::setItem);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if(o == null) {
+                return false;
+            }
+            if(o instanceof TagItem) {
+                return ((TagItem) o).item.equals(this.item);
+            }
+            return false;
+        }
+    }
+
+    public static class SimpleValueItem extends DataItem implements CborParser.ParseableItem {
+        SimpleValueItem() {
+            super(CborSimpleType);
+        }
+
+        SimpleValueItem(int value) {
+            super(CborSimpleType);
+            setItem(value);
+        }
+
+        SimpleValueItem(LinkedList<Long> tags, int value) {
+            super(CborSimpleType, value, tags);
+        }
+
+        public long value() {
+            return (Long)item;
+        }
+
+        @Override
+        public CborParser getItemParser() {
+            return getCborParser().cbor_parse_simple_value(this::setItem);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if(o == null) {
+                return false;
+            }
+            if(o instanceof SimpleValueItem) {
+                return this.item.equals(((SimpleValueItem) o).item);
+            }
+            return false;
+        }
+    }
+
+    public static class BooleanItem extends DataItem implements CborParser.ParseableItem {
         public BooleanItem() {
             super(CborTextStringType);
         }
@@ -258,9 +352,13 @@ public class CBOR {
             super(CborTextStringType, b);
         }
 
+        public boolean value() {
+            return (Boolean)item;
+        }
+
         @Override
         public CborParser getItemParser() {
-            return getCborDecoder().cbor_parse_boolean(this::setItem);
+            return getCborParser().cbor_parse_boolean(this::setItem);
         }
 
         @Override
@@ -268,10 +366,84 @@ public class CBOR {
             if(o == null) {
                 return false;
             }
+            if(o instanceof Boolean) {
+                return item.equals(o);
+            }
             if(o instanceof BooleanItem) {
                 return ((BooleanItem) o).item.equals(this.item);
             }
             return false;
         }
     }
+
+    public static class NullItem extends DataItem implements CborParser.ParseableItem {
+        public NullItem() {
+            super(CborNullType);
+        }
+
+        @Override
+        public CborParser getItemParser() {
+            return getCborParser().cbor_parse_null();
+        }
+
+        public Object value() {
+            return null;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if(o == null) {
+                return false;
+            }
+            if(o instanceof NullItem) {
+                return true;
+            }
+            return false;
+        }
+    }
+
+    public static class UndefinedItem extends DataItem implements CborParser.ParseableItem {
+        public UndefinedItem() {
+            super(CborUndefinedType);
+        }
+
+        @Override
+        public CborParser getItemParser() {
+            return getCborParser().cbor_parse_undefined();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if(o == null) {
+                return false;
+            }
+            if(o instanceof UndefinedItem) {
+                return true;
+            }
+            return false;
+        }
+    }
+
+    public static class BreakItem extends DataItem implements CborParser.ParseableItem {
+        public BreakItem() {
+            super(CborUndefinedType);
+        }
+
+        @Override
+        public CborParser getItemParser() {
+            return getCborParser().cbor_parse_break();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if(o == null) {
+                return false;
+            }
+            if(o instanceof BreakItem) {
+                return true;
+            }
+            return false;
+        }
+    }
+
 }

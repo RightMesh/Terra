@@ -54,11 +54,6 @@ public abstract class BufferState extends ObjectState<ByteBuffer> {
         return this;
     }
 
-    @Override
-    public void onExit() throws RxParserException {
-        buffer = null;
-    }
-
     /**
      * onSuccess is called whenever the buffer is filled.
      *

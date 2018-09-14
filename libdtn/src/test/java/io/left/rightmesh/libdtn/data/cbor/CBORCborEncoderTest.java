@@ -207,6 +207,23 @@ public class CBORCborEncoderTest {
     }
 
     @Test
+    public void encodeAppendixA_Byte_Text_Strings_Indefinite() {
+        byte[] a4 = {0x01, 0x02};
+        byte[] a5 = {0x03, 0x04, 0x05};
+        enc.cbor_start_byte_string(-1)
+                .cbor_encode_byte_string(a4)
+                .cbor_encode_byte_string(a5)
+                .cbor_stop_byte_string();
+        assertEquals("0x5f42010243030405ff", toHexString(buf));
+
+        enc.cbor_start_text_string(-1)
+                .cbor_encode_text_string("strea")
+                .cbor_encode_text_string("ming")
+                .cbor_stop_text_string();
+        assertEquals("0x7f657374726561646d696e67ff", toHexString(buf));
+    }
+
+    @Test
     public void encodeAppendixA_Tags() {
         /* test tag */
         enc.cbor_encode_tag(0)
@@ -401,20 +418,6 @@ public class CBORCborEncoderTest {
         } catch (CBOR.CborEncodingUnknown c) {
             fail();
         }
-
-        byte[] a4 = {0x01, 0x02};
-        byte[] a5 = {0x03, 0x04, 0x05};
-        enc.cbor_start_byte_string(-1)
-                .cbor_encode_byte_string(a4)
-                .cbor_encode_byte_string(a5)
-                .cbor_stop_byte_string();
-        assertEquals("0x5f42010243030405ff", toHexString(buf));
-
-        enc.cbor_start_text_string(-1)
-                .cbor_encode_text_string("strea")
-                .cbor_encode_text_string("ming")
-                .cbor_stop_text_string();
-        assertEquals("0x7f657374726561646d696e67ff", toHexString(buf));
     }
 
     @Test
