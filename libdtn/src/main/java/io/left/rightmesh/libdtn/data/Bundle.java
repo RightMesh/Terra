@@ -66,10 +66,10 @@ public class Bundle extends PrimaryBlock {
      */
     public void addBlock(Block block) {
         if (blocks.size() > 0) {
-            blocks.getLast().setFlag(BlockHeader.BlockFlags.LAST_BLOCK, false);
+            blocks.getLast().setV6Flag(BlockHeader.BlockV6Flags.LAST_BLOCK, false);
         }
         blocks.add(block);
-        block.setFlag(BlockHeader.BlockFlags.LAST_BLOCK, true);
+        block.setV6Flag(BlockHeader.BlockV6Flags.LAST_BLOCK, true);
     }
 
     /**
@@ -79,8 +79,8 @@ public class Bundle extends PrimaryBlock {
      */
     public void delBlock(Block block) {
         blocks.remove(block);
-        if (block.getFlag(BlockHeader.BlockFlags.LAST_BLOCK) && (blocks.size() > 0)) {
-            blocks.getLast().setFlag(BlockHeader.BlockFlags.LAST_BLOCK, true);
+        if (block.getV6Flag(BlockHeader.BlockV6Flags.LAST_BLOCK) && (blocks.size() > 0)) {
+            blocks.getLast().setV6Flag(BlockHeader.BlockV6Flags.LAST_BLOCK, true);
         }
     }
 

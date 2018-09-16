@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.data.bundleV7.cbor;
+package io.left.rightmesh.libcbor;
 
 /**
  * Constant values used by the CBOR format.

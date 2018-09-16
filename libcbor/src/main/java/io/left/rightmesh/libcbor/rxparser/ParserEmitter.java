@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.utils.rxparser;
+package io.left.rightmesh.libcbor.rxparser;
 
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;

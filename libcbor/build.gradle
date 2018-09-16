@@ -1,0 +1,31 @@
+apply plugin: 'java-library'
+
+test {
+    useJUnit()
+    maxHeapSize = '1G'
+
+    filter {
+        //include all integration tests
+        includeTestsMatching "*Test"
+    }
+}
+
+
+dependencies {
+
+    // source
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    // RxJava library for reactive programming
+    api 'io.reactivex.rxjava2:rxjava:2.1.1'
+
+
+    // ByteArrayDataOutput ByteStreams
+    api (group: 'com.google.guava', name: 'guava', version: 'r05')
+
+    // junit
+    testImplementation 'junit:junit:4.12'
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8

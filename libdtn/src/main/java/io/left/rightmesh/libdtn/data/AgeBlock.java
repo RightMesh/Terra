@@ -1,11 +1,5 @@
 package io.left.rightmesh.libdtn.data;
 
-import io.left.rightmesh.libdtn.data.bundleV6.SDNV;
-import io.left.rightmesh.libdtn.utils.rxparser.ParserState;
-import io.reactivex.Flowable;
-
-import java.nio.ByteBuffer;
-
 /**
  * AgeBlock is a block that can be used to track lifetime for DTN node that doesn't have access to
  * UTC time but have a mean to track the elapsed time between reception and delivery of the block.
@@ -22,13 +16,13 @@ public class AgeBlock extends ExtensionBlock {
 
     AgeBlock() {
         super(type);
-        setFlag(BlockFlags.REPLICATE_IN_EVERY_FRAGMENT, true);
+        setV6Flag(BlockV6Flags.REPLICATE_IN_EVERY_FRAGMENT, true);
         start();
     }
 
     AgeBlock(long age) {
         super(type);
-        setFlag(BlockFlags.REPLICATE_IN_EVERY_FRAGMENT, true);
+        setV6Flag(BlockV6Flags.REPLICATE_IN_EVERY_FRAGMENT, true);
         this.age = age;
         start();
     }

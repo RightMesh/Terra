@@ -32,7 +32,7 @@ public class CoreProcessor {
         }
 
         if (DTNConfiguration.<Boolean>get(DTNConfiguration.Entry.EID_SINGLETON_ONLY).value()
-                && !block.getFlag(PrimaryBlock.BundleFlags.DESTINATION_IS_SINGLETON)) {
+                && !block.getV6Flag(PrimaryBlock.BundleV6Flags.DESTINATION_IS_SINGLETON)) {
             throw new RejectedException("bundle is not addressed to a singleton endpoint");
         }
 
@@ -73,7 +73,7 @@ public class CoreProcessor {
         try {
             block.onBlockDataDeserialized();
         } catch (ProcessorNotFoundException pne) {
-            if (block.getFlag(BlockHeader.BlockFlags.DELETE_BUNDLE_IF_NOT_PROCESSED)) {
+            if (block.getV6Flag(BlockHeader.BlockV6Flags.DELETE_BUNDLE_IF_NOT_PROCESSED)) {
                 throw new RejectedException("mandatory block cannot be processed");
             }
         } catch (ProcessingException pe) {
@@ -95,16 +95,16 @@ public class CoreProcessor {
                 try {
                     reprocess |= block.onBundleProcessing(bundle);
                 } catch (ProcessorNotFoundException pe) {
-                    if (block.getFlag(BlockHeader.BlockFlags.DELETE_BUNDLE_IF_NOT_PROCESSED)) {
+                    if (block.getV6Flag(BlockHeader.BlockV6Flags.DELETE_BUNDLE_IF_NOT_PROCESSED)) {
                         throw new RejectedException("");
                     }
-                    if (block.getFlag(BlockHeader.BlockFlags.DISCARD_IF_NOT_PROCESSED)) {
+                    if (block.getV6Flag(BlockHeader.BlockV6Flags.DISCARD_IF_NOT_PROCESSED)) {
                         bundle.delBlock(block);
                     }
-                    if (block.getFlag(BlockHeader.BlockFlags.TRANSMIT_STATUSREPORT_IF_NOT_PROCESSED)) {
+                    if (block.getV6Flag(BlockHeader.BlockV6Flags.TRANSMIT_STATUSREPORT_IF_NOT_PROCESSED)) {
                         // todo create a status report
                     }
-                    block.setFlag(BlockHeader.BlockFlags.FORWARDED_WITHOUT_PROCESSED, true);
+                    block.setV6Flag(BlockHeader.BlockV6Flags.FORWARDED_WITHOUT_PROCESSED, true);
                 } catch (ProcessingException e) {
                     throw new RejectedException(e.reason);
                 }

@@ -1,18 +1,13 @@
-package io.left.rightmesh.libdtn.data.cbor;
+package io.left.rightmesh.libcbor;
 
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-
-import io.left.rightmesh.libdtn.data.bundleV7.cbor.CBOR;
-import io.left.rightmesh.libdtn.data.bundleV7.cbor.CborEncoder;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -21,7 +16,7 @@ import static org.junit.Assert.fail;
  * @author Lucien Loiseau on 14/09/18.
  */
 public class CBOREncoderTest {
-    CborEncoder enc = CBOR.getCborEncoder();
+    CborEncoder enc = CBOR.getEncoder();
 
     @Test
     public void encodeAppendixA_PositiveInteger() {

@@ -1,8 +1,8 @@
 package io.left.rightmesh.libdtn.data.bundleV6;
 
-import io.left.rightmesh.libdtn.utils.rxparser.ObjectState;
-import io.left.rightmesh.libdtn.utils.rxparser.ParserState;
-import io.left.rightmesh.libdtn.utils.rxparser.RxParserException;
+import io.left.rightmesh.libcbor.rxparser.ObjectState;
+import io.left.rightmesh.libcbor.rxparser.ParserState;
+import io.left.rightmesh.libcbor.rxparser.RxParserException;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -20,7 +20,7 @@ public class PrimaryBlock {
         EXPEDITED
     }
 
-    public enum BundleFlags {
+    public enum BundleV6Flags {
         FRAGMENT(0),
         ADM_RECORD(1),
         NO_FRAGMENT(2),
@@ -43,7 +43,55 @@ public class PrimaryBlock {
 
         private int offset;
 
-        BundleFlags(int offset) {
+        BundleV6Flags(int offset) {
+            this.offset = offset;
+        }
+
+        public int getOffset() {
+            return offset;
+        }
+    }
+
+    public enum BundleV7Flags {
+        /* BundleV7 Processing Control Flag {@href https://tools.ietf.org/html/draft-ietf-dtn-bpbis-11#section-4.1.3}
+            . Bit 0 (the high-order bit, 0x8000): reserved.
+            . Bit 1 (0x4000): reserved.
+            . Bit 2 (0x2000): reserved.
+            . Bit 3(0x1000): bundle deletion status reports are requested.
+            . Bit 4(0x0800): bundle delivery status reports are requested.
+            . Bit 5(0x0400): bundle forwarding status reports are requested.
+            . Bit 6(0x0200): reserved.
+            . Bit 7(0x0100): bundle reception status reports are requested.
+            . Bit 8(0x0080): bundle contains a Manifest block.
+            . Bit 9(0x0040): status time is requested in all status reports.
+            . Bit 10(0x0020): user application acknowledgement is requested.
+            . Bit 11(0x0010): reserved.
+            . Bit 12(0x0008): reserved.
+            . Bit 13(0x0004): bundle must not be fragmented.
+            . Bit 14(0x0002): payload is an administrative record.
+            . Bit 15 (the low-order bit, 0x0001: bundle is a fragment.
+         */
+
+        FRAGMENT(0),
+        ADM_RECORD(1),
+        NO_FRAGMENT(2),
+        RESERVED_1(3),
+        RESERVED_2(4),
+        APP_ACK_REQUEST(5),
+        STATUS_TIME_REPORT(6),
+        CONTAINS_MANIFEST(7),
+        RECEPTION_REPORT(8),
+        RESERVED_3(9),
+        FORWARD_REPORT(10),
+        DELIVERY_REPORT(11),
+        DELETION_REPORT(12),
+        RESERVED_4(13),
+        REsERVED_5(14),
+        RESERVED_6(15);
+
+        private int offset;
+
+        BundleV7Flags(int offset) {
             this.offset = offset;
         }
 
@@ -110,12 +158,22 @@ public class PrimaryBlock {
     }
 
     /**
-     * returns the sdnv_value of a specific {@see PrimaryBlock.BundleFlags} for this Bundle.
+     * returns the sdnv_value of a specific {@see PrimaryBlock.BundleV6Flags} for this Bundle.
      *
      * @param flag to query
      * @return true if the flag is set, false otherwise
      */
-    public boolean getFlag(BundleFlags flag) {
+    public boolean getV6Flag(BundleV6Flags flag) {
+        return (flag.getOffset() & this.procFlags) > 0;
+    }
+
+    /**
+     * returns the sdnv_value of a specific {@see PrimaryBlock.BundleV7Flags} for this Bundle.
+     *
+     * @param flag to query
+     * @return true if the flag is set, false otherwise
+     */
+    public boolean getV7Flag(BundleV7Flags flag) {
         return (flag.getOffset() & this.procFlags) > 0;
     }
 
@@ -124,11 +182,11 @@ public class PrimaryBlock {
      *
      * @return Priority of the Bundle
      */
-    public Priority getPriority() {
-        if (getFlag(BundleFlags.PRIORITY_BIT1)) {
+    public Priority getV6Priority() {
+        if (getV6Flag(BundleV6Flags.PRIORITY_BIT1)) {
             return Priority.NORMAL;
         }
-        if (getFlag(BundleFlags.PRIORITY_BIT2)) {
+        if (getV6Flag(BundleV6Flags.PRIORITY_BIT2)) {
             return Priority.EXPEDITED;
         }
         return Priority.BULK;
@@ -140,7 +198,21 @@ public class PrimaryBlock {
      * @param flag  to be set
      * @param value of the flag: true to set, false to unset
      */
-    public void setFlag(BundleFlags flag, boolean value) {
+    public void setV6Flag(BundleV6Flags flag, boolean value) {
+        if (value) {
+            procFlags |= 0b1L << flag.getOffset();
+        } else {
+            procFlags &= ~(0b1L << flag.getOffset());
+        }
+    }
+
+    /**
+     * setFlag set (or unset) a given {@see PrimaryBlock.BundleFlags}.
+     *
+     * @param flag  to be set
+     * @param value of the flag: true to set, false to unset
+     */
+    public void setV7Flag(BundleV7Flags flag, boolean value) {
         if (value) {
             procFlags |= 0b1L << flag.getOffset();
         } else {
@@ -153,21 +225,21 @@ public class PrimaryBlock {
      *
      * @param p the priority of the Bundle
      */
-    public void setPriority(Priority p) {
+    public void setV6Priority(Priority p) {
         switch (p) {
             case BULK:
-                setFlag(BundleFlags.PRIORITY_BIT1, false);
-                setFlag(BundleFlags.PRIORITY_BIT2, false);
+                setV6Flag(BundleV6Flags.PRIORITY_BIT1, false);
+                setV6Flag(BundleV6Flags.PRIORITY_BIT2, false);
                 break;
 
             case EXPEDITED:
-                setFlag(BundleFlags.PRIORITY_BIT1, false);
-                setFlag(BundleFlags.PRIORITY_BIT2, true);
+                setV6Flag(BundleV6Flags.PRIORITY_BIT1, false);
+                setV6Flag(BundleV6Flags.PRIORITY_BIT2, true);
                 break;
 
             case NORMAL:
-                setFlag(BundleFlags.PRIORITY_BIT1, true);
-                setFlag(BundleFlags.PRIORITY_BIT2, false);
+                setV6Flag(BundleV6Flags.PRIORITY_BIT1, true);
+                setV6Flag(BundleV6Flags.PRIORITY_BIT2, false);
                 break;
             default:
                 break;

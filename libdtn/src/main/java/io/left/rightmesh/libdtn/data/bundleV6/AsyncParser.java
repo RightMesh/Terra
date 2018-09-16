@@ -14,10 +14,10 @@ import io.left.rightmesh.libdtn.data.ScopeControlHopLimitBlock;
 import io.left.rightmesh.libdtn.storage.BLOB;
 import io.left.rightmesh.libdtn.storage.BundleStorage;
 import io.left.rightmesh.libdtn.storage.WritableBLOB;
-import io.left.rightmesh.libdtn.utils.rxparser.BufferState;
-import io.left.rightmesh.libdtn.utils.rxparser.ParserEmitter;
-import io.left.rightmesh.libdtn.utils.rxparser.ParserState;
-import io.left.rightmesh.libdtn.utils.rxparser.RxParserException;
+import io.left.rightmesh.libcbor.rxparser.BufferState;
+import io.left.rightmesh.libcbor.rxparser.ParserEmitter;
+import io.left.rightmesh.libcbor.rxparser.ParserState;
+import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.reactivex.Observer;
 
 import java.io.IOException;
@@ -267,16 +267,16 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         public ParserState onSuccess(ByteBuffer buffer) throws RxParserException {
             dict = new Dictionary(buffer.array());
             try {
-                bundle.source = new EID(dict.lookup((int) sourceScheme),
+                bundle.source = EID.create(dict.lookup((int) sourceScheme),
                         dict.lookup((int) sourceSsp));
                 debug("AsyncParser", "source=" + bundle.source.toString());
-                bundle.destination = new EID(dict.lookup((int) destinationScheme),
+                bundle.destination = EID.create(dict.lookup((int) destinationScheme),
                         dict.lookup((int) destinationSsp));
                 debug("AsyncParser", "destination=" + bundle.destination.toString());
-                bundle.reportto = new EID(dict.lookup((int) reportToScheme),
+                bundle.reportto = EID.create(dict.lookup((int) reportToScheme),
                         dict.lookup((int) reportToSsp));
                 debug("AsyncParser", "reportto=" + bundle.reportto.toString());
-                bundle.custodian = new EID(dict.lookup((int) custodianScheme),
+                bundle.custodian = EID.create(dict.lookup((int) custodianScheme),
                         dict.lookup((int) custodianSsp));
                 debug("AsyncParser", "custodian=" + bundle.custodian.toString());
             } catch (Dictionary.EntryNotFoundException e) {
@@ -285,7 +285,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
                 throw new RxParserException("RFC5050", e.getMessage());
             }
 
-            if (bundle.getFlag(PrimaryBlock.BundleFlags.FRAGMENT)) {
+            if (bundle.getV6Flag(PrimaryBlock.BundleV6Flags.FRAGMENT)) {
                 return primary_block_fragment_offset;
             } else {
                 onPrimaryBlockReceived();
@@ -326,9 +326,9 @@ public class AsyncParser extends ParserEmitter<Bundle> {
     private ParserState block_proc_flags = new SDNV.SDNVState() {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
-            block.procflags = sdnv_value.getValue();
-            debug("AsyncParser", "procflags=" + block.procflags);
-            if (block.getFlag(BlockHeader.BlockFlags.BLOCK_CONTAINS_EIDS)) {
+            block.procV6flags = sdnv_value.getValue();
+            debug("AsyncParser", "procflags=" + block.procV6flags);
+            if (block.getV6Flag(BlockHeader.BlockV6Flags.BLOCK_CONTAINS_EIDS)) {
                 return block_eid_ref_count;
             } else {
                 return block_length;
@@ -360,7 +360,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
             try {
                 long blockRefSsp = sdnv_value.getValue();
                 debug("AsyncParser", "blockRefSsp=" + blockRefSsp);
-                block.addEID(new EID(dict.lookup((int) blockRefScheme),
+                block.addEID(EID.create(dict.lookup((int) blockRefScheme),
                         dict.lookup((int) blockRefSsp)));
             } catch (Dictionary.EntryNotFoundException enfe) {
                 throw new RxParserException("RFC5050", enfe.getMessage());
@@ -505,7 +505,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
             debug("AsyncParser", "end_bundle_payload");
             onBlockDataReceived();
 
-            if (block.getFlag(BlockHeader.BlockFlags.LAST_BLOCK)) {
+            if (block.getV6Flag(BlockHeader.BlockV6Flags.LAST_BLOCK)) {
                 return idle;
             } else {
                 return block_type;

@@ -1,15 +1,7 @@
 package io.left.rightmesh.libdtn.data;
 
 import io.left.rightmesh.libdtn.storage.BLOB;
-import io.left.rightmesh.libdtn.storage.BundleStorage;
 import io.left.rightmesh.libdtn.storage.NullBLOB;
-import io.left.rightmesh.libdtn.storage.WritableBLOB;
-import io.left.rightmesh.libdtn.utils.rxparser.ParserState;
-import io.left.rightmesh.libdtn.utils.rxparser.RxParserException;
-import io.reactivex.Flowable;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
 
 /**
  * A BlockBLOB is a generic Block with a BLOB object as payload.

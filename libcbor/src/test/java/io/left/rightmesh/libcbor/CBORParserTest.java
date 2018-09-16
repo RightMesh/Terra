@@ -1,27 +1,24 @@
-package io.left.rightmesh.libdtn.data.cbor;
+package io.left.rightmesh.libcbor;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
-import io.left.rightmesh.libdtn.data.bundleV7.cbor.CBOR;
-import io.left.rightmesh.libdtn.data.bundleV7.cbor.CBOR.ArrayItem;
-import io.left.rightmesh.libdtn.data.bundleV7.cbor.CBOR.MapItem;
-import io.left.rightmesh.libdtn.data.bundleV7.cbor.CBOR.DataItem;
-import io.left.rightmesh.libdtn.data.bundleV7.cbor.CBOR.IntegerItem;
-import io.left.rightmesh.libdtn.data.bundleV7.cbor.CBOR.FloatingPointItem;
-import io.left.rightmesh.libdtn.data.bundleV7.cbor.CBOR.BooleanItem;
-import io.left.rightmesh.libdtn.data.bundleV7.cbor.CBOR.ByteStringItem;
-import io.left.rightmesh.libdtn.data.bundleV7.cbor.CBOR.TextStringItem;
-import io.left.rightmesh.libdtn.data.bundleV7.cbor.CborParser;
-import io.left.rightmesh.libdtn.utils.rxparser.RxParserException;
+import io.left.rightmesh.libcbor.CBOR.ArrayItem;
+import io.left.rightmesh.libcbor.CBOR.MapItem;
+import io.left.rightmesh.libcbor.CBOR.DataItem;
+import io.left.rightmesh.libcbor.CBOR.IntegerItem;
+import io.left.rightmesh.libcbor.CBOR.TextStringItem;
+import io.left.rightmesh.libcbor.rxparser.RxParserException;
 
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborSimpleType;
+import static io.left.rightmesh.libcbor.CborParser.ExpectedType.Array;
+import static io.left.rightmesh.libcbor.CborParser.ExpectedType.Map;
+import static io.left.rightmesh.libcbor.Constants.CborType.CborSimpleType;
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.fail;
@@ -34,7 +31,7 @@ public class CBORParserTest {
     @Test
     public void parseAppendixA_PositiveInteger() {
         try {
-            CborParser dec = CBOR.getCborParser();
+            CborParser dec = CBOR.getParser();
             boolean b;
 
             b = dec.cbor_parse_int((__, obj) -> assertEquals(0, (long) obj))
@@ -85,7 +82,7 @@ public class CBORParserTest {
     @Test
     public void parseAppendixA_NegativeInteger() {
         try {
-            CborParser dec = CBOR.getCborParser();
+            CborParser dec = CBOR.getParser();
             boolean b;
 
             b = dec.cbor_parse_int((__, obj) -> assertEquals(-1, (long) obj))
@@ -109,11 +106,10 @@ public class CBORParserTest {
         }
     }
 
-
     @Test
     public void parseAppendixA_HalfFloats() {
         try {
-            CborParser dec = CBOR.getCborParser();
+            CborParser dec = CBOR.getParser();
             boolean b;
 
             b = dec.cbor_parse_float((__, obj) -> assertEquals(0.0d, obj))
@@ -168,7 +164,7 @@ public class CBORParserTest {
     @Test
     public void parseAppendixA_Floats() {
         try {
-            CborParser dec = CBOR.getCborParser();
+            CborParser dec = CBOR.getParser();
             boolean b;
 
             b = dec.cbor_parse_float((__, obj) -> assertEquals(100000.0d, obj))
@@ -200,7 +196,7 @@ public class CBORParserTest {
     @Test
     public void parseAppendixA_Double() {
         try {
-            CborParser dec = CBOR.getCborParser();
+            CborParser dec = CBOR.getParser();
             boolean b;
 
             b = dec.cbor_parse_float((__, obj) -> assertEquals(1.1d, obj))
@@ -232,7 +228,7 @@ public class CBORParserTest {
     @Test
     public void parseAppendixA_SimpleValues() {
         try {
-            CborParser dec = CBOR.getCborParser();
+            CborParser dec = CBOR.getParser();
             boolean b;
 
             b = dec.cbor_parse_boolean((obj) -> assertEquals(false, (boolean) obj))
@@ -269,7 +265,7 @@ public class CBORParserTest {
     @Test
     public void parseAppendixA_Byte_Text_Strings() {
         try {
-            CborParser dec = CBOR.getCborParser();
+            CborParser dec = CBOR.getParser();
             boolean b;
 
             byte[] a0 = {};
@@ -318,7 +314,7 @@ public class CBORParserTest {
     @Test
     public void encodeAppendixA_Byte_Text_Strings_Indefinite() {
         try {
-            CborParser dec = CBOR.getCborParser();
+            CborParser dec = CBOR.getParser();
             boolean b;
 
             final int o[] = new int[] {0}; // trick to modify i from lambda
@@ -348,7 +344,7 @@ public class CBORParserTest {
     @Test
     public void parseAppendixA_Tags() {
         try {
-            CborParser dec = CBOR.getCborParser();
+            CborParser dec = CBOR.getParser();
             boolean b;
 
             b = dec.cbor_parse_tag((tag) -> assertEquals(0, (long) tag))
@@ -437,7 +433,7 @@ public class CBORParserTest {
     @Test
     public void parseAppendixA_Array_And_Hashes_Definite() {
         try {
-            CborParser dec = CBOR.getCborParser();
+            CborParser dec = CBOR.getParser();
             boolean b;
 
             b = dec.cbor_open_array(
@@ -483,7 +479,7 @@ public class CBORParserTest {
     @Test
     public void parseAppendixA_GenericParsing() {
         try {
-            CborParser dec = CBOR.getCborParser();
+            CborParser dec = CBOR.getParser();
             boolean b;
 
             b = dec.cbor_parse_generic((obj) -> {
@@ -493,6 +489,14 @@ public class CBORParserTest {
             assertEquals(true, b);
 
             b = dec.cbor_parse_generic(
+                    (arr) -> {
+                        assertEquals(true, arr instanceof ArrayItem);
+                        Collection<DataItem> c = ((ArrayItem) arr).value();
+                        assertEquals(3, c.size());
+                    }).read(hexToBuf("0x9f01820203820405ff"));
+            assertEquals(true, b);
+
+            b = dec.cbor_parse_generic(EnumSet.of(Array),
                     (arr) -> {
                         assertEquals(true, arr instanceof ArrayItem);
                         Collection<DataItem> c = ((ArrayItem) arr).value();
@@ -528,6 +532,10 @@ public class CBORParserTest {
             }).read(hexToBuf("0xbf61610161629f0203ffff"));
             assertEquals(true, b);
 
+            b = dec.cbor_parse_generic(EnumSet.of(Map), (i) -> {
+            }).read(hexToBuf("0xbf61610161629f0203ffff"));
+            assertEquals(true, b);
+
         } catch (RxParserException rpe) {
             rpe.printStackTrace();
             fail();
@@ -537,7 +545,7 @@ public class CBORParserTest {
     @Test
     public void encodeAppendixA_Array_And_Hashes_Indefinite() {
         try {
-            CborParser dec = CBOR.getCborParser();
+            CborParser dec = CBOR.getParser();
             boolean b;
 
             b = dec.cbor_parse_generic((i) -> {
@@ -573,11 +581,10 @@ public class CBORParserTest {
         }
     }
 
-
     @Test
     public void parseAsyncBuffer() {
         try {
-            CborParser dec = CBOR.getCborParser();
+            CborParser dec = CBOR.getParser();
             boolean b;
 
             b = dec.cbor_parse_generic((i) -> {
@@ -592,7 +599,7 @@ public class CBORParserTest {
             assertEquals(false, b);
             b = dec.read(hexToBuf("0x61626142616361436164614461656145"));
             assertEquals(true, b);
-            
+
         } catch (RxParserException rpe) {
             rpe.printStackTrace();
             fail();

@@ -1,10 +1,7 @@
-package io.left.rightmesh.libdtn.utils.rxparser;
+package io.left.rightmesh.libcbor.rxparser;
 
-import io.left.rightmesh.libdtn.data.bundleV6.AsyncParser;
-import io.left.rightmesh.libdtn.data.Bundle;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
-import io.reactivex.disposables.Disposable;
 
 import java.nio.ByteBuffer;
 
@@ -30,17 +27,6 @@ public class RxParser<T> extends Observable<T> {
     public static <T> RxParser<T> create(Observable<? super ByteBuffer> source,
                                          SubscriptionFactory<T> factory) {
         return new RxParser<>(source, factory);
-    }
-
-    @SuppressWarnings("unchecked")
-    public static RxParser<Bundle> bundle(Observable<? super ByteBuffer> source) {
-        return RxParser.<Bundle>create(source, AsyncParser::new);
-    }
-
-    @SuppressWarnings("unchecked")
-    public RxParser<Bundle> bundle() {
-        return RxParser.<Bundle>create((RxParser<ByteBuffer>)this,
-                AsyncParser::new);
     }
 
     protected RxParser(Observable<? super ByteBuffer> source,

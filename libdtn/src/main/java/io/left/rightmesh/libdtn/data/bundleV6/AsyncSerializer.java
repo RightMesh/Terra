@@ -112,7 +112,6 @@ public class AsyncSerializer {
      *
      * @param bundle to serialize
      * @return Flowable
-     * @throws IOException if issue with OutputStream
      */
     public Flowable<ByteBuffer> serialize(Bundle bundle) {
         rebuildDictionary(bundle);
@@ -156,7 +155,7 @@ public class AsyncSerializer {
                 tmp.write(new SDNV(dictionnary.length).getBytes());
                 tmp.write(dictionnary);
 
-                if (block.getFlag(PrimaryBlock.BundleFlags.FRAGMENT)) {
+                if (block.getV6Flag(PrimaryBlock.BundleV6Flags.FRAGMENT)) {
                     tmp.write(new SDNV(block.fragmentOffset).getBytes());
                     tmp.write(new SDNV(block.appDataLength).getBytes());
                 }
@@ -218,9 +217,9 @@ public class AsyncSerializer {
         return Flowable.create(s -> {
             ByteArrayDataOutput buffer = ByteStreams.newDataOutput();
             buffer.write(new SDNV(block.type).getBytes());
-            buffer.write(new SDNV(block.procflags).getBytes());
+            buffer.write(new SDNV(block.procV6flags).getBytes());
 
-            if (block.getFlag(BlockHeader.BlockFlags.BLOCK_CONTAINS_EIDS)) {
+            if (block.getV6Flag(BlockHeader.BlockV6Flags.BLOCK_CONTAINS_EIDS)) {
                 try {
                     buffer.write(new SDNV(block.eids.size()).getBytes());
                     for (EID eid : block.eids) {

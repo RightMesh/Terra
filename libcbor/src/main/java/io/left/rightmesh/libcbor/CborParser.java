@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.data.bundleV7.cbor;
+package io.left.rightmesh.libcbor;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
@@ -6,79 +6,95 @@ import com.google.common.io.ByteStreams;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.CBOR.DataItem;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.CBOR.IntegerItem;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.CBOR.TagItem;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.CBOR.SimpleValueItem;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.CBOR.FloatingPointItem;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.CBOR.ByteStringItem;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.CBOR.TextStringItem;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.CBOR.ArrayItem;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.CBOR.MapItem;
+import static io.left.rightmesh.libcbor.CBOR.DataItem;
+import static io.left.rightmesh.libcbor.CBOR.IntegerItem;
+import static io.left.rightmesh.libcbor.CBOR.TagItem;
+import static io.left.rightmesh.libcbor.CBOR.SimpleValueItem;
+import static io.left.rightmesh.libcbor.CBOR.FloatingPointItem;
+import static io.left.rightmesh.libcbor.CBOR.ByteStringItem;
+import static io.left.rightmesh.libcbor.CBOR.TextStringItem;
+import static io.left.rightmesh.libcbor.CBOR.ArrayItem;
+import static io.left.rightmesh.libcbor.CBOR.MapItem;
 
-import io.left.rightmesh.libdtn.utils.rxparser.BufferState;
-import io.left.rightmesh.libdtn.utils.rxparser.ByteState;
-import io.left.rightmesh.libdtn.utils.rxparser.IntegerState;
-import io.left.rightmesh.libdtn.utils.rxparser.LongState;
-import io.left.rightmesh.libdtn.utils.rxparser.ParserState;
-import io.left.rightmesh.libdtn.utils.rxparser.RxParserException;
-import io.left.rightmesh.libdtn.utils.rxparser.ShortState;
+import io.left.rightmesh.libcbor.rxparser.BufferState;
+import io.left.rightmesh.libcbor.rxparser.ByteState;
+import io.left.rightmesh.libcbor.rxparser.IntegerState;
+import io.left.rightmesh.libcbor.rxparser.LongState;
+import io.left.rightmesh.libcbor.rxparser.ParserState;
+import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libcbor.rxparser.ShortState;
 
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborAdditionalInfo.IndefiniteLength;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborAdditionalInfo.Value16Bit;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborAdditionalInfo.Value32Bit;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborAdditionalInfo.Value64Bit;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborAdditionalInfo.Value8Bit;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborInternals.MajorTypeMask;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborInternals.MajorTypeShift;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborInternals.SmallValueMask;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborJumpTable.CborBooleanFalse;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborJumpTable.CborBooleanTrue;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborJumpTable.CborBreak;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborJumpTable.CborDoublePrecisionFloat;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborJumpTable.CborHalfPrecisionFloat;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborJumpTable.CborSimpleValue1ByteFollow;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborJumpTable.CborSinglePrecisionFloat;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborMajorTypes.ArrayType;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborMajorTypes.ByteStringType;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborMajorTypes.MapType;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborMajorTypes.NegativeIntegerType;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborMajorTypes.SimpleTypesType;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborMajorTypes.TagType;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborMajorTypes.TextStringType;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborMajorTypes.UnsignedIntegerType;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborSimpleValues.Break;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborSimpleValues.FalseValue;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborSimpleValues.TrueValue;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborSimpleValues.NullValue;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborSimpleValues.UndefinedValue;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborSimpleValues.SimpleTypeInNextByte;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborSimpleValues.HalfPrecisionFloat;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborSimpleValues.SinglePrecisionFloat;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborSimpleValues.DoublePrecisionFloat;
+import static io.left.rightmesh.libcbor.Constants.CborAdditionalInfo.IndefiniteLength;
+import static io.left.rightmesh.libcbor.Constants.CborAdditionalInfo.Value16Bit;
+import static io.left.rightmesh.libcbor.Constants.CborAdditionalInfo.Value32Bit;
+import static io.left.rightmesh.libcbor.Constants.CborAdditionalInfo.Value64Bit;
+import static io.left.rightmesh.libcbor.Constants.CborAdditionalInfo.Value8Bit;
+import static io.left.rightmesh.libcbor.Constants.CborInternals.MajorTypeMask;
+import static io.left.rightmesh.libcbor.Constants.CborInternals.MajorTypeShift;
+import static io.left.rightmesh.libcbor.Constants.CborInternals.SmallValueMask;
+import static io.left.rightmesh.libcbor.Constants.CborJumpTable.CborBooleanFalse;
+import static io.left.rightmesh.libcbor.Constants.CborJumpTable.CborBooleanTrue;
+import static io.left.rightmesh.libcbor.Constants.CborJumpTable.CborBreak;
+import static io.left.rightmesh.libcbor.Constants.CborJumpTable.CborDoublePrecisionFloat;
+import static io.left.rightmesh.libcbor.Constants.CborJumpTable.CborHalfPrecisionFloat;
+import static io.left.rightmesh.libcbor.Constants.CborJumpTable.CborSimpleValue1ByteFollow;
+import static io.left.rightmesh.libcbor.Constants.CborJumpTable.CborSinglePrecisionFloat;
+import static io.left.rightmesh.libcbor.Constants.CborMajorTypes.ArrayType;
+import static io.left.rightmesh.libcbor.Constants.CborMajorTypes.ByteStringType;
+import static io.left.rightmesh.libcbor.Constants.CborMajorTypes.MapType;
+import static io.left.rightmesh.libcbor.Constants.CborMajorTypes.NegativeIntegerType;
+import static io.left.rightmesh.libcbor.Constants.CborMajorTypes.SimpleTypesType;
+import static io.left.rightmesh.libcbor.Constants.CborMajorTypes.TagType;
+import static io.left.rightmesh.libcbor.Constants.CborMajorTypes.TextStringType;
+import static io.left.rightmesh.libcbor.Constants.CborMajorTypes.UnsignedIntegerType;
+import static io.left.rightmesh.libcbor.Constants.CborSimpleValues.Break;
+import static io.left.rightmesh.libcbor.Constants.CborSimpleValues.NullValue;
+import static io.left.rightmesh.libcbor.Constants.CborSimpleValues.UndefinedValue;
+import static io.left.rightmesh.libcbor.Constants.CborSimpleValues.SimpleTypeInNextByte;
+import static io.left.rightmesh.libcbor.Constants.CborSimpleValues.HalfPrecisionFloat;
+import static io.left.rightmesh.libcbor.Constants.CborSimpleValues.SinglePrecisionFloat;
+import static io.left.rightmesh.libcbor.Constants.CborSimpleValues.DoublePrecisionFloat;
 
 
 public class CborParser {
 
+    private Queue<ParserState> doneQueue = new LinkedList<>();
     private Queue<ParserState> parserQueue = new LinkedList<>();
     private ParserState state = null;
     private ParserState next = null;
 
     /* parser method */
 
+    private boolean dequeue() {
+        if(parserQueue.isEmpty()) {
+            return false;
+        } else {
+            state = parserQueue.poll();
+            doneQueue.add(state);
+            return true;
+        }
+    }
+
+    public void reset() {
+        doneQueue.addAll(parserQueue);
+        parserQueue.clear();
+        Queue<ParserState> swap = parserQueue;
+        parserQueue = doneQueue;
+        doneQueue = swap;
+    }
 
     public boolean read(ByteBuffer buffer) throws RxParserException {
         while (buffer.hasRemaining()) {
             if (state == null) {
-                if (parserQueue.size() == 0) {
+                if (!dequeue()) {
                     return true;
                 } else {
-                    state = parserQueue.poll();
                     state.onEnter();
                 }
             }
@@ -99,7 +115,7 @@ public class CborParser {
             }
         }
 
-        if (state == null && parserQueue.size() == 0) {
+        if (state == null && parserQueue.isEmpty()) {
             return true;
         }
         return false;
@@ -110,7 +126,7 @@ public class CborParser {
     }
 
 
-    /* parser API */
+    /* callback interfaces */
 
 
     public interface ParseableItem {
@@ -157,8 +173,25 @@ public class CborParser {
         void parsingDone();
     }
 
+    /* parser API */
+
+    public enum ExpectedType {
+        Integer, Float, ByteString, TextString, Array, Map, Tag, Simple
+    }
+
     public CborParser cbor_parse_generic(ParsedItemCallback<DataItem> cb) {
         parserQueue.add(new CborParseGenericItem() {
+            @Override
+            public ParserState onSuccess(DataItem item) {
+                cb.onItemParsed(item);
+                return null;
+            }
+        });
+        return this;
+    }
+
+    public CborParser cbor_parse_generic(EnumSet<ExpectedType> types, ParsedItemCallback<DataItem> cb) {
+        parserQueue.add(new CborParseGenericItem(types) {
             @Override
             public ParserState onSuccess(DataItem item) {
                 cb.onItemParsed(item);
@@ -660,17 +693,36 @@ public class CborParser {
     }
 
 
-
     /* internal parser utils */
 
 
     private abstract static class CborParseGenericItem extends ExtractTagItem {
 
         LinkedList<Long> tags;
+        boolean filter_int = true;
+        boolean filter_float = true;
+        boolean filter_byte_string = true;
+        boolean filter_text_string = true;
+        boolean filter_array = true;
+        boolean filter_tag = true;
+        boolean filter_map = true;
+        boolean filter_simple = true;
 
         CborParseGenericItem() {
             super(true);
             tags = new LinkedList<>();
+        }
+
+        CborParseGenericItem(EnumSet<ExpectedType> types) {
+            this();
+            filter_int = types.contains(ExpectedType.Integer);
+            filter_float = types.contains(ExpectedType.Float);
+            filter_byte_string = types.contains(ExpectedType.ByteString);
+            filter_text_string = types.contains(ExpectedType.TextString);
+            filter_array = types.contains(ExpectedType.Array);
+            filter_map = types.contains(ExpectedType.Map);
+            filter_tag = types.contains(ExpectedType.Tag);
+            filter_simple = types.contains(ExpectedType.Simple);
         }
 
         @Override
@@ -680,38 +732,43 @@ public class CborParser {
 
         @Override
         public ParserState onItemFound(int mt, byte b) throws RxParserException {
-            if ((mt == UnsignedIntegerType) || (mt == NegativeIntegerType)) {
+            if (((mt == UnsignedIntegerType) || (mt == NegativeIntegerType)) && (filter_int)) {
                 return parse_integer;
             }
-            if (mt == ByteStringType) {
+            if ((mt == ByteStringType) && (filter_byte_string)){
                 return parse_byte_string;
             }
-            if (mt == TextStringType) {
+            if ((mt == TextStringType) && (filter_text_string)) {
                 return parse_text_string;
             }
 
-            if (mt == ArrayType) {
+            if ((mt == ArrayType) && (filter_array)) {
                 return parse_array_size;
             }
-            if (mt == MapType) {
+            if ((mt == MapType) && (filter_map)) {
                 return parse_map_size;
             }
 
-            if (mt == TagType) {
+            if ((mt == TagType) && (filter_tag)) {
                 return parse_tag;
             }
             if (mt == SimpleTypesType) {
                 switch (b & SmallValueMask) {
                     case SimpleTypeInNextByte:
-                        return parse_simple_value;
+                        if(filter_simple)
+                            return parse_simple_value;
                     case HalfPrecisionFloat:
-                        return parse_float;
+                        if(filter_float)
+                            return parse_float;
                     case SinglePrecisionFloat:
-                        return parse_float;
+                        if(filter_float)
+                            return parse_float;
                     case DoublePrecisionFloat:
-                        return parse_float;
+                        if(filter_float)
+                            return parse_float;
                     default:
-                        return parse_simple_value;
+                        if(filter_simple)
+                            return parse_simple_value;
                 }
             }
             throw new RxParserException("Unknown major type: " + mt);

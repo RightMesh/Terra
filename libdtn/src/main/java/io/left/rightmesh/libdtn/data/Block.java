@@ -1,10 +1,6 @@
 package io.left.rightmesh.libdtn.data;
 
 import io.left.rightmesh.libdtn.core.processor.ProcessingException;
-import io.left.rightmesh.libdtn.utils.rxparser.ParserState;
-import io.reactivex.Flowable;
-
-import java.nio.ByteBuffer;
 
 /**
  * Abstract generic Block object.

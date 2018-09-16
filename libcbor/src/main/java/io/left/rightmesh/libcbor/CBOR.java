@@ -1,21 +1,20 @@
-package io.left.rightmesh.libdtn.data.bundleV7.cbor;
+package io.left.rightmesh.libcbor;
 
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
 
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborArrayType;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborByteStringType;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborDoubleType;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborIntegerType;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborMapType;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborNullType;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborSimpleType;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborTagType;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborTextStringType;
-import static io.left.rightmesh.libdtn.data.bundleV7.cbor.Constants.CborType.CborUndefinedType;
+import static io.left.rightmesh.libcbor.Constants.CborType.CborArrayType;
+import static io.left.rightmesh.libcbor.Constants.CborType.CborByteStringType;
+import static io.left.rightmesh.libcbor.Constants.CborType.CborDoubleType;
+import static io.left.rightmesh.libcbor.Constants.CborType.CborIntegerType;
+import static io.left.rightmesh.libcbor.Constants.CborType.CborMapType;
+import static io.left.rightmesh.libcbor.Constants.CborType.CborNullType;
+import static io.left.rightmesh.libcbor.Constants.CborType.CborSimpleType;
+import static io.left.rightmesh.libcbor.Constants.CborType.CborTagType;
+import static io.left.rightmesh.libcbor.Constants.CborType.CborTextStringType;
+import static io.left.rightmesh.libcbor.Constants.CborType.CborUndefinedType;
 
 /**
  * @author Lucien Loiseau on 09/09/18.
@@ -25,11 +24,11 @@ public class CBOR {
     public static class CborEncodingUnknown extends Exception {
     }
 
-    public static CborEncoder getCborEncoder() {
+    public static CborEncoder getEncoder() {
         return new CborEncoder();
     }
 
-    public static CborParser getCborParser() {
+    public static CborParser getParser() {
         return new CborParser();
     }
 
@@ -89,7 +88,7 @@ public class CBOR {
 
         @Override
         public CborParser getItemParser() {
-            return getCborParser().cbor_parse_int(this::setTaggedItem);
+            return getParser().cbor_parse_int(this::setTaggedItem);
         }
 
         @Override
@@ -123,7 +122,7 @@ public class CBOR {
 
         @Override
         public CborParser getItemParser() {
-            return getCborParser().cbor_parse_float(this::setTaggedItem);
+            return getParser().cbor_parse_float(this::setTaggedItem);
         }
 
         @Override
@@ -157,7 +156,7 @@ public class CBOR {
 
         @Override
         public CborParser getItemParser() {
-            return getCborParser().cbor_parse_byte_string_unsafe(this::setTaggedItem);
+            return getParser().cbor_parse_byte_string_unsafe(this::setTaggedItem);
         }
 
         @Override
@@ -191,7 +190,7 @@ public class CBOR {
 
         @Override
         public CborParser getItemParser() {
-            return getCborParser().cbor_parse_text_string_unsafe(this::setTaggedItem);
+            return getParser().cbor_parse_text_string_unsafe(this::setTaggedItem);
         }
 
         @Override
@@ -294,7 +293,7 @@ public class CBOR {
 
         @Override
         public CborParser getItemParser() {
-            return getCborParser().cbor_parse_tag(this::setItem);
+            return getParser().cbor_parse_tag(this::setItem);
         }
 
         @Override
@@ -329,7 +328,7 @@ public class CBOR {
 
         @Override
         public CborParser getItemParser() {
-            return getCborParser().cbor_parse_simple_value(this::setItem);
+            return getParser().cbor_parse_simple_value(this::setItem);
         }
 
         @Override
@@ -359,7 +358,7 @@ public class CBOR {
 
         @Override
         public CborParser getItemParser() {
-            return getCborParser().cbor_parse_boolean(this::setItem);
+            return getParser().cbor_parse_boolean(this::setItem);
         }
 
         @Override
@@ -384,7 +383,7 @@ public class CBOR {
 
         @Override
         public CborParser getItemParser() {
-            return getCborParser().cbor_parse_null();
+            return getParser().cbor_parse_null();
         }
 
         public Object value() {
@@ -410,7 +409,7 @@ public class CBOR {
 
         @Override
         public CborParser getItemParser() {
-            return getCborParser().cbor_parse_undefined();
+            return getParser().cbor_parse_undefined();
         }
 
         @Override
@@ -432,7 +431,7 @@ public class CBOR {
 
         @Override
         public CborParser getItemParser() {
-            return getCborParser().cbor_parse_break();
+            return getParser().cbor_parse_break();
         }
 
         @Override

@@ -10,7 +10,32 @@ import java.util.regex.Pattern;
  *
  * @author Lucien Loiseau on 20/07/18.
  */
-public class EID implements Comparable<EID> {
+public class EID {
+
+    public static class EIDFormatException extends Exception {
+        EIDFormatException() {
+        }
+    }
+
+    enum EIDScheme {
+        DTN,
+        IPN,
+        UNKNOWN
+    }
+    EIDScheme scheme_code;
+
+    String eid;
+    String scheme;
+    String ssp;
+    String authority;
+    String path;
+
+    private EID() {
+    }
+
+    private EID(String str) {
+        this.eid = str;
+    }
 
     /**
      * returns a NULL Endpoint ID.
@@ -18,102 +43,137 @@ public class EID implements Comparable<EID> {
      * @return EID
      */
     public static EID NullEID() {
-        EID ret = new EID();
-        ret.eid = "dtn://null";
+        EID ret = new EID.DTN("none");
         return ret;
     }
 
-    private String eid = null;
-    private String scheme = null;
-    private String ssp = null;
-    private String authority = null;
-    private String path = null;
-
-    public class EIDFormatException extends Exception {
-        EIDFormatException() {
+    public static EID create(String str) throws EIDFormatException {
+        if(!isValidEID(str)) {
+            throw new EIDFormatException();
         }
-    }
-
-    private EID() {
-    }
-
-    /**
-     * generate a random valid EID of the form:
-     *
-     * <pre>
-     *      dtn://RANDOMSSP
-     * </pre>
-     *
-     * <p>with RANDOMSSP being a generated UUID alpha numeric string [A-Za-z0-9]+.
-     *
-     * @return EID generated
-     */
-    public static EID generate() {
-        return generate(null);
-    }
-
-    /**
-     * generate a random valid EID with the prefix used a scheme. If the scheme is null or invalid
-     * (contains some non alpha character), the scheme "rnd" will be used.
-     *
-     * @param scheme to be used
-     * @return valid EID
-     */
-    public static EID generate(String scheme) {
-        final String uuid = UUID.randomUUID().toString().replace("-", "");
-        EID ret = new EID();
-
-        if (scheme == null || !scheme.matches("[A-Za-z]+")) {
-            ret.scheme = "dtn";
+        EID eid = new EID(str);
+        if(eid.getScheme().equals("dtn")) {
+            return new DTN(str);
+        }
+        if(eid.getScheme().equals("ipn")) {
+            return new IPN(str);
         } else {
-            ret.scheme = scheme;
+            eid.scheme_code = EIDScheme.UNKNOWN;
+            return eid;
         }
-        ret.ssp = uuid;
-        ret.authority = uuid;
-        ret.path = "";
-        StringBuilder sb = new StringBuilder();
-        ret.eid = sb.append(ret.scheme).append("://").append(ret.ssp).toString();
-        return ret;
     }
 
-    /**
-     * Constructor: creates an EID from a String.
-     *
-     * @param eid in a String form (scheme://ssp)
-     * @throws EIDFormatException if the String does not follow the required format
-     */
-    public EID(String eid) throws EIDFormatException {
-        this.eid = eid;
-        if (!isValidEID(this.eid)) {
+    public static EID create(String scheme, String ssp) throws EIDFormatException {
+        if(!isValidEID(scheme+":"+ssp)) {
             throw new EIDFormatException();
         }
-    }
-
-    /**
-     * Constructor: creates an EID from a scheme and an ssp.
-     *
-     * @param scheme the scheme part of the EID
-     * @param ssp    the scheme specific part of the EID
-     * @throws EIDFormatException if the scheme or ssp does not follow the required format
-     */
-    public EID(String scheme, String ssp) throws EIDFormatException {
-        //TODO should adds some format check
-        StringBuilder ret = new StringBuilder();
-        this.eid = ret.append(scheme).append("://").append(ssp).toString();
-        if (!isValidEID(eid)) {
-            throw new EIDFormatException();
+        if(scheme.equals("dtn")) {
+            return new DTN(ssp);
+        }
+        if(scheme.equals("ipn")) {
+            return new IPN(ssp);
+        } else {
+            EID eid = new EID();
+            eid.eid = scheme+":"+ssp;
+            eid.scheme_code = EIDScheme.UNKNOWN;
+            return eid;
         }
     }
 
-    /**
-     * Constructor: copy an EID from another.
-     *
-     * @param eid to be copied
-     */
-    public EID(EID eid) {
-        this.eid = eid.eid;
+    public static EID.IPN createIPN(int node, int service) {
+        return new IPN(node, service);
     }
 
+    public static EID.DTN createDTN(String ssp) {
+        return new DTN(ssp);
+    }
+
+    public static EID.DTN generate() {
+        final String uuid = UUID.randomUUID().toString().replace("-", "");
+        return new DTN(uuid);
+    }
+
+    public static class DTN extends EID {
+
+        protected DTN(String str) {
+            super(str);
+        }
+
+        DTN(DTN other) {
+            super(other.eid);
+            scheme_code = EIDScheme.DTN;
+        }
+    }
+
+    public static class IPN extends EID {
+        int node_number;
+        int service_number;
+
+        protected IPN(String str) throws EIDFormatException {
+            super(str);
+            final String regex = "^([0-9]+)\\.([0-9]+)";
+            Pattern r = Pattern.compile(regex);
+            Matcher m = r.matcher(getSsp());
+            if (m.find()) {
+                String node = m.group(1);
+                String service = m.group(2);
+                this.node_number = Integer.valueOf(node);
+                this.service_number = Integer.valueOf(service);
+            } else {
+                throw new EIDFormatException();
+            }
+        }
+
+        IPN(int node, int service) {
+            super("ipn:"+node+":"+service);
+            this.node_number = node;
+            this.service_number = service;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null) {
+                return false;
+            }
+            if (o instanceof IPN) {
+                return this.node_number == ((IPN) o).node_number
+                        && this.service_number == ((IPN) o).service_number;
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 17;
+            hash = hash * 31 + node_number;
+            hash = hash * 31 + service_number;
+            return hash;
+        }
+    }
+
+
+    /**
+     * Check that the EID is a URI as defined in RFC 3986:
+     * {@href https://tools.ietf.org/html/rfc3986#appendix-B}
+     *
+     * <p>The EID is considered valid if there is at least a scheme and a scheme-specific part.
+     *
+     * @param eid to check validity
+     * @return true if valid, false otherwise
+     */
+    public static boolean isValidEID(String eid) {
+        final String regex = "^(([^:/?#]+):)(//([^/?#]*))([^?#]*)(\\?([^#]*))?(#(.*))?";
+        Pattern r = Pattern.compile(regex);
+        Matcher m = r.matcher(eid);
+        if (m.find()) {
+            String scheme = m.group(2);
+            String authority = m.group(4);
+            return (scheme != null) && (!scheme.equals("")) && (authority != null)
+                    && (!authority.equals(""));
+        } else {
+            return false;
+        }
+    }
 
     /**
      * get the scheme part of the current EID.
@@ -139,6 +199,7 @@ public class EID implements Comparable<EID> {
      *
      * @return the scheme specific part
      */
+
     public String getSsp() {
         if (ssp == null) {
             final String regex = "^(([^:/?#]+):)(//(.*))";
@@ -191,53 +252,20 @@ public class EID implements Comparable<EID> {
         return path;
     }
 
-    /**
-     * Check that the EID is a URI as defined in RFC 3986:
-     * {@href https://tools.ietf.org/html/rfc3986#appendix-B}
-     *
-     * <p>The EID is considered valid if there is at least a scheme and a scheme-specific part.
-     *
-     * @param eid to check validity
-     * @return true if valid, false otherwise
-     */
-    public static boolean isValidEID(String eid) {
-        final String regex = "^(([^:/?#]+):)(//([^/?#]*))([^?#]*)(\\?([^#]*))?(#(.*))?";
-        Pattern r = Pattern.compile(regex);
-        Matcher m = r.matcher(eid);
-        if (m.find()) {
-            String scheme = m.group(2);
-            String authority = m.group(4);
-            return (scheme != null) && (!scheme.equals("")) && (authority != null)
-                    && (!authority.equals(""));
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public String toString() {
-        return this.eid;
-    }
 
     @Override
     public boolean equals(Object o) {
         if (o == null) {
             return false;
         }
-        if (o instanceof EID) {
-            EID contact = (EID) o;
-            return this.eid.equals(contact.eid);
+        if (o instanceof DTN) {
+            return this.ssp.equals(((DTN) o).ssp);
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return this.eid.hashCode();
-    }
-
-    @Override
-    public int compareTo(EID o) {
-        return this.eid.compareTo(o.eid);
+        return this.ssp.hashCode();
     }
 }

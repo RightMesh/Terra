@@ -11,7 +11,7 @@ import java.util.Set;
  */
 public class BlockHeader {
 
-    public enum BlockFlags {
+    public enum BlockV6Flags {
         REPLICATE_IN_EVERY_FRAGMENT,
         TRANSMIT_STATUSREPORT_IF_NOT_PROCESSED,
         DELETE_BUNDLE_IF_NOT_PROCESSED,
@@ -21,8 +21,34 @@ public class BlockHeader {
         BLOCK_CONTAINS_EIDS
     }
 
+    public enum BlockV7Flags {
+        /* Block Processing Control Flags
+             . Bit 0 (the high-order bit, 0x80): reserved.
+             . Bit 1 (0x40): reserved.
+             . Bit 2 (0x20): reserved.
+             . Bit 3 (0x10): reserved.
+             . Bit 4 (0x08): bundle must be deleted if block can't be
+                             processed.
+             . Bit 5 (0x04): transmission of a status report is requested if
+                             block can't be processed.
+             . Bit 6 (0x02): block must be removed from bundle if it can't be
+                             processed.
+             . Bit 7 (the low-order bit, 0x01): block must be replicated in
+                                                every fragment.
+         */
+        REPLICATE_IN_EVERY_FRAGMENT,
+        DISCARD_IF_NOT_PROCESSED,
+        TRANSMIT_STATUSREPORT_IF_NOT_PROCESSED,
+        DELETE_BUNDLE_IF_NOT_PROCESSED,
+        RESERVED_1,
+        RESERVED_2,
+        RESERVED_3,
+        RESERVED_4
+    }
+
     public int type;
-    public long procflags = 0;
+    public long procV6flags = 0;
+    public long procV7flags = 0;
     public long dataSize;
     public HashSet<EID> eids = new HashSet<>();
 
@@ -36,13 +62,23 @@ public class BlockHeader {
     }
 
     /**
-     * Get the state of a specific {@see BlockHeader.BlockFlags}.
+     * Get the state of a specific {@see BlockHeader.BlockV6Flags}.
      *
      * @param flag to query
      * @return true if the flag is set, false otherwise
      */
-    public boolean getFlag(BlockFlags flag) {
-        return ((procflags >> flag.ordinal()) & 0x1) == 0x1;
+    public boolean getV6Flag(BlockV6Flags flag) {
+        return ((procV6flags >> flag.ordinal()) & 0x1) == 0x1;
+    }
+
+    /**
+     * Get the state of a specific {@see BlockHeader.BlockV7Flags}.
+     *
+     * @param flag to query
+     * @return true if the flag is set, false otherwise
+     */
+    public boolean getV7Flag(BlockV7Flags flag) {
+        return ((procV7flags >> flag.ordinal()) & 0x1) == 0x1;
     }
 
     /**
@@ -51,15 +87,29 @@ public class BlockHeader {
      * @param flag  the flag to be set/clear
      * @param state true to set, false to clear
      */
-    public void setFlag(BlockFlags flag, boolean state) {
-        if (flag == BlockFlags.BLOCK_CONTAINS_EIDS) {
+    public void setV6Flag(BlockV6Flags flag, boolean state) {
+        if (flag == BlockV6Flags.BLOCK_CONTAINS_EIDS) {
             return;
         }
 
         if (state) {
-            procflags |= (1 << flag.ordinal());
+            procV6flags |= (1 << flag.ordinal());
         } else {
-            procflags &= ~(1 << flag.ordinal());
+            procV6flags &= ~(1 << flag.ordinal());
+        }
+    }
+
+    /**
+     * Set/clear a flag on this BlockHeader.
+     *
+     * @param flag  the flag to be set/clear
+     * @param state true to set, false to clear
+     */
+    public void setV7Flag(BlockV7Flags flag, boolean state) {
+        if (state) {
+            procV7flags |= (1 << flag.ordinal());
+        } else {
+            procV7flags &= ~(1 << flag.ordinal());
         }
     }
 
@@ -86,9 +136,9 @@ public class BlockHeader {
 
     private void fixEIDFlag() {
         if (eids.isEmpty()) {
-            setFlag(BlockFlags.BLOCK_CONTAINS_EIDS, false);
+            setV6Flag(BlockV6Flags.BLOCK_CONTAINS_EIDS, false);
         } else {
-            setFlag(BlockFlags.BLOCK_CONTAINS_EIDS, true);
+            setV6Flag(BlockV6Flags.BLOCK_CONTAINS_EIDS, true);
         }
     }
 }

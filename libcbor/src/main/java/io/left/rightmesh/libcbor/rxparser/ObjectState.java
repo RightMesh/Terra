@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.utils.rxparser;
+package io.left.rightmesh.libcbor.rxparser;
 
 /**
  * ObjectState is a generic state that deserialize a single object.

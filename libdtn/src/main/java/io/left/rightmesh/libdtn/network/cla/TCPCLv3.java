@@ -1,6 +1,7 @@
 package io.left.rightmesh.libdtn.network.cla;
 
 import io.left.rightmesh.libdtn.bus.RxBus;
+import io.left.rightmesh.libdtn.data.bundleV6.AsyncParser;
 import io.left.rightmesh.libdtn.events.ChannelOpened;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.EID;
@@ -9,12 +10,12 @@ import io.left.rightmesh.libdtn.data.bundleV6.SDNV;
 import io.left.rightmesh.libdtn.network.DTNChannel;
 import io.left.rightmesh.libdtn.network.Peer;
 import io.left.rightmesh.libdtn.network.RxTCP;
-import io.left.rightmesh.libdtn.utils.rxparser.BufferState;
-import io.left.rightmesh.libdtn.utils.rxparser.ParserEmitter;
-import io.left.rightmesh.libdtn.utils.rxparser.ParserState;
-import io.left.rightmesh.libdtn.utils.rxparser.RxParser;
-import io.left.rightmesh.libdtn.utils.rxparser.RxParserException;
-import io.left.rightmesh.libdtn.utils.rxparser.ShortState;
+import io.left.rightmesh.libcbor.rxparser.BufferState;
+import io.left.rightmesh.libcbor.rxparser.ParserEmitter;
+import io.left.rightmesh.libcbor.rxparser.ParserState;
+import io.left.rightmesh.libcbor.rxparser.RxParser;
+import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libcbor.rxparser.ShortState;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
@@ -211,9 +212,9 @@ public class TCPCLv3 implements ConvergenceLayer {
 
             EID channelEID;
             try {
-                channelEID = new EID("tcp://" + remoteAddress + ":" + remotePort);
+                channelEID = EID.create("tcp://" + remoteAddress + ":" + remotePort);
             } catch (EID.EIDFormatException efe) {
-                channelEID = EID.generate("tcp");
+                channelEID = EID.generate();
             }
 
             ch = new ContactHeader(
@@ -244,21 +245,24 @@ public class TCPCLv3 implements ConvergenceLayer {
                 return Observable.error(new Throwable("another observer is already subscribed"));
             }
             return Observable.create(observer ->
-                    RxParser.<ByteBuffer>create(c.recv(), d -> {
-                        recvData = new TCPCLDataReceiver(d);
-                        return recvData;
-                    }).bundle().subscribe(
-                            b -> {
-                                if (!b.isMarked("rejected")) {
-                                    observer.onNext(b);
-                                } else {
-                                    if(session_flag.bundle_refusal_support) {
-                                        c.order(createNACK(NackRCODE.UNSPECIFIED));
-                                    }
-                                }
-                            },
-                            observer::onError,
-                            observer::onComplete)
+                    RxParser.<Bundle>create(
+                            RxParser.<ByteBuffer>create(c.recv(),
+                                    d -> {
+                                        recvData = new TCPCLDataReceiver(d);
+                                        return recvData;
+                                    }), AsyncParser::new)
+                            .subscribe(
+                                    b -> {
+                                        if (!b.isMarked("rejected")) {
+                                            observer.onNext(b);
+                                        } else {
+                                            if (session_flag.bundle_refusal_support) {
+                                                c.order(createNACK(NackRCODE.UNSPECIFIED));
+                                            }
+                                        }
+                                    },
+                                    observer::onError,
+                                    observer::onComplete)
             );
         }
 
@@ -493,7 +497,7 @@ public class TCPCLv3 implements ConvergenceLayer {
                 public ParserState onSuccess(ByteBuffer buffer) throws RxParserException {
                     try {
                         eid_array = buffer.array();
-                        eid = new EID(new String(eid_array));
+                        eid = EID.create(new String(eid_array));
                     } catch (EID.EIDFormatException e) {
                         throw new RxParserException(e.getMessage());
                     }
@@ -717,22 +721,22 @@ public class TCPCLv3 implements ConvergenceLayer {
             byte sd = MessageType.SHUTDOWN.value();
             int allocated = 1;
 
-            if(reason != null) {
+            if (reason != null) {
                 sd |= 0x02;
                 allocated++;
             }
 
             final byte[] sdnv = new SDNV(delay).getBytes();
-            if(delay > 0) {
+            if (delay > 0) {
                 sd |= 0x01;
                 allocated += sdnv.length;
             }
 
             ByteBuffer ret = ByteBuffer.allocate(allocated).put(sd);
-            if(reason != null) {
+            if (reason != null) {
                 ret.put(reason.value());
             }
-            if(delay > 0) {
+            if (delay > 0) {
                 ret.put(sdnv);
             }
             return Flowable.just(ret);
@@ -741,7 +745,7 @@ public class TCPCLv3 implements ConvergenceLayer {
         private Flowable<ByteBuffer> createBundleLength(long length) {
             final byte[] bl = {MessageType.LENGTH.value()};
             final byte[] sdnv = new SDNV(length).getBytes();
-            return Flowable.just(ByteBuffer.allocate(1+sdnv.length).put(bl).put(sdnv));
+            return Flowable.just(ByteBuffer.allocate(1 + sdnv.length).put(bl).put(sdnv));
         }
     }
 }
