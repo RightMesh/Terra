@@ -47,6 +47,8 @@ public class BlockHeader {
     }
 
     public int type;
+    public int number;
+    public CRC.CRCType crcType;
     public long procV6flags = 0;
     public long procV7flags = 0;
     public long dataSize;

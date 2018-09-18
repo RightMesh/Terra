@@ -40,16 +40,23 @@ import io.reactivex.Flowable;
 
 public class CborEncoder {
 
-    private ByteBuffer current;
     private Flowable<ByteBuffer> flow;
 
     public CborEncoder() {
         flow = Flowable.empty();
-        current = ByteBuffer.allocate(2048);
     }
 
-    private void add(Flowable<ByteBuffer> encode) {
-        flow = flow.concatWith(encode);
+    CborEncoder(CborEncoder other) {
+        flow = Flowable.<ByteBuffer>empty().concatWith(other.flow);
+    }
+
+    public CborEncoder merge(CborEncoder o) {
+        flow = flow.concatWith(o.flow);
+        return this;
+    }
+
+    public CborEncoder duplicate() {
+        return new CborEncoder(this);
     }
 
     public Flowable<ByteBuffer> encode() {
@@ -167,7 +174,6 @@ public class CborEncoder {
      *
      * @param length of the array
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
      */
     public CborEncoder cbor_start_array(long length) {
         if (length < 0) {
@@ -181,7 +187,6 @@ public class CborEncoder {
      * Close an opened array. This encoder makes no check wether a container was opened earlier.
      *
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
      */
     public CborEncoder cbor_stop_array() {
         return put((byte) BreakByte);
@@ -194,7 +199,6 @@ public class CborEncoder {
      *
      * @param length of the map
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
      */
     public CborEncoder cbor_start_map(long length) {
         if (length < 0) {
@@ -208,7 +212,6 @@ public class CborEncoder {
      * Close an opened map. This encoder makes no check wether a container was opened earlier.
      *
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
      */
     public CborEncoder cbor_stop_map() {
         return put((byte) BreakByte);
@@ -222,7 +225,6 @@ public class CborEncoder {
      *
      * @param length of the string
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
      */
     public CborEncoder cbor_start_byte_string(long length) {
         if (length < 0) {
@@ -237,7 +239,6 @@ public class CborEncoder {
      *
      * @param chunk to add
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
      */
     public CborEncoder cbor_put_byte_string_chunk(byte[] chunk) {
         return cbor_encode_byte_string(chunk);
@@ -248,7 +249,6 @@ public class CborEncoder {
      * earlier.
      *
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
      */
     public CborEncoder cbor_stop_byte_string() {
         return put((byte) BreakByte);
@@ -262,7 +262,6 @@ public class CborEncoder {
      *
      * @param length of the string
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
      */
     public CborEncoder cbor_start_text_string(long length) {
         if (length < 0) {
@@ -277,7 +276,6 @@ public class CborEncoder {
      *
      * @param chunk to add
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
      */
     public CborEncoder cbor_put_text_string_chunk(String chunk) {
         return cbor_encode_text_string(chunk);
@@ -288,7 +286,6 @@ public class CborEncoder {
      * earlier.
      *
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
      */
     public CborEncoder cbor_stop_text_string() {
         return put((byte) BreakByte);
@@ -299,11 +296,34 @@ public class CborEncoder {
      *
      * @param array to add
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
      */
     public CborEncoder cbor_encode_byte_string(byte[] array) {
         return encode_string((byte) CborByteStringType, array);
     }
+
+    /**
+     * Add a fixed length byte string.
+     *
+     * @param buf to add
+     * @return this encoder
+     */
+    public CborEncoder cbor_encode_byte_string(ByteBuffer buf) {
+        return encode_string((byte) CborByteStringType, buf);
+    }
+
+    /**
+     * Add a byte string from a Flowable whose size if undefined
+     *
+     * @param source to encode
+     * @return this encoder
+     */
+    public CborEncoder cbor_encode_byte_string(Flowable<ByteBuffer> source) {
+        cbor_start_array(-1);
+        add(source.flatMap(buffer -> CBOR.getEncoder().cbor_encode_byte_string(buffer).encode()));
+        cbor_stop_array();
+        return this;
+    }
+
 
     /**
      * Add a fixed length text string. This encoder makes no check that the str supplied is
@@ -311,7 +331,6 @@ public class CborEncoder {
      *
      * @param str to add
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
      */
     public CborEncoder cbor_encode_text_string(String str) {
         return encode_string((byte) CborTextStringType, str.getBytes());
@@ -322,7 +341,6 @@ public class CborEncoder {
      *
      * @param tag to add
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
      */
     public CborEncoder cbor_encode_tag(long tag) {
         return encode_number((byte) CborTagType, tag);
@@ -333,7 +351,6 @@ public class CborEncoder {
      *
      * @param value to add
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
      */
     public CborEncoder cbor_encode_double(double value) {
         add(Flowable.create(s -> {
@@ -352,7 +369,6 @@ public class CborEncoder {
      *
      * @param value to add
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
      */
     public CborEncoder cbor_encode_float(float value) {
         add(Flowable.create(s -> {
@@ -371,7 +387,6 @@ public class CborEncoder {
      *
      * @param value to add
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
      */
     public CborEncoder cbor_encode_half_float(float value) {
         add(Flowable.create(s -> {
@@ -390,7 +405,6 @@ public class CborEncoder {
      *
      * @param value to add
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
      */
     public CborEncoder cbor_encode_simple_value(byte value) {
         if ((value & 0xff) <= Break) {
@@ -405,7 +419,6 @@ public class CborEncoder {
      *
      * @param value to add
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
      */
     public CborEncoder cbor_encode_int(long value) {
         long ui = value >> 63;
@@ -419,7 +432,6 @@ public class CborEncoder {
      *
      * @param ui to add
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
      */
     public CborEncoder cbor_encode_uint(long ui) {
         return encode_number((byte) (UnsignedIntegerType << MajorTypeShift), ui);
@@ -430,12 +442,13 @@ public class CborEncoder {
      *
      * @param absolute_value to add, value must be absolute
      * @return this encoder
-     * @throws BufferOverflowException if the buffer is full
      */
     public CborEncoder cbor_encode_negative_uint(long absolute_value) {
         return encode_number((byte) (NegativeIntegerType << MajorTypeShift), absolute_value - 1);
 
     }
+
+
 
     private CborEncoder encode_string(byte shifted_mt, byte[] array) {
         int len = (array == null) ? 0 : array.length;
@@ -444,6 +457,17 @@ public class CborEncoder {
         } else {
             encode_number(shifted_mt, len);
             add(Flowable.just(ByteBuffer.wrap(array)));
+            return this;
+        }
+    }
+
+    private CborEncoder encode_string(byte shifted_mt, ByteBuffer buf) {
+        int len = (buf == null) ? 0 : buf.remaining();
+        if (buf == null) {
+            return encode_number(shifted_mt, len);
+        } else {
+            encode_number(shifted_mt, len);
+            add(Flowable.just(buf));
             return this;
         }
     }
@@ -529,6 +553,11 @@ public class CborEncoder {
         val = (fbits & 0x7fffffff) >>> 23;
         // add subnormal bit, round depending on cut off and div by 2^(1-(exp-127+15)) and >> 13 | exp=0
         return (short) (sign | ((fbits & 0x7fffff | 0x800000) + (0x800000 >>> val - 102) >>> 126 - val));
+    }
+
+
+    private void add(Flowable<ByteBuffer> source) {
+        flow = flow.concatWith(source);
     }
 
 }

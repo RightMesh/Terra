@@ -1,11 +1,11 @@
 package io.left.rightmesh.libdtn.network.cla;
 
 import io.left.rightmesh.libdtn.bus.RxBus;
-import io.left.rightmesh.libdtn.data.bundleV6.AsyncParser;
+import io.left.rightmesh.libdtn.data.bundleV6.BundleV6Parser;
 import io.left.rightmesh.libdtn.events.ChannelOpened;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.EID;
-import io.left.rightmesh.libdtn.data.bundleV6.AsyncSerializer;
+import io.left.rightmesh.libdtn.data.bundleV6.BundleV6Serializer;
 import io.left.rightmesh.libdtn.data.bundleV6.SDNV;
 import io.left.rightmesh.libdtn.network.DTNChannel;
 import io.left.rightmesh.libdtn.network.Peer;
@@ -16,6 +16,7 @@ import io.left.rightmesh.libcbor.rxparser.ParserState;
 import io.left.rightmesh.libcbor.rxparser.RxParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libcbor.rxparser.ShortState;
+import io.left.rightmesh.libdtn.utils.Log;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
@@ -226,7 +227,7 @@ public class TCPCLv3 implements ConvergenceLayer {
             c.order(createContactHeader())
                     .observe()
                     .subscribe(i -> {
-                    }, e -> c.close());
+                    }, e -> c.closeNow());
         }
 
         @Override
@@ -236,7 +237,7 @@ public class TCPCLv3 implements ConvergenceLayer {
 
         @Override
         public void close() {
-            c.close();
+            c.closeNow();
         }
 
         @Override
@@ -250,7 +251,7 @@ public class TCPCLv3 implements ConvergenceLayer {
                                     d -> {
                                         recvData = new TCPCLDataReceiver(d);
                                         return recvData;
-                                    }), AsyncParser::new)
+                                    }), BundleV6Parser::new)
                             .subscribe(
                                     b -> {
                                         if (!b.isMarked("rejected")) {
@@ -404,7 +405,7 @@ public class TCPCLv3 implements ConvergenceLayer {
         }
 
         private void onRecvShutdown() {
-            c.close();
+            c.closeNow();
         }
 
         private class TCPCLDataReceiver extends ParserEmitter<ByteBuffer> {
@@ -441,7 +442,7 @@ public class TCPCLv3 implements ConvergenceLayer {
             private ParserState contact_header_magic = new BufferState(magic) {
                 @Override
                 public ParserState onSuccess(ByteBuffer buffer) throws RxParserException {
-                    debug("TCPCLv3", "magic=" + new String(magic));
+                    Log.d("TCPCLv3", "magic=" + new String(magic));
                     if (!new String(magic).equals("dtn!")) {
                         throw new RxParserException(new String(magic)
                                 + " isn't the magic word");
@@ -454,7 +455,7 @@ public class TCPCLv3 implements ConvergenceLayer {
                 @Override
                 public ParserState onNext(ByteBuffer next) throws RxParserException {
                     int version = next.get();
-                    debug("TCPCLv3", "version=" + version);
+                    Log.d("TCPCLv3", "version=" + version);
                     if (version != 3) {
                         throw new RxParserException("bad TCPCLv3 version ("
                                 + version + " != 3)");
@@ -467,7 +468,7 @@ public class TCPCLv3 implements ConvergenceLayer {
                 @Override
                 public ParserState onNext(ByteBuffer next) throws RxParserException {
                     flags = next.get();
-                    debug("TCPCLv3", "parameters=" + flags);
+                    Log.d("TCPCLv3", "parameters=" + flags);
                     return contact_header_keepalive_interval;
                 }
             };
@@ -476,7 +477,7 @@ public class TCPCLv3 implements ConvergenceLayer {
                 @Override
                 public ParserState onSuccess(Short s) throws RxParserException {
                     interval = s;
-                    debug("TCPCLv3", "interval=" + interval);
+                    Log.d("TCPCLv3", "interval=" + interval);
                     return contact_header_local_eid_length;
                 }
             };
@@ -486,7 +487,7 @@ public class TCPCLv3 implements ConvergenceLayer {
                         @Override
                         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
                             eid_length = sdnv_value.getValue();
-                            debug("TCPCLv3", "eid_length=" + eid_length);
+                            Log.d("TCPCLv3", "eid_length=" + eid_length);
                             contact_header_local_eid.realloc((int) eid_length);
                             return contact_header_local_eid;
                         }
@@ -518,8 +519,8 @@ public class TCPCLv3 implements ConvergenceLayer {
                     byte code = next.get();
                     code_type = code >> 4;
                     code_flags = code & 0x0F;
-                    debug("TCPCLv3", "code_type=" + code_type);
-                    debug("TCPCLv3", "code_flags=" + code_flags);
+                    Log.d("TCPCLv3", "code_type=" + code_type);
+                    Log.d("TCPCLv3", "code_flags=" + code_flags);
 
                     if (code_type == MessageType.DATA_SEGMENT.value()) {
                         return data_segment_length;
@@ -547,7 +548,7 @@ public class TCPCLv3 implements ConvergenceLayer {
                 @Override
                 public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
                     segment_length = sdnv_value.getValue();
-                    debug("TCPCLv3", "data_segment_length=" + segment_length);
+                    Log.d("TCPCLv3", "data_segment_length=" + segment_length);
                     return data_segment_payload;
                 }
             };
@@ -573,7 +574,7 @@ public class TCPCLv3 implements ConvergenceLayer {
                         segment.limit(segment.position() + (int) segment_length);
                         emit(segment);
 
-                        // since the read() will be done on segment instead of next, we manually
+                        // since the read() will be done on segment instead of insert, we manually
                         // increase the position
                         next.position(next.position() + (int) segment_length);
 
@@ -586,7 +587,7 @@ public class TCPCLv3 implements ConvergenceLayer {
                 @Override
                 public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
                     // sdnv_value is the ack
-                    debug("TCPCLv3", "ack_segment=" + sdnv_value);
+                    Log.d("TCPCLv3", "ack_segment=" + sdnv_value);
                     return segment_type;
                 }
             };
@@ -595,7 +596,7 @@ public class TCPCLv3 implements ConvergenceLayer {
                 @Override
                 public ParserState onNext(ByteBuffer next) throws RxParserException {
                     // nothing to read
-                    debug("TCPCLv3", "refuse_bundle");
+                    Log.d("TCPCLv3", "refuse_bundle");
                     return segment_type;
                 }
             };
@@ -605,7 +606,7 @@ public class TCPCLv3 implements ConvergenceLayer {
                 @Override
                 public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
                     // sdnv_value is the length of the bundle
-                    debug("TCPCLv3", "bundle_length=" + bundle_length);
+                    Log.d("TCPCLv3", "bundle_length=" + bundle_length);
                     return segment_type;
                 }
             };
@@ -614,7 +615,7 @@ public class TCPCLv3 implements ConvergenceLayer {
                 @Override
                 public ParserState onNext(ByteBuffer next) throws RxParserException {
                     // nothing to read, it is just a keep alive
-                    debug("TCPCLv3", "keep_alive");
+                    Log.d("TCPCLv3", "keep_alive");
                     return segment_type;
                 }
             };
@@ -622,7 +623,7 @@ public class TCPCLv3 implements ConvergenceLayer {
             private ParserState shutdown = new ParserState() {
                 @Override
                 public ParserState onNext(ByteBuffer next) throws RxParserException {
-                    debug("TCPCLv3", "shutdown");
+                    Log.d("TCPCLv3", "shutdown");
                     // R bit set, Read reason code
                     if ((code_flags & 0x02) == 0x02) {
                         return shutdown_reason_code;
@@ -637,7 +638,7 @@ public class TCPCLv3 implements ConvergenceLayer {
                 @Override
                 public ParserState onNext(ByteBuffer next) throws RxParserException {
                     int reason_code = next.get();
-                    debug("TCPCLv3", "shutdown_reason_code=" + reason_code);
+                    Log.d("TCPCLv3", "shutdown_reason_code=" + reason_code);
                     if ((code_flags & 0x01) == 0x01) {
                         return shutdown_reconnection_delay;
                     } else {
@@ -651,7 +652,7 @@ public class TCPCLv3 implements ConvergenceLayer {
                 @Override
                 public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
                     // sdnv_value is the reconnection delay
-                    debug("TCPCLv3", "shutdown_reconnection_delay=" + sdnv_value.getValue());
+                    Log.d("TCPCLv3", "shutdown_reconnection_delay=" + sdnv_value.getValue());
                     terminate();
                     return idle;
                 }
@@ -687,7 +688,7 @@ public class TCPCLv3 implements ConvergenceLayer {
         // todo optimize that ? that should probably be taken care of at the source
         private Flowable<ByteBuffer> createSegment(Bundle bundle) {
             return Flowable.just(ByteBuffer.wrap(data_segment_start)).concatWith(
-                    new AsyncSerializer().serialize(bundle)
+                    new BundleV6Serializer().serialize(bundle)
                             .flatMap(buffer -> {
                                 final byte[] sdnv = new SDNV(buffer.remaining()).getBytes();
                                 return Flowable.just(

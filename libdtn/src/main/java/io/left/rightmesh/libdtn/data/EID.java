@@ -17,23 +17,26 @@ public class EID {
         }
     }
 
-    enum EIDScheme {
+    public enum EIDScheme {
         DTN,
         IPN,
         UNKNOWN
     }
     EIDScheme scheme_code;
 
+    int iana_value;
     String eid;
     String scheme;
     String ssp;
     String authority;
     String path;
 
-    private EID() {
+    private EID(int iana_value) {
+        this.iana_value = iana_value;
     }
 
-    private EID(String str) {
+    private EID(int iana_value, String str) {
+        this.iana_value = iana_value;
         this.eid = str;
     }
 
@@ -51,7 +54,7 @@ public class EID {
         if(!isValidEID(str)) {
             throw new EIDFormatException();
         }
-        EID eid = new EID(str);
+        EID eid = new EID(127, str);
         if(eid.getScheme().equals("dtn")) {
             return new DTN(str);
         }
@@ -73,7 +76,7 @@ public class EID {
         if(scheme.equals("ipn")) {
             return new IPN(ssp);
         } else {
-            EID eid = new EID();
+            EID eid = new EID(127);
             eid.eid = scheme+":"+ssp;
             eid.scheme_code = EIDScheme.UNKNOWN;
             return eid;
@@ -85,7 +88,7 @@ public class EID {
     }
 
     public static EID.DTN createDTN(String ssp) {
-        return new DTN(ssp);
+        return new DTN("dtn:"+ssp);
     }
 
     public static EID.DTN generate() {
@@ -93,24 +96,17 @@ public class EID {
         return new DTN(uuid);
     }
 
-    public static class DTN extends EID {
 
-        protected DTN(String str) {
-            super(str);
-        }
-
-        DTN(DTN other) {
-            super(other.eid);
-            scheme_code = EIDScheme.DTN;
-        }
+    public int IANA() {
+        return iana_value;
     }
 
     public static class IPN extends EID {
-        int node_number;
-        int service_number;
+        public int node_number;
+        public int service_number;
 
         protected IPN(String str) throws EIDFormatException {
-            super(str);
+            super(2, str);
             final String regex = "^([0-9]+)\\.([0-9]+)";
             Pattern r = Pattern.compile(regex);
             Matcher m = r.matcher(getSsp());
@@ -125,7 +121,7 @@ public class EID {
         }
 
         IPN(int node, int service) {
-            super("ipn:"+node+":"+service);
+            super(2, "ipn:"+node+":"+service);
             this.node_number = node;
             this.service_number = service;
         }
@@ -148,6 +144,19 @@ public class EID {
             hash = hash * 31 + node_number;
             hash = hash * 31 + service_number;
             return hash;
+        }
+    }
+
+
+    public static class DTN extends EID {
+
+        protected DTN(String str) {
+            super(1, str);
+        }
+
+        DTN(DTN other) {
+            this(other.eid);
+            scheme_code = EIDScheme.DTN;
         }
     }
 
@@ -259,7 +268,7 @@ public class EID {
             return false;
         }
         if (o instanceof DTN) {
-            return this.ssp.equals(((DTN) o).ssp);
+            return this.toString().equals(o.toString());
         }
         return false;
     }
@@ -267,5 +276,10 @@ public class EID {
     @Override
     public int hashCode() {
         return this.ssp.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return eid;
     }
 }

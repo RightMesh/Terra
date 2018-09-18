@@ -34,15 +34,4 @@ public abstract class ParserState {
     // optional callback
     public void onExit() throws RxParserException {
     }
-
-    /**
-     * debugging.
-     */
-    private static final boolean DEBUG = false;
-
-    protected void debug(String from, String msg) {
-        if (DEBUG) {
-            System.out.println(from + "> " + msg);
-        }
-    }
 }

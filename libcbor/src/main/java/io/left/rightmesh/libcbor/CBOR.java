@@ -6,6 +6,8 @@ import java.util.LinkedList;
 import java.util.Map;
 
 import static io.left.rightmesh.libcbor.Constants.CborType.CborArrayType;
+import static io.left.rightmesh.libcbor.Constants.CborType.CborBooleanType;
+import static io.left.rightmesh.libcbor.Constants.CborType.CborBreakType;
 import static io.left.rightmesh.libcbor.Constants.CborType.CborByteStringType;
 import static io.left.rightmesh.libcbor.Constants.CborType.CborDoubleType;
 import static io.left.rightmesh.libcbor.Constants.CborType.CborIntegerType;
@@ -47,25 +49,25 @@ public class CBOR {
 
         public DataItem(int cborType, Object item) {
             this.cborType = cborType;
-            setItem(item);
+            setItem(null, item);
         }
 
         public DataItem(int cborType, Object item, LinkedList<Long> tags) {
             this.cborType = cborType;
-            setTaggedItem(tags, item);
+            setTaggedItem(null, tags, item);
         }
 
         void addTags(LinkedList<Long> tags) {
             this.tags = tags;
         }
 
-        void setItem(Object item) {
+        void setItem(CborParser parser, Object item) {
             this.item = item;
         }
 
-        void setTaggedItem(LinkedList<Long> tags, Object item) {
+        void setTaggedItem(CborParser parser, LinkedList<Long> tags, Object item) {
             addTags(tags);
-            setItem(item);
+            setItem(null, item);
         }
     }
 
@@ -101,6 +103,10 @@ public class CBOR {
             }
             return false;
         }
+
+        public static boolean ofType(DataItem item) {
+            return item.cborType == CborIntegerType;
+        }
     }
 
     public static class FloatingPointItem extends DataItem implements CborParser.ParseableItem {
@@ -135,6 +141,10 @@ public class CBOR {
             }
             return false;
         }
+
+        public static boolean ofType(DataItem item) {
+            return item.cborType == CborDoubleType;
+        }
     }
 
     public static class ByteStringItem extends DataItem implements CborParser.ParseableItem {
@@ -168,6 +178,10 @@ public class CBOR {
                 return ((ByteStringItem) o).item.equals(this.item);
             }
             return false;
+        }
+
+        public static boolean ofType(DataItem item) {
+            return item.cborType == CborByteStringType;
         }
     }
 
@@ -206,6 +220,10 @@ public class CBOR {
             }
             return false;
         }
+
+        public static boolean ofType(DataItem item) {
+            return item.cborType == CborTextStringType;
+        }
     }
 
     public static class ArrayItem extends DataItem implements CborParser.ParseableItem {
@@ -240,6 +258,10 @@ public class CBOR {
                 return ((ArrayItem) o).item.equals(this.item);
             }
             return false;
+        }
+
+        public static boolean ofType(DataItem item) {
+            return item.cborType == CborArrayType;
         }
     }
 
@@ -276,6 +298,10 @@ public class CBOR {
             }
             return false;
         }
+
+        public static boolean ofType(DataItem item) {
+            return item.cborType == CborMapType;
+        }
     }
 
     public static class TagItem extends DataItem implements CborParser.ParseableItem {
@@ -306,6 +332,10 @@ public class CBOR {
             }
             return false;
         }
+
+        public static boolean ofType(DataItem item) {
+            return item.cborType == CborTagType;
+        }
     }
 
     public static class SimpleValueItem extends DataItem implements CborParser.ParseableItem {
@@ -315,7 +345,7 @@ public class CBOR {
 
         SimpleValueItem(int value) {
             super(CborSimpleType);
-            setItem(value);
+            setItem(null, value);
         }
 
         SimpleValueItem(LinkedList<Long> tags, int value) {
@@ -341,15 +371,19 @@ public class CBOR {
             }
             return false;
         }
+
+        public static boolean ofType(DataItem item) {
+            return item.cborType == CborSimpleType;
+        }
     }
 
     public static class BooleanItem extends DataItem implements CborParser.ParseableItem {
         public BooleanItem() {
-            super(CborTextStringType);
+            super(CborBooleanType);
         }
 
         public BooleanItem(boolean b) {
-            super(CborTextStringType, b);
+            super(CborBooleanType, b);
         }
 
         public boolean value() {
@@ -373,6 +407,10 @@ public class CBOR {
                 return ((BooleanItem) o).item.equals(this.item);
             }
             return false;
+        }
+
+        public static boolean ofType(DataItem item) {
+            return item.cborType == CborBooleanType;
         }
     }
 
@@ -400,6 +438,10 @@ public class CBOR {
             }
             return false;
         }
+
+        public static boolean ofType(DataItem item) {
+            return item.cborType == CborNullType;
+        }
     }
 
     public static class UndefinedItem extends DataItem implements CborParser.ParseableItem {
@@ -422,11 +464,15 @@ public class CBOR {
             }
             return false;
         }
+
+        public static boolean ofType(DataItem item) {
+            return item.cborType == CborUndefinedType;
+        }
     }
 
     public static class BreakItem extends DataItem implements CborParser.ParseableItem {
         public BreakItem() {
-            super(CborUndefinedType);
+            super(CborBreakType);
         }
 
         @Override
@@ -443,6 +489,10 @@ public class CBOR {
                 return true;
             }
             return false;
+        }
+
+        public static boolean ofType(DataItem item) {
+            return item.cborType == CborBreakType;
         }
     }
 

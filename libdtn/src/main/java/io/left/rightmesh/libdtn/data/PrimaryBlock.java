@@ -11,9 +11,6 @@ package io.left.rightmesh.libdtn.data;
  */
 public class PrimaryBlock {
 
-    public static final byte BUNDLE_VERSION_6 = 0x06;
-    public static final byte BUNDLE_VERSION_7 = 0x07;
-
     public enum Priority {
         BULK,
         NORMAL,
@@ -100,9 +97,11 @@ public class PrimaryBlock {
         }
     }
 
-    /** RFC5050 fields */
+    /** BPv6 and BPv7 fields */
     public int version;
-    public long procFlags;
+    public long procV6Flags;
+    public long procV7Flags;
+    public CRC.CRCType crcType;
     public EID destination;
     public EID source;
     public EID reportto;
@@ -117,7 +116,7 @@ public class PrimaryBlock {
      * Constructor: creates an empty PrimaryBlock, should probably not be used.
      */
     public PrimaryBlock() {
-        this.procFlags = 0;
+        this.procV6Flags = 0;
         this.destination = EID.NullEID();
         this.source = EID.NullEID();
         this.custodian = EID.NullEID();
@@ -145,7 +144,8 @@ public class PrimaryBlock {
      * @param other other primary block to copy
      */
     public PrimaryBlock(PrimaryBlock other) {
-        this.procFlags = other.procFlags;
+        this.procV6Flags = other.procV6Flags;
+        this.procV7Flags = other.procV7Flags;
         this.source = other.source;
         this.destination = other.destination;
         this.reportto = other.reportto;
@@ -164,7 +164,7 @@ public class PrimaryBlock {
      * @return true if the flag is set, false otherwise
      */
     public boolean getV6Flag(BundleV6Flags flag) {
-        return (flag.getOffset() & this.procFlags) > 0;
+        return (flag.getOffset() & this.procV6Flags) > 0;
     }
 
     /**
@@ -174,7 +174,7 @@ public class PrimaryBlock {
      * @return true if the flag is set, false otherwise
      */
     public boolean getV7Flag(BundleV7Flags flag) {
-        return (flag.getOffset() & this.procFlags) > 0;
+        return (flag.getOffset() & this.procV7Flags) > 0;
     }
 
     /**
@@ -200,9 +200,9 @@ public class PrimaryBlock {
      */
     public void setV6Flag(BundleV6Flags flag, boolean value) {
         if (value) {
-            procFlags |= 0b1L << flag.getOffset();
+            procV6Flags |= 0b1L << flag.getOffset();
         } else {
-            procFlags &= ~(0b1L << flag.getOffset());
+            procV6Flags &= ~(0b1L << flag.getOffset());
         }
     }
 
@@ -214,9 +214,9 @@ public class PrimaryBlock {
      */
     public void setV7Flag(BundleV7Flags flag, boolean value) {
         if (value) {
-            procFlags |= 0b1L << flag.getOffset();
+            procV7Flags |= 0b1L << flag.getOffset();
         } else {
-            procFlags &= ~(0b1L << flag.getOffset());
+            procV7Flags &= ~(0b1L << flag.getOffset());
         }
     }
 

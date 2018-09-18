@@ -88,11 +88,13 @@ import java.util.Set;
  *
  * @author Lucien Loiseau on 23/07/18.
  */
-public class AsyncSerializer {
+public class BundleV6Serializer {
+
+    public static final byte BUNDLE_VERSION_6 = 0x06;
 
     private Dictionary dict;
 
-    public AsyncSerializer() {
+    public BundleV6Serializer() {
         this.dict = new Dictionary();
     }
 
@@ -133,8 +135,8 @@ public class AsyncSerializer {
         return Flowable.create(s -> {
             ByteArrayDataOutput buffer = ByteStreams.newDataOutput();
             // Version is normally an SDNV but doesn't make a difference with a byte
-            buffer.write((byte) block.version);
-            buffer.write(new SDNV(block.procFlags).getBytes());
+            buffer.write(BUNDLE_VERSION_6);
+            buffer.write(new SDNV(block.procV6Flags).getBytes());
 
             // fill a buffer with the rest of the remaining header and then we can figure the length
             ByteArrayDataOutput tmp = ByteStreams.newDataOutput();

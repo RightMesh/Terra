@@ -14,7 +14,7 @@ public class AgeBlock extends ExtensionBlock {
     long time_start;
     long time_end;
 
-    AgeBlock() {
+    public AgeBlock() {
         super(type);
         setV6Flag(BlockV6Flags.REPLICATE_IN_EVERY_FRAGMENT, true);
         start();

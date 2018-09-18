@@ -14,6 +14,9 @@ dependencies {
 
     // ByteArrayDataOutput ByteStreams
     api (group: 'com.google.guava', name: 'guava', version: 'r05')
+
+    // junit
+    testImplementation 'junit:junit:4.12'
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8

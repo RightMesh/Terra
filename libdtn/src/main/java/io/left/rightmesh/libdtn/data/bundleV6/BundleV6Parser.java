@@ -18,6 +18,7 @@ import io.left.rightmesh.libcbor.rxparser.BufferState;
 import io.left.rightmesh.libcbor.rxparser.ParserEmitter;
 import io.left.rightmesh.libcbor.rxparser.ParserState;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libdtn.utils.Log;
 import io.reactivex.Observer;
 
 import java.io.IOException;
@@ -25,7 +26,7 @@ import java.nio.ByteBuffer;
 
 /**
  * This class deserialize a bundle (RFC5050) in a reactive way using an Observable as the source.
- * See {@see AsyncSerializer} for the serialization process.
+ * See {@see BundleV7Serializer} for the serialization process.
  *
  * <p>Upon deserialization of the bundle's part (PrimaryBlock, BlockHeader and BlockData), a call
  * to CoreProcessor.onDeserialized will be made. If an RejectedException occurs, the bundle will
@@ -36,7 +37,7 @@ import java.nio.ByteBuffer;
  *
  * @author Lucien Loiseau on 10/08/18.
  */
-public class AsyncParser extends ParserEmitter<Bundle> {
+public class BundleV6Parser extends ParserEmitter<Bundle> {
 
     private Bundle bundle = null;
     private long sourceScheme;
@@ -53,10 +54,9 @@ public class AsyncParser extends ParserEmitter<Bundle> {
     private long eidCount;
     private long blockRefScheme;
     private long blockDataSize;
-    private ParserState deserializeBlockData;
     private boolean bundle_is_rejected = false;
 
-    public AsyncParser(Observer<? super Bundle> downstream) {
+    public BundleV6Parser(Observer<? super Bundle> downstream) {
         super(downstream);
     }
 
@@ -130,7 +130,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             bundle.version = (int) sdnv_value.getValue();
-            debug("AsyncParser", "version=" + bundle.version);
+            Log.d("BundleV6Parser", "version=" + bundle.version);
             return primary_block_flag;
         }
     };
@@ -138,8 +138,8 @@ public class AsyncParser extends ParserEmitter<Bundle> {
     private ParserState primary_block_flag = new SDNV.SDNVState() {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
-            bundle.procFlags = sdnv_value.getValue();
-            debug("AsyncParser", "procflags=" + bundle.procFlags);
+            bundle.procV6Flags = sdnv_value.getValue();
+            Log.d("BundleV6Parser", "procflags=" + bundle.procV6Flags);
             return primary_block_length;
         }
     };
@@ -148,7 +148,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             // ignore block length
-            debug("AsyncParser", "block_length=" + sdnv_value.getValue());
+            Log.d("BundleV6Parser", "block_length=" + sdnv_value.getValue());
             return primary_block_dest_scheme_offset;
         }
     };
@@ -157,7 +157,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             destinationScheme = sdnv_value.getValue();
-            debug("AsyncParser", "destinationScheme=" + sdnv_value.getValue());
+            Log.d("BundleV6Parser", "destinationScheme=" + sdnv_value.getValue());
             return primary_block_dest_ssp_offset;
         }
     };
@@ -166,7 +166,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             destinationSsp = sdnv_value.getValue();
-            debug("AsyncParser", "destinationSsp=" + sdnv_value.getValue());
+            Log.d("BundleV6Parser", "destinationSsp=" + sdnv_value.getValue());
             return primary_block_src_scheme_offset;
         }
     };
@@ -175,7 +175,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             sourceScheme = sdnv_value.getValue();
-            debug("AsyncParser", "sourceScheme=" + sdnv_value.getValue());
+            Log.d("BundleV6Parser", "sourceScheme=" + sdnv_value.getValue());
             return primary_block_src_ssp_offset;
         }
     };
@@ -184,7 +184,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             sourceSsp = sdnv_value.getValue();
-            debug("AsyncParser", "sourceSsp=" + sdnv_value.getValue());
+            Log.d("BundleV6Parser", "sourceSsp=" + sdnv_value.getValue());
             return primary_block_report_scheme_offset;
         }
     };
@@ -193,7 +193,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             reportToScheme = sdnv_value.getValue();
-            debug("AsyncParser", "reportToScheme=" + sdnv_value.getValue());
+            Log.d("BundleV6Parser", "reportToScheme=" + sdnv_value.getValue());
             return primary_block_report_ssp_offset;
         }
     };
@@ -202,7 +202,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             reportToSsp = sdnv_value.getValue();
-            debug("AsyncParser", "reportToSsp=" + sdnv_value.getValue());
+            Log.d("BundleV6Parser", "reportToSsp=" + sdnv_value.getValue());
             return primary_block_custodian_scheme_offset;
         }
     };
@@ -211,7 +211,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             custodianScheme = sdnv_value.getValue();
-            debug("AsyncParser", "custodianScheme=" + sdnv_value.getValue());
+            Log.d("BundleV6Parser", "custodianScheme=" + sdnv_value.getValue());
             return primary_block_custodian_ssp_offset;
         }
     };
@@ -220,7 +220,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             custodianSsp = sdnv_value.getValue();
-            debug("AsyncParser", "custodianSsp=" + sdnv_value.getValue());
+            Log.d("BundleV6Parser", "custodianSsp=" + sdnv_value.getValue());
             return primary_block_creation_timestamp;
         }
     };
@@ -229,7 +229,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             bundle.creationTimestamp = sdnv_value.getValue();
-            debug("AsyncParser", "creationTimestamp=" + sdnv_value.getValue());
+            Log.d("BundleV6Parser", "creationTimestamp=" + sdnv_value.getValue());
             return primary_block_creation_timestamp_seq;
         }
     };
@@ -238,7 +238,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             bundle.sequenceNumber = sdnv_value.getValue();
-            debug("AsyncParser", "sequenceNumber=" + sdnv_value.getValue());
+            Log.d("BundleV6Parser", "sequenceNumber=" + sdnv_value.getValue());
             return primary_block_lifetime;
         }
     };
@@ -247,7 +247,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             bundle.lifetime = sdnv_value.getValue();
-            debug("AsyncParser", "lifetime=" + sdnv_value.getValue());
+            Log.d("BundleV6Parser", "lifetime=" + sdnv_value.getValue());
             return primary_block_dict_length;
         }
     };
@@ -256,7 +256,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             dictLength = (int) sdnv_value.getValue();
-            debug("AsyncParser", "dictLength=" + sdnv_value.getValue());
+            Log.d("BundleV6Parser", "dictLength=" + sdnv_value.getValue());
             primary_block_dict_byte_array.realloc(dictLength);
             return primary_block_dict_byte_array;
         }
@@ -269,16 +269,16 @@ public class AsyncParser extends ParserEmitter<Bundle> {
             try {
                 bundle.source = EID.create(dict.lookup((int) sourceScheme),
                         dict.lookup((int) sourceSsp));
-                debug("AsyncParser", "source=" + bundle.source.toString());
+                Log.d("BundleV6Parser", "source=" + bundle.source.toString());
                 bundle.destination = EID.create(dict.lookup((int) destinationScheme),
                         dict.lookup((int) destinationSsp));
-                debug("AsyncParser", "destination=" + bundle.destination.toString());
+                Log.d("BundleV6Parser", "destination=" + bundle.destination.toString());
                 bundle.reportto = EID.create(dict.lookup((int) reportToScheme),
                         dict.lookup((int) reportToSsp));
-                debug("AsyncParser", "reportto=" + bundle.reportto.toString());
+                Log.d("BundleV6Parser", "reportto=" + bundle.reportto.toString());
                 bundle.custodian = EID.create(dict.lookup((int) custodianScheme),
                         dict.lookup((int) custodianSsp));
-                debug("AsyncParser", "custodian=" + bundle.custodian.toString());
+                Log.d("BundleV6Parser", "custodian=" + bundle.custodian.toString());
             } catch (Dictionary.EntryNotFoundException e) {
                 throw new RxParserException("RFC5050", e.getMessage());
             } catch (EID.EIDFormatException e) {
@@ -298,7 +298,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             bundle.fragmentOffset = sdnv_value.getValue();
-            debug("AsyncParser", "fragmentOffset=" + bundle.fragmentOffset);
+            Log.d("BundleV6Parser", "fragmentOffset=" + bundle.fragmentOffset);
             return primary_block_application_data_length;
         }
     };
@@ -307,7 +307,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             bundle.appDataLength = sdnv_value.getValue();
-            debug("AsyncParser", "appDataLength=" + bundle.appDataLength);
+            Log.d("BundleV6Parser", "appDataLength=" + bundle.appDataLength);
             onPrimaryBlockReceived();
             return block_type;
         }
@@ -318,7 +318,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         @Override
         public ParserState onNext(ByteBuffer next) throws RxParserException {
             block = Block.create(next.get());
-            debug("AsyncParser", "block_type=" + block.type);
+            Log.d("BundleV6Parser", "block_type=" + block.type);
             return block_proc_flags;
         }
     };
@@ -327,7 +327,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             block.procV6flags = sdnv_value.getValue();
-            debug("AsyncParser", "procflags=" + block.procV6flags);
+            Log.d("BundleV6Parser", "procflags=" + block.procV6flags);
             if (block.getV6Flag(BlockHeader.BlockV6Flags.BLOCK_CONTAINS_EIDS)) {
                 return block_eid_ref_count;
             } else {
@@ -340,7 +340,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             eidCount = sdnv_value.getValue();
-            debug("AsyncParser", "eidCount=" + eidCount);
+            Log.d("BundleV6Parser", "eidCount=" + eidCount);
             return block_eid_ref_scheme;
         }
     };
@@ -349,7 +349,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             blockRefScheme = sdnv_value.getValue();
-            debug("AsyncParser", "blockRefScheme=" + blockRefScheme);
+            Log.d("BundleV6Parser", "blockRefScheme=" + blockRefScheme);
             return block_eid_ref_ssp;
         }
     };
@@ -359,7 +359,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             try {
                 long blockRefSsp = sdnv_value.getValue();
-                debug("AsyncParser", "blockRefSsp=" + blockRefSsp);
+                Log.d("BundleV6Parser", "blockRefSsp=" + blockRefSsp);
                 block.addEID(EID.create(dict.lookup((int) blockRefScheme),
                         dict.lookup((int) blockRefSsp)));
             } catch (Dictionary.EntryNotFoundException enfe) {
@@ -378,7 +378,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
     private ParserState block_length = new SDNV.SDNVState() {
         @Override
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
-            debug("AsyncParser", "blockDataSize=" + sdnv_value.getValue());
+            Log.d("BundleV6Parser", "blockDataSize=" + sdnv_value.getValue());
             block.dataSize = sdnv_value.getValue();
             onBlockHeaderReceived();
             if (bundle_is_rejected) {
@@ -432,7 +432,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
 
         @Override
         public void onEnter() throws RxParserException {
-            debug("AsyncParser", "start_bundle_payload");
+            Log.d("BundleV6Parser", "start_bundle_payload");
             try {
                 ((BlockBLOB) block).data = BLOB.createBLOB((int) block.dataSize);
                 writableData = ((BlockBLOB) block).data.getWritableBLOB();
@@ -483,7 +483,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
     private ParserState block_ignore_payload = new ParserState() {
         @Override
         public void onEnter() throws RxParserException {
-            debug("AsyncParser", "start_ignoring_payload");
+            Log.d("BundleV6Parser", "start_ignoring_payload");
             blockDataSize = block.dataSize;
         }
 
@@ -502,7 +502,7 @@ public class AsyncParser extends ParserEmitter<Bundle> {
     private ParserState block_finish = new ParserState() {
         @Override
         public ParserState onNext(ByteBuffer next) throws RxParserException {
-            debug("AsyncParser", "end_bundle_payload");
+            Log.d("BundleV6Parser", "end_bundle_payload");
             onBlockDataReceived();
 
             if (block.getV6Flag(BlockHeader.BlockV6Flags.LAST_BLOCK)) {
