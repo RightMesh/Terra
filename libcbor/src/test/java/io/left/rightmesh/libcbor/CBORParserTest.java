@@ -31,7 +31,7 @@ public class CBORParserTest {
     @Test
     public void parseAppendixA_PositiveInteger() {
         try {
-            CborParser dec = CBOR.getParser();
+            CborParser dec = CBOR.parser();
             boolean b;
 
             b = dec.cbor_parse_int((__, ___, obj) -> assertEquals(0, (long) obj))
@@ -82,7 +82,7 @@ public class CBORParserTest {
     @Test
     public void parseAppendixA_NegativeInteger() {
         try {
-            CborParser dec = CBOR.getParser();
+            CborParser dec = CBOR.parser();
             boolean b;
 
             b = dec.cbor_parse_int((__, ___, obj) -> assertEquals(-1, (long) obj))
@@ -109,7 +109,7 @@ public class CBORParserTest {
     @Test
     public void parseAppendixA_HalfFloats() {
         try {
-            CborParser dec = CBOR.getParser();
+            CborParser dec = CBOR.parser();
             boolean b;
 
             b = dec.cbor_parse_float((__, ___, obj) -> assertEquals(0.0d, obj))
@@ -164,7 +164,7 @@ public class CBORParserTest {
     @Test
     public void parseAppendixA_Floats() {
         try {
-            CborParser dec = CBOR.getParser();
+            CborParser dec = CBOR.parser();
             boolean b;
 
             b = dec.cbor_parse_float((__, ___, obj) -> assertEquals(100000.0d, obj))
@@ -196,7 +196,7 @@ public class CBORParserTest {
     @Test
     public void parseAppendixA_Double() {
         try {
-            CborParser dec = CBOR.getParser();
+            CborParser dec = CBOR.parser();
             boolean b;
 
             b = dec.cbor_parse_float((__, ___, obj) -> assertEquals(1.1d, obj))
@@ -228,7 +228,7 @@ public class CBORParserTest {
     @Test
     public void parseAppendixA_SimpleValues() {
         try {
-            CborParser dec = CBOR.getParser();
+            CborParser dec = CBOR.parser();
             boolean b;
 
             b = dec.cbor_parse_boolean((__, obj) -> assertEquals(false, (boolean) obj))
@@ -265,7 +265,7 @@ public class CBORParserTest {
     @Test
     public void parseAppendixA_Byte_Text_Strings() {
         try {
-            CborParser dec = CBOR.getParser();
+            CborParser dec = CBOR.parser();
             boolean b;
 
             byte[] a0 = {};
@@ -314,7 +314,7 @@ public class CBORParserTest {
     @Test
     public void encodeAppendixA_Byte_Text_Strings_Indefinite() {
         try {
-            CborParser dec = CBOR.getParser();
+            CborParser dec = CBOR.parser();
             boolean b;
 
             final int o[] = new int[] {0}; // trick to modify i from lambda
@@ -344,7 +344,7 @@ public class CBORParserTest {
     @Test
     public void parseAppendixA_Tags() {
         try {
-            CborParser dec = CBOR.getParser();
+            CborParser dec = CBOR.parser();
             boolean b;
 
             b = dec.cbor_parse_tag((__, tag) -> assertEquals(0, (long) tag))
@@ -434,7 +434,7 @@ public class CBORParserTest {
     @Test
     public void parseAppendixA_Array_And_Hashes_Definite() {
         try {
-            CborParser dec = CBOR.getParser();
+            CborParser dec = CBOR.parser();
             boolean b;
 
             b = dec.cbor_open_array(
@@ -451,7 +451,6 @@ public class CBORParserTest {
                     (__, ___, c) -> assertEquals(true, c.equals(c1))
             ).read(hexToBuf("0x98190102030405060708090a0b0c0d0e0f101112131415161718181819"));
             assertEquals(true, b);
-
             Map m = new HashMap();
             m.put("a", "A");
             m.put("b", "B");
@@ -480,7 +479,7 @@ public class CBORParserTest {
     @Test
     public void parseAppendixA_GenericParsing() {
         try {
-            CborParser dec = CBOR.getParser();
+            CborParser dec = CBOR.parser();
             boolean b;
 
             b = dec.cbor_parse_generic((__, obj) -> {
@@ -546,7 +545,7 @@ public class CBORParserTest {
     @Test
     public void encodeAppendixA_Array_And_Hashes_Indefinite() {
         try {
-            CborParser dec = CBOR.getParser();
+            CborParser dec = CBOR.parser();
             boolean b;
 
             b = dec.cbor_parse_generic((__, i) -> {
@@ -585,7 +584,7 @@ public class CBORParserTest {
     @Test
     public void parseAsyncBuffer() {
         try {
-            CborParser dec = CBOR.getParser();
+            CborParser dec = CBOR.parser();
             boolean b;
 
             b = dec.cbor_parse_generic((__, i) -> {
@@ -607,6 +606,213 @@ public class CBORParserTest {
         }
     }
 
+    @Test
+    public void parseCborDisjonction() {
+        try {
+            CborParser dec = CBOR.parser();
+            boolean b;
+
+            // simple disjonction
+            b = dec.cbor_or(
+                    CBOR.parser().cbor_parse_int((p, __, i) -> assertEquals(1000000000000L, i)),
+                    CBOR.parser().cbor_parse_float((p, __, i) -> {
+                        fail();
+                    })
+            ).read(hexToBuf("0x1b000000e8d4a51000"));
+            assertEquals(true, b);
+
+
+            // disjonction with previous items
+            Collection c1 = new LinkedList();
+            for (int i = 1; i < 26; i++) {
+                c1.add(new CBOR.IntegerItem(i));
+            }
+            b = dec
+                    .cbor_parse_int(
+                            (__, tags, d) -> {
+                                assertEquals(1, tags.size());
+                                assertEquals(1, (long) tags.getFirst());
+                                assertEquals(1363896240, (long) d);
+                            })
+                    .cbor_parse_linear_array(
+                            IntegerItem::new,
+                            (__, ___, c) -> assertEquals(true, c.equals(c1)))
+                    .cbor_or(
+                            CBOR.parser().cbor_parse_text_string_unsafe(
+                                    (__, tags, s) -> {
+                                        assertEquals(1, tags.size());
+                                        assertEquals(32, (long) tags.getFirst());
+                                        assertEquals("http://www.example.com", s);
+                                    }),
+                            CBOR.parser().cbor_parse_float((p, __, i) -> {
+                                fail();
+                            })
+                    )
+
+                    .read(hexToBuf("0xc11a514b67b098190102030405060708090a0b0c0d0e0f101112131415161718181819d82076687474703a2f2f7777772e6578616d706c652e636f6d"));
+            assertEquals(true, b);
+
+
+            // disjonction with other items following
+            b = dec
+                    .cbor_or(
+                            CBOR.parser().cbor_parse_text_string_unsafe(
+                                    (__, tags, s) -> {
+                                        assertEquals(1, tags.size());
+                                        assertEquals(32, (long) tags.getFirst());
+                                        assertEquals("http://www.example.com", s);
+                                    }),
+                            CBOR.parser().cbor_parse_float((p, __, i) -> {
+                                fail();
+                            }))
+                    .cbor_parse_float(
+                            (__, tags, d) -> {
+                                assertEquals(1, tags.size());
+                                assertEquals(1, (long) tags.getFirst());
+                                assertEquals(1363896240.5d, d);
+                            })
+                    .read(hexToBuf("0xd82076687474703a2f2f7777772e6578616d706c652e636f6dc1fb41d452d9ec200000"));
+            assertEquals(true, b);
+
+
+            // disjonction with other items preceding and following
+            b = dec
+                    .cbor_parse_int(
+                            (__, tags, d) -> {
+                                assertEquals(1, tags.size());
+                                assertEquals(1, (long) tags.getFirst());
+                                assertEquals(1363896240, (long) d);
+                            })
+                    .cbor_parse_linear_array(
+                            IntegerItem::new,
+                            (__, ___, c) -> assertEquals(true, c.equals(c1)))
+                    .cbor_or(
+                            CBOR.parser().cbor_parse_text_string_unsafe(
+                                    (__, tags, s) -> {
+                                        assertEquals(1, tags.size());
+                                        assertEquals(32, (long) tags.getFirst());
+                                        assertEquals("http://www.example.com", s);
+                                    }),
+                            CBOR.parser().cbor_parse_float((p, __, i) -> {
+                                fail();
+                            }))
+                    .cbor_parse_float(
+                            (__, tags, d) -> {
+                                assertEquals(1, tags.size());
+                                assertEquals(1, (long) tags.getFirst());
+                                assertEquals(1363896240.5d, d);
+                            })
+                    .read(hexToBuf("0xc11a514b67b098190102030405060708090a0b0c0d0e0f101112131415161718181819d82076687474703a2f2f7777772e6578616d706c652e636f6dc1fb41d452d9ec200000"));
+            assertEquals(true, b);
+
+            // disjonction with items preceding and following and mutiple read
+            dec
+                    .cbor_parse_int(
+                            (__, tags, d) -> {
+                                assertEquals(1, tags.size());
+                                assertEquals(1, (long) tags.getFirst());
+                                assertEquals(1363896240, (long) d);
+                            })
+                    .cbor_parse_linear_array(
+                            IntegerItem::new,
+                            (__, ___, c) -> assertEquals(true, c.equals(c1)))
+                    .cbor_or(
+                            CBOR.parser().cbor_parse_text_string_unsafe(
+                                    (__, tags, s) -> {
+                                        assertEquals(1, tags.size());
+                                        assertEquals(32, (long) tags.getFirst());
+                                        assertEquals("http://www.example.com", s);
+                                    }),
+                            CBOR.parser().cbor_parse_float((p, __, i) -> {
+                                fail();
+                            }))
+                    .cbor_parse_float(
+                            (__, tags, d) -> {
+                                assertEquals(1, tags.size());
+                                assertEquals(1, (long) tags.getFirst());
+                                assertEquals(1363896240.5d, d);
+                            });
+
+            b = dec.read(hexToBuf("0xc11a514b67b098190102030405060708090a0b0c0d0e0f101112131415161718181819")); // preceding the OR
+            assertEquals(false, b);
+            b = dec.read(hexToBuf("0xd8")); // tag with one byte
+            assertEquals(false, b);
+            b = dec.read(hexToBuf("0x20")); // tag value
+            assertEquals(false, b);
+            b = dec.read(hexToBuf("0x76687474703a2f2f7777772e6578616d706c652e636f6dc1fb41d452d9ec200000"));
+            assertEquals(true, b);
+
+
+        } catch (RxParserException rpe) {
+            rpe.printStackTrace();
+            fail();
+        }
+    }
+
+
+    @Test
+    public void parseCborWithFilters() {
+        try {
+            CborParser dec = CBOR.parser();
+            boolean b;
+
+            // reuse previous disjonction test but and extract bytebuffer in middle
+            Collection c1 = new LinkedList();
+            for (int i = 1; i < 26; i++) {
+                c1.add(new CBOR.IntegerItem(i));
+            }
+            ByteBuffer test = ByteBuffer.allocate(55);
+            dec
+                    .cbor_parse_int(
+                            (__, tags, d) -> {
+                                assertEquals(1, tags.size());
+                                assertEquals(1, (long) tags.getFirst());
+                                assertEquals(1363896240, (long) d);
+                            })
+                    .do_for_each("test", (__, buffer) -> {
+                        while(buffer.hasRemaining()) {
+                            test.put(buffer.get());
+                        }
+                    })
+                    .cbor_parse_linear_array(
+                            IntegerItem::new,
+                            (__, ___, c) -> assertEquals(true, c.equals(c1)))
+                    .cbor_or(
+                            CBOR.parser().cbor_parse_text_string_unsafe(
+                                    (__, tags, s) -> {
+                                        assertEquals(1, tags.size());
+                                        assertEquals(32, (long) tags.getFirst());
+                                        assertEquals("http://www.example.com", s);
+                                    }),
+                            CBOR.parser().cbor_parse_float((p, __, i) -> {
+                                fail();
+                            }))
+                    .undo_for_each("test", (__) -> {
+                        test.flip();
+                        assertByteBufferEquals(hexToBuf("0x98190102030405060708090a0b0c0d0e0f101112131415161718181819d82076687474703a2f2f7777772e6578616d706c652e636f6d"), test);
+                    })
+                    .cbor_parse_float(
+                            (__, tags, d) -> {
+                                assertEquals(1, tags.size());
+                                assertEquals(1, (long) tags.getFirst());
+                                assertEquals(1363896240.5d, d);
+                            });
+
+            b = dec.read(hexToBuf("0xc11a514b67b098190102030405060708090a0b0c0d0e0f101112131415161718181819")); // preceding the OR
+            assertEquals(false, b);
+            b = dec.read(hexToBuf("0xd8")); // tag with one byte
+            assertEquals(false, b);
+            b = dec.read(hexToBuf("0x20")); // tag value
+            assertEquals(false, b);
+            b = dec.read(hexToBuf("0x76687474703a2f2f7777772e6578616d706c652e636f6dc1fb41d452d9ec200000"));
+            assertEquals(true, b);
+
+        } catch (RxParserException rpe) {
+            rpe.printStackTrace();
+            fail();
+        }
+    }
+
     public ByteBuffer hexToBuf(String s) {
         s = s.replaceFirst("0x", "");
         int len = s.length();
@@ -616,6 +822,22 @@ public class CBORParserTest {
                     + Character.digit(s.charAt(i + 1), 16));
         }
         return ByteBuffer.wrap(data);
+    }
+
+    public boolean assertByteBufferEquals(ByteBuffer buf1, ByteBuffer buf2) {
+        if(buf1.remaining() != buf2.remaining()) {
+            return false;
+        }
+        buf1.mark();
+        buf2.mark();
+
+        boolean equal = true;
+        while(buf1.hasRemaining() && equal) {
+            equal = buf1.get() == buf2.get();
+        }
+        buf1.reset();
+        buf2.reset();
+        return equal;
     }
 
 }

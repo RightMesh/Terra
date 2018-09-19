@@ -47,7 +47,7 @@ public class BundleV7Serializer {
      * @return Flowable
      */
     private static CborEncoder encode(PrimaryBlock block) {
-        CborEncoder enc = CBOR.getEncoder()
+        CborEncoder enc = CBOR.encoder()
                 .cbor_encode_int(BUNDLE_VERSION_7)
                 .cbor_encode_int(block.procV7Flags)
                 .cbor_encode_int(block.crcType.ordinal())
@@ -95,13 +95,12 @@ public class BundleV7Serializer {
             default:
                 break;
         }
-
         return enc.merge(encodeCRC(enc.encode(), block.crcType));
     }
 
     private static CborEncoder encode(BlockHeader block) {
-        return CBOR.getEncoder()
-                .cbor_start_array(block.crcType == CRC.CRCType.NO_CRC ? 5 : 6)
+        return CBOR.encoder()
+                .cbor_start_array(block.crcType == BlockHeader.CRCFieldType.NO_CRC ? 5 : 6)
                 .cbor_encode_int(block.type)
                 .cbor_encode_int(block.number)
                 .cbor_encode_int(block.procV7flags)
@@ -109,76 +108,91 @@ public class BundleV7Serializer {
     }
 
     private static CborEncoder encode(BlockBLOB block) {
-        return CBOR.getEncoder()
+        return CBOR.encoder()
                 .cbor_encode_byte_string(block.data.observe());
     }
 
     private static CborEncoder encode(BlockIntegrityBlock block) {
-        return CBOR.getEncoder();
+        return CBOR.encoder();
     }
 
     private static CborEncoder encode(ManifestBlock block) {
-        return CBOR.getEncoder();
+        return CBOR.encoder();
     }
 
     private static CborEncoder encode(FlowLabelBlock block) {
-        return CBOR.getEncoder();
+        return CBOR.encoder();
     }
 
     private static CborEncoder encode(PreviousNodeBlock block) {
-        return CBOR.getEncoder();
+        return CBOR.encoder();
     }
 
     private static CborEncoder encode(AgeBlock block) {
-        return CBOR.getEncoder()
+        return CBOR.encoder()
                 .cbor_encode_int(block.age);
     }
 
     private static CborEncoder encode(ScopeControlHopLimitBlock block) {
-        return CBOR.getEncoder()
+        return CBOR.encoder()
                 .cbor_encode_int(block.count)
                 .cbor_encode_int(block.limit);
     }
 
     private static CborEncoder encode(EID eid) {
         if (eid.equals(EID.NullEID())) {
-            return CBOR.getEncoder()
+            return CBOR.encoder()
                     .cbor_start_array(2)
                     .cbor_encode_int(eid.IANA())
                     .cbor_encode_int(0);
         }
+
         if (eid instanceof EID.DTN) {
-            return CBOR.getEncoder()
+            return CBOR.encoder()
                     .cbor_start_array(2)
                     .cbor_encode_int(eid.IANA())
                     .cbor_encode_text_string(eid.getSsp());
         }
+
         if (eid instanceof EID.IPN) {
-            return CBOR.getEncoder()
+            return CBOR.encoder()
                     .cbor_start_array(2)
                     .cbor_encode_int(eid.IANA())
                     .cbor_start_array(2)
                     .cbor_encode_int(((EID.IPN) eid).node_number)
                     .cbor_encode_int(((EID.IPN) eid).service_number);
         }
-        return CBOR.getEncoder(); // that should not happen
+        return CBOR.encoder(); // that should not happen
     }
 
-    private static CborEncoder encodeCRC(Flowable<ByteBuffer> source, CRC.CRCType type) {
-        if (type == CRC.CRCType.CRC16) {
-            // the RFC says
+
+
+    // encode BLOCK CRC
+    private static CborEncoder encodeCRC(Flowable<ByteBuffer> source, BlockHeader.CRCFieldType type) {
+        if (type == BlockHeader.CRCFieldType.CRC_16) {
+            return encodeCRC(source, PrimaryBlock.CRCFieldType.CRC_16);
+        }
+        if (type == BlockHeader.CRCFieldType.CRC_32) {
+            return encodeCRC(source, PrimaryBlock.CRCFieldType.CRC_32);
+        }
+        return encodeCRC(source, PrimaryBlock.CRCFieldType.NO_CRC);
+    }
+
+    // encode PrimaryBlock CRC
+    private static CborEncoder encodeCRC(Flowable<ByteBuffer> source, PrimaryBlock.CRCFieldType type) {
+        if (type == PrimaryBlock.CRCFieldType.CRC_16) {
             byte[] zeroCRC = {0x42, 0x00, 0x00};
             Flowable<ByteBuffer> crcStream = source.concatWith(Flowable.just(ByteBuffer.wrap(zeroCRC)));
-            return CBOR.getEncoder().cbor_encode_byte_string(CRC.compute_crc16(crcStream));
+            return CBOR.encoder().cbor_encode_byte_string(CRC.compute_crc16(crcStream));
         }
 
-        if (type == CRC.CRCType.CRC32) {
+        if (type == PrimaryBlock.CRCFieldType.CRC_32) {
             byte[] zeroCRC = {0x44, 0x00, 0x00, 0x00, 0x00};
             Flowable<ByteBuffer> crcStream = source.concatWith(Flowable.just(ByteBuffer.wrap(zeroCRC)));
-            return CBOR.getEncoder().cbor_encode_byte_string(CRC.compute_crc32(crcStream));
+            return CBOR.encoder().cbor_encode_byte_string(CRC.compute_crc32(crcStream));
         }
 
-        return CBOR.getEncoder();
+        return CBOR.encoder();
     }
 
 }

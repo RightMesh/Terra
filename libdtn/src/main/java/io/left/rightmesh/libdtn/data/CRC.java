@@ -2,19 +2,11 @@ package io.left.rightmesh.libdtn.data;
 
 import java.nio.ByteBuffer;
 
-import io.left.rightmesh.libcbor.CborEncoder;
 import io.reactivex.Flowable;
-
 /**
  * @author Lucien Loiseau on 16/09/18.
  */
 public abstract class CRC {
-
-    public enum CRCType {
-        NO_CRC,
-        CRC16,
-        CRC32
-    }
 
     /**
      * taken from BP implementation https://upcn.eu/
@@ -145,30 +137,108 @@ public abstract class CRC {
             0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
     };
 
-    public static byte[] compute_crc16(Flowable<ByteBuffer> stream) {
-        final short[] crc = {(short)0xffff};
-        stream.subscribe(buffer -> {
-            while (buffer.hasRemaining()) {
-                crc[0] = (short)((crc[0] >> 8) ^ (short)crc16_x25_table[(crc[0] & 0xff) ^ buffer.get()]);
-            }
-        });
+    private CRC() {
+    }
 
-        ByteBuffer buf = ByteBuffer.allocate(2);
-        buf.putShort((short)~crc[0]);
-        return buf.array();
+    public enum CRCType {
+        CRC16,
+        CRC32
+    }
+
+    CRCType type;
+
+
+    public static CRC init(CRCType crcType) {
+        if (crcType.equals(CRCType.CRC16)) {
+            return new CRC16();
+        } else {
+            return new CRC32();
+        }
+    }
+
+
+    public abstract void read(ByteBuffer buffer);
+
+    public abstract ByteBuffer done();
+
+
+    public boolean doneAndValidate(ByteBuffer check) {
+        ByteBuffer buf = done();
+
+        if(check == null) {
+            return false;
+        }
+        if(check.remaining() != buf.remaining()) {
+            return false;
+        }
+
+        while(buf.hasRemaining()) {
+            if(buf.get() != check.get()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * X.25 CRC-16
+     */
+    public static class CRC16 extends CRC {
+
+        short crc16;
+
+        CRC16() {
+            crc16 = (short) 0xffff;
+        }
+
+        public void read(ByteBuffer buffer) {
+            while (buffer.hasRemaining()) {
+                crc16 = (short) ((crc16 >> 8) ^ (short) crc16_x25_table[(crc16 & 0xff) ^ buffer.get()]);
+            }
+        }
+
+        public ByteBuffer done() {
+            ByteBuffer buf = ByteBuffer.allocate(2);
+            buf.putShort((short) ~crc16);
+            return buf;
+        }
+    }
+
+
+    /**
+     * CRC-32 Ethernet
+     */
+    public static class CRC32 extends CRC {
+
+        int crc32;
+
+        public CRC32() {
+            crc32 = 0xffffffff;
+        }
+
+        public void read(ByteBuffer buffer) {
+            while (buffer.hasRemaining()) {
+                crc32  = ((crc32 >> 8) ^ crc32_table[(crc32 & 0xff) ^ buffer.get()]);
+            }
+        }
+
+        public ByteBuffer done() {
+            ByteBuffer buf = ByteBuffer.allocate(4);
+            buf.putInt(~crc32);
+            return buf;
+        }
+    }
+
+    public static byte[] compute_crc16(Flowable<ByteBuffer> stream) {
+        final CRC crc = init(CRCType.CRC16);
+        stream.subscribe(crc::read);
+        return crc.done().array();
     }
 
 
     public static byte[] compute_crc32(Flowable<ByteBuffer> stream) {
-        final int[] crc = {0xffffffff};
-        stream.subscribe(buffer -> {
-            while (buffer.hasRemaining()) {
-                crc[0] = ((crc[0] >> 8) ^ crc32_table[(crc[0] & 0xff) ^ buffer.get()]);
-            }
-        });
-
-        ByteBuffer buf = ByteBuffer.allocate(4);
-        buf.putInt(~crc[0]);
-        return buf.array();
+        final CRC crc = init(CRCType.CRC32);
+        stream.subscribe(crc::read);
+        return crc.done().array();
     }
 }

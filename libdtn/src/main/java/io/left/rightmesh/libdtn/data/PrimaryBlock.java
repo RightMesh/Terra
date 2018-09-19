@@ -17,6 +17,12 @@ public class PrimaryBlock {
         EXPEDITED
     }
 
+    public enum CRCFieldType {
+        NO_CRC,
+        CRC_16,
+        CRC_32
+    }
+
     public enum BundleV6Flags {
         FRAGMENT(0),
         ADM_RECORD(1),
@@ -101,7 +107,7 @@ public class PrimaryBlock {
     public int version;
     public long procV6Flags;
     public long procV7Flags;
-    public CRC.CRCType crcType;
+    public CRCFieldType crcType;
     public EID destination;
     public EID source;
     public EID reportto;

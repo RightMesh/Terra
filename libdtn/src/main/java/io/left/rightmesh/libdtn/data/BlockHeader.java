@@ -21,6 +21,12 @@ public class BlockHeader {
         BLOCK_CONTAINS_EIDS
     }
 
+    public enum CRCFieldType {
+        NO_CRC,
+        CRC_16,
+        CRC_32
+    }
+
     public enum BlockV7Flags {
         /* Block Processing Control Flags
              . Bit 0 (the high-order bit, 0x80): reserved.
@@ -48,7 +54,7 @@ public class BlockHeader {
 
     public int type;
     public int number;
-    public CRC.CRCType crcType;
+    public CRCFieldType crcType;
     public long procV6flags = 0;
     public long procV7flags = 0;
     public long dataSize;

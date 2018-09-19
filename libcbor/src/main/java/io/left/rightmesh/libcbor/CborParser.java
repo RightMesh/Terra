@@ -62,13 +62,12 @@ import static io.left.rightmesh.libcbor.Constants.CborSimpleValues.HalfPrecision
 import static io.left.rightmesh.libcbor.Constants.CborSimpleValues.SinglePrecisionFloat;
 import static io.left.rightmesh.libcbor.Constants.CborSimpleValues.DoublePrecisionFloat;
 
-
 public class CborParser {
 
     private LinkedList<ParserState> doneQueue = new LinkedList<>();
     private LinkedList<ParserState> parserQueue = new LinkedList<>();
+    private Map<String, FilterCallback> filters = new HashMap<>();
     private ParserState state = null;
-    private ParserState next = null;
 
     private boolean dequeue() {
         if (parserQueue.isEmpty()) {
@@ -80,8 +79,27 @@ public class CborParser {
         }
     }
 
+    private boolean isDone() {
+        return (state == null) && (parserQueue.size() == 0);
+    }
+
+    private void add_filter(String key, FilterCallback cb) {
+        if(key != null && cb != null) {
+            filters.put(key, cb);
+        }
+    }
+
+    private void remove_filter(String key) {
+        if(key != null) {
+            filters.remove(key);
+        }
+    }
+
     /* parser method */
 
+    /**
+     * reset this parsing sequence to its initial state.
+     */
     public void reset() {
         doneQueue.addAll(parserQueue);
         parserQueue.clear();
@@ -90,10 +108,11 @@ public class CborParser {
         doneQueue = swap;
     }
 
+
     /**
      * Parse the buffer given as parameter. If the parser has finished parsing before the end
      * of this buffer, it returns true and the buffer position is left to where it was last
-     * consumes and can be reuse for another parsing job. If the buffer was entirely consummed
+     * consumed and can be reuse for another parsing job. If the buffer was entirely consummed
      * but the current parser hasn't finished, it returns false and further read may be needed
      * to finish the parsing job.
      * <p>
@@ -104,6 +123,9 @@ public class CborParser {
      * @throws RxParserException if an error occured during parsing
      */
     public boolean read(ByteBuffer buffer) throws RxParserException {
+        ParserState next = null;
+        ByteBuffer dup = buffer.duplicate();
+
         while (buffer.hasRemaining()) {
             if (state == null) {
                 if (!dequeue()) {
@@ -113,8 +135,18 @@ public class CborParser {
                 }
             }
 
+            dup.position(buffer.position());
+            dup.mark();
             int remaining = buffer.remaining();
             next = state.onNext(buffer);
+            dup.limit(buffer.position());
+
+            // run filters if any
+            for(String key : filters.keySet()) {
+                dup.reset();
+                filters.get(key).onFilter(this, dup.slice());
+            }
+
 
             if (next == state) {
                 if (buffer.remaining() == remaining) {
@@ -163,24 +195,6 @@ public class CborParser {
         return this;
     }
 
-    /**
-     * returns the parser as a parser state. It is similar to read as it will consume buffer to
-     * parse but returns the same state until it is fully parsed at which point it calls onSuccess();
-     *
-     * @return ParserState
-     */
-    public ParserState asParserState(ParsingDoneCallback cb) {
-        return new ParserState() {
-            @Override
-            public ParserState onNext(ByteBuffer next) throws RxParserException {
-                if (read(next)) {
-                    cb.onParsingDone(CborParser.this);
-                    return null;
-                }
-                return this;
-            }
-        };
-    }
 
     /* callback interfaces */
 
@@ -191,6 +205,14 @@ public class CborParser {
 
     public interface ItemFactory<T extends ParseableItem> {
         T createItem();
+    }
+
+    public interface FilterCallback {
+        void onFilter(CborParser parser, ByteBuffer buffer);
+    }
+
+    public interface ConditionCallback {
+        boolean condition(CborParser p);
     }
 
     public interface ContainerIsOpenCallback {
@@ -247,11 +269,79 @@ public class CborParser {
         Integer, Float, ByteString, TextString, Array, Map, Tag, Simple
     }
 
+    public CborParser do_for_each(String key, FilterCallback cb) {
+        do_here((p) -> {
+           add_filter(key, cb);
+        });
+        return this;
+    }
+
+    public CborParser undo_for_each(String key) {
+        do_here((p) -> {
+            remove_filter(key);
+        });
+        return this;
+    }
+
+    public CborParser undo_for_each(String key, ParsingDoneCallback cb) {
+        do_here((p) -> {
+            remove_filter(key);
+            cb.onParsingDone(CborParser.this);
+        });
+        return this;
+    }
+
+    public CborParser do_here(ParsingDoneCallback cb) {
+        parserQueue.add(new ParserState() {
+            @Override
+            public ParserState onNext(ByteBuffer next) throws RxParserException {
+                cb.onParsingDone(CborParser.this);
+                return null;
+            }
+        });
+        return this;
+    }
+
+    public CborParser do_insert_if(ConditionCallback ccb, CborParser parser) {
+        do_here((p) -> {
+            if(ccb.condition(CborParser.this)) {
+                insert(parser);
+            }
+        });
+        return this;
+    }
+
     public CborParser cbor_parse_generic(ParsedItemCallback<DataItem> cb) {
         parserQueue.add(new CborParseGenericItem() {
             @Override
             public ParserState onSuccess(DataItem item) throws RxParserException {
                 cb.onItemParsed(CborParser.this, item);
+                return null;
+            }
+        });
+        return this;
+    }
+
+    public CborParser cbor_parse_generic(EnumSet<ExpectedType> types, ParsedItemCallback<DataItem> cb) {
+        parserQueue.add(new CborParseGenericItem(types) {
+            @Override
+            public ParserState onSuccess(DataItem item) throws RxParserException {
+                cb.onItemParsed(CborParser.this, item);
+                return null;
+            }
+        });
+        return this;
+    }
+
+    public CborParser cbor_or(CborParser p1, CborParser p2) {
+        CborParser[] contender = {p1, p2};
+        parserQueue.add(new CborOr(contender) {
+            @Override
+            public ParserState onSuccess(CborParser p) {
+                if(!p.isDone()) {
+                    insert(p);
+                    return p.state;
+                }
                 return null;
             }
         });
@@ -270,17 +360,6 @@ public class CborParser {
             @Override
             public ParserState onSuccess(T item) throws RxParserException {
                 cb.onItemParsed(CborParser.this, tags, item);
-                return null;
-            }
-        });
-        return this;
-    }
-
-    public CborParser cbor_parse_generic(EnumSet<ExpectedType> types, ParsedItemCallback<DataItem> cb) {
-        parserQueue.add(new CborParseGenericItem(types) {
-            @Override
-            public ParserState onSuccess(DataItem item) throws RxParserException {
-                cb.onItemParsed(CborParser.this, item);
                 return null;
             }
         });
@@ -539,6 +618,31 @@ public class CborParser {
         return this;
     }
 
+    public CborParser cbor_parse_text_string_full(ContainerIsOpenCallback cb1, ParsedItemCallback<String> cb2) {
+        parserQueue.add(new CborParseTextStringUnsafe() {
+            LinkedList<Long> tags = new LinkedList<>();
+
+            @Override
+            public void onTagFound(long tag) {
+                tags.add(tag);
+            }
+
+            @Override
+            public void onContainerOpen(long size) throws RxParserException {
+                if(cb1 != null) {
+                    cb1.onContainerIsOpen(CborParser.this, tags, size);
+                }
+            }
+
+            @Override
+            public ParserState onSuccessUnsafe(ByteBuffer next) throws RxParserException {
+                cb2.onItemParsed(CborParser.this, StandardCharsets.UTF_8.decode(next).toString());
+                return null;
+            }
+        });
+        return this;
+    }
+
     public CborParser cbor_parse_text_string_unsafe(ParsedItemWithTagsCallback<String> cb) {
         parserQueue.add(new CborParseTextStringUnsafe() {
             LinkedList<Long> tags = new LinkedList<>();
@@ -603,7 +707,7 @@ public class CborParser {
             }
 
             @Override
-            public void onArrayItem(LinkedList<Long> tags, T item)  throws RxParserException {
+            public void onArrayItem(LinkedList<Long> tags, T item) throws RxParserException {
                 if (cb2 != null) {
                     cb2.onItemParsed(CborParser.this, tags, item);
                 }
@@ -835,6 +939,80 @@ public class CborParser {
 
     /* internal parser utils */
 
+    private abstract static class CborOr extends ParserState {
+
+        ByteBuffer[] buf;
+        CborParser[] p;
+        int[] status; // 0 = can continue, 1 = failed, 2 = success
+        int nb_0 = 0;
+        int nb_1 = 0;
+        int nb_2 = 0;
+        int winner;
+
+        CborOr(CborParser[] parsers) {
+            buf = new ByteBuffer[parsers.length];
+            status = new int[parsers.length];
+            for(int i = 0; i < parsers.length; i++) {
+                status[i] = 0;
+                nb_0++;
+            }
+            p = parsers;
+        }
+
+
+        void parser_success(int i) {
+            status[i] = 2;
+            nb_0--;
+            nb_2++;
+            winner = i; // only works if one winner only
+        }
+
+        void parser_failed(int i) {
+            status[i] = 1;
+            nb_0--;
+            nb_1++;
+        }
+
+        @Override
+        public ParserState onNext(ByteBuffer next) throws RxParserException {
+            for(int i = 0; i < p.length; i++) {
+                buf[i] = next.duplicate();
+            }
+
+            for(int i = 0; i < p.length; i++) {
+                // if still valid
+                if(status[i] == 0) {
+                    try {
+                        if(p[i].read(buf[i])) {
+                            // success parsing
+                            parser_success(i);
+                        }
+                    } catch(RxParserException rpe) {
+                        // failed because of parser exception
+                        parser_failed(i);
+                    }
+                }
+            }
+
+            if(nb_1 == p.length) {
+                throw new RxParserException("All parser from disjunction failed");
+            }
+            if(nb_2 > 1) {
+                throw new RxParserException("Ambiguous disjunction, multiple success");
+            }
+            if(nb_2 == 1) {
+                next.position(buf[winner].position());
+                return onSuccess(p[winner]);
+            }
+
+            // nb 2 == 0 and nb_1 is not full so there are a few contender left
+            // that needs more buffer
+            next.position(next.limit());
+            return this;
+        }
+
+        public abstract ParserState onSuccess(CborParser p);
+    }
 
     private abstract static class CborParseCustomItem<T extends ParseableItem> extends ExtractTagItem {
         ItemFactory<T> factory;
@@ -1541,7 +1719,7 @@ public class CborParser {
                 if ((b & 0xff) == CborDoublePrecisionFloat) {
                     return getUInt64;
                 }
-                throw new RxParserException("Expected Float-Family major type");
+                throw new RxParserException("Expected Float-Family major type but got: "+ (b & 0xff));
             }
         };
 

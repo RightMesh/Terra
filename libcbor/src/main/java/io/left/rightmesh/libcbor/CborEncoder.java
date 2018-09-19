@@ -46,17 +46,9 @@ public class CborEncoder {
         flow = Flowable.empty();
     }
 
-    CborEncoder(CborEncoder other) {
-        flow = Flowable.<ByteBuffer>empty().concatWith(other.flow);
-    }
-
     public CborEncoder merge(CborEncoder o) {
         flow = flow.concatWith(o.flow);
         return this;
-    }
-
-    public CborEncoder duplicate() {
-        return new CborEncoder(this);
     }
 
     public Flowable<ByteBuffer> encode() {
@@ -319,7 +311,7 @@ public class CborEncoder {
      */
     public CborEncoder cbor_encode_byte_string(Flowable<ByteBuffer> source) {
         cbor_start_array(-1);
-        add(source.flatMap(buffer -> CBOR.getEncoder().cbor_encode_byte_string(buffer).encode()));
+        add(source.flatMap(buffer -> CBOR.encoder().cbor_encode_byte_string(buffer).encode()));
         cbor_stop_array();
         return this;
     }

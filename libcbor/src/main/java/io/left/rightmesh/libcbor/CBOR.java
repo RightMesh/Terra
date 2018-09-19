@@ -26,11 +26,11 @@ public class CBOR {
     public static class CborEncodingUnknown extends Exception {
     }
 
-    public static CborEncoder getEncoder() {
+    public static CborEncoder encoder() {
         return new CborEncoder();
     }
 
-    public static CborParser getParser() {
+    public static CborParser parser() {
         return new CborParser();
     }
 
@@ -90,7 +90,7 @@ public class CBOR {
 
         @Override
         public CborParser getItemParser() {
-            return getParser().cbor_parse_int(this::setTaggedItem);
+            return parser().cbor_parse_int(this::setTaggedItem);
         }
 
         @Override
@@ -128,7 +128,7 @@ public class CBOR {
 
         @Override
         public CborParser getItemParser() {
-            return getParser().cbor_parse_float(this::setTaggedItem);
+            return parser().cbor_parse_float(this::setTaggedItem);
         }
 
         @Override
@@ -166,7 +166,7 @@ public class CBOR {
 
         @Override
         public CborParser getItemParser() {
-            return getParser().cbor_parse_byte_string_unsafe(this::setTaggedItem);
+            return parser().cbor_parse_byte_string_unsafe(this::setTaggedItem);
         }
 
         @Override
@@ -204,7 +204,7 @@ public class CBOR {
 
         @Override
         public CborParser getItemParser() {
-            return getParser().cbor_parse_text_string_unsafe(this::setTaggedItem);
+            return parser().cbor_parse_text_string_unsafe(this::setTaggedItem);
         }
 
         @Override
@@ -319,7 +319,7 @@ public class CBOR {
 
         @Override
         public CborParser getItemParser() {
-            return getParser().cbor_parse_tag(this::setItem);
+            return parser().cbor_parse_tag(this::setItem);
         }
 
         @Override
@@ -358,7 +358,7 @@ public class CBOR {
 
         @Override
         public CborParser getItemParser() {
-            return getParser().cbor_parse_simple_value(this::setItem);
+            return parser().cbor_parse_simple_value(this::setItem);
         }
 
         @Override
@@ -392,7 +392,7 @@ public class CBOR {
 
         @Override
         public CborParser getItemParser() {
-            return getParser().cbor_parse_boolean(this::setItem);
+            return parser().cbor_parse_boolean(this::setItem);
         }
 
         @Override
@@ -421,7 +421,7 @@ public class CBOR {
 
         @Override
         public CborParser getItemParser() {
-            return getParser().cbor_parse_null();
+            return parser().cbor_parse_null();
         }
 
         public Object value() {
@@ -451,7 +451,7 @@ public class CBOR {
 
         @Override
         public CborParser getItemParser() {
-            return getParser().cbor_parse_undefined();
+            return parser().cbor_parse_undefined();
         }
 
         @Override
@@ -477,7 +477,7 @@ public class CBOR {
 
         @Override
         public CborParser getItemParser() {
-            return getParser().cbor_parse_break();
+            return parser().cbor_parse_break();
         }
 
         @Override

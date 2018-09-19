@@ -16,7 +16,7 @@ import static org.junit.Assert.fail;
  * @author Lucien Loiseau on 14/09/18.
  */
 public class CBOREncoderTest {
-    CborEncoder enc = CBOR.getEncoder();
+    CborEncoder enc = CBOR.encoder();
 
     @Test
     public void encodeAppendixA_PositiveInteger() {
