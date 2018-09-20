@@ -109,7 +109,8 @@ public class BundleV7Parser extends CborParser {
                     .cbor_parse_int((__, ___, i) -> b.creationTimestamp = i)
                     .cbor_parse_int((__, ___, i) -> b.sequenceNumber = i)
                     .cbor_parse_int((__, ___, i) -> b.lifetime = i)
-                    .do_here(p -> p.insert_now(crc));
+                    .do_here(p -> p.insert_now(crc)) // validate crc
+                    .do_here(__ -> b.crc_ok = this.crc_ok); // mark the block
         }
     }
 
@@ -193,7 +194,8 @@ public class BundleV7Parser extends CborParser {
                         }
                     })
                     .do_here(p -> p.insert_now(payload))
-                    .do_here(p -> p.insert_now(crc));
+                    .do_here(p -> p.insert_now(crc))  // validate crc
+                    .do_here(__ -> block.crc_ok = this.crc_ok); // mark the block
         }
 
         WritableBLOB wblob;
@@ -255,9 +257,10 @@ public class BundleV7Parser extends CborParser {
 
         CRC crc16;
         CRC crc32;
+        boolean crc_ok = true;
 
         CborParser crc16Parser = CBOR.parser()
-                .undo_for_each("crc-16", (__) -> {
+                .undo_for_each("crc-16", (p) -> {
                     byte[] zeroCRC = {0x42, 0x00, 0x00};
                     crc16.read(ByteBuffer.wrap(zeroCRC));
                 })
@@ -268,9 +271,7 @@ public class BundleV7Parser extends CborParser {
                             }
                         },
                         (__, buffer) -> {
-                            if (!crc16.doneAndValidate(buffer)) {
-                                // taint the block
-                            }
+                            crc_ok = crc16.doneAndValidate(buffer);
                         });
 
         CborParser crc32Parser = CBOR.parser()
@@ -285,9 +286,7 @@ public class BundleV7Parser extends CborParser {
                             }
                         },
                         (__, buffer) -> {
-                            if (!crc32.doneAndValidate(buffer)) {
-                                // taint the block
-                            }
+                            crc_ok = crc32.doneAndValidate(buffer);
                         });
     }
 

@@ -24,6 +24,8 @@ import java.nio.ByteBuffer;
  */
 public abstract class ParserState {
 
+    public Object parser_ref;
+
     // optional callback
     public void onEnter() throws RxParserException {
     }

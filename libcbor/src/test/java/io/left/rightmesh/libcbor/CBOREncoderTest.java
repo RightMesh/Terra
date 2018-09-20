@@ -505,7 +505,7 @@ public class CBOREncoderTest {
     private String getEncodedString() {
         // get all in one buffer
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        enc.encode().subscribe(b -> {
+        enc.observe().subscribe(b -> {
             while(b.hasRemaining()) {
                 baos.write(b.get());
             }

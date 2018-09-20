@@ -167,8 +167,6 @@ public abstract class CRC {
 
     public boolean doneAndValidate(ByteBuffer check) {
         ByteBuffer buf = done();
-        //printBuffer("crc16 res=", buf);
-        //printBuffer("crc16 candidate res=", check);
 
         if(check == null) {
             return false;
@@ -197,7 +195,6 @@ public abstract class CRC {
         }
 
         public void read(ByteBuffer buffer) {
-            //printBuffer("CRC16>> "+(crc16&0xffff)+" >> ",buffer);
             while (buffer.hasRemaining()) {
                 crc16 = (short) ((crc16 >> 8) ^ (short) crc16_x25_table[((crc16 & 0xff) ^ buffer.get()) & 0xff]);
             }
@@ -224,7 +221,6 @@ public abstract class CRC {
         }
 
         public void read(ByteBuffer buffer) {
-            //printBuffer("CRC32>> "+(crc32&0xffff)+" >> ",buffer);
             while (buffer.hasRemaining()) {
                 crc32  = ((crc32 >> 8) ^ crc32_table[((crc32 & 0xff) ^ buffer.get()) & 0xff]);
             }

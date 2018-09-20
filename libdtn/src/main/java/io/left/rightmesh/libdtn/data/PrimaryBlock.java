@@ -120,6 +120,9 @@ public class PrimaryBlock {
     public Long appDataLength = null;
     public Long fragmentOffset = null;
 
+    /** processing field for deserialization **/
+    public boolean crc_ok;
+
     /**
      * Constructor: creates an empty PrimaryBlock, should probably not be used.
      */
@@ -134,6 +137,7 @@ public class PrimaryBlock {
         this.creationTimestamp = System.currentTimeMillis();
         this.sequenceNumber = sequence_counter++;
         this.lifetime = 10000;
+        this.crc_ok = true;
     }
 
     /**

@@ -9,6 +9,8 @@ import java.util.Formatter;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.data.AgeBlock;
+import io.left.rightmesh.libdtn.data.Block;
+import io.left.rightmesh.libdtn.data.BlockHeader;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.CRC;
 import io.left.rightmesh.libdtn.data.EID;
@@ -29,12 +31,17 @@ public class BundleV7Test {
     String testPayload = "This is a test for bundle serialization";
 
 
-    Bundle testBundle1() {
+    Bundle testBundle0() {
         Bundle bundle = new Bundle();
-        bundle.addBlock(new PayloadBlock(testPayload));
         bundle.destination = EID.createIPN(5, 12);
         bundle.source = EID.createDTN("source");
         bundle.reportto = EID.NullEID();
+        return bundle;
+    }
+
+    Bundle testBundle1() {
+        Bundle bundle = testBundle0();
+        bundle.addBlock(new PayloadBlock(testPayload));
         return bundle;
     }
 
@@ -65,7 +72,28 @@ public class BundleV7Test {
         bundle.addBlock(new AgeBlock());
         bundle.addBlock(new ScopeControlHopLimitBlock());
         bundle.addBlock(new PreviousNodeBlock(EID.generate()));
-        bundle.crcType = PrimaryBlock.CRCFieldType.CRC_16;
+        bundle.crcType = PrimaryBlock.CRCFieldType.CRC_32;
+        return bundle;
+    }
+
+    Bundle testBundle6() {
+        Bundle bundle = testBundle0();
+        bundle.crcType = PrimaryBlock.CRCFieldType.CRC_32;
+
+        Block age = new AgeBlock();
+        Block scope = new ScopeControlHopLimitBlock();
+        Block payload = new PayloadBlock(testPayload);
+        Block previous = new PreviousNodeBlock();
+
+        age.crcType = BlockHeader.CRCFieldType.CRC_16;
+        scope.crcType = BlockHeader.CRCFieldType.CRC_16;
+        payload.crcType = BlockHeader.CRCFieldType.CRC_32;
+        previous.crcType = BlockHeader.CRCFieldType.CRC_32;
+
+        bundle.addBlock(age);
+        bundle.addBlock(scope);
+        bundle.addBlock(payload);
+        bundle.addBlock(previous);
         return bundle;
     }
 
@@ -76,7 +104,8 @@ public class BundleV7Test {
                 testBundle2(),
                 testBundle3(),
                 testBundle4(),
-                testBundle5()
+                testBundle5(),
+                testBundle6()
         };
 
         for(Bundle bundle : bundles) {
@@ -114,6 +143,10 @@ public class BundleV7Test {
         assertEquals(true, bundle != null);
         String[] payload = {null};
         if (bundle != null) {
+            for(Block block : bundle.getBlocks()) {
+                assertEquals(true, block.crc_ok);
+            }
+
             bundle.getPayloadBlock().data.observe().subscribe(
                     buffer -> {
                         byte[] arr = new byte[buffer.remaining()];
@@ -130,7 +163,6 @@ public class BundleV7Test {
 
 
     // debug
-
     private String getEncodedString(CborEncoder enc) {
         // get all in one buffer
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

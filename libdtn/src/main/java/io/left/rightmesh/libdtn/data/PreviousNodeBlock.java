@@ -11,6 +11,7 @@ public class PreviousNodeBlock extends Block {
 
     public PreviousNodeBlock() {
         super(type);
+        previous = EID.NullEID();
     }
 
     public PreviousNodeBlock(EID previous) {
