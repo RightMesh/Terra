@@ -23,6 +23,8 @@ public class PrimaryBlock {
         CRC_32
     }
 
+    public static long sequence_counter = 0;
+
     public enum BundleV6Flags {
         FRAGMENT(0),
         ADM_RECORD(1),
@@ -123,12 +125,14 @@ public class PrimaryBlock {
      */
     public PrimaryBlock() {
         this.procV6Flags = 0;
+        this.procV7Flags = 0;
+        this.crcType = CRCFieldType.NO_CRC;
         this.destination = EID.NullEID();
         this.source = EID.NullEID();
         this.custodian = EID.NullEID();
         this.reportto = EID.NullEID();
         this.creationTimestamp = System.currentTimeMillis();
-        this.sequenceNumber = (long)(Math.random() % Long.MAX_VALUE);
+        this.sequenceNumber = sequence_counter++;
         this.lifetime = 10000;
     }
 

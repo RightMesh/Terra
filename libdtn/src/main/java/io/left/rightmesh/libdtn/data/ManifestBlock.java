@@ -5,8 +5,10 @@ package io.left.rightmesh.libdtn.data;
  */
 public class ManifestBlock extends Block {
 
+    public static final int type = 4;
+
     public ManifestBlock() {
-        super(4);
+        super(type);
     }
 
 }

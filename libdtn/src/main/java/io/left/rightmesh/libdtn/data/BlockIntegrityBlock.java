@@ -5,8 +5,10 @@ package io.left.rightmesh.libdtn.data;
  */
 public class BlockIntegrityBlock extends Block {
 
+    public static final int type = 2;
+
     public BlockIntegrityBlock() {
-        super(2);
+        super(type);
     }
 
 }

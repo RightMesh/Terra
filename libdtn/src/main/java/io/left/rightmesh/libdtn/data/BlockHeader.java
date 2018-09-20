@@ -67,6 +67,7 @@ public class BlockHeader {
      */
     public BlockHeader(int type) {
         this.type = type;
+        crcType = CRCFieldType.NO_CRC;
     }
 
     /**

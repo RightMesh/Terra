@@ -30,8 +30,12 @@ public class CBOR {
         return new CborEncoder();
     }
 
+    public static CborEncoder rxencoder() {
+        return new CborEncoder();
+    }
+
     public static CborParser parser() {
-        return new CborParser();
+        return CborParser.create();
     }
 
     /**
@@ -61,11 +65,11 @@ public class CBOR {
             this.tags = tags;
         }
 
-        void setItem(CborParser parser, Object item) {
+        void setItem(CborParser.ParserInCallback parser, Object item) {
             this.item = item;
         }
 
-        void setTaggedItem(CborParser parser, LinkedList<Long> tags, Object item) {
+        void setTaggedItem(CborParser.ParserInCallback parser, LinkedList<Long> tags, Object item) {
             addTags(tags);
             setItem(null, item);
         }

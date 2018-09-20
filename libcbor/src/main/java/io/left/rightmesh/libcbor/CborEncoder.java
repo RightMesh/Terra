@@ -37,8 +37,61 @@ import java.util.Map;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
+import io.reactivex.subscribers.DisposableSubscriber;
 
 public class CborEncoder {
+
+    private class Subscriber extends DisposableSubscriber<ByteBuffer> {
+        private ByteBuffer upstream_current;
+        private ByteBuffer downstream_next;
+
+        Subscriber(int buffer_size) {
+            downstream_next = ByteBuffer.allocate(buffer_size);
+        }
+
+        @Override
+        protected void onStart() {
+            request(1);
+        }
+
+        @Override
+        public void onNext(ByteBuffer buf) {
+            upstream_current = buf;
+        }
+
+        @Override
+        public void onError(Throwable t) {
+        }
+
+        @Override
+        public void onComplete() {
+            upstream_current = null;
+        }
+
+        public ByteBuffer fill() {
+            if (upstream_current == null) {
+                request(1);
+            }
+            downstream_next.clear();
+
+            while (upstream_current != null) {
+                while (downstream_next.hasRemaining() && upstream_current.hasRemaining()) {
+                    downstream_next.put(upstream_current.get());
+                }
+                if (!downstream_next.hasRemaining()) {
+                    downstream_next.flip();
+                    return downstream_next;
+                }
+                request(1);
+            }
+            if (downstream_next.position() > 0) {
+                downstream_next.flip();
+                return downstream_next;
+            } else {
+                return null;
+            }
+        }
+    }
 
     private Flowable<ByteBuffer> flow;
 
@@ -51,8 +104,26 @@ public class CborEncoder {
         return this;
     }
 
-    public Flowable<ByteBuffer> encode() {
+    public Flowable<ByteBuffer> observe() {
         return flow;
+    }
+
+    public Flowable<ByteBuffer> observe(int buffer_size) {
+        return Flowable.generate(
+                () -> {
+                    Subscriber s = new Subscriber(buffer_size);
+                    flow.concatWith(Flowable.just(ByteBuffer.allocate(0))).subscribe(s);
+                    return s;
+                },
+                (s, emitter) -> {
+                    ByteBuffer next = s.fill();
+                    if (next == null) {
+                        emitter.onComplete();
+                    } else {
+                        emitter.onNext(next);
+                    }
+                    return s;
+                });
     }
 
     /**
@@ -132,7 +203,7 @@ public class CborEncoder {
      * @throws BufferOverflowException  if the buffer is full
      * @throws CBOR.CborEncodingUnknown if object is not accepted type
      */
-    public CborEncoder cbor_encode_collection(Collection c) throws  CBOR.CborEncodingUnknown {
+    public CborEncoder cbor_encode_collection(Collection c) throws CBOR.CborEncodingUnknown {
         cbor_start_array(c.size());
         for (Object o : c) {
             cbor_encode_object(o);
@@ -149,7 +220,7 @@ public class CborEncoder {
      * @throws BufferOverflowException  if the buffer is full
      * @throws CBOR.CborEncodingUnknown if object is not accepted type
      */
-    public CborEncoder cbor_encode_map(Map m) throws  CBOR.CborEncodingUnknown {
+    public CborEncoder cbor_encode_map(Map m) throws CBOR.CborEncodingUnknown {
         cbor_start_map(m.size());
         for (Object o : m.keySet()) {
             cbor_encode_object(o);
@@ -158,6 +229,16 @@ public class CborEncoder {
         return this;
     }
 
+
+    /**
+     * Starts an indefinite array. This encoder makes no check if a break ever appear later
+     * so a later call to cbor_stop_array must be done to ensure cbor-validity.
+     *
+     * @return this encoder
+     */
+    public CborEncoder cbor_start_indefinite_array() {
+        return cbor_start_array(-1);
+    }
 
     /**
      * Starts an array of length given. if length is negative, the array is assumed to be of size
@@ -310,9 +391,9 @@ public class CborEncoder {
      * @return this encoder
      */
     public CborEncoder cbor_encode_byte_string(Flowable<ByteBuffer> source) {
-        cbor_start_array(-1);
-        add(source.flatMap(buffer -> CBOR.encoder().cbor_encode_byte_string(buffer).encode()));
-        cbor_stop_array();
+        cbor_start_byte_string(-1);
+        add(source.flatMap(buffer -> CBOR.encoder().cbor_encode_byte_string(buffer).observe()));
+        cbor_stop_byte_string();
         return this;
     }
 
@@ -440,15 +521,16 @@ public class CborEncoder {
 
     }
 
-
-
     private CborEncoder encode_string(byte shifted_mt, byte[] array) {
         int len = (array == null) ? 0 : array.length;
         if (array == null) {
             return encode_number(shifted_mt, len);
         } else {
             encode_number(shifted_mt, len);
-            add(Flowable.just(ByteBuffer.wrap(array)));
+            add(Flowable.create(s -> {
+                s.onNext(ByteBuffer.wrap(array));
+                s.onComplete();
+            }, BackpressureStrategy.BUFFER));
             return this;
         }
     }
@@ -459,7 +541,11 @@ public class CborEncoder {
             return encode_number(shifted_mt, len);
         } else {
             encode_number(shifted_mt, len);
-            add(Flowable.just(buf));
+            add(Flowable.create(s -> {
+                ByteBuffer dup = buf.duplicate();
+                s.onNext(dup);
+                s.onComplete();
+            }, BackpressureStrategy.BUFFER));
             return this;
         }
     }
@@ -471,7 +557,7 @@ public class CborEncoder {
             out.flip();
             s.onNext(out);
             s.onComplete();
-        },BackpressureStrategy.BUFFER));
+        }, BackpressureStrategy.BUFFER));
         return this;
     }
 
@@ -483,7 +569,7 @@ public class CborEncoder {
             out.flip();
             s.onNext(out);
             s.onComplete();
-        },BackpressureStrategy.BUFFER));
+        }, BackpressureStrategy.BUFFER));
         return this;
     }
 

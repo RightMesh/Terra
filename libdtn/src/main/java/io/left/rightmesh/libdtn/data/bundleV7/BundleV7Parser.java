@@ -1,16 +1,14 @@
 package io.left.rightmesh.libdtn.data.bundleV7;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.EnumSet;
 
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
-import io.left.rightmesh.libcbor.CborParser.ExpectedType;
-import io.left.rightmesh.libcbor.rxparser.ParserEmitter;
-import io.left.rightmesh.libcbor.rxparser.ParserState;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.data.AgeBlock;
 import io.left.rightmesh.libdtn.data.Block;
+import io.left.rightmesh.libdtn.data.BlockBLOB;
 import io.left.rightmesh.libdtn.data.BlockHeader;
 import io.left.rightmesh.libdtn.data.BlockIntegrityBlock;
 import io.left.rightmesh.libdtn.data.Bundle;
@@ -23,42 +21,27 @@ import io.left.rightmesh.libdtn.data.PreviousNodeBlock;
 import io.left.rightmesh.libdtn.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.data.ScopeControlHopLimitBlock;
 import io.left.rightmesh.libdtn.data.UnknownExtensionBlock;
+import io.left.rightmesh.libdtn.storage.BLOB;
+import io.left.rightmesh.libdtn.storage.BundleStorage;
+import io.left.rightmesh.libdtn.storage.NullBLOB;
+import io.left.rightmesh.libdtn.storage.WritableBLOB;
 import io.reactivex.Observer;
 
 /**
  * @author Lucien Loiseau on 10/09/18.
  */
-public class BundleV7Parser extends ParserEmitter<Bundle> {
+public class BundleV7Parser extends CborParser {
 
-    private CborParser bundleParser;
-
-    public BundleV7Parser(Observer<? super Bundle> downstream) {
-        super(downstream);
+    public interface BundleParsedCallback {
+        void onBundleParsed(Bundle b);
     }
 
-    @Override
-    public void onReset() {
-        bundleParser = CBOR.parser()
-                .cbor_parse_custom_item(BundleItem::new, (p, __, item) -> emit(item.bundle));
+    public static BundleV7Parser create(BundleParsedCallback cb) {
+        return (BundleV7Parser)new BundleV7Parser()
+                .cbor_parse_custom_item(BundleItem::new, (__, ___, item) -> cb.onBundleParsed(item.bundle));
     }
 
-    @Override
-    public ParserState initState() {
-        onReset();
-        return parseBundle;
-    }
-
-    private ParserState parseBundle = new ParserState() {
-        @Override
-        public ParserState onNext(ByteBuffer next) throws RxParserException {
-            if (bundleParser.read(next)) {
-                return initState();
-            }
-            return this;
-        }
-    };
-
-    public class BundleItem implements CborParser.ParseableItem {
+    public static class BundleItem implements CborParser.ParseableItem {
 
         Bundle bundle = null;
 
@@ -76,7 +59,7 @@ public class BundleV7Parser extends ParserEmitter<Bundle> {
         }
     }
 
-    public class PrimaryBlockItem extends BlockWithCRC {
+    public static class PrimaryBlockItem extends BlockWithCRC {
 
         Bundle b;
 
@@ -87,8 +70,8 @@ public class BundleV7Parser extends ParserEmitter<Bundle> {
                         crc16 = CRC.init(CRC.CRCType.CRC16); // prepare CRC16 feeding
                         crc32 = CRC.init(CRC.CRCType.CRC32); // prepare CRC32 feeding
                     })
-                    .do_for_each("crc-16", (__, buffer) -> crc16.read(buffer))
-                    .do_for_each("crc-32", (__, buffer) -> crc32.read(buffer))
+                    .do_for_each("crc-16", (__, buffer) -> crc16.read(buffer)) // feed CRC16 with every parsed buffer from this sequence
+                    .do_for_each("crc-32", (__, buffer) -> crc32.read(buffer)) // feed CRC32 with every parsed buffer from this sequence
                     .cbor_open_array((__, ___, i) -> {
                         if ((i < 8) || (i > 11)) {
                             throw new RxParserException("wrong number of element in primary block");
@@ -102,23 +85,22 @@ public class BundleV7Parser extends ParserEmitter<Bundle> {
                         switch ((int) i) {
                             case 0:
                                 b.crcType = PrimaryBlock.CRCFieldType.NO_CRC;
-                                p.undo_for_each("crc-16");
-                                p.undo_for_each("crc-32");
-                                crc = CBOR.parser();
+                                p.undo_for_each_now("crc-16");
+                                p.undo_for_each_now("crc-32");
                                 break;
                             case 1:
                                 b.crcType = PrimaryBlock.CRCFieldType.CRC_16;
-                                p.undo_for_each("crc-32");
-                                crc = crc32Parser;
+                                p.undo_for_each_now("crc-32");
+                                crc = crc16Parser;
                                 break;
                             case 2:
                                 b.crcType = PrimaryBlock.CRCFieldType.CRC_32;
-                                p.undo_for_each("crc-16");
+                                p.undo_for_each_now("crc-16");
+                                crc = crc32Parser;
                                 break;
                             default:
                                 throw new RxParserException("wrong CRC type");
                         }
-                        //crc_type(b.crcType);
                     })
                     .cbor_parse_custom_item(EIDItem::new, (__, ___, item) -> b.destination = item.eid)
                     .cbor_parse_custom_item(EIDItem::new, (__, ___, item) -> b.source = item.eid)
@@ -127,12 +109,11 @@ public class BundleV7Parser extends ParserEmitter<Bundle> {
                     .cbor_parse_int((__, ___, i) -> b.creationTimestamp = i)
                     .cbor_parse_int((__, ___, i) -> b.sequenceNumber = i)
                     .cbor_parse_int((__, ___, i) -> b.lifetime = i)
-                    .do_here(p -> p.insert(crc));
+                    .do_here(p -> p.insert_now(crc));
         }
     }
 
-
-    public class CanonicalBlockItem extends BlockWithCRC {
+    public static class CanonicalBlockItem extends BlockWithCRC {
 
         Block block;
 
@@ -154,31 +135,31 @@ public class BundleV7Parser extends ParserEmitter<Bundle> {
                     })
                     .cbor_parse_int((p, __, i) -> { // block type
                         switch ((int) i) {
-                            case 0:
+                            case PayloadBlock.type:
                                 block = new PayloadBlock();
                                 payload = blobBlock;
                                 break;
-                            case 2:
+                            case BlockIntegrityBlock.type:
                                 block = new BlockIntegrityBlock();
                                 payload = blockIntegrityBlock;
                                 break;
-                            case 4:
+                            case ManifestBlock.type:
                                 block = new ManifestBlock();
                                 payload = manifestBlock;
                                 break;
-                            case 6:
+                            case FlowLabelBlock.type:
                                 block = new FlowLabelBlock();
                                 payload = flowLabelBlock;
                                 break;
-                            case 7:
+                            case PreviousNodeBlock.type:
                                 block = new PreviousNodeBlock();
                                 payload = previousNodeBlock;
                                 break;
-                            case 8:
+                            case AgeBlock.type:
                                 block = new AgeBlock();
                                 payload = ageBlock;
                                 break;
-                            case 9:
+                            case ScopeControlHopLimitBlock.type:
                                 block = new ScopeControlHopLimitBlock();
                                 payload = scopeControlLimitBlock;
                                 break;
@@ -194,45 +175,83 @@ public class BundleV7Parser extends ParserEmitter<Bundle> {
                         switch ((int) i) {
                             case 0:
                                 block.crcType = BlockHeader.CRCFieldType.NO_CRC;
-                                p.undo_for_each("crc-16"); // deactivate CRC16 feeding
-                                p.undo_for_each("crc-32"); // deactivate CRC32 feeding
+                                p.undo_for_each_now("crc-16"); // deactivate CRC16 feeding
+                                p.undo_for_each_now("crc-32"); // deactivate CRC32 feeding
                                 break;
                             case 1:
                                 block.crcType = BlockHeader.CRCFieldType.CRC_16;
-                                p.undo_for_each("crc-32"); // deactivate CRC32 feeding
+                                p.undo_for_each_now("crc-32"); // deactivate CRC32 feeding
                                 crc = crc16Parser;
                                 break;
                             case 2:
                                 block.crcType = BlockHeader.CRCFieldType.CRC_32;
-                                p.undo_for_each("crc-16"); // deactivate CRC16 feeding
+                                p.undo_for_each_now("crc-16"); // deactivate CRC16 feeding
                                 crc = crc32Parser;
                                 break;
                             default:
                                 throw new RxParserException("wrong CRC type");
                         }
                     })
-                    .do_here(p -> p.insert(payload))
-                    .do_here(p -> p.insert(crc));
+                    .do_here(p -> p.insert_now(payload))
+                    .do_here(p -> p.insert_now(crc));
         }
 
-        CborParser blobBlock = CBOR.parser();
+        WritableBLOB wblob;
+        CborParser blobBlock = CBOR.parser()
+                .cbor_parse_byte_string(
+                        (__, ___, size) -> {
+                            try {
+                                if (size >= 0) {
+                                    ((BlockBLOB) block).data = BLOB.createBLOB((int) size);
+                                } else {
+                                    ((BlockBLOB) block).data = BLOB.createBLOB(1024); //todo change that
+                                }
+                            } catch (BundleStorage.StorageFullException sfe) {
+                                ((BlockBLOB) block).data = new NullBLOB();
+                            }
+                            wblob = ((BlockBLOB) block).data.getWritableBLOB();
+                        },
+                        (__, chunk) -> {
+                            if (wblob != null) {
+                                try {
+                                    wblob.write(chunk);
+                                } catch (WritableBLOB.BLOBOverflowException io) {
+                                    wblob.close();
+                                    wblob = null;
+                                } catch (IOException io) {
+                                    wblob.close();
+                                    wblob = null;
+                                }
+                            }
+                        },
+                        (__) -> {
+                            if (wblob != null) {
+                                wblob.close();
+                            }
+                        });
 
-        CborParser blockIntegrityBlock = CBOR.parser();
+        CborParser blockIntegrityBlock = CBOR.parser(); //todo
 
-        CborParser manifestBlock = CBOR.parser();
+        CborParser manifestBlock = CBOR.parser(); //todo
 
-        CborParser flowLabelBlock = CBOR.parser();
+        CborParser flowLabelBlock = CBOR.parser(); //todo
 
-        CborParser previousNodeBlock = CBOR.parser();
+        CborParser previousNodeBlock = CBOR.parser()
+                .cbor_parse_custom_item(EIDItem::new, (__, ___, item) -> ((PreviousNodeBlock) block).previous = item.eid);
 
-        CborParser ageBlock = CBOR.parser();
+        CborParser ageBlock = CBOR.parser()
+                .cbor_parse_int((p, __, i) -> ((AgeBlock) block).age = i)
+                .do_here((p) -> ((AgeBlock) block).start());
 
-        CborParser scopeControlLimitBlock = CBOR.parser();
+        CborParser scopeControlLimitBlock = CBOR.parser()
+                .cbor_open_array(2)
+                .cbor_parse_int((p, __, i) -> ((ScopeControlHopLimitBlock) block).count = i)
+                .cbor_parse_int((p, __, i) -> ((ScopeControlHopLimitBlock) block).limit = i);
     }
 
+    public abstract static class BlockWithCRC implements CborParser.ParseableItem {
 
-    public abstract class BlockWithCRC implements CborParser.ParseableItem {
-        CborParser crc;
+        CborParser crc = CBOR.parser();
 
         CRC crc16;
         CRC crc32;
@@ -272,7 +291,7 @@ public class BundleV7Parser extends ParserEmitter<Bundle> {
                         });
     }
 
-    public class EIDItem implements CborParser.ParseableItem {
+    public static class EIDItem implements CborParser.ParseableItem {
 
         public EID eid;
 
@@ -281,10 +300,10 @@ public class BundleV7Parser extends ParserEmitter<Bundle> {
             return CBOR.parser()
                     .cbor_open_array(2)
                     .cbor_parse_int((p, __, i) -> {
-                        if (i == 0) { // IPN
-                            p.insert(parseIPN);
+                        if (i == EID.IPN.EID_IPN_IANA_VALUE) { // IPN
+                            p.insert_now(parseIPN);
                         } else { // DTN or UNKNOWN
-                            p.insert(parseDTN);
+                            p.insert_now(parseDTN);
                         }
                     });
         }

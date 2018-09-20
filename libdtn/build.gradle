@@ -3,7 +3,7 @@ apply plugin: 'java-library'
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    // libcbor for bundlev7
+    // libcbor for bundleV7
     implementation project(':libcbor')
 
     // RxJava library for reactive programming

@@ -2,6 +2,7 @@ package io.left.rightmesh.libdtn.storage;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 /**
  * DTNInterface to write data to a BLOB.
@@ -49,6 +50,16 @@ public interface WritableBLOB {
      * @throws BLOBOverflowException if write size exceed BLOB capacity
      */
     int write(byte[] a) throws IOException, BLOBOverflowException;
+
+    /**
+     * read all the bytes from the ByteBuffer and copy them to the BLOB.
+     *
+     * @param buffer the bytebyffer to write to the BLOB
+     * @return number of bytes read
+     * @throws IOException if low-level reading the data or writing to the blob failed
+     * @throws BLOBOverflowException if write size exceed BLOB capacity
+     */
+    int write(ByteBuffer buffer) throws IOException, BLOBOverflowException;
 
     /**
      * After close() is called, no further write call is possible.

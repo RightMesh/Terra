@@ -8,11 +8,11 @@ package io.left.rightmesh.libdtn.data;
  */
 public class AgeBlock extends ExtensionBlock {
 
-    public static final int type = 10;
+    public static final int type = 8;
 
     public long age = 0;
-    long time_start;
-    long time_end;
+    public long time_start;
+    public long time_end;
 
     public AgeBlock() {
         super(type);
@@ -39,5 +39,13 @@ public class AgeBlock extends ExtensionBlock {
      */
     public void stop() {
         time_end = System.nanoTime();
+    }
+
+    @Override
+    public String toString() {
+        long local_time_spent = (System.nanoTime() - time_start);
+        StringBuilder sb = new StringBuilder("AgeBlock");
+        sb.append(": age="+age+" + "+ local_time_spent/1000);
+        return sb.toString();
     }
 }

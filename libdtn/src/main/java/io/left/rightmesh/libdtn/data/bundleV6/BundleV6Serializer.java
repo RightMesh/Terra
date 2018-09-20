@@ -141,14 +141,14 @@ public class BundleV6Serializer {
             // fill a buffer with the rest of the remaining header and then we can figure the length
             ByteArrayDataOutput tmp = ByteStreams.newDataOutput();
             try {
-                tmp.write(new SDNV(dict.getOffset(block.destination.getScheme())).getBytes());
-                tmp.write(new SDNV(dict.getOffset(block.destination.getSsp())).getBytes());
-                tmp.write(new SDNV(dict.getOffset(block.source.getScheme())).getBytes());
-                tmp.write(new SDNV(dict.getOffset(block.source.getSsp())).getBytes());
-                tmp.write(new SDNV(dict.getOffset(block.reportto.getScheme())).getBytes());
-                tmp.write(new SDNV(dict.getOffset(block.reportto.getSsp())).getBytes());
-                tmp.write(new SDNV(dict.getOffset(block.custodian.getScheme())).getBytes());
-                tmp.write(new SDNV(dict.getOffset(block.custodian.getSsp())).getBytes());
+                tmp.write(new SDNV(dict.getOffset(block.destination.scheme)).getBytes());
+                tmp.write(new SDNV(dict.getOffset(block.destination.ssp)).getBytes());
+                tmp.write(new SDNV(dict.getOffset(block.source.scheme)).getBytes());
+                tmp.write(new SDNV(dict.getOffset(block.source.ssp)).getBytes());
+                tmp.write(new SDNV(dict.getOffset(block.reportto.scheme)).getBytes());
+                tmp.write(new SDNV(dict.getOffset(block.reportto.ssp)).getBytes());
+                tmp.write(new SDNV(dict.getOffset(block.custodian.scheme)).getBytes());
+                tmp.write(new SDNV(dict.getOffset(block.custodian.ssp)).getBytes());
                 tmp.write(new SDNV(block.creationTimestamp).getBytes());
                 tmp.write(new SDNV(block.sequenceNumber).getBytes());
                 tmp.write(new SDNV(block.lifetime).getBytes());
@@ -225,8 +225,8 @@ public class BundleV6Serializer {
                 try {
                     buffer.write(new SDNV(block.eids.size()).getBytes());
                     for (EID eid : block.eids) {
-                        buffer.write(new SDNV(dict.getOffset(eid.getScheme())).getBytes());
-                        buffer.write(new SDNV(dict.getOffset(eid.getScheme())).getBytes());
+                        buffer.write(new SDNV(dict.getOffset(eid.scheme)).getBytes());
+                        buffer.write(new SDNV(dict.getOffset(eid.ssp)).getBytes());
                     }
                 } catch (Dictionary.EntryNotFoundException e) {
                     // it should never happen or there was an issue with rebuildDictionary

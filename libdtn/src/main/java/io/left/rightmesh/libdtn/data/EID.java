@@ -12,6 +12,8 @@ import java.util.regex.Pattern;
  */
 public class EID {
 
+    public static final String RFC3986URIRegExp = "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?";
+
     public static class EIDFormatException extends Exception {
         EIDFormatException() {
         }
@@ -24,20 +26,31 @@ public class EID {
     }
     EIDScheme scheme_code;
 
-    int iana_value;
-    String eid;
-    String scheme;
-    String ssp;
-    String authority;
-    String path;
+    public int iana_value;
+    public String eid;
+    public String scheme;
+    public String ssp;
+    public String authority;
+    public String path;
+    public String query;
+    public String fragment;
 
-    private EID(int iana_value) {
-        this.iana_value = iana_value;
-    }
 
     private EID(int iana_value, String str) {
         this.iana_value = iana_value;
         this.eid = str;
+        Pattern r = Pattern.compile(RFC3986URIRegExp);
+        Matcher m = r.matcher(eid);
+        if (m.find()) {
+            scheme = m.group(2);
+            authority = m.group(4) == null ? "" : m.group(4);
+            path      = m.group(5) == null ? "" : m.group(5);
+            query     = m.group(7) == null ? "" : m.group(7);
+            fragment  = m.group(9) == null ? "" : m.group(9);
+            ssp       = authority+path+query+fragment;
+        } else {
+            scheme = ""; // should never happen because we checked validity beforehand
+        }
     }
 
     /**
@@ -55,10 +68,10 @@ public class EID {
             throw new EIDFormatException();
         }
         EID eid = new EID(127, str);
-        if(eid.getScheme().equals("dtn")) {
+        if(eid.scheme.equals("dtn")) {
             return new DTN(str);
         }
-        if(eid.getScheme().equals("ipn")) {
+        if(eid.scheme.equals("ipn")) {
             return new IPN(str);
         } else {
             eid.scheme_code = EIDScheme.UNKNOWN;
@@ -76,8 +89,7 @@ public class EID {
         if(scheme.equals("ipn")) {
             return new IPN(ssp);
         } else {
-            EID eid = new EID(127);
-            eid.eid = scheme+":"+ssp;
+            EID eid = new EID(127, scheme+":"+ssp);
             eid.scheme_code = EIDScheme.UNKNOWN;
             return eid;
         }
@@ -88,7 +100,7 @@ public class EID {
     }
 
     public static EID.DTN createDTN(String ssp) {
-        return new DTN("dtn:"+ssp);
+        return new DTN(ssp);
     }
 
     public static EID.DTN generate() {
@@ -96,20 +108,37 @@ public class EID {
         return new DTN(uuid);
     }
 
+    public static class DTN extends EID {
+
+        public static int EID_DTN_IANA_VALUE = 1;
+
+        protected DTN(String str) {
+            super(EID_DTN_IANA_VALUE, "dtn:"+str);
+            this.ssp = str;
+        }
+
+        DTN(DTN other) {
+            this(other.eid);
+            scheme_code = EIDScheme.DTN;
+        }
+    }
 
     public int IANA() {
         return iana_value;
     }
 
     public static class IPN extends EID {
+
+        public static int EID_IPN_IANA_VALUE = 2;
+
         public int node_number;
         public int service_number;
 
         protected IPN(String str) throws EIDFormatException {
-            super(2, str);
+            super(EID_IPN_IANA_VALUE, str);
             final String regex = "^([0-9]+)\\.([0-9]+)";
             Pattern r = Pattern.compile(regex);
-            Matcher m = r.matcher(getSsp());
+            Matcher m = r.matcher(ssp);
             if (m.find()) {
                 String node = m.group(1);
                 String service = m.group(2);
@@ -121,7 +150,7 @@ public class EID {
         }
 
         IPN(int node, int service) {
-            super(2, "ipn:"+node+":"+service);
+            super(2, "ipn:"+node+"."+service);
             this.node_number = node;
             this.service_number = service;
         }
@@ -148,19 +177,6 @@ public class EID {
     }
 
 
-    public static class DTN extends EID {
-
-        protected DTN(String str) {
-            super(1, str);
-        }
-
-        DTN(DTN other) {
-            this(other.eid);
-            scheme_code = EIDScheme.DTN;
-        }
-    }
-
-
     /**
      * Check that the EID is a URI as defined in RFC 3986:
      * {@href https://tools.ietf.org/html/rfc3986#appendix-B}
@@ -171,8 +187,7 @@ public class EID {
      * @return true if valid, false otherwise
      */
     public static boolean isValidEID(String eid) {
-        final String regex = "^(([^:/?#]+):)(//([^/?#]*))([^?#]*)(\\?([^#]*))?(#(.*))?";
-        Pattern r = Pattern.compile(regex);
+        Pattern r = Pattern.compile(RFC3986URIRegExp);
         Matcher m = r.matcher(eid);
         if (m.find()) {
             String scheme = m.group(2);
@@ -182,83 +197,6 @@ public class EID {
         } else {
             return false;
         }
-    }
-
-    /**
-     * get the scheme part of the current EID.
-     *
-     * @return the scheme part
-     */
-    public String getScheme() {
-        if (scheme == null) {
-            final String regex = "^(([^:/?#]+):)(//([^/?#]*))([^?#]*)(\\?([^#]*))?(#(.*))?";
-            Pattern r = Pattern.compile(regex);
-            Matcher m = r.matcher(eid);
-            if (m.find()) {
-                scheme = m.group(2);
-            } else {
-                scheme = ""; // should never happen because we checked validity beforehand
-            }
-        }
-        return scheme;
-    }
-
-    /**
-     * get the scheme specific part of the current EID.
-     *
-     * @return the scheme specific part
-     */
-
-    public String getSsp() {
-        if (ssp == null) {
-            final String regex = "^(([^:/?#]+):)(//(.*))";
-            Pattern r = Pattern.compile(regex);
-            Matcher m = r.matcher(eid);
-            if (m.find()) {
-                ssp = m.group(4);
-            } else {
-                ssp = ""; // should never happen because we checked validity beforehand
-            }
-        }
-        return authority;
-    }
-
-    /**
-     * get the authority part of the current EID.
-     *
-     * @return the authority part
-     */
-    public String getAuthority() {
-        if (authority == null) {
-            final String regex = "^(([^:/?#]+):)(//([^/?#]*))([^?#]*)(\\?([^#]*))?(#(.*))?";
-            Pattern r = Pattern.compile(regex);
-            Matcher m = r.matcher(eid);
-            if (m.find()) {
-                authority = m.group(4);
-            } else {
-                authority = ""; // should never happen because we checked validity beforehand
-            }
-        }
-        return authority;
-    }
-
-    /**
-     * get the path part of the current EID.
-     *
-     * @return the path specific part
-     */
-    public String getPath() {
-        if (path == null) {
-            final String regex = "^(([^:/?#]+):)(//([^/?#]*))([^?#]*)(\\?([^#]*))?(#(.*))?";
-            Pattern r = Pattern.compile(regex);
-            Matcher m = r.matcher(eid);
-            if (m.find()) {
-                path = m.group(5);
-            } else {
-                path = "/";
-            }
-        }
-        return path;
     }
 
 

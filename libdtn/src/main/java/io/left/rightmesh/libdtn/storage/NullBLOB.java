@@ -45,17 +45,22 @@ public class NullBLOB extends BLOB {
             }
 
             @Override
-            public int write(InputStream stream, int size) throws IOException, BLOBOverflowException {
+            public int write(InputStream stream, int size) {
                 return 0;
             }
 
             @Override
-            public int write(byte b) throws IOException, BLOBOverflowException {
+            public int write(byte b) {
                 return 0;
             }
 
             @Override
-            public int write(byte[] a) throws IOException, BLOBOverflowException {
+            public int write(byte[] a) {
+                return 0;
+            }
+
+            @Override
+            public int write(ByteBuffer buffer) {
                 return 0;
             }
 

@@ -14,6 +14,7 @@ import io.left.rightmesh.libdtn.data.CRC;
 import io.left.rightmesh.libdtn.data.EID;
 import io.left.rightmesh.libdtn.data.FlowLabelBlock;
 import io.left.rightmesh.libdtn.data.ManifestBlock;
+import io.left.rightmesh.libdtn.data.PayloadBlock;
 import io.left.rightmesh.libdtn.data.PreviousNodeBlock;
 import io.left.rightmesh.libdtn.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.data.ScopeControlHopLimitBlock;
@@ -32,12 +33,17 @@ public class BundleV7Serializer {
      * @param bundle to serialize
      * @return Flowable
      */
-    public static Flowable<ByteBuffer> serialize(Bundle bundle) {
-        CborEncoder enc = encode((PrimaryBlock) bundle);
+    public static CborEncoder encode(Bundle bundle) {
+        CborEncoder enc = CBOR.encoder()
+                .cbor_start_indefinite_array()
+                .merge(encode((PrimaryBlock) bundle));
+
         for (Block block : bundle.getBlocks()) {
             enc.merge(encode(block));
         }
-        return enc.encode();
+
+        enc.cbor_stop_array();
+        return enc;
     }
 
     /**
@@ -48,6 +54,7 @@ public class BundleV7Serializer {
      */
     private static CborEncoder encode(PrimaryBlock block) {
         CborEncoder enc = CBOR.encoder()
+                .cbor_start_array(getItemCount(block))
                 .cbor_encode_int(BUNDLE_VERSION_7)
                 .cbor_encode_int(block.procV7Flags)
                 .cbor_encode_int(block.crcType.ordinal())
@@ -63,44 +70,44 @@ public class BundleV7Serializer {
             enc.cbor_encode_int(block.fragmentOffset);
         }
 
-        return enc.merge(encodeCRC(enc.encode(), block.crcType));
+        return enc.merge(encodeCRC(enc.observe(1000), block.crcType));
     }
 
     private static CborEncoder encode(Block block) {
 
-        CborEncoder enc = encode((BlockHeader)block);
+        CborEncoder enc = encode((BlockHeader) block);
 
         switch (block.type) {
-            case 0:
+            case PayloadBlock.type:
                 enc.merge(encode((BlockBLOB) block));
                 break;
-            case 2:
+            case BlockIntegrityBlock.type:
                 enc.merge(encode((BlockIntegrityBlock) block));
                 break;
-            case 4:
+            case ManifestBlock.type:
                 enc.merge(encode((ManifestBlock) block));
                 break;
-            case 6:
+            case FlowLabelBlock.type:
                 enc.merge(encode((FlowLabelBlock) block));
                 break;
-            case 7:
+            case PreviousNodeBlock.type:
                 enc.merge(encode((PreviousNodeBlock) block));
                 break;
-            case 8:
+            case AgeBlock.type:
                 enc.merge(encode((AgeBlock) block));
                 break;
-            case 9:
+            case ScopeControlHopLimitBlock.type:
                 enc.merge(encode((ScopeControlHopLimitBlock) block));
                 break;
             default:
                 break;
         }
-        return enc.merge(encodeCRC(enc.encode(), block.crcType));
+        return enc.merge(encodeCRC(enc.observe(50), block.crcType));
     }
 
     private static CborEncoder encode(BlockHeader block) {
         return CBOR.encoder()
-                .cbor_start_array(block.crcType == BlockHeader.CRCFieldType.NO_CRC ? 5 : 6)
+                .cbor_start_array(getItemCount(block))
                 .cbor_encode_int(block.type)
                 .cbor_encode_int(block.number)
                 .cbor_encode_int(block.procV7flags)
@@ -125,16 +132,19 @@ public class BundleV7Serializer {
     }
 
     private static CborEncoder encode(PreviousNodeBlock block) {
-        return CBOR.encoder();
+        return encode(block.previous);
     }
 
     private static CborEncoder encode(AgeBlock block) {
+        block.stop();
+        long age = block.age + block.time_end - block.time_start;
         return CBOR.encoder()
-                .cbor_encode_int(block.age);
+                .cbor_encode_int(age);
     }
 
     private static CborEncoder encode(ScopeControlHopLimitBlock block) {
         return CBOR.encoder()
+                .cbor_start_array(2)
                 .cbor_encode_int(block.count)
                 .cbor_encode_int(block.limit);
     }
@@ -151,7 +161,7 @@ public class BundleV7Serializer {
             return CBOR.encoder()
                     .cbor_start_array(2)
                     .cbor_encode_int(eid.IANA())
-                    .cbor_encode_text_string(eid.getSsp());
+                    .cbor_encode_text_string(eid.ssp);
         }
 
         if (eid instanceof EID.IPN) {
@@ -164,7 +174,6 @@ public class BundleV7Serializer {
         }
         return CBOR.encoder(); // that should not happen
     }
-
 
 
     // encode BLOCK CRC
@@ -195,4 +204,22 @@ public class BundleV7Serializer {
         return CBOR.encoder();
     }
 
+    private static int getItemCount(PrimaryBlock block) {
+        int length = 8;
+        if (block.crcType != PrimaryBlock.CRCFieldType.NO_CRC) {
+            length++;
+        }
+        if (block.getV7Flag(PrimaryBlock.BundleV7Flags.FRAGMENT)) {
+            length++;
+        }
+        return length;
+    }
+
+    private static int getItemCount(BlockHeader block) {
+        int length = 5; // 6 in draft-BPbis v10, currently v11
+        if (block.crcType != BlockHeader.CRCFieldType.NO_CRC) {
+            length++;
+        }
+        return length;
+    }
 }

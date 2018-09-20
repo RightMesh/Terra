@@ -109,8 +109,8 @@ public class Dictionary {
      * @param eid to add to the dictionary
      */
     public void add(EID eid) {
-        add(eid.getScheme());
-        add(eid.getSsp());
+        add(eid.scheme);
+        add(eid.ssp);
     }
 
     /**

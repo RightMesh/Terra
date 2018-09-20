@@ -5,8 +5,10 @@ package io.left.rightmesh.libdtn.data;
  */
 public class FlowLabelBlock extends Block {
 
+    public static final int type = 6;
+
     public FlowLabelBlock() {
-        super(6);
+        super(type);
     }
 
 }

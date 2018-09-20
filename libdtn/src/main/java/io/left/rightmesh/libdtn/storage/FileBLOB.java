@@ -164,6 +164,29 @@ public class FileBLOB extends BLOB {
             }
 
             @Override
+            public int write(byte b) throws IOException {
+                open();
+                bos.write(b);
+                return 1;
+            }
+
+            @Override
+            public int write(byte[] a) throws IOException {
+                open();
+                bos.write(a);
+                return a.length;
+            }
+
+            @Override
+            public int write(ByteBuffer buffer) throws IOException {
+                int length = buffer.remaining();
+                while(buffer.hasRemaining()) {
+                    bos.write(buffer.get());
+                }
+                return length;
+            }
+
+            @Override
             public int write(InputStream stream, int size) throws IOException {
                 open();
                 int total = 0;
@@ -180,20 +203,6 @@ public class FileBLOB extends BLOB {
                             + " bytes than expected");
                 }
                 return total;
-            }
-
-            @Override
-            public int write(byte b) throws IOException {
-                open();
-                bos.write(b);
-                return 1;
-            }
-
-            @Override
-            public int write(byte[] a) throws IOException {
-                open();
-                bos.write(a);
-                return a.length;
             }
 
             @Override

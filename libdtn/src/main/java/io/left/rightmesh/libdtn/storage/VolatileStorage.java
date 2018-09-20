@@ -145,16 +145,6 @@ public class VolatileStorage implements BundleStorage {
                 }
 
                 @Override
-                public int write(InputStream stream, int size)
-                        throws IOException, BLOBOverflowException {
-                    if (size > (data.length - position)) {
-                        throw new BLOBOverflowException();
-                    }
-                    position += size;
-                    return stream.read(data, position, size);
-                }
-
-                @Override
                 public int write(byte b) throws BLOBOverflowException {
                     if (1 > data.length - position) {
                         throw new BLOBOverflowException();
@@ -171,6 +161,28 @@ public class VolatileStorage implements BundleStorage {
                     System.arraycopy(a, 0, data, position, a.length);
                     position += a.length;
                     return a.length;
+                }
+
+                @Override
+                public int write(ByteBuffer buffer) throws BLOBOverflowException {
+                    int length = buffer.remaining();
+                    if (length > data.length - position) {
+                        throw new BLOBOverflowException();
+                    }
+                    while(buffer.hasRemaining()) {
+                        data[position++] = buffer.get();
+                    }
+                    return length;
+                }
+
+                @Override
+                public int write(InputStream stream, int size)
+                        throws IOException, BLOBOverflowException {
+                    if (size > (data.length - position)) {
+                        throw new BLOBOverflowException();
+                    }
+                    position += size;
+                    return stream.read(data, position, size);
                 }
 
                 @Override

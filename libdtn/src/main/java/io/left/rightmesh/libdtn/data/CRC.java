@@ -3,6 +3,9 @@ package io.left.rightmesh.libdtn.data;
 import java.nio.ByteBuffer;
 
 import io.reactivex.Flowable;
+
+import static io.left.rightmesh.libdtn.utils.DebugUtil.printBuffer;
+
 /**
  * @author Lucien Loiseau on 16/09/18.
  */
@@ -164,6 +167,8 @@ public abstract class CRC {
 
     public boolean doneAndValidate(ByteBuffer check) {
         ByteBuffer buf = done();
+        //printBuffer("crc16 res=", buf);
+        //printBuffer("crc16 candidate res=", check);
 
         if(check == null) {
             return false;
@@ -185,21 +190,23 @@ public abstract class CRC {
      */
     public static class CRC16 extends CRC {
 
-        short crc16;
+        public short crc16;
 
         CRC16() {
             crc16 = (short) 0xffff;
         }
 
         public void read(ByteBuffer buffer) {
+            //printBuffer("CRC16>> "+(crc16&0xffff)+" >> ",buffer);
             while (buffer.hasRemaining()) {
-                crc16 = (short) ((crc16 >> 8) ^ (short) crc16_x25_table[(crc16 & 0xff) ^ buffer.get()]);
+                crc16 = (short) ((crc16 >> 8) ^ (short) crc16_x25_table[((crc16 & 0xff) ^ buffer.get()) & 0xff]);
             }
         }
 
         public ByteBuffer done() {
             ByteBuffer buf = ByteBuffer.allocate(2);
             buf.putShort((short) ~crc16);
+            buf.flip();
             return buf;
         }
     }
@@ -210,21 +217,23 @@ public abstract class CRC {
      */
     public static class CRC32 extends CRC {
 
-        int crc32;
+        public int crc32;
 
         public CRC32() {
             crc32 = 0xffffffff;
         }
 
         public void read(ByteBuffer buffer) {
+            //printBuffer("CRC32>> "+(crc32&0xffff)+" >> ",buffer);
             while (buffer.hasRemaining()) {
-                crc32  = ((crc32 >> 8) ^ crc32_table[(crc32 & 0xff) ^ buffer.get()]);
+                crc32  = ((crc32 >> 8) ^ crc32_table[((crc32 & 0xff) ^ buffer.get()) & 0xff]);
             }
         }
 
         public ByteBuffer done() {
             ByteBuffer buf = ByteBuffer.allocate(4);
             buf.putInt(~crc32);
+            buf.flip();
             return buf;
         }
     }
