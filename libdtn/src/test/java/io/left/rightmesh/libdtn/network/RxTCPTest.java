@@ -21,6 +21,8 @@ public class RxTCPTest {
 
     @Test
     public void testServerOneClient() {
+        System.out.println("[+] testing RxTCP 1 Server and 1 Client");
+
         CountDownLatch lock = new CountDownLatch(1);
 
         String test = "testing rxtcp client and server";
@@ -28,13 +30,13 @@ public class RxTCPTest {
 
         new RxTCP.Server(4556).start().subscribe(
                 connection -> {
-                    System.out.println("< client connected");
+                    //System.out.println("< client connected");
                     connection.recv().subscribe(
                             buffer -> {
-                                System.out.println("< recv " + buffer.remaining() + " bytes");
+                                //System.out.println("< recv " + buffer.remaining() + " bytes");
                                 byte[] buf = new byte[buffer.remaining()];
                                 buffer.get(buf, 0, buffer.remaining());
-                                System.out.println("  buffer: " + new String(buf));
+                                //System.out.println("  buffer: " + new String(buf));
                                 recv[0] = buf;
                                 lock.countDown();
                             },
@@ -50,11 +52,10 @@ public class RxTCPTest {
 
         new RxTCP.ConnectionRequest("127.0.0.1", 4556).connect().subscribe(
                 connection -> {
-                    System.out.println("> connected to server");
+                    //System.out.println("> connected to server");
                     connection.send(test.getBytes());
                 },
                 e -> {
-                    System.out.println("connection failed");
                     fail();
                     lock.countDown();
                 });
@@ -71,6 +72,8 @@ public class RxTCPTest {
 
     @Test
     public void testServerTenClients() {
+        System.out.println("[+] testing RxTCP 1 Server and 10 Clients");
+
         CountDownLatch lock = new CountDownLatch(10);
 
         String test = "testing rxtcp client and server";
@@ -83,7 +86,6 @@ public class RxTCPTest {
                                 int k = buffer.get();
                                 byte[] buf = new byte[buffer.remaining()];
                                 buffer.get(buf, 0, buffer.remaining());
-                                System.out.println("< buffer " + k + " = " + new String(buf));
                                 recv[k] = buf;
                                 lock.countDown();
                             },
@@ -102,12 +104,12 @@ public class RxTCPTest {
                 final int j = i;
                 new RxTCP.ConnectionRequest("127.0.0.1", 4557).connect().subscribe(
                         connection -> {
-                            System.out.println("> " + j + " connected to server");
+                            //System.out.println("> " + j + " connected to server");
                             byte[] header = {(byte) (j & 0xff)};
                             connection.send(ArrayUtils.addAll(header, (test + ":" + j).getBytes()));
                         },
                         e -> {
-                            System.out.println("connection failed");
+                            //System.out.println("connection failed");
                             fail();
                             lock.countDown();
                         });
@@ -126,9 +128,10 @@ public class RxTCPTest {
         }
     }
 
-
     @Test
     public void testServerStressTest() {
+        System.out.println("[+] stress test RxTCP 1 Server and 1 Client (1000 * 4096 bytes)");
+
         CountDownLatch lock = new CountDownLatch(1);
 
         int BUFSIZE = 4096;
@@ -172,7 +175,7 @@ public class RxTCPTest {
                     connection.closeJobsDone();
                 },
                 e -> {
-                    System.out.println("connection failed");
+                    //System.out.println("connection failed");
                     fail();
                     lock.countDown();
                 });
@@ -184,13 +187,15 @@ public class RxTCPTest {
             // ignore
         }
         long timeSpent = (System.nanoTime() - before)+1;
-        System.out.println(">> StressTest :: send="+totalSend*BUFSIZE+" bytes, spent="+timeSpent+" nanoseconds, recv="+recv[0]+" bytes");
+        //System.out.println(">> StressTest :: send="+totalSend*BUFSIZE+" bytes, spent="+timeSpent+" nanoseconds, recv="+recv[0]+" bytes");
         assertEquals(totalSend*BUFSIZE, recv[0]);
     }
 
 
     @Test
     public void testFailedConnection() {
+        System.out.println("[+] test failed connection");
+
         CountDownLatch lock = new CountDownLatch(1);
 
         new RxTCP.ConnectionRequest("127.1.5.9", 8765).retry(3,2000).connect().subscribe(
@@ -198,7 +203,7 @@ public class RxTCPTest {
                     lock.countDown();
                 },
                 e -> {
-                    System.out.println("could not connect to 127.1.5.9:8765");
+                    //System.out.println("could not connect to 127.1.5.9:8765");
                     lock.countDown();
                 });
 

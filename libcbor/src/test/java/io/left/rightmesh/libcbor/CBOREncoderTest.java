@@ -20,6 +20,8 @@ public class CBOREncoderTest {
 
     @Test
     public void encodeAppendixA_PositiveInteger() {
+        System.out.println("[+] testing encoding cbor positive integer");
+
         /* test positive integer */
         enc.cbor_encode_int(0);
         assertEquals("0x00", getEncodedString());
@@ -54,6 +56,8 @@ public class CBOREncoderTest {
 
     @Test
     public void encodeAppendixA_NegativeInteger() {
+        System.out.println("[+] testing encoding cbor negative integer");
+
         /* test negative integer */
         enc.cbor_encode_int(-1);
         assertEquals("0x20", getEncodedString());
@@ -70,6 +74,8 @@ public class CBOREncoderTest {
 
     @Test
     public void encodeAppendixA_HalfFloat() {
+        System.out.println("[+] testing encoding cbor half floating point precision number");
+
         /* test float (half, single and double) */
         enc.cbor_encode_half_float(0.0f);
         assertEquals("0xf90000", getEncodedString());
@@ -108,6 +114,8 @@ public class CBOREncoderTest {
 
     @Test
     public void encodeAppendixA_Float() {
+        System.out.println("[+] testing encoding cbor single floating point precision number");
+
         enc.cbor_encode_float(100000.0f);
         assertEquals("0xfa47c35000", getEncodedString());
 
@@ -128,6 +136,8 @@ public class CBOREncoderTest {
 
     @Test
     public void encodeAppendixA_Double() {
+        System.out.println("[+] testing encoding cbor double floating point precision number");
+
         enc.cbor_encode_double(1.1d);
         assertEquals("0xfb3ff199999999999a", getEncodedString());
 
@@ -148,6 +158,8 @@ public class CBOREncoderTest {
 
     @Test
     public void encodeAppendixA_SimpleValues() {
+        System.out.println("[+] testing encoding cbor simple value");
+
         enc.cbor_encode_boolean(false);
         assertEquals("0xf4", getEncodedString());
         
@@ -172,6 +184,8 @@ public class CBOREncoderTest {
 
     @Test
     public void encodeAppendixA_Byte_Text_Strings() {
+        System.out.println("[+] testing encoding cbor definite byte and text strings");
+
         byte[] a3 = {};
         enc.cbor_encode_byte_string(a3);
         assertEquals("0x40", getEncodedString());
@@ -204,6 +218,8 @@ public class CBOREncoderTest {
 
     @Test
     public void encodeAppendixA_Byte_Text_Strings_Indefinite() {
+        System.out.println("[+] testing encoding cbor indefinite byte and text strings");
+
         byte[] a4 = {0x01, 0x02};
         byte[] a5 = {0x03, 0x04, 0x05};
         enc.cbor_start_byte_string(-1)
@@ -221,6 +237,8 @@ public class CBOREncoderTest {
 
     @Test
     public void encodeAppendixA_Tags() {
+        System.out.println("[+] testing encoding cbor tags");
+
         /* test tag */
         enc.cbor_encode_tag(0)
                 .cbor_encode_text_string("2013-03-21T20:04:00Z");
@@ -251,6 +269,8 @@ public class CBOREncoderTest {
 
     @Test
     public void encodeAppendixA_Array_And_Hashes_Definite() {
+        System.out.println("[+] testing encoding cbor definite array and hashes");
+
         enc.cbor_start_array(0);
         assertEquals("0x80", getEncodedString());
 
@@ -418,6 +438,8 @@ public class CBOREncoderTest {
 
     @Test
     public void encodeAppendixA_Array_And_Hashes_Indefinite() {
+        System.out.println("[+] testing encoding cbor indefinite array and hashes");
+
         enc.cbor_start_array(-1)
                 .cbor_stop_array();
         assertEquals("0x9fff", getEncodedString());

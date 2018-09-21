@@ -65,6 +65,15 @@ import static io.left.rightmesh.libcbor.Constants.CborSimpleValues.DoublePrecisi
 public class CborParser {
 
     public class ParserInCallback {
+
+        /**
+         * Add a filter for the actual parser (runner) that will run for every parsed buffer
+         * until undo_for_each is called.
+         *
+         * @param key the key for this filter
+         * @param cb te filter
+         * @return this ParserInCallback object
+         */
         public ParserInCallback do_for_each_now(String key, FilterCallback cb) {
             if((key != null) && (cb != null)) {
                 add_filter(key, cb);
@@ -72,6 +81,12 @@ public class CborParser {
             return this;
         }
 
+        /**
+         * Remove a filter from this actual parser (runner).
+         *
+         * @param key
+         * @return
+         */
         public ParserInCallback undo_for_each_now(String key) {
             if(key != null) {
                 remove_filter(key);
@@ -92,9 +107,9 @@ public class CborParser {
             return this;
         }
     }
-    ParserInCallback thisInCallback;
+    private ParserInCallback thisInCallback;
 
-    protected CborParser() {
+    private CborParser() {
         thisInCallback = new ParserInCallback();
     }
 

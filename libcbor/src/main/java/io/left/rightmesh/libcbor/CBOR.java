@@ -30,10 +30,6 @@ public class CBOR {
         return new CborEncoder();
     }
 
-    public static CborEncoder rxencoder() {
-        return new CborEncoder();
-    }
-
     public static CborParser parser() {
         return CborParser.create();
     }

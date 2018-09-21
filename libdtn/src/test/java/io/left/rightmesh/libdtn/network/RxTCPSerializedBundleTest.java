@@ -1,33 +1,33 @@
-package io.left.rightmesh.libdtn.data.bundleV7;
+package io.left.rightmesh.libdtn.network;
 
+import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
-import java.util.Formatter;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
-import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.data.AgeBlock;
 import io.left.rightmesh.libdtn.data.Block;
 import io.left.rightmesh.libdtn.data.BlockHeader;
 import io.left.rightmesh.libdtn.data.Bundle;
-import io.left.rightmesh.libdtn.data.CRC;
 import io.left.rightmesh.libdtn.data.EID;
 import io.left.rightmesh.libdtn.data.PayloadBlock;
 import io.left.rightmesh.libdtn.data.PreviousNodeBlock;
 import io.left.rightmesh.libdtn.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.data.ScopeControlHopLimitBlock;
+import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Parser;
+import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Serializer;
 
-import static org.junit.Assert.assertArrayEquals;
+import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 /**
- * @author Lucien Loiseau on 20/09/18.
+ * @author Lucien Loiseau on 21/09/18.
  */
-public class BundleV7Test {
+public class RxTCPSerializedBundleTest {
+
 
     String testPayload = "This is a test for bundle serialization";
 
@@ -99,46 +99,74 @@ public class BundleV7Test {
     }
 
     @Test
-    public void testSimpleBundleSerialization() {
-        System.out.println("[+] testing bundle serialization and parsing with 6 test bundles");
+    public void testServerOneClient() {
+        System.out.println("[+] testing bundle serialization / parsing over RxTCP");
 
-        Bundle[] bundles = {
-                testBundle1(),
-                testBundle2(),
-                testBundle3(),
-                testBundle4(),
-                testBundle5(),
-                testBundle6()
-        };
+        CountDownLatch lock = new CountDownLatch(1);
 
-        for(Bundle bundle : bundles) {
-            Bundle[] res = {null};
+        Bundle[] recv = {null, null, null, null, null, null};
+        int[] i = {0};
 
-            // prepare serializer
-            CborEncoder enc = BundleV7Serializer.encode(bundle);
+        new RxTCP.Server(4561).start().subscribe(
+                connection -> {
+                    // prepare parser
+                    CborParser p = BundleV7Parser.create(b -> {
+                        recv[i[0]++] = b;
+                    });
 
-            // prepare parser
-            CborParser p = BundleV7Parser.create(b -> {
-                res[0] = b;
-            });
-
-            // serialize and parse
-            enc.observe(10).subscribe(buf -> {
-                try {
-                    if (p.read(buf)) {
-                        assertEquals(false, buf.hasRemaining());
-                    }
-                } catch (RxParserException rpe) {
-                    rpe.printStackTrace();
+                    connection.recv().subscribe(
+                            buffer -> {
+                                try {
+                                    if (p.read(buffer)) {
+                                        p.reset();
+                                    }
+                                } catch (RxParserException rpe) {
+                                    rpe.printStackTrace();
+                                    Assert.fail();
+                                }
+                            },
+                            e -> lock.countDown());
+                },
+                e -> {
                     fail();
-                }
-            });
+                    lock.countDown();
+                });
 
-            // check payload
-            checkBundlePayload(res[0]);
+        new RxTCP.ConnectionRequest("127.0.0.1", 4561).connect().subscribe(
+                connection -> {
+                    //System.out.println("> connected to server");
+                    Bundle[] bundles = {
+                            testBundle1(),
+                            testBundle2(),
+                            testBundle3(),
+                            testBundle4(),
+                            testBundle5(),
+                            testBundle6()
+                    };
+
+                    for(Bundle bundle : bundles) {
+                        connection.send(BundleV7Serializer.encode(bundle).observe(20));
+                    }
+
+                    connection.closeJobsDone();
+                },
+                e -> {
+                    //System.out.println("connection failed");
+                    fail();
+                    lock.countDown();
+                });
+
+        try {
+            lock.await(2000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException ie) {
+            // ignore
+        }
+
+        // check payload
+        for(int j = 0; j < 6; j++) {
+            checkBundlePayload(recv[j]);
         }
     }
-
 
 
     void checkBundlePayload(Bundle bundle) {
@@ -162,35 +190,6 @@ public class BundleV7Test {
                 assertEquals(testPayload, payload[0]);
             }
         }
-    }
-
-
-    // debug
-    private String getEncodedString(CborEncoder enc) {
-        // get all in one buffer
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        enc.observe().subscribe(b -> {
-            while (b.hasRemaining()) {
-                baos.write(b.get());
-            }
-        });
-
-        // return the string
-        Formatter formatter = new Formatter();
-        formatter.format("0x");
-        for (byte b : baos.toByteArray()) {
-            formatter.format("%02x", b);
-        }
-        return (formatter.toString());
-    }
-
-    private void showRemaining(String prefix, ByteBuffer buf) {
-        Formatter formatter = new Formatter();
-        formatter.format(prefix + " remaining (" + buf.remaining() + "): 0x");
-        while (buf.hasRemaining()) {
-            formatter.format("%02x", buf.get());
-        }
-        System.out.println(formatter.toString());
     }
 
 }

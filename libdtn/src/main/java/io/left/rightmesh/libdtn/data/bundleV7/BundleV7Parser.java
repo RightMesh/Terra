@@ -30,15 +30,14 @@ import io.reactivex.Observer;
 /**
  * @author Lucien Loiseau on 10/09/18.
  */
-public class BundleV7Parser extends CborParser {
+public class BundleV7Parser  {
 
     public interface BundleParsedCallback {
         void onBundleParsed(Bundle b);
     }
 
-    public static BundleV7Parser create(BundleParsedCallback cb) {
-        return (BundleV7Parser)new BundleV7Parser()
-                .cbor_parse_custom_item(BundleItem::new, (__, ___, item) -> cb.onBundleParsed(item.bundle));
+    public static CborParser create(BundleParsedCallback cb) {
+        return CBOR.parser().cbor_parse_custom_item(BundleItem::new, (__, ___, item) -> cb.onBundleParsed(item.bundle));
     }
 
     public static class BundleItem implements CborParser.ParseableItem {
@@ -50,10 +49,10 @@ public class BundleV7Parser extends CborParser {
             return CBOR.parser()
                     .cbor_open_array((__, ___, ____) -> {
                     })
-                    .cbor_parse_custom_item(PrimaryBlockItem::new, (p, __, item) -> {
+                    .cbor_parse_custom_item(PrimaryBlockItem::new, (__, ___, item) -> {
                         bundle = item.b;
                     })
-                    .cbor_parse_array_items(CanonicalBlockItem::new, (p, __, item) -> {
+                    .cbor_parse_array_items(CanonicalBlockItem::new, (__, ___, item) -> {
                         bundle.addBlock(item.block);
                     });
         }
