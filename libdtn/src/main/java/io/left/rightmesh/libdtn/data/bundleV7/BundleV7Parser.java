@@ -42,7 +42,7 @@ public class BundleV7Parser  {
 
     public static class BundleItem implements CborParser.ParseableItem {
 
-        Bundle bundle = null;
+        public Bundle bundle = null;
 
         @Override
         public CborParser getItemParser() {
@@ -58,7 +58,7 @@ public class BundleV7Parser  {
         }
     }
 
-    public static class PrimaryBlockItem extends BlockWithCRC {
+    static class PrimaryBlockItem extends BlockWithCRC {
 
         Bundle b;
 
@@ -113,7 +113,7 @@ public class BundleV7Parser  {
         }
     }
 
-    public static class CanonicalBlockItem extends BlockWithCRC {
+    static class CanonicalBlockItem extends BlockWithCRC {
 
         Block block;
 
@@ -250,7 +250,7 @@ public class BundleV7Parser  {
                 .cbor_parse_int((p, __, i) -> ((ScopeControlHopLimitBlock) block).limit = i);
     }
 
-    public abstract static class BlockWithCRC implements CborParser.ParseableItem {
+    abstract static class BlockWithCRC implements CborParser.ParseableItem {
 
         CborParser crc = CBOR.parser();
 
@@ -289,7 +289,7 @@ public class BundleV7Parser  {
                         });
     }
 
-    public static class EIDItem implements CborParser.ParseableItem {
+    static class EIDItem implements CborParser.ParseableItem {
 
         public EID eid;
 

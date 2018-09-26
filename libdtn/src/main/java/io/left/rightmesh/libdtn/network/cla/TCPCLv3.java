@@ -95,27 +95,29 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class TCPCLv3 implements ConvergenceLayer {
 
-    private static final Object lock = new Object();
-    private static TCPCLv3 instance = null;
+    private static final String TAG = "tcpclv3";
 
-    /**
-     * Singleton pattern.
-     *
-     * @return the singleton TCPCLv3
-     */
-    public static TCPCLv3 getInstance() {
-        synchronized (lock) {
-            if (instance == null) {
-                instance = new TCPCLv3();
-            }
-            return instance;
+    public static class TCPCLv3Peer extends TCPPeer {
+        TCPCLv3Peer(String host, int port) {
+            super(host, port);
+        }
+
+        @Override
+        public EID getEID() {
+            return EID.createCLA("tcpclv3", getTCPAddress());
         }
     }
+
+    public static final int IANA_TCPCL_PORT = 4556;
 
     private RxTCP.Server serverRFC7242;
 
     private TCPCLv3() {
-        serverRFC7242 = new RxTCP.Server(4556);
+    }
+
+    @Override
+    public Observable<DTNChannel> start() {
+        return listen(IANA_TCPCL_PORT);
     }
 
     /**
@@ -125,34 +127,45 @@ public class TCPCLv3 implements ConvergenceLayer {
      *
      * @return Observable of DTNChannel
      */
-    public Observable<DTNChannel> listen() {
+    public Observable<DTNChannel> listen(int port) {
         return Observable.create(s -> {
+            serverRFC7242 = new RxTCP.Server(port);
             serverRFC7242.start()
                     .doOnSubscribe(__ -> {
-                        System.out.println("[+] server started.. listenning on 4556..");
+                        Log.d(TAG, "server started.. listenning on 4556..");
                     })
                     .subscribe(
                             c -> {
-                                System.out.println("client connected");
+                                Log.d(TAG, "client connected");
                                 s.onNext(new Channel(c));
                             },
                             e -> {
-                                System.out.println("server stopped unexpectedly: "
+                                Log.d(TAG, "server stopped unexpectedly: "
                                         + e.getMessage());
                             });
         });
     }
 
-    @Override
-    public Single<DTNChannel> open(Peer peer) {
-        return Single.create(s -> {
-            //new RxTCP.ConnectionRequest()
-        });
-    }
 
     @Override
     public void stop() {
         serverRFC7242.stop();
+    }
+
+    public static Single<DTNChannel> open(Peer peer) {
+        if (!(peer instanceof TCPPeer)) {
+            return Single.error(new Throwable("Peer is not a TCP Peer"));
+        }
+
+        return Single.create(s -> {
+            TCPPeer p = (TCPPeer) peer;
+            new RxTCP.ConnectionRequest(p.host, p.port)
+                    .connect()
+                    .subscribe(
+                            c -> s.onSuccess(new Channel(c)),
+                            e -> s.onError(new Throwable("connection failed"))
+                    );
+        });
     }
 
     /**
@@ -213,7 +226,7 @@ public class TCPCLv3 implements ConvergenceLayer {
 
             EID channelEID;
             try {
-                channelEID = EID.create("tcp://" + remoteAddress + ":" + remotePort);
+                channelEID = EID.create("cla:tcpclv3:tcp//" + remoteAddress + ":" + remotePort);
             } catch (EID.EIDFormatException efe) {
                 channelEID = EID.generate();
             }
@@ -242,9 +255,6 @@ public class TCPCLv3 implements ConvergenceLayer {
 
         @Override
         public Observable<Bundle> recvBundle() {
-            if (recvData != null) {
-                return Observable.error(new Throwable("another observer is already subscribed"));
-            }
             return Observable.create(observer ->
                     RxParser.<Bundle>create(
                             RxParser.<ByteBuffer>create(c.recv(),

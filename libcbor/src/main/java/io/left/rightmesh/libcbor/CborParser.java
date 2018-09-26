@@ -670,6 +670,10 @@ public class CborParser {
         return this;
     }
 
+    public CborParser cbor_parse_text_string_full(ParsedItemCallback<String> cb) {
+        return cbor_parse_text_string_full(null, cb);
+    }
+
     public CborParser cbor_parse_text_string_full(ContainerIsOpenCallback cb1, ParsedItemCallback<String> cb2) {
         parserQueue.add(new CborParseTextStringUnsafe() {
             LinkedList<Long> tags = new LinkedList<>();

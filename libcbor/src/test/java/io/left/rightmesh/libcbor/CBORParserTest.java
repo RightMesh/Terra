@@ -489,6 +489,17 @@ public class CBORParserTest {
                     }
             ).read(hexToBuf("0xa56161614161626142616361436164614461656145"));
             assertEquals(true, b);
+
+            b = dec.cbor_open_array(2)
+                    .cbor_parse_text_string_full((__, s) -> assertEquals("a", s))
+                    .cbor_parse_linear_map(
+                            TextStringItem::new,
+                            TextStringItem::new,
+                            (__, ___, map) -> {
+                                assertEquals(1, map.size());
+                            }).read(hexToBuf("0x826161a161626163"));
+            assertEquals(true, b);
+
         } catch (RxParserException rpe) {
             rpe.printStackTrace();
             fail();
@@ -800,7 +811,7 @@ public class CBORParserTest {
                                 assertEquals(1363896240, (long) d);
                             })
                     .do_for_each("test", (__, buffer) -> {
-                        while(buffer.hasRemaining()) {
+                        while (buffer.hasRemaining()) {
                             test.put(buffer.get());
                         }
                     })
@@ -855,14 +866,14 @@ public class CBORParserTest {
     }
 
     public boolean assertByteBufferEquals(ByteBuffer buf1, ByteBuffer buf2) {
-        if(buf1.remaining() != buf2.remaining()) {
+        if (buf1.remaining() != buf2.remaining()) {
             return false;
         }
         buf1.mark();
         buf2.mark();
 
         boolean equal = true;
-        while(buf1.hasRemaining() && equal) {
+        while (buf1.hasRemaining() && equal) {
             equal = buf1.get() == buf2.get();
         }
         buf1.reset();

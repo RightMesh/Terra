@@ -7,13 +7,9 @@ import io.left.rightmesh.libdtn.data.EID;
  *
  * @author Lucien Loiseau on 16/07/18.
  */
-public class Peer {
+public abstract class Peer {
 
-    private EID eid;
-
-    public Peer(EID eid) {
-        this.eid = eid;
-    }
+    public abstract EID getEID();
 
     @Override
     public boolean equals(Object o) {
@@ -22,19 +18,19 @@ public class Peer {
         }
         if (o instanceof Peer) {
             Peer peer = (Peer) o;
-            return this.eid.equals(peer.eid);
+            return this.getEID().equals(peer.getEID());
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return this.eid.hashCode();
+        return this.getEID().hashCode();
     }
 
     @Override
     public String toString() {
-        return "eid=" + eid.toString();
+        return "eid=" + getEID().toString();
     }
 
 }

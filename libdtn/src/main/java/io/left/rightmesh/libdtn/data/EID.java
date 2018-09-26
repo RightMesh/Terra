@@ -12,16 +12,24 @@ import java.util.regex.Pattern;
  */
 public class EID {
 
-    public static final String RFC3986URIRegExp = "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?";
-
     public static class EIDFormatException extends Exception {
         EIDFormatException() {
         }
+        EIDFormatException(String msg) {
+            super(msg);
+        }
     }
+
+    public static final String RFC3986URIRegExp = "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?";
+
+    public static int EID_DTN_IANA_VALUE = 1;
+    public static int EID_IPN_IANA_VALUE = 2;
+    public static int EID_CLA_IANA_VALUE = 3; // not actually an IANA value
 
     public enum EIDScheme {
         DTN,
         IPN,
+        CLA,
         UNKNOWN
     }
     EIDScheme scheme_code;
@@ -30,10 +38,6 @@ public class EID {
     public String eid;
     public String scheme;
     public String ssp;
-    public String authority;
-    public String path;
-    public String query;
-    public String fragment;
 
 
     private EID(int iana_value, String str) {
@@ -43,14 +47,19 @@ public class EID {
         Matcher m = r.matcher(eid);
         if (m.find()) {
             scheme = m.group(2);
-            authority = m.group(4) == null ? "" : m.group(4);
-            path      = m.group(5) == null ? "" : m.group(5);
-            query     = m.group(7) == null ? "" : m.group(7);
-            fragment  = m.group(9) == null ? "" : m.group(9);
+            String authority = m.group(4) == null ? "" : m.group(4);
+            String path      = m.group(5) == null ? "" : m.group(5);
+            String query     = m.group(7) == null ? "" : m.group(7);
+            String fragment  = m.group(9) == null ? "" : m.group(9);
             ssp       = authority+path+query+fragment;
         } else {
             scheme = ""; // should never happen because we checked validity beforehand
         }
+    }
+
+
+    public int IANA() {
+        return iana_value;
     }
 
     /**
@@ -65,14 +74,17 @@ public class EID {
 
     public static EID create(String str) throws EIDFormatException {
         if(!isValidEID(str)) {
-            throw new EIDFormatException();
+            throw new EIDFormatException("not a URI");
         }
         EID eid = new EID(127, str);
         if(eid.scheme.equals("dtn")) {
-            return new DTN(str);
+            return new DTN(eid.ssp);
         }
         if(eid.scheme.equals("ipn")) {
-            return new IPN(str);
+            return new IPN(eid.ssp);
+        }
+        if(eid.scheme.equals("cla")) {
+            return new CLA(eid.ssp);
         } else {
             eid.scheme_code = EIDScheme.UNKNOWN;
             return eid;
@@ -86,6 +98,9 @@ public class EID {
         if(scheme.equals("dtn")) {
             return new DTN(ssp);
         }
+        if(scheme.equals("cla")) {
+            return new CLA(ssp);
+        }
         if(scheme.equals("ipn")) {
             return new IPN(ssp);
         } else {
@@ -95,12 +110,17 @@ public class EID {
         }
     }
 
+
+    public static EID.DTN createDTN(String ssp) {
+        return new DTN(ssp);
+    }
+
     public static EID.IPN createIPN(int node, int service) {
         return new IPN(node, service);
     }
 
-    public static EID.DTN createDTN(String ssp) {
-        return new DTN(ssp);
+    public static EID.CLA createCLA(String claType, String claSpecificPart) {
+        return new CLA(claType, claSpecificPart);
     }
 
     public static EID.DTN generate() {
@@ -109,33 +129,18 @@ public class EID {
     }
 
     public static class DTN extends EID {
-
-        public static int EID_DTN_IANA_VALUE = 1;
-
-        protected DTN(String str) {
-            super(EID_DTN_IANA_VALUE, "dtn:"+str);
-            this.ssp = str;
+        protected DTN(String ssp) {
+            super(EID_DTN_IANA_VALUE, "dtn:"+ssp);
         }
-
-        DTN(DTN other) {
-            this(other.eid);
-            scheme_code = EIDScheme.DTN;
-        }
-    }
-
-    public int IANA() {
-        return iana_value;
     }
 
     public static class IPN extends EID {
 
-        public static int EID_IPN_IANA_VALUE = 2;
-
         public int node_number;
         public int service_number;
 
-        protected IPN(String str) throws EIDFormatException {
-            super(EID_IPN_IANA_VALUE, str);
+        protected IPN(String ssp) throws EIDFormatException {
+            super(EID_IPN_IANA_VALUE, "ipn:"+ssp);
             final String regex = "^([0-9]+)\\.([0-9]+)";
             Pattern r = Pattern.compile(regex);
             Matcher m = r.matcher(ssp);
@@ -145,7 +150,7 @@ public class EID {
                 this.node_number = Integer.valueOf(node);
                 this.service_number = Integer.valueOf(service);
             } else {
-                throw new EIDFormatException();
+                throw new EIDFormatException("not an IPN");
             }
         }
 
@@ -177,6 +182,33 @@ public class EID {
     }
 
 
+    public static class CLA extends EID {
+
+        public String cl_name;
+        public String cl_specific;
+
+        CLA(String cla, String claSpecificPart) {
+            super(EID_CLA_IANA_VALUE, "cla:"+cla+":"+claSpecificPart);
+            this.cl_name = cla;
+            this.cl_specific = claSpecificPart;
+        }
+
+        CLA(String ssp) throws EIDFormatException  {
+            super(EID_CLA_IANA_VALUE, "cla:"+ssp);
+            final String regex = "^([^:/?#]+):([^:/?#]+)";
+            Pattern r = Pattern.compile(regex);
+            Matcher m = r.matcher(ssp);
+            if (m.find()) {
+                this.cl_name = m.group(1);
+                this.cl_specific = m.group(2);
+            } else {
+                throw new EIDFormatException("not a CLA");
+            }
+        }
+    }
+
+
+
     /**
      * Check that the EID is a URI as defined in RFC 3986:
      * {@href https://tools.ietf.org/html/rfc3986#appendix-B}
@@ -191,9 +223,12 @@ public class EID {
         Matcher m = r.matcher(eid);
         if (m.find()) {
             String scheme = m.group(2);
-            String authority = m.group(4);
-            return (scheme != null) && (!scheme.equals("")) && (authority != null)
-                    && (!authority.equals(""));
+            String authority = m.group(4) == null ? "" : m.group(4);
+            String path      = m.group(5) == null ? "" : m.group(5);
+            String query     = m.group(7) == null ? "" : m.group(7);
+            String fragment  = m.group(9) == null ? "" : m.group(9);
+            String ssp       = authority+path+query+fragment;
+            return (scheme != null) && (!scheme.equals("")) && (!ssp.equals(""));
         } else {
             return false;
         }

@@ -534,7 +534,7 @@ public class RxTCP {
 
                 // clear the job queue and notify the clients
                 for (JobOrder jobOrder : jobOrderQueue) {
-                    jobOrder.sendBufferTask.onError(new Throwable("channel has closed"));
+                    jobOrder.trackOrder.onError(new Throwable("channel has closed"));
                 }
                 jobOrderQueue.clear();
 

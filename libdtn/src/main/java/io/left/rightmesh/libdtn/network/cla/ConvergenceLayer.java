@@ -13,19 +13,11 @@ import io.reactivex.Single;
 public interface ConvergenceLayer {
 
     /**
-     * listen the Convergence Layer. It returns a stream of DTNChannel initiated by remote peers.
+     * starts the Convergence Layer. It returns a stream of DTNChannel for evert new channel opens.
      *
      * @return Observable of DTNChannel
      */
-    Observable<DTNChannel> listen();
-
-    /**
-     * Proactively initiate a connection to a peer.
-     *
-     * @param peer to open a connection with
-     * @return an Opened DTNChannel for this peer
-     */
-    Single<DTNChannel> open(Peer peer);
+    Observable<DTNChannel> start();
 
     /**
      * Stop the convergence layer. This method may or may not close all the channel opened

@@ -13,14 +13,12 @@ import io.left.rightmesh.libdtn.data.AgeBlock;
 import io.left.rightmesh.libdtn.data.Block;
 import io.left.rightmesh.libdtn.data.BlockHeader;
 import io.left.rightmesh.libdtn.data.Bundle;
-import io.left.rightmesh.libdtn.data.CRC;
 import io.left.rightmesh.libdtn.data.EID;
 import io.left.rightmesh.libdtn.data.PayloadBlock;
 import io.left.rightmesh.libdtn.data.PreviousNodeBlock;
 import io.left.rightmesh.libdtn.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.data.ScopeControlHopLimitBlock;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -29,10 +27,10 @@ import static org.junit.Assert.fail;
  */
 public class BundleV7Test {
 
-    String testPayload = "This is a test for bundle serialization";
+    public static String testPayload = "This is a test for bundle serialization";
 
 
-    Bundle testBundle0() {
+    public static Bundle testBundle0() {
         Bundle bundle = new Bundle();
         bundle.destination = EID.createIPN(5, 12);
         bundle.source = EID.createDTN("source");
@@ -40,26 +38,26 @@ public class BundleV7Test {
         return bundle;
     }
 
-    Bundle testBundle1() {
+    public static Bundle testBundle1() {
         Bundle bundle = testBundle0();
         bundle.addBlock(new PayloadBlock(testPayload));
         return bundle;
     }
 
-    Bundle testBundle2() {
+    public static Bundle testBundle2() {
         Bundle bundle = testBundle1();
         bundle.addBlock(new AgeBlock());
         return bundle;
     }
 
-    Bundle testBundle3() {
+    public static Bundle testBundle3() {
         Bundle bundle = testBundle1();
         bundle.addBlock(new AgeBlock());
         bundle.addBlock(new ScopeControlHopLimitBlock());
         return bundle;
     }
 
-    Bundle testBundle4() {
+    public static Bundle testBundle4() {
         Bundle bundle = testBundle1();
         bundle.addBlock(new AgeBlock());
         bundle.addBlock(new ScopeControlHopLimitBlock());
@@ -68,7 +66,7 @@ public class BundleV7Test {
     }
 
 
-    Bundle testBundle5() {
+    public static Bundle testBundle5() {
         Bundle bundle = testBundle1();
         bundle.addBlock(new AgeBlock());
         bundle.addBlock(new ScopeControlHopLimitBlock());
@@ -77,7 +75,7 @@ public class BundleV7Test {
         return bundle;
     }
 
-    Bundle testBundle6() {
+    public static Bundle testBundle6() {
         Bundle bundle = testBundle0();
         bundle.crcType = PrimaryBlock.CRCFieldType.CRC_32;
 
