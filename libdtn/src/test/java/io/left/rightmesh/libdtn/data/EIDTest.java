@@ -12,7 +12,7 @@ public class EIDTest {
 
     @Test
     public void testEIDIPN() {
-        System.out.println("[+] testing EID IPN Scheme");
+        System.out.println("[+] eid: testing IPN Scheme");
         EID.IPN ipn = EID.createIPN(0, 0);
         assertEquals("ipn:0.0", ipn.eid);
         assertEquals(0, ipn.node_number);
@@ -33,7 +33,7 @@ public class EIDTest {
 
     @Test
     public void testEIDDTN() {
-        System.out.println("[+] testing EID DTN Scheme");
+        System.out.println("[+] eid: testing DTN Scheme");
         EID dtn = EID.createDTN("marsOrbital");
         assertEquals("dtn:marsOrbital", dtn.eid);
 
@@ -47,7 +47,7 @@ public class EIDTest {
 
     @Test
     public void testEIDCLA() {
-        System.out.println("[+] testing EID CLA Scheme");
+        System.out.println("[+] eid: testing CLA Scheme");
 
         EID.CLA cla = EID.createCLA("stcp", "tcp://google.com:4556");
         assertEquals("cla:stcp:tcp://google.com:4556", cla.eid);
@@ -64,7 +64,7 @@ public class EIDTest {
 
     @Test
     public void testEIDhttp() {
-        System.out.println("[+] testing EID Unknown Scheme");
+        System.out.println("[+] eid: testing Unknown Scheme");
 
         try {
             EID dtn = EID.create("http", "//google.com:8080");

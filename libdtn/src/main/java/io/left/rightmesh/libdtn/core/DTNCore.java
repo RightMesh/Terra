@@ -5,7 +5,7 @@ import io.left.rightmesh.libdtn.data.Bundle;
 /**
  * DTNCore registers all the DTN Core Component and is the entry point for all Bundles.
  * Bundles are first emitted upstream either by an application agent (through the API) or by a
- * Convergence Layer. At this point the Bundle follow the following workflow:
+ * Convergence Layer. At this point the Bundle follows the following workflow:
  *
  * <pre>
  *                    +-------+  +-------------------+

@@ -19,9 +19,10 @@ import static org.junit.Assert.assertEquals;
  * @author Lucien Loiseau on 26/09/18.
  */
 public class STCPTest {
+
     @Test
     public void testServerOneClient() {
-        System.out.println("[+] testing bundle serialization / parsing over RxTCP");
+        System.out.println("[+] stcp: testing one server and one client");
 
         CountDownLatch lock = new CountDownLatch(1);
 
@@ -32,7 +33,6 @@ public class STCPTest {
                 channel -> {
                     channel.recvBundle().subscribe(
                             b -> {
-                                System.out.println(">>> bundle: "+i[0]);
                                 recv[i[0]++] = b;
                             },
                             e -> {
@@ -69,7 +69,6 @@ public class STCPTest {
                                     dtnChannel::close);
                 },
                 e -> {
-                    System.out.println("connection failed");
                     fail();
                     lock.countDown();
                 });
@@ -86,6 +85,61 @@ public class STCPTest {
         }
     }
 
+
+    @Test
+    public void testServerTenClient() {
+        System.out.println("[+] stcp: testing one server and ten clients");
+
+        CountDownLatch lock = new CountDownLatch(10);
+
+        new STCP().listen(4592).subscribe(
+                channel -> {
+                    channel.recvBundle().subscribe(
+                            this::checkBundlePayload,
+                            e -> {
+                                lock.countDown();
+                            },
+                            lock::countDown);
+                },
+                e -> {
+                    fail();
+                    lock.countDown();
+                });
+
+        for(int k = 0 ; k < 10; k++) {
+            STCP.open(new STCP.STCPPeer("127.0.0.1", 4592)).subscribe(
+                    dtnChannel -> {
+                        Bundle[] bundles = {
+                                BundleV7Test.testBundle1(),
+                                BundleV7Test.testBundle2(),
+                                BundleV7Test.testBundle3(),
+                                BundleV7Test.testBundle4(),
+                                BundleV7Test.testBundle5(),
+                                BundleV7Test.testBundle6()
+                        };
+                        dtnChannel
+                                .sendBundles(Flowable.fromArray(bundles))
+                                .subscribe(
+                                        j -> {
+                                            // ignore
+                                        },
+                                        e -> {
+                                            // ignore
+                                        },
+                                        dtnChannel::close);
+                    },
+                    e -> {
+                        fail();
+                        lock.countDown();
+                    });
+        }
+
+        try {
+            lock.await(2000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException ie) {
+            // ignore
+        }
+    }
 
     void checkBundlePayload(Bundle bundle) {
         // assert

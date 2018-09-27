@@ -26,18 +26,18 @@ import io.reactivex.subscribers.DisposableSubscriber;
  * Simple TCP (STCP) is a TCP Convergence Layer (CL) for the Bundle Protocol. it was introduced in
  * 2018 as an alternative to the quite complicated TCPCLv4. As per the author's own words
  * (Scott Burleigh):
- *
+ * <p>
  * <pre>
  *    It is less capable than tcpcl but quite a lot simpler.
  * </pre>
- *
+ * <p>
  * <p> An STCP session is unidirectional and bundles flow from the peer that initiated the
  * connection towards the one that passively listen for incoming connection. When the connection
  * is open, bundles can be send without signalling needed. Each bundle is represented as a cbor
  * array with only two item, first item being a cbor integer value representing the length of the
  * serialized bundle followed by the serialized bundle itself. The connection can be shutdown by
  * any peer without any signalling. </p>
- *
+ * <p>
  * <p>Mmore details can be read in the draft itself:
  * https://www.ietf.org/id/draft-burleigh-dtn-stcp-00.txt</p>
  *
@@ -71,43 +71,38 @@ public class STCP implements ConvergenceLayer {
         return listen(IANA_STCP_PORT_TO_DEFINE);
     }
 
+
+    @Override
+    public void stop() {
+        if (serverDraftSTCP != null) {
+            serverDraftSTCP.stop();
+        }
+    }
+
     public Observable<DTNChannel> listen(int port) {
         return Observable.create(s -> {
             serverDraftSTCP = new RxTCP.Server(port);
             serverDraftSTCP.start()
                     .subscribe(
-                            c -> {
-                                System.out.println("stcp: client connected");
-                                s.onNext(new Channel(c, false));
-                            },
-                            e -> {
-                                System.out.println("stcp: server stopped unexpectedly: "
-                                        + e.getMessage());
-                            });
+                            c -> s.onNext(new Channel(c, false)),
+                            s::onError,
+                            s::onComplete);
         });
     }
 
     public static Single<DTNChannel> open(Peer peer) {
-        if(!(peer instanceof TCPPeer)) {
+        if (!(peer instanceof TCPPeer)) {
             return Single.error(new Throwable("Peer is not a TCP Peer"));
         }
 
         return Single.create(s -> {
-            TCPPeer p = (TCPPeer)peer;
+            TCPPeer p = (TCPPeer) peer;
             new RxTCP.ConnectionRequest(p.host, p.port)
                     .connect()
                     .subscribe(
                             c -> s.onSuccess(new Channel(c, true)),
-                            e -> s.onError(new Throwable("connection failed"))
-                    );
+                            s::onError);
         });
-    }
-
-    @Override
-    public void stop() {
-        if(serverDraftSTCP != null) {
-            serverDraftSTCP.stop();
-        }
     }
 
     public static class Channel implements DTNChannel {
@@ -148,12 +143,12 @@ public class STCP implements ConvergenceLayer {
 
         @Override
         public Observable<Integer> sendBundle(Bundle bundle) {
-            if(!initiator) {
+            if (!initiator) {
                 return Observable.error(new RecvOnlyPeerException());
             }
 
             Flowable<ByteBuffer> job = createBundleJob(bundle);
-            if(job == null) {
+            if (job == null) {
                 return Observable.error(new Throwable("Cannot serialize the bundle"));
             }
 
@@ -163,7 +158,7 @@ public class STCP implements ConvergenceLayer {
 
         @Override
         public Observable<Integer> sendBundles(Flowable<Bundle> upstream) {
-            if(!initiator) {
+            if (!initiator) {
                 return Observable.error(new RecvOnlyPeerException());
             }
 
@@ -204,14 +199,16 @@ public class STCP implements ConvergenceLayer {
         }
 
         public Observable<Bundle> recvBundle() {
-            if(initiator) {
+            if (initiator) {
                 return Observable.empty();
             }
 
             return Observable.create(s -> {
                 CborParser pdu = CBOR.parser()
                         .cbor_open_array(2)
-                        .cbor_parse_int((__, ___, i) -> {})
+                        .cbor_parse_int((__, ___, i) -> {
+                            // we might want check the length and refuse large bundle
+                        })
                         .cbor_parse_custom_item(BundleV7Parser.BundleItem::new, (__, ___, item) -> {
                             s.onNext(item.bundle);
                         });
@@ -222,7 +219,7 @@ public class STCP implements ConvergenceLayer {
                                 if (pdu.read(buffer)) {
                                     pdu.reset();
                                 }
-                            } catch(RxParserException rpe) {
+                            } catch (RxParserException rpe) {
                                 s.onComplete();
                                 close();
                             }
@@ -249,7 +246,7 @@ public class STCP implements ConvergenceLayer {
                     e -> {
                         size[0] = -1;
                     });
-            if(size[0] < 0) {
+            if (size[0] < 0) {
                 return null;
             }
             return CBOR.encoder()
@@ -263,6 +260,7 @@ public class STCP implements ConvergenceLayer {
 
     public static final class SendOnlyPeerException extends Exception {
     }
+
     public static final class RecvOnlyPeerException extends Exception {
     }
 }

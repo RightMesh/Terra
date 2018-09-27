@@ -18,10 +18,11 @@ import java.util.Map;
  */
 public class Bundle extends PrimaryBlock {
 
-    LinkedList<Block> blocks = new LinkedList<>();
+    public LinkedList<Block> blocks = new LinkedList<>();
 
     // for processing the bundle
-    Map<String, Object> attachement;
+    public  Map<String, Object> attachement;
+    private int block_number = 1;
 
     /**
      * Default Constructor.
@@ -37,17 +38,6 @@ public class Bundle extends PrimaryBlock {
      */
     public Bundle(PrimaryBlock block) {
         super(block);
-    }
-
-
-    /**
-     * Constructor: creates a Bundle with minimum information.
-     *
-     * @param destination EID of the destination
-     * @param lifetime    expiration time for the bundle
-     */
-    public Bundle(EID destination, long lifetime) {
-        super(destination, lifetime);
     }
 
     /**
@@ -67,6 +57,11 @@ public class Bundle extends PrimaryBlock {
     public void addBlock(Block block) {
         if (blocks.size() > 0) {
             blocks.getLast().setV6Flag(BlockHeader.BlockV6Flags.LAST_BLOCK, false);
+        }
+        if(block.type == PayloadBlock.type) {
+            block.number = 0;
+        } else {
+            block.number = block_number++;
         }
         blocks.add(block);
         block.setV6Flag(BlockHeader.BlockV6Flags.LAST_BLOCK, true);

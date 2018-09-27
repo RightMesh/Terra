@@ -120,8 +120,9 @@ public class PrimaryBlock {
     public Long appDataLength = null;
     public Long fragmentOffset = null;
 
-    /** processing field for deserialization **/
+    /** processing field **/
     public boolean crc_ok;
+    public BundleID bid;
 
     /**
      * Constructor: creates an empty PrimaryBlock, should probably not be used.
@@ -136,6 +137,7 @@ public class PrimaryBlock {
         this.reportto = EID.NullEID();
         this.creationTimestamp = System.currentTimeMillis();
         this.sequenceNumber = sequence_counter++;
+        bid = new BundleID(this);
         this.lifetime = 10000;
         this.crc_ok = true;
     }

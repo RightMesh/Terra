@@ -7,6 +7,7 @@ import io.left.rightmesh.libdtn.data.Block;
 import io.left.rightmesh.libdtn.data.BlockBLOB;
 import io.left.rightmesh.libdtn.data.BlockHeader;
 import io.left.rightmesh.libdtn.data.Bundle;
+import io.left.rightmesh.libdtn.data.BundleID;
 import io.left.rightmesh.libdtn.data.Dictionary;
 import io.left.rightmesh.libdtn.data.EID;
 import io.left.rightmesh.libdtn.data.PrimaryBlock;
@@ -239,6 +240,8 @@ public class BundleV6Parser extends ParserEmitter<Bundle> {
         public ParserState onSuccess(SDNV sdnv_value) throws RxParserException {
             bundle.sequenceNumber = sdnv_value.getValue();
             Log.d("BundleV6Parser", "sequenceNumber=" + sdnv_value.getValue());
+            bundle.bid = new BundleID(bundle.source, bundle.creationTimestamp, bundle.sequenceNumber);
+            Log.d("BundleV6Parser", "bid=" + bundle.bid.toString());
             return primary_block_lifetime;
         }
     };
@@ -436,7 +439,7 @@ public class BundleV6Parser extends ParserEmitter<Bundle> {
             try {
                 ((BlockBLOB) block).data = BLOB.createBLOB((int) block.dataSize);
                 writableData = ((BlockBLOB) block).data.getWritableBLOB();
-            } catch (BundleStorage.StorageFullException e) {
+            } catch (BundleStorage.StorageException e) {
                 throw new RxParserException("BlockBLOB", e.getMessage());
             }
         }

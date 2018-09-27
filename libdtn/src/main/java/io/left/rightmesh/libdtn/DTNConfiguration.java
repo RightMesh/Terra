@@ -29,7 +29,9 @@ public class DTNConfiguration {
         }
     }
 
-    // ---- ALL OPTIONS FOR CONFIGURATION ----
+    private HashMap<String, ConfigurationEntry> entries = new HashMap<>();
+
+    // ---- CONFIGURATION ENTRIES ----
     public enum Entry {
         LOCAL_EID("localEID"),
         ALIASES("aliases"),
@@ -42,7 +44,9 @@ public class DTNConfiguration {
         ENABLE_STATIC_ROUTING("static_routing"),
         ENABLE_SMART_ROUTING("smart_routing"),
         STATIC_ROUTE_CONFIGURATION("static_routes_configuration"),
-        STORAGE_TYPE("storage"),
+        ENABLE_VOLATILE_STORAGE("volatile_storage"),
+        ENABLE_SIMPLE_STORAGE("simple_storage"),
+        SIMPLE_STORAGE_PATH("simple_storage_paths"),
         LIMIT_BLOCKSIZE("limit_blocksize");
 
         private final String key;
@@ -64,50 +68,10 @@ public class DTNConfiguration {
      * @param <T> type of entry
      */
     public static class ConfigurationEntry<T> {
-        protected BehaviorSubject<T> entry = BehaviorSubject.create();
+        BehaviorSubject<T> entry = BehaviorSubject.create();
 
-        /**
-         * Create a new ConfigurationEntry of type T.
-         *
-         * @param key       the key for this entry
-         * @param initValue default value
-         * @param <T>       type of entry
-         * @return a new ConfigurationEntry
-         */
-        public static <T> ConfigurationEntry create(Entry key, T initValue) {
-            ConfigurationEntry entry = new ConfigurationEntry(initValue);
-            getInstance().entries.put(key.toString(), entry);
-            return entry;
-        }
 
-        /**
-         * Create a new ConfigurationEntrySet of type T initialized with empty set.
-         *
-         * @param key the key for this entry
-         * @param <T> Set of type T
-         * @return a new ConfigurationEntrySet
-         */
-        public static <T> ConfigurationEntrySet createSet(Entry key) {
-            ConfigurationEntrySet entry = new<T> ConfigurationEntrySet();
-            getInstance().entries.put(key.toString(), entry);
-            return entry;
-        }
-
-        /**
-         * Create a new ConfigurationEntryMap of type T.
-         *
-         * @param <T> type of Map key
-         * @param <U> type of Map value
-         * @param key the key for this entry
-         * @return a new ConfigurationEntryMap
-         */
-        public static <T, U> ConfigurationEntryMap createMap(Entry key) {
-            ConfigurationEntryMap entry = new<T, U> ConfigurationEntryMap();
-            getInstance().entries.put(key.toString(), entry);
-            return entry;
-        }
-
-        protected ConfigurationEntry(T value) {
+        ConfigurationEntry(T value) {
             entry.onNext(value);
         }
 
@@ -148,7 +112,7 @@ public class DTNConfiguration {
 
         private Set<T> set;
 
-        protected ConfigurationEntrySet() {
+        ConfigurationEntrySet() {
             super(new HashSet<T>());
             set = new HashSet<T>();
         }
@@ -185,7 +149,7 @@ public class DTNConfiguration {
 
         private Map<T, U> map;
 
-        protected ConfigurationEntryMap() {
+        ConfigurationEntryMap() {
             super(new HashMap<T, U>());
             map = new HashMap<T, U>();
         }
@@ -213,34 +177,68 @@ public class DTNConfiguration {
         }
     }
 
-    // storage
-    enum StorageType {
-        VOLATILE,
-        PERSISTENT,
-        BOTH
+    /**
+     * Create a new ConfigurationEntry of type T.
+     *
+     * @param key       the key for this entry
+     * @param initValue default value
+     * @param <T>       type of entry
+     * @return a new ConfigurationEntry
+     */
+    <T> ConfigurationEntry createEntry(Entry key, T initValue) {
+        ConfigurationEntry entry = new ConfigurationEntry(initValue);
+        entries.put(key.toString(), entry);
+        return entry;
     }
 
-    private HashMap<String, ConfigurationEntry> entries = new HashMap<>();
+    /**
+     * Create a new ConfigurationEntrySet of type T initialized with empty set.
+     *
+     * @param key the key for this entry
+     * @param <T> Set of type T
+     * @return a new ConfigurationEntrySet
+     */
+    <T> ConfigurationEntrySet createEntrySet(Entry key) {
+        ConfigurationEntrySet entry = new<T> ConfigurationEntrySet();
+        entries.put(key.toString(), entry);
+        return entry;
+    }
+
+    /**
+     * Create a new ConfigurationEntryMap of type T.
+     *
+     * @param <T> type of Map key
+     * @param <U> type of Map value
+     * @param key the key for this entry
+     * @return a new ConfigurationEntryMap
+     */
+    <T, U> ConfigurationEntryMap createEntryMap(Entry key) {
+        ConfigurationEntryMap entry = new<T, U> ConfigurationEntryMap();
+        entries.put(key.toString(), entry);
+        return entry;
+    }
 
     private DTNConfiguration() {
         // default configuration
-        ConfigurationEntry.create(Entry.LOCAL_EID, EID.generate());
-        ConfigurationEntry.<EID>createSet(Entry.ALIASES);
-        ConfigurationEntry.create(Entry.MAX_LIFETIME, (long) 0);
-        ConfigurationEntry.create(Entry.MAX_TIMESTAMP_FUTURE, (long) 0);
-        ConfigurationEntry.create(Entry.ENABLE_API, true);
-        ConfigurationEntry.create(Entry.ENABLE_FORWARD, true);
-        ConfigurationEntry.create(Entry.EID_SINGLETON_ONLY, false);
-        ConfigurationEntry.create(Entry.ENABLE_LINKLOCAL_ROUTING, true);
-        ConfigurationEntry.create(Entry.ENABLE_STATIC_ROUTING, true);
-        ConfigurationEntry.create(Entry.ENABLE_SMART_ROUTING, false);
-        ConfigurationEntry.<String, String>createMap(Entry.STATIC_ROUTE_CONFIGURATION);
-        ConfigurationEntry.create(Entry.STORAGE_TYPE, StorageType.BOTH);
-        ConfigurationEntry.create(Entry.LIMIT_BLOCKSIZE, (long) 1000000000);
+        this.createEntry(Entry.LOCAL_EID, EID.generate());
+        this.<EID>createEntrySet(Entry.ALIASES);
+        this.createEntry(Entry.MAX_LIFETIME, (long) 0);
+        this.createEntry(Entry.MAX_TIMESTAMP_FUTURE, (long) 0);
+        this.createEntry(Entry.ENABLE_API, true);
+        this.createEntry(Entry.ENABLE_FORWARD, true);
+        this.createEntry(Entry.EID_SINGLETON_ONLY, false);
+        this.createEntry(Entry.ENABLE_LINKLOCAL_ROUTING, true);
+        this.createEntry(Entry.ENABLE_STATIC_ROUTING, true);
+        this.createEntry(Entry.ENABLE_SMART_ROUTING, false);
+        this.<String, String>createEntryMap(Entry.STATIC_ROUTE_CONFIGURATION);
+        this.createEntry(Entry.ENABLE_VOLATILE_STORAGE, true);
+        this.createEntry(Entry.ENABLE_SIMPLE_STORAGE, false);
+        this.<String>createEntrySet(Entry.SIMPLE_STORAGE_PATH);
+        this.createEntry(Entry.LIMIT_BLOCKSIZE, (long) 1000000000);
     }
 
     @SuppressWarnings("unchecked")
     public static <T> ConfigurationEntry<T> get(Entry key) {
-        return getInstance().entries.get(key);
+        return getInstance().entries.get(key.toString());
     }
 }

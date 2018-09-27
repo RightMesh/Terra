@@ -13,6 +13,7 @@ import io.left.rightmesh.libdtn.data.AgeBlock;
 import io.left.rightmesh.libdtn.data.Block;
 import io.left.rightmesh.libdtn.data.BlockHeader;
 import io.left.rightmesh.libdtn.data.Bundle;
+import io.left.rightmesh.libdtn.data.BundleID;
 import io.left.rightmesh.libdtn.data.EID;
 import io.left.rightmesh.libdtn.data.PayloadBlock;
 import io.left.rightmesh.libdtn.data.PreviousNodeBlock;
@@ -35,6 +36,7 @@ public class BundleV7Test {
         bundle.destination = EID.createIPN(5, 12);
         bundle.source = EID.createDTN("source");
         bundle.reportto = EID.NullEID();
+        bundle.bid = new BundleID(bundle);
         return bundle;
     }
 
@@ -98,7 +100,7 @@ public class BundleV7Test {
 
     @Test
     public void testSimpleBundleSerialization() {
-        System.out.println("[+] testing bundle serialization and parsing with 6 test bundles");
+        System.out.println("[+] bundle: testing serialization and parsing with 6 test bundles");
 
         Bundle[] bundles = {
                 testBundle1(),

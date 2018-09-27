@@ -19,23 +19,18 @@ public abstract class BLOB {
      * @return a VolatileBLOB if expectedSize fits in Volatile memory, a FileBLOB otherwise
      * @throws BundleStorage.StorageFullException if BLOB cannot be created
      */
-    public static BLOB createBLOB(int expectedSize) throws BundleStorage.StorageFullException {
+    public static BLOB createBLOB(int expectedSize) throws BundleStorage.StorageException {
         try {
             return VolatileStorage.createBLOB(expectedSize);
-        } catch(BundleStorage.StorageFullException sfe) {
-            // ignore
+        } catch(BundleStorage.StorageException e) {
+            // ignore, try simple storage
         }
-        return SimpleStorage.createBLOB();
-    }
 
-    /**
-     * Creates a new BLOB of unknown size.
-     *
-     * @return a FileBLOB
-     * @throws BundleStorage.StorageFullException if BLOB cannot be created
-     */
-    public static BLOB createBLOB() throws BundleStorage.StorageFullException {
-        return SimpleStorage.createBLOB();
+        try {
+            return SimpleStorage.createBLOB(expectedSize);
+        } catch(BundleStorage.StorageException se) {
+            throw new BundleStorage.StorageException();
+        }
     }
 
     /**

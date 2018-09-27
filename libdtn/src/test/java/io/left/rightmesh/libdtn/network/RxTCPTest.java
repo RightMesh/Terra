@@ -21,7 +21,7 @@ public class RxTCPTest {
 
     @Test
     public void testServerOneClient() {
-        System.out.println("[+] testing RxTCP 1 Server and 1 Client");
+        System.out.println("[+] rxtcp: testing 1 Server and 1 Client");
 
         CountDownLatch lock = new CountDownLatch(1);
 
@@ -72,7 +72,7 @@ public class RxTCPTest {
 
     @Test
     public void testServerTenClients() {
-        System.out.println("[+] testing RxTCP 1 Server and 10 Clients");
+        System.out.println("[+] rxtcp: testing 1 Server and 10 Clients");
 
         CountDownLatch lock = new CountDownLatch(10);
 
@@ -130,7 +130,7 @@ public class RxTCPTest {
 
     @Test
     public void testServerStressTest() {
-        System.out.println("[+] stress test RxTCP 1 Server and 1 Client (1000 * 4096 bytes)");
+        System.out.println("[+] rxtcp: stress test Server and 1 Client (1000 * 4096 bytes)");
 
         CountDownLatch lock = new CountDownLatch(1);
 
@@ -194,7 +194,7 @@ public class RxTCPTest {
 
     @Test
     public void testFailedConnection() {
-        System.out.println("[+] test failed connection");
+        System.out.println("[+] rxtcp: test failed connection");
 
         CountDownLatch lock = new CountDownLatch(1);
 

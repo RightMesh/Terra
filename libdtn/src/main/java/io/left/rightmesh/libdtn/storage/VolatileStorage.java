@@ -1,5 +1,6 @@
 package io.left.rightmesh.libdtn.storage;
 
+import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.BundleID;
 import io.reactivex.Completable;
@@ -26,6 +27,24 @@ public class VolatileStorage implements BundleStorage {
     private static final int VOLATILE_BLOB_STORAGE_MAX_CAPACITY = 10000000; // 10M
     private static int CurrentBLOBMemoryUsage = 0;
 
+    private static final Object lock = new Object();
+    private static VolatileStorage instance = null;
+    private static boolean enabled = false;
+
+    public static VolatileStorage getInstance() {
+        synchronized (lock) {
+            if(instance == null) {
+                instance = new VolatileStorage();
+            }
+            return instance;
+        }
+    }
+
+    private VolatileStorage() {
+        DTNConfiguration.<Boolean>get(DTNConfiguration.Entry.ENABLE_VOLATILE_STORAGE).observe()
+                .subscribe(enabled -> VolatileStorage.enabled = enabled);
+    }
+
     /**
      * Create a new {@see VolatileBLOB}.
      *
@@ -33,10 +52,15 @@ public class VolatileStorage implements BundleStorage {
      * @return a new VolatileBLOB with capacity of expectedSize
      * @throws StorageFullException if there isn't enough space in Volatile Memory
      */
-    public static VolatileBLOB createBLOB(int expectedSize) throws StorageFullException {
+    public static VolatileBLOB createBLOB(int expectedSize) throws StorageFullException, StorageUnavailableException {
+        if(!enabled) {
+            throw new StorageUnavailableException();
+        }
+
         if (expectedSize > (VOLATILE_BLOB_STORAGE_MAX_CAPACITY - CurrentBLOBMemoryUsage)) {
             throw new StorageFullException();
         }
+
         return new VolatileBLOB(expectedSize);
     }
 
@@ -197,6 +221,10 @@ public class VolatileStorage implements BundleStorage {
 
     @Override
     public Completable clear() {
+        if(!enabled) {
+            return Completable.error(new StorageUnavailableException());
+        }
+
         return Completable.create(s -> {
             bundles.clear();
             s.onComplete();
@@ -205,6 +233,10 @@ public class VolatileStorage implements BundleStorage {
 
     @Override
     public Single<Integer> count() {
+        if(!enabled) {
+            return Single.error(new StorageUnavailableException());
+        }
+
         return Single.create(s -> {
             s.onSuccess(bundles.size());
         });
@@ -212,15 +244,17 @@ public class VolatileStorage implements BundleStorage {
 
     @Override
     public Completable store(Bundle bundle) {
-        return Completable.create(s -> {
-            BundleID bid = new BundleID(bundle);
+        if(!enabled) {
+            return Completable.error(new StorageUnavailableException());
+        }
 
-            this.contains(bid).subscribe(
+        return Completable.create(s -> {
+            this.contains(bundle.bid).subscribe(
                     b -> {
                         if (b) {
                             s.onError(new BundleAlreadyExistsException());
                         } else {
-                            bundles.put(bid, bundle);
+                            bundles.put(bundle.bid, bundle);
                             s.onComplete();
                         }
                     });
@@ -229,11 +263,21 @@ public class VolatileStorage implements BundleStorage {
 
     @Override
     public Single<Boolean> contains(BundleID id) {
+        if(!enabled) {
+            return Single.error(new StorageUnavailableException());
+        }
+
+
         return Single.create(s -> s.onSuccess(bundles.containsKey(id)));
     }
 
     @Override
     public Single<Bundle> get(BundleID id) {
+        if(!enabled) {
+            return Single.error(new StorageUnavailableException());
+        }
+
+
         return Single.create(s -> {
             this.contains(id).subscribe(
                     b -> {
@@ -248,6 +292,10 @@ public class VolatileStorage implements BundleStorage {
 
     @Override
     public Completable remove(BundleID id) {
+        if(!enabled) {
+            return Completable.error(new StorageUnavailableException());
+        }
+
         return Completable.create(s -> {
             this.contains(id).subscribe(
                     b -> {

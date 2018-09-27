@@ -12,6 +12,7 @@ import io.left.rightmesh.libdtn.data.BlockBLOB;
 import io.left.rightmesh.libdtn.data.BlockHeader;
 import io.left.rightmesh.libdtn.data.BlockIntegrityBlock;
 import io.left.rightmesh.libdtn.data.Bundle;
+import io.left.rightmesh.libdtn.data.BundleID;
 import io.left.rightmesh.libdtn.data.CRC;
 import io.left.rightmesh.libdtn.data.EID;
 import io.left.rightmesh.libdtn.data.FlowLabelBlock;
@@ -106,7 +107,10 @@ public class BundleV7Parser  {
                     .cbor_parse_custom_item(EIDItem::new, (__, ___, item) -> b.reportto = item.eid)
                     .cbor_open_array(2)
                     .cbor_parse_int((__, ___, i) -> b.creationTimestamp = i)
-                    .cbor_parse_int((__, ___, i) -> b.sequenceNumber = i)
+                    .cbor_parse_int((__, ___, i) -> {
+                        b.sequenceNumber = i;
+                        b.bid = new BundleID(b.source, b.creationTimestamp, b.sequenceNumber);
+                    })
                     .cbor_parse_int((__, ___, i) -> b.lifetime = i)
                     .do_here(p -> p.insert_now(crc)) // validate crc
                     .do_here(__ -> b.crc_ok = this.crc_ok); // mark the block
@@ -205,9 +209,10 @@ public class BundleV7Parser  {
                                 if (size >= 0) {
                                     ((BlockBLOB) block).data = BLOB.createBLOB((int) size);
                                 } else {
-                                    ((BlockBLOB) block).data = BLOB.createBLOB(1024); //todo change that
+                                    // indefinite length BLOB
+                                    ((BlockBLOB) block).data = BLOB.createBLOB(2048); //todo change that
                                 }
-                            } catch (BundleStorage.StorageFullException sfe) {
+                            } catch (BundleStorage.StorageException sfe) {
                                 ((BlockBLOB) block).data = new NullBLOB();
                             }
                             wblob = ((BlockBLOB) block).data.getWritableBLOB();

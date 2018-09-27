@@ -29,7 +29,7 @@ public class FileBLOB extends BLOB {
     private File file;
 
     /**
-     * Constructor: creates a BLOB out of a file present on the disk.
+     * Constructor: creates a BLOB from a path. It will open the file and check for existence.
      *
      * @param absolutePath to file
      * @throws IOException if the file cannot be accessed
@@ -38,6 +38,19 @@ public class FileBLOB extends BLOB {
         file = new File(absolutePath);
         if (!file.exists()) {
             throw new IOException("Can't access file: " + absolutePath);
+        }
+    }
+
+    /**
+     * Constructor: creates a BLOB out of an already created file.
+     *
+     * @param file to file
+     * @throws IOException if the file cannot be accessed
+     */
+    public FileBLOB(File file) throws IOException {
+        this.file = file;
+        if (!file.exists()) {
+            throw new IOException("Can't access file: " + file.getAbsolutePath());
         }
     }
 

@@ -24,7 +24,7 @@ public class RxTCPSerializedBundleTest {
 
     @Test
     public void testServerOneClient() {
-        System.out.println("[+] testing bundle serialization / parsing over RxTCP");
+        System.out.println("[+] rxtcp: testing bundle serialization / parsing over RxTCP");
 
         CountDownLatch lock = new CountDownLatch(1);
 

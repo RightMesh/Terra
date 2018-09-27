@@ -30,7 +30,7 @@ public class CBORParserTest {
 
     @Test
     public void parseAppendixA_PositiveInteger() {
-        System.out.println("[+] testing parsing of cbor positive integer");
+        System.out.println("[+] cborparser: testing parsing of cbor positive integer");
 
         try {
             CborParser dec = CBOR.parser();
@@ -83,7 +83,7 @@ public class CBORParserTest {
 
     @Test
     public void parseAppendixA_NegativeInteger() {
-        System.out.println("[+] testing parsing of cbor negative integer");
+        System.out.println("[+] cborparser: testing parsing of cbor negative integer");
 
         try {
             CborParser dec = CBOR.parser();
@@ -112,7 +112,7 @@ public class CBORParserTest {
 
     @Test
     public void parseAppendixA_HalfFloats() {
-        System.out.println("[+] testing parsing of cbor half floating point precision number");
+        System.out.println("[+] cborparser: testing parsing of cbor half floating point precision number");
 
         try {
             CborParser dec = CBOR.parser();
@@ -169,7 +169,7 @@ public class CBORParserTest {
 
     @Test
     public void parseAppendixA_Floats() {
-        System.out.println("[+] testing parsing of cbor single floating point precision number");
+        System.out.println("[+] cborparser: testing parsing of cbor single floating point precision number");
 
         try {
             CborParser dec = CBOR.parser();
@@ -203,7 +203,7 @@ public class CBORParserTest {
 
     @Test
     public void parseAppendixA_Double() {
-        System.out.println("[+] testing parsing of cbor double floating point precision number");
+        System.out.println("[+] cborparser: testing parsing of cbor double floating point precision number");
 
         try {
             CborParser dec = CBOR.parser();
@@ -237,7 +237,7 @@ public class CBORParserTest {
 
     @Test
     public void parseAppendixA_SimpleValues() {
-        System.out.println("[+] testing parsing of cbor simple value");
+        System.out.println("[+] cborparser: testing parsing of cbor simple value");
 
         try {
             CborParser dec = CBOR.parser();
@@ -276,7 +276,7 @@ public class CBORParserTest {
 
     @Test
     public void parseAppendixA_Byte_Text_Strings() {
-        System.out.println("[+] testing parsing of cbor definite byte string");
+        System.out.println("[+] cborparser: testing parsing of cbor definite byte string");
 
         try {
             CborParser dec = CBOR.parser();
@@ -327,7 +327,7 @@ public class CBORParserTest {
 
     @Test
     public void encodeAppendixA_Byte_Text_Strings_Indefinite() {
-        System.out.println("[+] testing parsing of cbor indefinite byte strings");
+        System.out.println("[+] cborparser: testing parsing of cbor indefinite byte strings");
 
         try {
             CborParser dec = CBOR.parser();
@@ -359,7 +359,7 @@ public class CBORParserTest {
 
     @Test
     public void parseAppendixA_Tags() {
-        System.out.println("[+] testing parsing of cbor tags");
+        System.out.println("[+] cborparser: testing parsing of cbor tags");
 
         try {
             CborParser dec = CBOR.parser();
@@ -451,7 +451,7 @@ public class CBORParserTest {
 
     @Test
     public void parseAppendixA_Array_And_Hashes_Definite() {
-        System.out.println("[+] testing parsing of cbor definite array and hashes");
+        System.out.println("[+] cborparser: testing parsing of cbor definite array and hashes");
 
         try {
             CborParser dec = CBOR.parser();
@@ -509,7 +509,7 @@ public class CBORParserTest {
 
     @Test
     public void parseAppendixA_GenericParsing() {
-        System.out.println("[+] testing parsing of cbor generic item");
+        System.out.println("[+] cborparser: testing parsing of cbor generic item");
 
         try {
             CborParser dec = CBOR.parser();
@@ -577,7 +577,7 @@ public class CBORParserTest {
 
     @Test
     public void encodeAppendixA_Array_And_Hashes_Indefinite() {
-        System.out.println("[+] testing parsing of cbor indefinite array and hashes");
+        System.out.println("[+] cborparser: testing parsing of cbor indefinite array and hashes");
 
         try {
             CborParser dec = CBOR.parser();
@@ -618,7 +618,7 @@ public class CBORParserTest {
 
     @Test
     public void parseAsyncBuffer() {
-        System.out.println("[+] testing parsing of async cbor stream with multiple read");
+        System.out.println("[+] cborparser: testing parsing of async cbor stream with multiple read");
 
         try {
             CborParser dec = CBOR.parser();
@@ -645,7 +645,7 @@ public class CBORParserTest {
 
     @Test
     public void parseCborDisjonction() {
-        System.out.println("[+] testing the cbor parser disjonction");
+        System.out.println("[+] cborparser: testing the cbor parser disjonction");
 
         try {
             CborParser dec = CBOR.parser();
@@ -791,7 +791,7 @@ public class CBORParserTest {
 
     @Test
     public void parseCborWithFilters() {
-        System.out.println("[+] testing the cbor parser filters (do_for_each)");
+        System.out.println("[+] cborparser: testing the cbor parser filters (do_for_each)");
 
         try {
             CborParser dec = CBOR.parser();
