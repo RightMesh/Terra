@@ -1,6 +1,7 @@
 package io.left.rightmesh.libdtn.core.routing;
 
 import io.left.rightmesh.libdtn.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.data.EID;
 
 import java.util.Set;
@@ -13,22 +14,13 @@ import java.util.Set;
 public class LocalEIDTable {
 
     // ---- SINGLETON ----
-    private static final Object lock = new Object();
-    private static LocalEIDTable instance;
-
-    private static LocalEIDTable getInstance() {
-        synchronized (lock) {
-            if (instance == null) {
-                instance = new LocalEIDTable();
-            }
-            return instance;
-        }
-    }
+    private static LocalEIDTable instance = new LocalEIDTable();
+    public static LocalEIDTable getInstance() {  return instance; }
 
     private EID localEID;
     private Set<EID> aliases;
 
-    LocalEIDTable() {
+    private LocalEIDTable() {
         DTNConfiguration.<EID>get(DTNConfiguration.Entry.LOCAL_EID)
                 .observe()
                 .subscribe(

@@ -1,6 +1,15 @@
 package io.left.rightmesh.libdtn.core;
 
+import io.left.rightmesh.libdtn.core.agents.STCPAgent;
+import io.left.rightmesh.libdtn.core.routing.LinkLocalRouting;
+import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
+import io.left.rightmesh.libdtn.core.routing.RegistrationTable;
+import io.left.rightmesh.libdtn.core.routing.SmartRouting;
+import io.left.rightmesh.libdtn.core.routing.StaticRouting;
 import io.left.rightmesh.libdtn.data.Bundle;
+import io.left.rightmesh.libdtn.network.cla.STCP;
+import io.left.rightmesh.libdtn.storage.SimpleStorage;
+import io.left.rightmesh.libdtn.storage.VolatileStorage;
 
 /**
  * DTNCore registers all the DTN Core Component and is the entry point for all Bundles.
@@ -97,25 +106,20 @@ import io.left.rightmesh.libdtn.data.Bundle;
  */
 public class DTNCore {
 
-    // singleton
-    private static DTNCore instance = null;
-    private static final Object lock = new Object();
-
-    /**
-     * Singleton pattern.
-     *
-     * @return DTNCore Singleton instance
-     */
-    public static DTNCore getInstance() {
-        synchronized (lock) {
-            if (instance == null) {
-                instance = new DTNCore();
-            }
-            return instance;
-        }
-    }
-
+    // ---- SINGLETON ----
+    private static DTNCore instance = new DTNCore();
+    public static DTNCore getInstance() {   return instance;   }
+    
     private DTNCore() {
+        // init all the components and load configuration
+        LocalEIDTable.getInstance();
+        VolatileStorage.getInstance();
+        SimpleStorage.getInstance();
+        LinkLocalRouting.getInstance();
+        StaticRouting.getInstance();
+        SmartRouting.getInstance();
+        RegistrationTable.getInstance();
+        STCPAgent.getInstance();
     }
 
     /**

@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libdtn.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.BundleID;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Parser;
@@ -28,29 +29,19 @@ import io.reactivex.schedulers.Schedulers;
 /**
  * @author Lucien Loiseau on 20/09/18.
  */
-public class SimpleStorage implements BundleStorage {
+public class SimpleStorage extends Component implements BundleStorage {
 
     public static final String BLOB_FOLDER = "/blob/";
     public static final String BUNDLE_FOLDER = "/bundle/";
 
-    private static final Object lock = new Object();
-    private static SimpleStorage instance = null;
-    private static boolean enabled = false;
-    public static SimpleStorage getInstance() {
-        synchronized (lock) {
-            if(instance == null) {
-                instance = new SimpleStorage();
-            }
-            return instance;
-        }
-    }
+    private static SimpleStorage instance = new SimpleStorage();
+    public static SimpleStorage getInstance() { return instance; }
 
-    LinkedList<String> storage_paths = new LinkedList<>();
-    HashMap<BundleID, String> index = new HashMap<>();
+    private LinkedList<String> storage_paths = new LinkedList<>();
+    private HashMap<BundleID, String> index = new HashMap<>();
 
     private SimpleStorage() {
-        DTNConfiguration.<Boolean>get(DTNConfiguration.Entry.ENABLE_SIMPLE_STORAGE).observe()
-                .subscribe(enabled -> this.enabled = enabled);
+        super(DTNConfiguration.Entry.COMPONENT_ENABLE_SIMPLE_STORAGE);
         DTNConfiguration.<Set<String>>get(DTNConfiguration.Entry.SIMPLE_STORAGE_PATH).observe()
                 .subscribe(
                     paths -> {
@@ -59,7 +50,17 @@ public class SimpleStorage implements BundleStorage {
                     }
                 );
     }
-    
+
+    @Override
+    protected void componentUp() {
+
+    }
+
+    @Override
+    protected void componentDown() {
+
+    }
+
     private void addPath(String path) {
         if (!storage_paths.contains(path)) {
             File f = new File(path);
@@ -103,7 +104,7 @@ public class SimpleStorage implements BundleStorage {
      * @throws StorageFullException if there isn't enough space in Volatile Memory
      */
     public static FileBLOB createBLOB(long expectedSize) throws StorageUnavailableException, StorageFullException {
-        if(!enabled) {
+        if(!getInstance().isEnabled()) {
             throw new StorageUnavailableException();
         }
 
@@ -145,7 +146,7 @@ public class SimpleStorage implements BundleStorage {
 
     @Override
     public Single<Integer> count() {
-        if(!enabled) {
+        if(!isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
@@ -154,7 +155,7 @@ public class SimpleStorage implements BundleStorage {
 
     @Override
     public Completable store(Bundle bundle) {
-        if(!enabled) {
+        if(!isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
@@ -219,7 +220,7 @@ public class SimpleStorage implements BundleStorage {
 
     @Override
     public Single<Boolean> contains(BundleID id) {
-        if(!enabled) {
+        if(!isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
@@ -228,7 +229,7 @@ public class SimpleStorage implements BundleStorage {
 
     @Override
     public Single<Bundle> get(BundleID id) {
-        if(!enabled) {
+        if(!isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
@@ -266,7 +267,7 @@ public class SimpleStorage implements BundleStorage {
 
     @Override
     public Completable remove(BundleID id) {
-        if(!enabled) {
+        if(!isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
@@ -289,7 +290,7 @@ public class SimpleStorage implements BundleStorage {
 
     @Override
     public Completable clear() {
-        if(!enabled) {
+        if(!isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 

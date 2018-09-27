@@ -1,6 +1,7 @@
 package io.left.rightmesh.libdtn.storage;
 
 import io.left.rightmesh.libdtn.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.BundleID;
 import io.reactivex.Completable;
@@ -16,33 +17,32 @@ import java.util.Map;
 
 import org.apache.commons.lang3.tuple.MutablePair;
 
+import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_VOLATILE_STORAGE;
+
 /**
  * VolatileStorage holds all the Bundle in memory.
  *
  * @author Lucien Loiseau on 26/07/18.
  */
-public class VolatileStorage implements BundleStorage {
+public class VolatileStorage extends Component implements BundleStorage {
 
     //todo makes it configurable
     private static final int VOLATILE_BLOB_STORAGE_MAX_CAPACITY = 10000000; // 10M
     private static int CurrentBLOBMemoryUsage = 0;
 
-    private static final Object lock = new Object();
-    private static VolatileStorage instance = null;
-    private static boolean enabled = false;
-
-    public static VolatileStorage getInstance() {
-        synchronized (lock) {
-            if(instance == null) {
-                instance = new VolatileStorage();
-            }
-            return instance;
-        }
-    }
+    private static VolatileStorage instance = new VolatileStorage();
+    public static VolatileStorage getInstance() { return instance; }
 
     private VolatileStorage() {
-        DTNConfiguration.<Boolean>get(DTNConfiguration.Entry.ENABLE_VOLATILE_STORAGE).observe()
-                .subscribe(enabled -> VolatileStorage.enabled = enabled);
+        super(COMPONENT_ENABLE_VOLATILE_STORAGE);
+    }
+
+    @Override
+    protected void componentUp() {
+    }
+
+    @Override
+    protected void componentDown() {
     }
 
     /**
@@ -53,7 +53,7 @@ public class VolatileStorage implements BundleStorage {
      * @throws StorageFullException if there isn't enough space in Volatile Memory
      */
     public static VolatileBLOB createBLOB(int expectedSize) throws StorageFullException, StorageUnavailableException {
-        if(!enabled) {
+        if(!getInstance().isEnabled()) {
             throw new StorageUnavailableException();
         }
 
@@ -221,7 +221,7 @@ public class VolatileStorage implements BundleStorage {
 
     @Override
     public Completable clear() {
-        if(!enabled) {
+        if(!isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
@@ -233,7 +233,7 @@ public class VolatileStorage implements BundleStorage {
 
     @Override
     public Single<Integer> count() {
-        if(!enabled) {
+        if(!isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
@@ -244,7 +244,7 @@ public class VolatileStorage implements BundleStorage {
 
     @Override
     public Completable store(Bundle bundle) {
-        if(!enabled) {
+        if(!isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
@@ -263,7 +263,7 @@ public class VolatileStorage implements BundleStorage {
 
     @Override
     public Single<Boolean> contains(BundleID id) {
-        if(!enabled) {
+        if(!isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
@@ -273,7 +273,7 @@ public class VolatileStorage implements BundleStorage {
 
     @Override
     public Single<Bundle> get(BundleID id) {
-        if(!enabled) {
+        if(!isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
@@ -292,7 +292,7 @@ public class VolatileStorage implements BundleStorage {
 
     @Override
     public Completable remove(BundleID id) {
-        if(!enabled) {
+        if(!isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
