@@ -96,7 +96,7 @@ public class Dictionary {
         add(bundle.custodian);
 
         // we add all the EIDs present in block headers if any
-        for (Block block : bundle.getBlocks()) {
+        for (CanonicalBlock block : bundle.getBlocks()) {
             for (EID eid : block.eids) {
                 add(eid);
             }

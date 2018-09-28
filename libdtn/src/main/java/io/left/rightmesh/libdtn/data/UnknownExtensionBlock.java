@@ -5,7 +5,7 @@ import io.left.rightmesh.libdtn.core.processor.ProcessorNotFoundException;
 import io.left.rightmesh.libdtn.storage.BLOB;
 
 /**
- * UnknownExtensionBlock is used to create a generic Extension Block in case when a block type is
+ * UnknownExtensionBlock is used to create a generic Extension CanonicalBlock in case when a block type is
  * unknown.
  *
  * @author Lucien Loiseau on 20/07/18.

@@ -4,7 +4,7 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 
 import io.left.rightmesh.libdtn.data.AgeBlock;
-import io.left.rightmesh.libdtn.data.Block;
+import io.left.rightmesh.libdtn.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.data.BlockBLOB;
 import io.left.rightmesh.libdtn.data.BlockHeader;
 import io.left.rightmesh.libdtn.data.Bundle;
@@ -17,18 +17,17 @@ import io.reactivex.Flowable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Set;
 
 /**
  * This class serialize a Bundle to an Observable following the RFC5050 frame format.
  * See {@see RxParser} for the deserialization process.
  *
  * <pre>
- *  Primary Bundle Block
+ *  Primary Bundle CanonicalBlock
  *  +----------------+----------------+----------------+----------------+
  *  |    Version     |                  Proc. BundleFlags (*)           |
  *  +----------------+----------------+----------------+----------------+
- *  |                          Block length (*)                         |
+ *  |                          CanonicalBlock length (*)                         |
  *  +----------------+----------------+---------------------------------+
  *  |   Destination scheme offset (*) |     Destination SSP offset (*)  |
  *  +----------------+----------------+----------------+----------------+
@@ -54,25 +53,25 @@ import java.util.Set;
  *  +----------------+----------------+---------------------------------+
  *
  *
- *  Bundle Payload Block
+ *  Bundle Payload CanonicalBlock
  *  +----------------+----------------+----------------+----------------+
- *  |  Block type    | Proc. Flags (*)|        Block length(*)          |
+ *  |  CanonicalBlock type    | Proc. Flags (*)|        CanonicalBlock length(*)          |
  *  +----------------+----------------+----------------+----------------+
  *  /                     Bundle Payload (variable)                     /
  *  +-------------------------------------------------------------------+
  *
- * Generic Block Layout without EID Reference List
+ * Generic CanonicalBlock Layout without EID Reference List
  *  +-----------+-----------+-----------+-----------+
- *  |Block type | Block processing ctrl flags (SDNV)|
+ *  |CanonicalBlock type | CanonicalBlock processing ctrl flags (SDNV)|
  *  +-----------+-----------+-----------+-----------+
- *  |            Block length  (SDNV)               |
+ *  |            CanonicalBlock length  (SDNV)               |
  *  +-----------+-----------+-----------+-----------+
- *  /          Block body data (variable)           /
+ *  /          CanonicalBlock body data (variable)           /
  *  +-----------+-----------+-----------+-----------+
  *
- * Generic Block Layout Showing Two EID References
+ * Generic CanonicalBlock Layout Showing Two EID References
  *  +-----------+-----------+-----------+-----------+
- *  |Block Type | Block processing ctrl flags (SDNV)|
+ *  |CanonicalBlock Type | CanonicalBlock processing ctrl flags (SDNV)|
  *  +-----------+-----------+-----------+-----------+
  *  |        EID Reference Count  (SDNV)            |
  *  +-----------+-----------+-----------+-----------+
@@ -80,9 +79,9 @@ import java.util.Set;
  *  +-----------+-----------+-----------+-----------+
  *  |  Ref_scheme_2 (SDNV)  |    Ref_ssp_2 (SDNV)   |
  *   +-----------+-----------+-----------+-----------+
- *  |            Block length  (SDNV)               |
+ *  |            CanonicalBlock length  (SDNV)               |
  *  +-----------+-----------+-----------+-----------+
- *  /          Block body data (variable)           /
+ *  /          CanonicalBlock body data (variable)           /
  *  +-----------+-----------+-----------+-----------+
  *  </pre>
  *
@@ -118,7 +117,7 @@ public class BundleV6Serializer {
     public Flowable<ByteBuffer> serialize(Bundle bundle) {
         rebuildDictionary(bundle);
         Flowable<ByteBuffer> ret = serialize((PrimaryBlock) bundle);
-        for (Block block : bundle.getBlocks()) {
+        for (CanonicalBlock block : bundle.getBlocks()) {
             ret = ret.concatWith(serialize(block));
         }
         return ret;
@@ -175,7 +174,7 @@ public class BundleV6Serializer {
     }
 
     /**
-     * Serialize a {@see Block} into the output stream.
+     * Serialize a {@see CanonicalBlock} into the output stream.
      *
      * @param block to serialize
      * @return Flowable

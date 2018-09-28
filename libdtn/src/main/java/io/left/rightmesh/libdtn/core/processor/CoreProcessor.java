@@ -2,7 +2,7 @@ package io.left.rightmesh.libdtn.core.processor;
 
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
-import io.left.rightmesh.libdtn.data.Block;
+import io.left.rightmesh.libdtn.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.data.BlockHeader;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.PrimaryBlock;
@@ -64,12 +64,12 @@ public class CoreProcessor {
     }
 
     /**
-     * Deserializer MUST call this method to ensure validity of the received Block.
+     * Deserializer MUST call this method to ensure validity of the received CanonicalBlock.
      *
      * @param block to test validity
      * @throws RejectedException if the bundle is to be rejected
      */
-    public static void onDeserialized(Block block) throws RejectedException {
+    public static void onDeserialized(CanonicalBlock block) throws RejectedException {
         try {
             block.onBlockDataDeserialized();
         } catch (ProcessorNotFoundException pne) {
@@ -91,7 +91,7 @@ public class CoreProcessor {
     public static void onBundleProcessing(Bundle bundle) throws RejectedException {
         boolean reprocess = false;
         while (reprocess) {
-            for (Block block : bundle.getBlocks()) {
+            for (CanonicalBlock block : bundle.getBlocks()) {
                 try {
                     reprocess |= block.onBundleProcessing(bundle);
                 } catch (ProcessorNotFoundException pe) {
@@ -122,7 +122,7 @@ public class CoreProcessor {
     public static void onPrepareForTransmission(Bundle bundle) throws RejectedException {
         boolean reprocess = false;
         while (reprocess) {
-            for (Block block : bundle.getBlocks()) {
+            for (CanonicalBlock block : bundle.getBlocks()) {
                 try {
                     reprocess |= block.onPrepareForTransmission(bundle);
                 } catch (ProcessorNotFoundException pe) {
@@ -143,7 +143,7 @@ public class CoreProcessor {
     public static void onPutOnStorage(Bundle bundle) throws RejectedException {
         boolean reprocess = false;
         while (reprocess) {
-            for (Block block : bundle.getBlocks()) {
+            for (CanonicalBlock block : bundle.getBlocks()) {
                 try {
                     reprocess |= block.onPrepareForTransmission(bundle);
                 } catch (ProcessorNotFoundException pe) {
@@ -164,7 +164,7 @@ public class CoreProcessor {
     public static void onPullFromStorage(Bundle bundle) throws RejectedException {
         boolean reprocess = false;
         while (reprocess) {
-            for (Block block : bundle.getBlocks()) {
+            for (CanonicalBlock block : bundle.getBlocks()) {
                 try {
                     reprocess |= block.onPrepareForTransmission(bundle);
                 } catch (ProcessorNotFoundException pe) {

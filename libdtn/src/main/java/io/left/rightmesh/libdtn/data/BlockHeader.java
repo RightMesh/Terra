@@ -5,11 +5,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Generic block header object. It is the super class of {@see Block}.
+ * Generic block header object. It is the super class of {@see CanonicalBlock}.
  *
  * @author Lucien Loiseau on 20/07/18.
  */
-public class BlockHeader {
+public class BlockHeader extends Block {
 
     public enum BlockV6Flags {
         REPLICATE_IN_EVERY_FRAGMENT,
@@ -28,7 +28,7 @@ public class BlockHeader {
     }
 
     public enum BlockV7Flags {
-        /* Block Processing Control Flags
+        /* CanonicalBlock Processing Control Flags
              . Bit 0 (the high-order bit, 0x80): reserved.
              . Bit 1 (0x40): reserved.
              . Bit 2 (0x20): reserved.

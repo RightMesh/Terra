@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
-import io.left.rightmesh.libdtn.data.Block;
+import io.left.rightmesh.libdtn.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Serializer;
@@ -98,7 +98,7 @@ public class RxTCPSerializedBundleTest {
         assertEquals(true, bundle != null);
         String[] payload = {null};
         if (bundle != null) {
-            for(Block block : bundle.getBlocks()) {
+            for(CanonicalBlock block : bundle.getBlocks()) {
                 assertEquals(true, block.crc_ok);
             }
 

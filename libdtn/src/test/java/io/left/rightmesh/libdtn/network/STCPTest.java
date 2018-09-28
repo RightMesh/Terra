@@ -1,12 +1,11 @@
 package io.left.rightmesh.libdtn.network;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import io.left.rightmesh.libdtn.data.Block;
+import io.left.rightmesh.libdtn.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Test;
 import io.left.rightmesh.libdtn.network.cla.STCP;
@@ -146,7 +145,7 @@ public class STCPTest {
         assertEquals(true, bundle != null);
         String[] payload = {null};
         if (bundle != null) {
-            for (Block block : bundle.getBlocks()) {
+            for (CanonicalBlock block : bundle.getBlocks()) {
                 assertEquals(true, block.crc_ok);
             }
 

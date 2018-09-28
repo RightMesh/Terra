@@ -9,7 +9,7 @@ package io.left.rightmesh.libdtn.data;
  *
  * @author Lucien Loiseau on 20/07/18.
  */
-public class PrimaryBlock {
+public class PrimaryBlock extends Block {
 
     public enum Priority {
         BULK,

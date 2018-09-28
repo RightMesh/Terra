@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libdtn.data.AgeBlock;
-import io.left.rightmesh.libdtn.data.Block;
+import io.left.rightmesh.libdtn.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.data.BlockBLOB;
 import io.left.rightmesh.libdtn.data.BlockHeader;
 import io.left.rightmesh.libdtn.data.BlockIntegrityBlock;
@@ -38,7 +38,7 @@ public class BundleV7Serializer {
                 .cbor_start_indefinite_array()
                 .merge(encode((PrimaryBlock) bundle));
 
-        for (Block block : bundle.getBlocks()) {
+        for (CanonicalBlock block : bundle.getBlocks()) {
             enc.merge(encode(block));
         }
 
@@ -73,7 +73,7 @@ public class BundleV7Serializer {
         return enc.merge(encodeCRC(enc.observe(1000), block.crcType));
     }
 
-    private static CborEncoder encode(Block block) {
+    private static CborEncoder encode(CanonicalBlock block) {
 
         CborEncoder enc = encode((BlockHeader) block);
 

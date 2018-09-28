@@ -6,7 +6,7 @@ import io.left.rightmesh.libdtn.storage.BLOB;
 import io.left.rightmesh.libdtn.storage.ByteBufferBLOB;
 
 /**
- * PayloadBlock is a Block that holds the payload of the Bundle.
+ * PayloadBlock is a CanonicalBlock that holds the payload of the Bundle.
  * It inherits the class {@see BlockBLOB}.
  *
  * @author Lucien Loiseau on 20/07/18.

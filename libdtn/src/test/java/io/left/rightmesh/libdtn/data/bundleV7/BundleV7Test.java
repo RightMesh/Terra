@@ -10,7 +10,7 @@ import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.data.AgeBlock;
-import io.left.rightmesh.libdtn.data.Block;
+import io.left.rightmesh.libdtn.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.data.BlockHeader;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.BundleID;
@@ -81,10 +81,10 @@ public class BundleV7Test {
         Bundle bundle = testBundle0();
         bundle.crcType = PrimaryBlock.CRCFieldType.CRC_32;
 
-        Block age = new AgeBlock();
-        Block scope = new ScopeControlHopLimitBlock();
-        Block payload = new PayloadBlock(testPayload);
-        Block previous = new PreviousNodeBlock();
+        CanonicalBlock age = new AgeBlock();
+        CanonicalBlock scope = new ScopeControlHopLimitBlock();
+        CanonicalBlock payload = new PayloadBlock(testPayload);
+        CanonicalBlock previous = new PreviousNodeBlock();
 
         age.crcType = BlockHeader.CRCFieldType.CRC_16;
         scope.crcType = BlockHeader.CRCFieldType.CRC_16;
@@ -146,7 +146,7 @@ public class BundleV7Test {
         assertEquals(true, bundle != null);
         String[] payload = {null};
         if (bundle != null) {
-            for(Block block : bundle.getBlocks()) {
+            for(CanonicalBlock block : bundle.getBlocks()) {
                 assertEquals(true, block.crc_ok);
             }
 

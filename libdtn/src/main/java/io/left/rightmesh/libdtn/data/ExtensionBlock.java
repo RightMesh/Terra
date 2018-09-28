@@ -1,11 +1,11 @@
 package io.left.rightmesh.libdtn.data;
 
 /**
- * an ExtensionBlock is a Block that is not a PayloadBlock.
+ * an ExtensionBlock is a CanonicalBlock that is not a PayloadBlock.
  *
  * @author Lucien Loiseau on 05/09/18.
  */
-public abstract class ExtensionBlock extends Block {
+public abstract class ExtensionBlock extends CanonicalBlock {
 
     /**
      * Constructor: creates an empty ExtensionBlock.

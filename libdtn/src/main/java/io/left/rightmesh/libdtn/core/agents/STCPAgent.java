@@ -14,7 +14,6 @@ public class STCPAgent extends Component {
 
     // ---- SINGLETON ----
     private static STCPAgent instance = new STCPAgent();
-
     public static STCPAgent getInstance() {
         return instance;
     }

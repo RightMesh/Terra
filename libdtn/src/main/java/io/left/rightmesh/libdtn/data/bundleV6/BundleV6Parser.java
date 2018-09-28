@@ -3,7 +3,7 @@ package io.left.rightmesh.libdtn.data.bundleV6;
 import io.left.rightmesh.libdtn.core.processor.CoreProcessor;
 import io.left.rightmesh.libdtn.core.processor.RejectedException;
 import io.left.rightmesh.libdtn.data.AgeBlock;
-import io.left.rightmesh.libdtn.data.Block;
+import io.left.rightmesh.libdtn.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.data.BlockBLOB;
 import io.left.rightmesh.libdtn.data.BlockHeader;
 import io.left.rightmesh.libdtn.data.Bundle;
@@ -51,7 +51,7 @@ public class BundleV6Parser extends ParserEmitter<Bundle> {
     private long custodianSsp;
     private int dictLength;
     private Dictionary dict = null;
-    private Block block = null;
+    private CanonicalBlock block = null;
     private long eidCount;
     private long blockRefScheme;
     private long blockDataSize;
@@ -320,7 +320,7 @@ public class BundleV6Parser extends ParserEmitter<Bundle> {
     private ParserState block_type = new ParserState() {
         @Override
         public ParserState onNext(ByteBuffer next) throws RxParserException {
-            block = Block.create(next.get());
+            block = CanonicalBlock.create(next.get());
             Log.d("BundleV6Parser", "block_type=" + block.type);
             return block_proc_flags;
         }

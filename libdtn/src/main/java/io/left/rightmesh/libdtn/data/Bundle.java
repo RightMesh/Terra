@@ -18,17 +18,27 @@ import java.util.Map;
  */
 public class Bundle extends PrimaryBlock {
 
-    public LinkedList<Block> blocks = new LinkedList<>();
+    public enum RetentionContraint {
+        DISPATCH_PENDING("dispatch_pending"),
+        FORWARD_PENDING("forward_pending");
 
-    // for processing the bundle
-    public  Map<String, Object> attachement;
+        String value;
+        RetentionContraint(String v) {
+            this.value = v;
+        }
+        public String value() {
+            return this.value;
+        }
+    }
+
+    public LinkedList<CanonicalBlock> blocks = new LinkedList<>();
     private int block_number = 1;
 
     /**
      * Default Constructor.
      */
     public Bundle() {
-        attachement = new HashMap<>();
+        super();
     }
 
     /**
@@ -41,39 +51,47 @@ public class Bundle extends PrimaryBlock {
     }
 
     /**
-     * return the list of {@see Block} that are encapsulated in this current Bundle.
+     * return the list of {@see CanonicalBlock} that are encapsulated in this current Bundle.
      *
      * @return list of blocks
      */
-    public LinkedList<Block> getBlocks() {
+    public LinkedList<CanonicalBlock> getBlocks() {
         return blocks;
     }
 
     /**
-     * adds a {@see Block} to the current Bundle.
+     * adds a {@see CanonicalBlock} to the current Bundle.
      *
      * @param block to be added
      */
-    public void addBlock(Block block) {
+    public void addBlock(CanonicalBlock block) {
+        // v6
         if (blocks.size() > 0) {
             blocks.getLast().setV6Flag(BlockHeader.BlockV6Flags.LAST_BLOCK, false);
         }
+
+        // v7
         if(block.type == PayloadBlock.type) {
             block.number = 0;
         } else {
             block.number = block_number++;
         }
+
         blocks.add(block);
+
+        // v6
         block.setV6Flag(BlockHeader.BlockV6Flags.LAST_BLOCK, true);
     }
 
     /**
-     * delete a {@see Block} to the current Bundle.
+     * delete a {@see CanonicalBlock} to the current Bundle.
      *
      * @param block to be deleted
      */
-    public void delBlock(Block block) {
+    public void delBlock(CanonicalBlock block) {
         blocks.remove(block);
+
+        // v6
         if (block.getV6Flag(BlockHeader.BlockV6Flags.LAST_BLOCK) && (blocks.size() > 0)) {
             blocks.getLast().setV6Flag(BlockHeader.BlockV6Flags.LAST_BLOCK, true);
         }
@@ -86,59 +104,10 @@ public class Bundle extends PrimaryBlock {
      * @return PayloadBlock
      */
     public PayloadBlock getPayloadBlock() {
-        for (Block block : blocks) {
+        for (CanonicalBlock block : blocks) {
             if (block.type == PayloadBlock.type) {
                 return (PayloadBlock) block;
             }
-        }
-        return null;
-    }
-
-    /**
-     * Add a TAG on this Bundle. It is useful for Bundle processing.
-     *
-     * @param tag to add to this bundle
-     * @return true if the tag was added, false if the bundle was already tagged with this tag.
-     */
-    public boolean mark(String tag) {
-        return attach(tag, null);
-    }
-
-    /**
-     * Check wether this bundle is tagged.
-     *
-     * @param tag to asses
-     * @return true if the bundle is tagged with this tag, false otherwise.
-     */
-    public boolean isMarked(String tag) {
-        return attachement.containsKey(tag);
-    }
-
-    /**
-     * attach an object to this bundle. It is useful for Bundle processing.
-     *
-     * @param key for this attachement
-     * @param o   the attached object
-     * @return false if there was already an object attached under this key, true otherwise.
-     */
-    public boolean attach(String key, Object o) {
-        if (attachement.containsKey(key)) {
-            return false;
-        }
-        attachement.put(key, o);
-        return true;
-    }
-
-    /**
-     * get the attachement under this key.
-     *
-     * @param key for this attachement
-     * @param <T> type of the attachement
-     * @return the attached object under this key
-     */
-    public <T> T getAttachement(String key) {
-        if (attachement.containsKey(key)) {
-            return (T) attachement.get(key);
         }
         return null;
     }

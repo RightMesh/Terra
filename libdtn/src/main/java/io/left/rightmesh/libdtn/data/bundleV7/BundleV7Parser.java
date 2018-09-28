@@ -7,7 +7,7 @@ import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.data.AgeBlock;
-import io.left.rightmesh.libdtn.data.Block;
+import io.left.rightmesh.libdtn.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.data.BlockBLOB;
 import io.left.rightmesh.libdtn.data.BlockHeader;
 import io.left.rightmesh.libdtn.data.BlockIntegrityBlock;
@@ -26,7 +26,6 @@ import io.left.rightmesh.libdtn.storage.BLOB;
 import io.left.rightmesh.libdtn.storage.BundleStorage;
 import io.left.rightmesh.libdtn.storage.NullBLOB;
 import io.left.rightmesh.libdtn.storage.WritableBLOB;
-import io.reactivex.Observer;
 
 /**
  * @author Lucien Loiseau on 10/09/18.
@@ -91,12 +90,12 @@ public class BundleV7Parser  {
                             case 1:
                                 b.crcType = PrimaryBlock.CRCFieldType.CRC_16;
                                 p.undo_for_each_now("crc-32");
-                                crc = crc16Parser;
+                                close_crc = crc16Parser;
                                 break;
                             case 2:
                                 b.crcType = PrimaryBlock.CRCFieldType.CRC_32;
                                 p.undo_for_each_now("crc-16");
-                                crc = crc32Parser;
+                                close_crc = crc32Parser;
                                 break;
                             default:
                                 throw new RxParserException("wrong CRC type");
@@ -112,14 +111,14 @@ public class BundleV7Parser  {
                         b.bid = new BundleID(b.source, b.creationTimestamp, b.sequenceNumber);
                     })
                     .cbor_parse_int((__, ___, i) -> b.lifetime = i)
-                    .do_here(p -> p.insert_now(crc)) // validate crc
+                    .do_here(p -> p.insert_now(close_crc)) // validate close_crc
                     .do_here(__ -> b.crc_ok = this.crc_ok); // mark the block
         }
     }
 
     static class CanonicalBlockItem extends BlockWithCRC {
 
-        Block block;
+        CanonicalBlock block;
 
         CborParser payload;
 
@@ -185,19 +184,19 @@ public class BundleV7Parser  {
                             case 1:
                                 block.crcType = BlockHeader.CRCFieldType.CRC_16;
                                 p.undo_for_each_now("crc-32"); // deactivate CRC32 feeding
-                                crc = crc16Parser;
+                                close_crc = crc16Parser;
                                 break;
                             case 2:
                                 block.crcType = BlockHeader.CRCFieldType.CRC_32;
                                 p.undo_for_each_now("crc-16"); // deactivate CRC16 feeding
-                                crc = crc32Parser;
+                                close_crc = crc32Parser;
                                 break;
                             default:
                                 throw new RxParserException("wrong CRC type");
                         }
                     })
                     .do_here(p -> p.insert_now(payload))
-                    .do_here(p -> p.insert_now(crc))  // validate crc
+                    .do_here(p -> p.insert_now(close_crc))  // validate close_crc
                     .do_here(__ -> block.crc_ok = this.crc_ok); // mark the block
         }
 
@@ -257,7 +256,7 @@ public class BundleV7Parser  {
 
     abstract static class BlockWithCRC implements CborParser.ParseableItem {
 
-        CborParser crc = CBOR.parser();
+        CborParser close_crc = CBOR.parser();
 
         CRC crc16;
         CRC crc32;

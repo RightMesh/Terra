@@ -1,90 +1,67 @@
 package io.left.rightmesh.libdtn.data;
 
-import io.left.rightmesh.libdtn.core.processor.ProcessingException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Abstract generic Block object.
- *
- * @author Lucien Loiseau on 20/07/18.
+ * @author Lucien Loiseau on 28/09/18.
  */
-public abstract class Block extends BlockHeader {
+public class Block {
 
-    protected Block(int type) {
-        super(type);
+    // processing 
+    public Map<String, Object> attachement;
+
+    Block() {
+        attachement = new HashMap<>();
     }
 
     /**
-     * Block Factory.
+     * Add a TAG on this Bundle. It is useful for Bundle processing.
      *
-     * @param type of the block to create
-     * @return an instance of a block for the given type
+     * @param tag to add to this bundle
+     * @return true if the tag was added, false if the bundle was already tagged with this tag.
      */
-    public static Block create(int type) {
-        switch (type) {
-            case PayloadBlock.type:
-                return new PayloadBlock();
-            case AgeBlock.type:
-                return new AgeBlock();
-            case ScopeControlHopLimitBlock.type:
-                return new ScopeControlHopLimitBlock();
-            default:
-                return new UnknownExtensionBlock(type);
+    public boolean mark(String tag) {
+        return attach(tag, null);
+    }
+
+    /**
+     * Check wether this bundle is tagged.
+     *
+     * @param tag to asses
+     * @return true if the bundle is tagged with this tag, false otherwise.
+     */
+    public boolean isMarked(String tag) {
+        return attachement.containsKey(tag);
+    }
+
+    /**
+     * attach an object to this bundle. It is useful for Bundle processing.
+     *
+     * @param key for this attachement
+     * @param o   the attached object
+     * @return false if there was already an object attached under this key, true otherwise.
+     */
+    public boolean attach(String key, Object o) {
+        if (attachement.containsKey(key)) {
+            return false;
         }
+        attachement.put(key, o);
+        return true;
     }
 
     /**
-     * This is called during deserialization.
+     * get the attachement under this key.
      *
-     * @throws ProcessingException if there is any issue during processing
+     * @param key for this attachement
+     * @param <T> type of the attachement
+     * @return the attached object under this key
      */
-    public void onBlockDataDeserialized() throws ProcessingException {
+    public <T> T getAttachement(String key) {
+        if (attachement.containsKey(key)) {
+            return (T) attachement.get(key);
+        }
+        return null;
     }
 
-    /**
-     * This is called when the bundle carrying this block has reached the processing phase.
-     * If it returns true, the whole bundle will be reprocess again.
-     *
-     * @param bundle being processed
-     * @return true if the bundle needs another processing pass, false otherwise
-     * @throws ProcessingException if there is any issue during processing
-     */
-    public boolean onBundleProcessing(Bundle bundle) throws ProcessingException {
-        return false;
-    }
-
-    /**
-     * This is called just before being parked into cold storage.
-     * If it returns true, the whole bundle will be reprocess again.
-     *
-     * @param bundle being processed
-     * @return true if the bundle needs another processing pass, false otherwise
-     * @throws ProcessingException if there is any issue during processing
-     */
-    public boolean onPutOnStorage(Bundle bundle) throws ProcessingException {
-        return false;
-    }
-
-    /**
-     * This is called when the bundle was pulled from storage.
-     * If it returns true, the whole bundle will be reprocess again.
-     *
-     * @param bundle being processed
-     * @return true if the bundle needs another processing pass, false otherwise
-     * @throws ProcessingException if there is any issue during processing
-     */
-    public boolean onPullFromStorage(Bundle bundle) throws ProcessingException {
-        return false;
-    }
-
-    /**
-     * This is called just before being queued for transmission
-     * If it returns true, the whole bundle will be reprocess again.
-     *
-     * @param bundle being processed
-     * @return true if the bundle needs another processing pass, false otherwise
-     * @throws ProcessingException if there is any issue during processings
-     */
-    public boolean onPrepareForTransmission(Bundle bundle) throws ProcessingException {
-        return false;
-    }
 }

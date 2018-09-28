@@ -4,11 +4,11 @@ import io.left.rightmesh.libdtn.storage.BLOB;
 import io.left.rightmesh.libdtn.storage.NullBLOB;
 
 /**
- * A BlockBLOB is a generic Block with a BLOB object as payload.
+ * A BlockBLOB is a generic CanonicalBlock with a BLOB object as payload.
  *
  * @author Lucien Loiseau on 03/09/18.
  */
-public abstract class BlockBLOB extends Block {
+public abstract class BlockBLOB extends CanonicalBlock {
 
     public BLOB data;
 
