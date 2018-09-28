@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.network.cla;
+package io.left.rightmesh.libdtn.network.clprotocols;
 
 import io.left.rightmesh.libdtn.bus.RxBus;
 import io.left.rightmesh.libdtn.data.bundleV6.BundleV6Parser;
@@ -93,7 +93,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *
  * @author Lucien Loiseau on 17/08/18.
  */
-public class TCPCLv3 implements ConvergenceLayer {
+public class TCPCLv3 {
 
     private static final String TAG = "tcpclv3";
 
@@ -113,11 +113,6 @@ public class TCPCLv3 implements ConvergenceLayer {
     private RxTCP.Server serverRFC7242;
 
     private TCPCLv3() {
-    }
-
-    @Override
-    public Observable<DTNChannel> start() {
-        return listen(IANA_TCPCL_PORT);
     }
 
     /**
@@ -147,7 +142,6 @@ public class TCPCLv3 implements ConvergenceLayer {
     }
 
 
-    @Override
     public void stop() {
         serverRFC7242.stop();
     }
@@ -226,7 +220,7 @@ public class TCPCLv3 implements ConvergenceLayer {
 
             EID channelEID;
             try {
-                channelEID = EID.create("cla:tcpclv3:tcp//" + remoteAddress + ":" + remotePort);
+                channelEID = EID.create("clprotocols:tcpclv3:tcp//" + remoteAddress + ":" + remotePort);
             } catch (EID.EIDFormatException efe) {
                 channelEID = EID.generate();
             }
@@ -264,7 +258,7 @@ public class TCPCLv3 implements ConvergenceLayer {
                                     }), BundleV6Parser::new)
                             .subscribe(
                                     b -> {
-                                        if (!b.isMarked("rejected")) {
+                                        if (!b.isTagged("rejected")) {
                                             observer.onNext(b);
                                         } else {
                                             if (session_flag.bundle_refusal_support) {

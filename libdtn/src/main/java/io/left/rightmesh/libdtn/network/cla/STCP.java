@@ -1,8 +1,6 @@
-package io.left.rightmesh.libdtn.network.cla;
+package io.left.rightmesh.libdtn.network.clprotocols;
 
 import java.nio.ByteBuffer;
-import java.util.Formatter;
-import java.util.Queue;
 
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
@@ -10,8 +8,6 @@ import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.EID;
-import io.left.rightmesh.libdtn.data.bundleV6.BundleV6Serializer;
-import io.left.rightmesh.libdtn.data.bundleV6.SDNV;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Serializer;
 import io.left.rightmesh.libdtn.network.DTNChannel;
@@ -43,7 +39,7 @@ import io.reactivex.subscribers.DisposableSubscriber;
  *
  * @author Lucien Loiseau on 17/08/18.
  */
-public class STCP implements ConvergenceLayer {
+public class STCP {
 
     private static final String TAG = "stcp";
 
@@ -66,13 +62,6 @@ public class STCP implements ConvergenceLayer {
     public STCP() {
     }
 
-    @Override
-    public Observable<DTNChannel> start() {
-        return listen(IANA_STCP_PORT_TO_DEFINE);
-    }
-
-
-    @Override
     public void stop() {
         if (serverDraftSTCP != null) {
             serverDraftSTCP.stop();
@@ -125,7 +114,7 @@ public class STCP implements ConvergenceLayer {
             int remotePort = c.channel.socket().getPort();
 
             try {
-                channelEID = EID.create("cla:stcp:tcp//" + remoteAddress + ":" + remotePort);
+                channelEID = EID.create("clprotocols:stcp:tcp//" + remoteAddress + ":" + remotePort);
             } catch (EID.EIDFormatException efe) {
                 channelEID = EID.generate();
             }

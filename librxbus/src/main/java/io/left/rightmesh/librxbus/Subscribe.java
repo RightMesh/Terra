@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.bus;
+package io.left.rightmesh.librxbus;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

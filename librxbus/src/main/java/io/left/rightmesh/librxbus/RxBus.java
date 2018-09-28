@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.bus;
+package io.left.rightmesh.librxbus;
 
 import io.reactivex.Observable;
 import io.reactivex.Scheduler;
@@ -16,6 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 
 /**
  * The RxBus is a simple event bus built over RxJava.
@@ -196,3 +197,4 @@ public class RxBus {
 
 
 }
+
