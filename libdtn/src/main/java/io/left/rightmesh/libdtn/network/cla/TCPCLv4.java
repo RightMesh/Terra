@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.network.clprotocols;
+package io.left.rightmesh.libdtn.network.cla;
 
 /**
  * @author Lucien Loiseau on 08/09/18.

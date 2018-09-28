@@ -5,6 +5,7 @@ import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
 import io.left.rightmesh.libdtn.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.data.BlockHeader;
 import io.left.rightmesh.libdtn.data.Bundle;
+import io.left.rightmesh.libdtn.data.EID;
 import io.left.rightmesh.libdtn.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.utils.ClockUtil;
 
@@ -13,27 +14,14 @@ import static io.left.rightmesh.libdtn.data.BlockHeader.BlockV7Flags.DISCARD_IF_
 import static io.left.rightmesh.libdtn.data.BlockHeader.BlockV7Flags.TRANSMIT_STATUSREPORT_IF_NOT_PROCESSED;
 
 /**
- * CoreProcessor processes a Bundle during the different step of its lifetime.
+ * EarlyValidator processes a Bundle during the different step of its lifetime.
  *
  * @author Lucien Loiseau on 05/09/18.
  */
-public class CoreProcessor {
+public class EarlyValidator {
 
     /**
-     * Deserializer MUST call this method to ensure validity of the received Bundle
-     *
-     * @param bundle to test validity
-     * @throws RejectedException if the bundle is to be rejected
-     */
-    public static void onDeserialized(Bundle bundle) throws RejectedException {
-        onDeserialized((PrimaryBlock) bundle);
-        for (CanonicalBlock block : bundle.getBlocks()) {
-            onDeserialized(block);
-        }
-    }
-
-    /**
-     * Deserializer MUST call this method to ensure validity of the received PrimaryBlock early on.
+     * Deserializer MAY call this method to ensure validity of the received PrimaryBlock early on.
      *
      * @param block to test validity
      * @throws RejectedException if the bundle is to be rejected
@@ -43,32 +31,30 @@ public class CoreProcessor {
             throw new RejectedException("bundle is expired");
         }
 
-        if (!DTNConfiguration.<Boolean>get(DTNConfiguration.Entry.ENABLE_FORWARDING).value()
-                && !LocalEIDTable.isLocal(block.destination)) {
+        if (!DTNConfiguration.<Boolean>get(DTNConfiguration.Entry.ALLOW_RECEIVE_ANONYMOUS_BUNDLE).value()
+                && block.source.equals(EID.NullEID())) {
+            throw new RejectedException("forbidden anonnymous source");
+        }
+
+        if (!LocalEIDTable.isLocal(block.destination)
+                && !DTNConfiguration.<Boolean>get(DTNConfiguration.Entry.ENABLE_FORWARDING).value()) {
             throw new RejectedException("forward isn't enabled and bundle is not local");
         }
 
-        if (DTNConfiguration.<Boolean>get(DTNConfiguration.Entry.EID_SINGLETON_ONLY).value()
-                && !block.getV6Flag(PrimaryBlock.BundleV6Flags.DESTINATION_IS_SINGLETON)) {
-            throw new RejectedException("bundle is not addressed to a singleton endpoint");
+        long max_lifetime = DTNConfiguration.<Integer>get(DTNConfiguration.Entry.MAX_LIFETIME).value();
+        if (block.lifetime > max_lifetime) {
+            throw new RejectedException("lifetime="+block.lifetime+" max="+max_lifetime);
         }
 
-        if (block.lifetime
-                > DTNConfiguration.<Integer>get(DTNConfiguration.Entry.MAX_LIFETIME).value()) {
-            throw new RejectedException("lifetime is too long");
-        }
-
-        if (DTNConfiguration.<Integer>get(
-                DTNConfiguration.Entry.MAX_TIMESTAMP_FUTURE).value() > 0
-                && block.creationTimestamp > ClockUtil.getCurrentTime()
-                + DTNConfiguration.<Integer>get(
-                DTNConfiguration.Entry.MAX_TIMESTAMP_FUTURE).value()) {
+        long max_timestamp_futur = DTNConfiguration.<Integer>get(DTNConfiguration.Entry.MAX_TIMESTAMP_FUTURE).value();
+        if (max_timestamp_futur > 0
+                && (block.creationTimestamp > ClockUtil.getCurrentTime() + max_timestamp_futur)) {
             throw new RejectedException("timestamp too far in the future");
         }
     }
 
     /**
-     * Deserializer MUST call this method to ensure validity of the received BlockHeader.
+     * Deserializer MAY call this method to ensure validity of the received BlockHeader.
      *
      * @param block to test validity
      * @throws RejectedException if the bundle is to be rejected
@@ -76,12 +62,12 @@ public class CoreProcessor {
     public static void onDeserialized(BlockHeader block) throws RejectedException {
         if (block.dataSize
                 > DTNConfiguration.<Long>get(DTNConfiguration.Entry.LIMIT_BLOCKSIZE).value()) {
-            throw new RejectedException("blocksize exceed limit");
+            throw new RejectedException("block size exceed limit");
         }
     }
 
     /**
-     * Deserializer MUST call this method to ensure validity of the received CanonicalBlock.
+     * Deserializer MAY call this method to ensure validity of the received CanonicalBlock.
      *
      * @param block to test validity
      * @throws RejectedException if the bundle is to be rejected

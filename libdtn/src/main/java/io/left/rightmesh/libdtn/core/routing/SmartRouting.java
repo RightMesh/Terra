@@ -19,13 +19,4 @@ public class SmartRouting extends Component {
         super(COMPONENT_ENABLE_SMART_ROUTING);
     }
 
-    @Override
-    protected void componentUp() {
-
-    }
-
-    @Override
-    protected void componentDown() {
-
-    }
 }

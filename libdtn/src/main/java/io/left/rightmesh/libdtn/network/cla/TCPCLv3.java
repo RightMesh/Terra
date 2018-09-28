@@ -1,13 +1,10 @@
-package io.left.rightmesh.libdtn.network.clprotocols;
+package io.left.rightmesh.libdtn.network.cla;
 
-import io.left.rightmesh.libdtn.bus.RxBus;
 import io.left.rightmesh.libdtn.data.bundleV6.BundleV6Parser;
-import io.left.rightmesh.libdtn.events.ChannelOpened;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.EID;
 import io.left.rightmesh.libdtn.data.bundleV6.BundleV6Serializer;
 import io.left.rightmesh.libdtn.data.bundleV6.SDNV;
-import io.left.rightmesh.libdtn.network.DTNChannel;
 import io.left.rightmesh.libdtn.network.Peer;
 import io.left.rightmesh.libdtn.network.RxTCP;
 import io.left.rightmesh.libcbor.rxparser.BufferState;
@@ -16,6 +13,7 @@ import io.left.rightmesh.libcbor.rxparser.ParserState;
 import io.left.rightmesh.libcbor.rxparser.RxParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libcbor.rxparser.ShortState;
+import io.left.rightmesh.libdtn.network.TCPPeer;
 import io.left.rightmesh.libdtn.utils.Log;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
@@ -104,7 +102,7 @@ public class TCPCLv3 {
 
         @Override
         public EID getEID() {
-            return EID.createCLA("tcpclv3", getTCPAddress());
+            return new EID.CLA("tcpclv3", getTCPAddress());
         }
     }
 
@@ -120,9 +118,9 @@ public class TCPCLv3 {
      * and wait for connection. For each connection, it will manage the peer following the
      * RFC7242..
      *
-     * @return Observable of DTNChannel
+     * @return Observable of CLAChannel
      */
-    public Observable<DTNChannel> listen(int port) {
+    public Observable<CLAChannel> listen(int port) {
         return Observable.create(s -> {
             serverRFC7242 = new RxTCP.Server(port);
             serverRFC7242.start()
@@ -146,7 +144,7 @@ public class TCPCLv3 {
         serverRFC7242.stop();
     }
 
-    public static Single<DTNChannel> open(Peer peer) {
+    public static Single<CLAChannel> open(Peer peer) {
         if (!(peer instanceof TCPPeer)) {
             return Single.error(new Throwable("Peer is not a TCP Peer"));
         }
@@ -166,7 +164,7 @@ public class TCPCLv3 {
      * TCP Convergence-Layer Channel (Channel) implements the DTN abstraction of the Bundle
      * protocol over TCP.
      */
-    public static class Channel implements DTNChannel {
+    public static class Channel implements CLAChannel {
 
         RxTCP.Connection c;
         ParserEmitter<ByteBuffer> recvData;
@@ -220,7 +218,7 @@ public class TCPCLv3 {
 
             EID channelEID;
             try {
-                channelEID = EID.create("clprotocols:tcpclv3:tcp//" + remoteAddress + ":" + remotePort);
+                channelEID = EID.create("cla:tcpclv3:tcp//" + remoteAddress + ":" + remotePort);
             } catch (EID.EIDFormatException efe) {
                 channelEID = EID.generate();
             }
@@ -389,7 +387,6 @@ public class TCPCLv3 {
                     rp.bundle_refusal_support & lp.bundle_refusal_support
                             & rp.request_ack & lp.request_ack, lp.request_sending_length);
             session_interval = Math.min(ch.interval, remote.interval);
-            RxBus.post(new ChannelOpened(Channel.this.channelEID(), Channel.this));
         }
 
         private void onRecvAck(long length) {

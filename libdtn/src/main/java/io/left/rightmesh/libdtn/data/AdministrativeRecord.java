@@ -3,5 +3,11 @@ package io.left.rightmesh.libdtn.data;
 /**
  * @author Lucien Loiseau on 28/09/18.
  */
-public class AdministrativeRecord {
+public abstract class AdministrativeRecord {
+
+    int type;
+
+    AdministrativeRecord(int type) {
+        this.type = type;
+    }
 }

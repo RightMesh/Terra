@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.network.cla;
+package io.left.rightmesh.libdtn.network;
 
 import io.left.rightmesh.libdtn.network.Peer;
 

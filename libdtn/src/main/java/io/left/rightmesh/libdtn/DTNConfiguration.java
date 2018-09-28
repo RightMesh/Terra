@@ -37,17 +37,21 @@ public class DTNConfiguration {
         ALIASES("aliases"),
         MAX_LIFETIME("max_lifetime"),
         MAX_TIMESTAMP_FUTURE("max_timestamp_future"),
-        COMPONENT_ENABLE_API("api"),
-        ENABLE_FORWARD("forward"),
+        ALLOW_RECEIVE_ANONYMOUS_BUNDLE("allow_receive_anonymous_bundle"),
+        ENABLE_STATUS_REPORTING("enable_status_reporting"),
+        ENABLE_FORWARDING("dtn_enable_forwarding"),
+        COMPONENT_ENABLE_REGISTRATION("component_enable_registration"),
+        COMPONENT_ENABLE_STATIC_API("component_enable_static_api"),
+        COMPONENT_ENABLE_DAEMON_API("component_enable_daemon_api"),
         EID_SINGLETON_ONLY("eid_singleton_only"),
-        COMPONENT_ENABLE_CLA_STCP("cla_stcp"),
-        CLA_STCP_LISTENING_PORT("cla_port"),
-        COMPONENT_ENABLE_LINKLOCAL_ROUTING("linklocal_routing"),
-        COMPONENT_ENABLE_STATIC_ROUTING("static_routing"),
-        COMPONENT_ENABLE_SMART_ROUTING("smart_routing"),
+        COMPONENT_ENABLE_CLA_STCP("component_enable_cla_stcp"),
+        CLA_STCP_LISTENING_PORT("cla_tcp_port"),
+        COMPONENT_ENABLE_LINKLOCAL_ROUTING("component_enable_linklocal_routing"),
+        COMPONENT_ENABLE_STATIC_ROUTING("component_enable_static_routing"),
+        COMPONENT_ENABLE_SMART_ROUTING("component_enable_smart_routing"),
         STATIC_ROUTE_CONFIGURATION("static_routes_configuration"),
-        COMPONENT_ENABLE_VOLATILE_STORAGE("volatile_storage"),
-        COMPONENT_ENABLE_SIMPLE_STORAGE("simple_storage"),
+        COMPONENT_ENABLE_VOLATILE_STORAGE("component_enable_volatile_storage"),
+        COMPONENT_ENABLE_SIMPLE_STORAGE("component_enable_simple_storage"),
         SIMPLE_STORAGE_PATH("simple_storage_paths"),
         LIMIT_BLOCKSIZE("limit_blocksize");
 
@@ -226,8 +230,12 @@ public class DTNConfiguration {
         this.<EID>createEntrySet(Entry.ALIASES);
         this.createEntry(Entry.MAX_LIFETIME, (long) 0);
         this.createEntry(Entry.MAX_TIMESTAMP_FUTURE, (long) 0);
-        this.createEntry(Entry.COMPONENT_ENABLE_API, true);
-        this.createEntry(Entry.ENABLE_FORWARD, true);
+        this.createEntry(Entry.ALLOW_RECEIVE_ANONYMOUS_BUNDLE, false);
+        this.createEntry(Entry.ENABLE_STATUS_REPORTING, true);
+        this.createEntry(Entry.COMPONENT_ENABLE_REGISTRATION, true);
+        this.createEntry(Entry.COMPONENT_ENABLE_STATIC_API, true);
+        this.createEntry(Entry.COMPONENT_ENABLE_DAEMON_API, false);
+        this.createEntry(Entry.ENABLE_FORWARDING, true);
         this.createEntry(Entry.EID_SINGLETON_ONLY, false);
         this.createEntry(Entry.COMPONENT_ENABLE_CLA_STCP, true);
         this.createEntry(Entry.CLA_STCP_LISTENING_PORT, 4556);

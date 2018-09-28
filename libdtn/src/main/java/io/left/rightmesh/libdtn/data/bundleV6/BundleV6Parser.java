@@ -1,6 +1,6 @@
 package io.left.rightmesh.libdtn.data.bundleV6;
 
-import io.left.rightmesh.libdtn.core.processor.CoreProcessor;
+import io.left.rightmesh.libdtn.core.processor.EarlyValidator;
 import io.left.rightmesh.libdtn.core.processor.RejectedException;
 import io.left.rightmesh.libdtn.data.AgeBlock;
 import io.left.rightmesh.libdtn.data.CanonicalBlock;
@@ -30,7 +30,7 @@ import java.nio.ByteBuffer;
  * See {@see BundleV7Serializer} for the serialization process.
  *
  * <p>Upon deserialization of the bundle's part (PrimaryBlock, BlockHeader and BlockData), a call
- * to CoreProcessor.onDeserialized will be made. If an RejectedException occurs, the bundle will
+ * to EarlyValidator.onDeserialized will be made. If an RejectedException occurs, the bundle will
  * still be emitted (though it may be incomplete) and will be marked with the tag "rejected".
  *
  * <p>This class is mostly used for deserialization from an asynchronous source such as RxTCP.
@@ -76,9 +76,9 @@ public class BundleV6Parser extends ParserEmitter<Bundle> {
 
     private void onPrimaryBlockReceived() {
         try {
-            CoreProcessor.onDeserialized(bundle);
+            EarlyValidator.onDeserialized(bundle);
         } catch (RejectedException e) {
-            bundle.mark("rejected");
+            bundle.tag("rejected");
             bundle_is_rejected = true;
             emit(bundle);
         }
@@ -89,9 +89,9 @@ public class BundleV6Parser extends ParserEmitter<Bundle> {
             return;
         }
         try {
-            CoreProcessor.onDeserialized((BlockHeader) block);
+            EarlyValidator.onDeserialized((BlockHeader) block);
         } catch (RejectedException e) {
-            bundle.mark("rejected");
+            bundle.tag("rejected");
             bundle_is_rejected = true;
             emit(bundle);
         }
@@ -102,10 +102,10 @@ public class BundleV6Parser extends ParserEmitter<Bundle> {
             return;
         }
         try {
-            CoreProcessor.onDeserialized(block);
+            EarlyValidator.onDeserialized(block);
             bundle.addBlock(block);
         } catch (RejectedException e) {
-            bundle.mark("rejected");
+            bundle.tag("rejected");
             bundle_is_rejected = true;
             emit(bundle);
         }
@@ -270,17 +270,17 @@ public class BundleV6Parser extends ParserEmitter<Bundle> {
         public ParserState onSuccess(ByteBuffer buffer) throws RxParserException {
             dict = new Dictionary(buffer.array());
             try {
-                bundle.source = EID.create(dict.lookup((int) sourceScheme),
-                        dict.lookup((int) sourceSsp));
+                bundle.source = EID.create(dict.lookup((int) sourceScheme) + ":"
+                        + dict.lookup((int) sourceSsp));
                 Log.d("BundleV6Parser", "source=" + bundle.source.toString());
-                bundle.destination = EID.create(dict.lookup((int) destinationScheme),
-                        dict.lookup((int) destinationSsp));
+                bundle.destination = EID.create(dict.lookup((int) destinationScheme) + ":"
+                        + dict.lookup((int) destinationSsp));
                 Log.d("BundleV6Parser", "destination=" + bundle.destination.toString());
-                bundle.reportto = EID.create(dict.lookup((int) reportToScheme),
-                        dict.lookup((int) reportToSsp));
+                bundle.reportto = EID.create(dict.lookup((int) reportToScheme) + ":"
+                        + dict.lookup((int) reportToSsp));
                 Log.d("BundleV6Parser", "reportto=" + bundle.reportto.toString());
-                bundle.custodian = EID.create(dict.lookup((int) custodianScheme),
-                        dict.lookup((int) custodianSsp));
+                bundle.custodian = EID.create(dict.lookup((int) custodianScheme) + ":"
+                        + dict.lookup((int) custodianSsp));
                 Log.d("BundleV6Parser", "custodian=" + bundle.custodian.toString());
             } catch (Dictionary.EntryNotFoundException e) {
                 throw new RxParserException("RFC5050", e.getMessage());
@@ -363,8 +363,8 @@ public class BundleV6Parser extends ParserEmitter<Bundle> {
             try {
                 long blockRefSsp = sdnv_value.getValue();
                 Log.d("BundleV6Parser", "blockRefSsp=" + blockRefSsp);
-                block.addEID(EID.create(dict.lookup((int) blockRefScheme),
-                        dict.lookup((int) blockRefSsp)));
+                block.addEID(EID.create(dict.lookup((int) blockRefScheme) + ":"
+                        + dict.lookup((int) blockRefSsp)));
             } catch (Dictionary.EntryNotFoundException enfe) {
                 throw new RxParserException("RFC5050", enfe.getMessage());
             } catch (EID.EIDFormatException efe) {

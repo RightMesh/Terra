@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.network;
+package io.left.rightmesh.libdtn.network.cla;
 
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.EID;
@@ -11,7 +11,7 @@ import io.reactivex.Observable;
  *
  * @author Lucien Loiseau on 04/09/18.
  */
-public interface DTNChannel {
+public interface CLAChannel {
 
     /**
      * return the EID specific for this Channel. It must be unique accross all channels.

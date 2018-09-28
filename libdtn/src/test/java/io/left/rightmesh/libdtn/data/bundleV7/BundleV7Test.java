@@ -33,8 +33,8 @@ public class BundleV7Test {
 
     public static Bundle testBundle0() {
         Bundle bundle = new Bundle();
-        bundle.destination = EID.createIPN(5, 12);
-        bundle.source = EID.createDTN("source");
+        bundle.destination = new EID.IPN(5, 12);
+        bundle.source = new EID.DTN("source");
         bundle.reportto = EID.NullEID();
         bundle.bid = new BundleID(bundle);
         return bundle;
@@ -141,13 +141,14 @@ public class BundleV7Test {
 
 
 
-    void checkBundlePayload(Bundle bundle) {
+    public static void checkBundlePayload(Bundle bundle) {
         // assert
         assertEquals(true, bundle != null);
         String[] payload = {null};
         if (bundle != null) {
             for(CanonicalBlock block : bundle.getBlocks()) {
-                assertEquals(true, block.crc_ok);
+                assertEquals(true, block.isTagged("crc_check"));
+                assertEquals(true, block.<Boolean>getTagAttachment("crc_check"));
             }
 
             bundle.getPayloadBlock().data.observe().subscribe(

@@ -37,7 +37,7 @@ public class UnknownExtensionBlock extends BlockBLOB {
     }
 
     @Override
-    public boolean onBundleProcessing(Bundle bundle) throws ProcessingException {
+    public boolean onReceptionProcessing(Bundle bundle) throws ProcessingException {
         throw new ProcessorNotFoundException();
     }
 

@@ -25,7 +25,9 @@ public abstract class Component {
         return enabled;
     }
 
-    protected abstract void componentUp();
+    protected void componentUp() {
+    }
 
-    protected abstract void componentDown();
+    protected void componentDown() {
+    }
 }

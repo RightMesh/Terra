@@ -48,7 +48,7 @@ public abstract class CanonicalBlock extends BlockHeader {
      * @return true if the bundle needs another processing pass, false otherwise
      * @throws ProcessingException if there is any issue during processing
      */
-    public boolean onBundleProcessing(Bundle bundle) throws ProcessingException {
+    public boolean onReceptionProcessing(Bundle bundle) throws ProcessingException {
         return false;
     }
 

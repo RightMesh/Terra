@@ -8,6 +8,9 @@ package io.left.rightmesh.libdtn.core.processor;
 public class ProcessingException extends Exception {
     String reason;
 
+    public ProcessingException() {
+    }
+
     /**
      * Constructor.
      *

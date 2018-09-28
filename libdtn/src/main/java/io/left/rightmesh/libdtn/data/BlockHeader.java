@@ -60,8 +60,6 @@ public class BlockHeader extends Block {
     public long dataSize;
     public HashSet<EID> eids = new HashSet<>();
 
-    /** processing field for deserialization **/
-    public boolean crc_ok;
 
     /**
      * Constructor creates a BlockHeader of the following type.
@@ -71,7 +69,6 @@ public class BlockHeader extends Block {
     public BlockHeader(int type) {
         this.type = type;
         crcType = CRCFieldType.NO_CRC;
-        this.crc_ok = true;
     }
 
     /**

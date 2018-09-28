@@ -112,7 +112,7 @@ public class BundleV7Parser  {
                     })
                     .cbor_parse_int((__, ___, i) -> b.lifetime = i)
                     .do_here(p -> p.insert_now(close_crc)) // validate close_crc
-                    .do_here(__ -> b.crc_ok = this.crc_ok); // mark the block
+                    .do_here(__ -> b.tag("crc_check", this.crc_ok)); // tag the block
         }
     }
 
@@ -197,7 +197,7 @@ public class BundleV7Parser  {
                     })
                     .do_here(p -> p.insert_now(payload))
                     .do_here(p -> p.insert_now(close_crc))  // validate close_crc
-                    .do_here(__ -> block.crc_ok = this.crc_ok); // mark the block
+                    .do_here(__ -> block.tag("crc_check", crc_ok)); // tag the block
         }
 
         WritableBLOB wblob;
@@ -220,10 +220,7 @@ public class BundleV7Parser  {
                             if (wblob != null) {
                                 try {
                                     wblob.write(chunk);
-                                } catch (WritableBLOB.BLOBOverflowException io) {
-                                    wblob.close();
-                                    wblob = null;
-                                } catch (IOException io) {
+                                } catch (WritableBLOB.BLOBOverflowException | IOException io) {
                                     wblob.close();
                                     wblob = null;
                                 }
@@ -312,7 +309,7 @@ public class BundleV7Parser  {
 
         CborParser parseIPN = CBOR.parser()
                 .cbor_open_array(2)
-                .cbor_parse_int((___, ____, node) -> eid = EID.createIPN((int) node, 0))
+                .cbor_parse_int((___, ____, node) -> eid = new EID.IPN((int) node, 0))
                 .cbor_parse_int((___, ____, service) -> ((EID.IPN) eid).service_number = (int) service);
 
         CborParser parseDTN = CBOR.parser()
@@ -327,7 +324,7 @@ public class BundleV7Parser  {
                                     }
                                 },
                                 (__, str) -> {
-                                    eid = EID.createDTN(str);
+                                    eid = new EID.DTN(str);
                                 }));
     }
 }

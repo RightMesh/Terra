@@ -431,7 +431,7 @@ public class RxTCP {
                     channel.configureBlocking(false);
                     nio.register(channel, SelectionKey.OP_CONNECT).subscribe(
                             registeredKey -> {
-                                // attach the connect callback
+                                // tag the connect callback
                                 ((NIOCallback) registeredKey.attachment()).c = (key) -> {
                                     key.interestOps(0);
                                     ((NIOCallback) key.attachment()).c = null;

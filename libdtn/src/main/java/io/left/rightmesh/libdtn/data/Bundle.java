@@ -1,8 +1,8 @@
 package io.left.rightmesh.libdtn.data;
 
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
+
+import io.left.rightmesh.libdtn.core.processor.ProcessingException;
 
 /**
  * The format of a bundle and its specifications are described in RFC 5050.
@@ -17,19 +17,6 @@ import java.util.Map;
  * @author Lucien Loiseau on 16/07/18.
  */
 public class Bundle extends PrimaryBlock {
-
-    public enum RetentionContraint {
-        DISPATCH_PENDING("dispatch_pending"),
-        FORWARD_PENDING("forward_pending");
-
-        String value;
-        RetentionContraint(String v) {
-            this.value = v;
-        }
-        public String value() {
-            return this.value;
-        }
-    }
 
     public LinkedList<CanonicalBlock> blocks = new LinkedList<>();
     private int block_number = 1;
@@ -65,9 +52,9 @@ public class Bundle extends PrimaryBlock {
      * @param block to be added
      */
     public void addBlock(CanonicalBlock block) {
-        // v6
-        if (blocks.size() > 0) {
-            blocks.getLast().setV6Flag(BlockHeader.BlockV6Flags.LAST_BLOCK, false);
+        // there can be only one payload block
+        if ((getPayloadBlock() != null) && (block.type == PayloadBlock.type)) {
+            return;
         }
 
         // v7
@@ -75,6 +62,11 @@ public class Bundle extends PrimaryBlock {
             block.number = 0;
         } else {
             block.number = block_number++;
+        }
+
+        // v6
+        if (blocks.size() > 0) {
+            blocks.getLast().setV6Flag(BlockHeader.BlockV6Flags.LAST_BLOCK, false);
         }
 
         blocks.add(block);
@@ -110,6 +102,30 @@ public class Bundle extends PrimaryBlock {
             }
         }
         return null;
+    }
+
+    public void onReceptionProcessing(Bundle bundle) throws ProcessingException {
+        for(CanonicalBlock block : getBlocks()) {
+            block.onReceptionProcessing(bundle);
+        }
+    }
+
+    public void onPrepareForTransmission(Bundle bundle) throws ProcessingException {
+        for(CanonicalBlock block : getBlocks()) {
+            block.onPrepareForTransmission(bundle);
+        }
+    }
+
+    public void onPutOnStorage(Bundle bundle) throws ProcessingException {
+        for(CanonicalBlock block : getBlocks()) {
+            block.onPutOnStorage(bundle);
+        }
+    }
+
+    public void onPullFromStorage(Bundle bundle) throws ProcessingException {
+        for(CanonicalBlock block : getBlocks()) {
+            block.onPullFromStorage(bundle);
+        }
     }
 
     /**

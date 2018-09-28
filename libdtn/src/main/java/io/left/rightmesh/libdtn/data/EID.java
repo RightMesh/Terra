@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
  *
  * @author Lucien Loiseau on 20/07/18.
  */
-public class EID {
+public abstract class EID {
 
     public static class EIDFormatException extends Exception {
         EIDFormatException() {
@@ -76,7 +76,7 @@ public class EID {
         if(!isValidEID(str)) {
             throw new EIDFormatException("not a URI");
         }
-        EID eid = new EID(127, str);
+        EID eid = new UNK(127, str);
         if(eid.scheme.equals("dtn")) {
             return new DTN(eid.ssp);
         }
@@ -84,43 +84,15 @@ public class EID {
             return new IPN(eid.ssp);
         }
         if(eid.scheme.equals("cla")) {
-            return new CLA(eid.ssp);
+            if(eid.ssp.startsWith("stcp:")) {
+                return new CLASTCP(eid.ssp.replaceFirst("stcp:",""));
+            } else {
+                return new CLA(eid.ssp);
+            }
         } else {
             eid.scheme_code = EIDScheme.UNKNOWN;
             return eid;
         }
-    }
-
-    public static EID create(String scheme, String ssp) throws EIDFormatException {
-        if(!isValidEID(scheme+":"+ssp)) {
-            throw new EIDFormatException();
-        }
-        if(scheme.equals("dtn")) {
-            return new DTN(ssp);
-        }
-        if(scheme.equals("cla")) {
-            return new CLA(ssp);
-        }
-        if(scheme.equals("ipn")) {
-            return new IPN(ssp);
-        } else {
-            EID eid = new EID(127, scheme+":"+ssp);
-            eid.scheme_code = EIDScheme.UNKNOWN;
-            return eid;
-        }
-    }
-
-
-    public static EID.DTN createDTN(String ssp) {
-        return new DTN(ssp);
-    }
-
-    public static EID.IPN createIPN(int node, int service) {
-        return new IPN(node, service);
-    }
-
-    public static EID.CLA createCLA(String claType, String claSpecificPart) {
-        return new CLA(claType, claSpecificPart);
     }
 
     public static EID.DTN generate() {
@@ -128,9 +100,32 @@ public class EID {
         return new DTN(uuid);
     }
 
+
+    public static class UNK extends EID {
+        public UNK(int iana_value, String str) {
+            super(iana_value, str);
+        }
+
+        @Override
+        public boolean matches(EID other) {
+            if(other == null) {
+                return false;
+            }
+            return eid.equals(other.eid);
+        }
+    }
+
     public static class DTN extends EID {
-        protected DTN(String ssp) {
+        public DTN(String ssp) {
             super(EID_DTN_IANA_VALUE, "dtn:"+ssp);
+        }
+
+        @Override
+        public boolean matches(EID other) {
+            if(other == null) {
+                return false;
+            }
+            return eid.startsWith(other.eid);
         }
     }
 
@@ -154,10 +149,23 @@ public class EID {
             }
         }
 
-        IPN(int node, int service) {
+        public IPN(int node, int service) {
             super(2, "ipn:"+node+"."+service);
             this.node_number = node;
             this.service_number = service;
+        }
+
+        @Override
+        public boolean matches(EID other) {
+            if(other == null) {
+                return false;
+            }
+            if(other instanceof IPN) {
+                IPN o = (IPN)other;
+                return (node_number == o.node_number && service_number == o.service_number);
+            } else {
+                return false;
+            }
         }
 
         @Override
@@ -187,13 +195,13 @@ public class EID {
         public String cl_name;
         public String cl_specific;
 
-        CLA(String cla, String claSpecificPart) {
-            super(EID_CLA_IANA_VALUE, "cla:"+cla+":"+claSpecificPart);
-            this.cl_name = cla;
+        public CLA(String claname, String claSpecificPart) {
+            super(EID_CLA_IANA_VALUE, "cla:"+claname+":"+claSpecificPart);
+            this.cl_name = claname;
             this.cl_specific = claSpecificPart;
         }
 
-        CLA(String ssp) throws EIDFormatException  {
+        public CLA(String ssp) throws EIDFormatException  {
             super(EID_CLA_IANA_VALUE, "cla:"+ssp);
             final String regex = "^([^:/?#]+):([^:/?#]+)";
             Pattern r = Pattern.compile(regex);
@@ -205,9 +213,64 @@ public class EID {
                 throw new EIDFormatException("not a CLA");
             }
         }
+
+        @Override
+        public boolean matches(EID other) {
+            if(other == null) {
+                return false;
+            }
+            return eid.equals(other.eid);
+        }
+    }
+
+    public static class CLASTCP extends CLA {
+        public String host;
+        public int port;
+        public String path;
+
+        public CLASTCP(String ssp) throws EIDFormatException  {
+            super("stcp", ssp);
+            final String regex = "^([^:/?#]+):([0-9]+)(/.*)?";
+            Pattern r = Pattern.compile(regex);
+            Matcher m = r.matcher(ssp);
+            if (m.find()) {
+                this.host = m.group(1);
+                this.port = Integer.valueOf(m.group(2));
+                this.path = m.group(3) == null ? "" : m.group(3);
+            } else {
+                throw new EIDFormatException("not an STCP CLA: "+ssp);
+            }
+        }
+
+        public CLASTCP(String host, int port, String path) {
+            super("stcp", host+":"+port);
+            this.host = host;
+            this.port = port;
+            this.path = path;
+        }
+
+        @Override
+        public boolean matches(EID other) {
+            if(other == null) {
+                return false;
+            }
+            if(other instanceof CLASTCP) {
+                CLASTCP o = (CLASTCP)other;
+                return (this.host.equals(o.host) && this.port == o.port);
+            }
+            return false;
+        }
     }
 
 
+
+    /**
+     * Matching between two EIDs is scheme specific
+     *
+     * @param other
+     * @return
+     */
+    public abstract boolean matches(EID other);
 
     /**
      * Check that the EID is a URI as defined in RFC 3986:

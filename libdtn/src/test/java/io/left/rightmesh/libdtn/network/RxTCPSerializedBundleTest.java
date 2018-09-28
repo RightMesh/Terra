@@ -88,31 +88,7 @@ public class RxTCPSerializedBundleTest {
 
         // check payload
         for(int j = 0; j < 6; j++) {
-            checkBundlePayload(recv[j]);
-        }
-    }
-
-
-    void checkBundlePayload(Bundle bundle) {
-        // assert
-        assertEquals(true, bundle != null);
-        String[] payload = {null};
-        if (bundle != null) {
-            for(CanonicalBlock block : bundle.getBlocks()) {
-                assertEquals(true, block.crc_ok);
-            }
-
-            bundle.getPayloadBlock().data.observe().subscribe(
-                    buffer -> {
-                        byte[] arr = new byte[buffer.remaining()];
-                        buffer.get(arr);
-                        payload[0] = new String(arr);
-                    });
-
-            assertEquals(true, payload[0] != null);
-            if (payload[0] != null) {
-                assertEquals(BundleV7Test.testPayload, payload[0]);
-            }
+            BundleV7Test.checkBundlePayload(recv[j]);
         }
     }
 

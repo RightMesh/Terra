@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.network.clprotocols;
+package io.left.rightmesh.libdtn.network.cla;
 
 import java.nio.ByteBuffer;
 
@@ -10,9 +10,9 @@ import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.EID;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Serializer;
-import io.left.rightmesh.libdtn.network.DTNChannel;
 import io.left.rightmesh.libdtn.network.Peer;
 import io.left.rightmesh.libdtn.network.RxTCP;
+import io.left.rightmesh.libdtn.network.TCPPeer;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -51,7 +51,7 @@ public class STCP {
 
         @Override
         public EID getEID() {
-            return EID.createCLA("stcp", getTCPAddress());
+            return new EID.CLASTCP(host, port, "");
         }
     }
 
@@ -68,7 +68,7 @@ public class STCP {
         }
     }
 
-    public Observable<DTNChannel> listen(int port) {
+    public Observable<CLAChannel> listen(int port) {
         return Observable.create(s -> {
             serverDraftSTCP = new RxTCP.Server(port);
             serverDraftSTCP.start()
@@ -79,7 +79,7 @@ public class STCP {
         });
     }
 
-    public static Single<DTNChannel> open(Peer peer) {
+    public static Single<CLAChannel> open(Peer peer) {
         if (!(peer instanceof TCPPeer)) {
             return Single.error(new Throwable("Peer is not a TCP Peer"));
         }
@@ -94,7 +94,7 @@ public class STCP {
         });
     }
 
-    public static class Channel implements DTNChannel {
+    public static class Channel implements CLAChannel {
 
         RxTCP.Connection c;
         EID channelEID;
@@ -114,7 +114,7 @@ public class STCP {
             int remotePort = c.channel.socket().getPort();
 
             try {
-                channelEID = EID.create("clprotocols:stcp:tcp//" + remoteAddress + ":" + remotePort);
+                channelEID = EID.create("cla:stcp:" + remoteAddress + ":" + remotePort);
             } catch (EID.EIDFormatException efe) {
                 channelEID = EID.generate();
             }

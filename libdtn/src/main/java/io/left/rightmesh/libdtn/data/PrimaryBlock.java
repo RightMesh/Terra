@@ -91,7 +91,7 @@ public class PrimaryBlock extends Block {
         DELIVERY_REPORT(11),
         DELETION_REPORT(12),
         RESERVED_4(13),
-        REsERVED_5(14),
+        RESERVED_5(14),
         RESERVED_6(15);
 
         private int offset;
@@ -120,8 +120,7 @@ public class PrimaryBlock extends Block {
     public Long appDataLength = null;
     public Long fragmentOffset = null;
 
-    /** processing field **/
-    public boolean crc_ok;
+    /** libdtn internal use **/
     public BundleID bid;
 
     /**
@@ -139,7 +138,6 @@ public class PrimaryBlock extends Block {
         this.sequenceNumber = sequence_counter++;
         bid = new BundleID(this);
         this.lifetime = 10000;
-        this.crc_ok = true;
     }
 
     /**

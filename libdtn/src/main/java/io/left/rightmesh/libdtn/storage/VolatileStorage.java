@@ -1,6 +1,5 @@
 package io.left.rightmesh.libdtn.storage;
 
-import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.BundleID;

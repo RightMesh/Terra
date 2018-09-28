@@ -35,21 +35,30 @@ public class LocalEIDTable {
                         });
     }
 
+    public static EID localEID() {
+        return getInstance().localEID;
+    }
+
+    public static boolean isLocal(EID eid) {
+        return matchLocal(eid) != null;
+    }
+
     /**
-     * check if an EID is for the local node.
+     * return the matching EID.
      *
      * @param eid to check
      * @return true if the eid is local, false otherwise
      */
-    public static boolean isLocal(EID eid) {
-        if (eid.toString().startsWith(getInstance().localEID.toString())) {
-            return true;
+    public static EID matchLocal(EID eid) {
+        if (eid.matches(getInstance().localEID)) {
+            return localEID();
         }
+
         for (EID alias : getInstance().aliases) {
-            if (eid.toString().startsWith(alias.toString())) {
-                return true;
+            if (eid.matches(alias)) {
+                return alias;
             }
         }
-        return false;
+        return null;
     }
 }

@@ -1,11 +1,8 @@
 package io.left.rightmesh.libdtn.core.routing;
 
-import io.left.rightmesh.libdtn.bus.RxBus;
-import io.left.rightmesh.libdtn.bus.Subscribe;
 import io.left.rightmesh.libdtn.core.Component;
-import io.left.rightmesh.libdtn.events.ChannelClosed;
-import io.left.rightmesh.libdtn.events.ChannelOpened;
-import io.left.rightmesh.libdtn.network.DTNChannel;
+import io.left.rightmesh.libdtn.data.Bundle;
+import io.left.rightmesh.libdtn.network.cla.CLAChannel;
 import io.left.rightmesh.libdtn.data.EID;
 
 import java.util.HashMap;
@@ -14,8 +11,8 @@ import java.util.Map;
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_LINKLOCAL_ROUTING;
 
 /**
- * LinkLocalRouting is the link-local routing table. It contains all the linklocal EID
- * associated with their DTNChannel.
+ * LinkLocalRouting is the link-local routing linkLocalTable. It contains all the linklocal EID
+ * associated with their CLAChannel.
  *
  * @author Lucien Loiseau on 24/08/18.
  */
@@ -25,31 +22,38 @@ public class LinkLocalRouting extends Component {
     private static LinkLocalRouting instance = new LinkLocalRouting();
     public static LinkLocalRouting getInstance() {  return instance; }
 
-    private Map<EID, DTNChannel> table;
+    private Map<EID, CLAChannel> linkLocalTable = new HashMap<>();
 
     public LinkLocalRouting() {
         super(COMPONENT_ENABLE_LINKLOCAL_ROUTING);
     }
 
-    @Override
-    protected void componentUp() {
-        table = new HashMap<>();
-        RxBus.register(this);
+    public static void channelOpened(CLAChannel channel) {
+        getInstance().linkLocalTable.put(channel.channelEID(), channel);
     }
 
-    @Override
-    protected void componentDown() {
-        RxBus.unregister(this);
-        table.clear();
+    public static void channelClosed(CLAChannel channel) {
+        getInstance().linkLocalTable.remove(channel.channelEID());
     }
 
-    @Subscribe
-    public void onEvent(ChannelOpened event) {
-        table.put(event.eid, event.channel);
+    public static CLAChannel findCLA(Bundle bundle) {
+        if(!getInstance().isEnabled()) {
+            return null;
+        }
+
+        for(EID peer : getInstance().linkLocalTable.keySet()) {
+            if(bundle.destination.matches(peer)) {
+                return getInstance().linkLocalTable.get(peer);
+            }
+        }
+
+        return null;
     }
 
-    @Subscribe
-    public void onEvent(ChannelClosed event) {
-        table.remove(event.eid);
+    public static CLAChannel isPeerLinkLocal(EID eid) {
+        if(getInstance().linkLocalTable.containsKey(eid)) {
+            return getInstance().linkLocalTable.get(eid);
+        }
+        return null;
     }
 }

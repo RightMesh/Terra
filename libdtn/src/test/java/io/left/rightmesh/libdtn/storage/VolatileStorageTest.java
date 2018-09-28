@@ -44,8 +44,8 @@ public class VolatileStorageTest {
         }
         
         storage.count().subscribe(i -> assertEquals(bundles.length, i.intValue()));
-        storage.clear();
-        storage.count().subscribe(i -> assertEquals(0, i.intValue()));
+        storage.clear().subscribe(
+                () -> storage.count().subscribe(i -> assertEquals(0, i.intValue())));
     }
 
 }
