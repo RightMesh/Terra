@@ -46,10 +46,10 @@ public class RegistrationTable extends Component {
 
     // ---- SINGLETON ----
     private static RegistrationTable instance = new RegistrationTable();
-
     public static RegistrationTable getInstance() {
         return instance;
     }
+    public static void init() {}
 
     private RegistrationTable() {
         super(COMPONENT_ENABLE_REGISTRATION);

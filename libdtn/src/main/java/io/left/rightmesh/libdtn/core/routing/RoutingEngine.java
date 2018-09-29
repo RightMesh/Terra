@@ -2,6 +2,7 @@ package io.left.rightmesh.libdtn.core.routing;
 
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
+import io.left.rightmesh.libdtn.storage.Storage;
 
 /**
  * @author Lucien Loiseau on 28/09/18.

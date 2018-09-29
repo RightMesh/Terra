@@ -242,7 +242,7 @@ public class DTNConfiguration {
         this.createEntry(Entry.COMPONENT_ENABLE_LINKLOCAL_ROUTING, true);
         this.createEntry(Entry.COMPONENT_ENABLE_STATIC_ROUTING, true);
         this.createEntry(Entry.COMPONENT_ENABLE_SMART_ROUTING, false);
-        this.<String, String>createEntryMap(Entry.STATIC_ROUTE_CONFIGURATION);
+        this.<EID, EID>createEntryMap(Entry.STATIC_ROUTE_CONFIGURATION);
         this.createEntry(Entry.COMPONENT_ENABLE_VOLATILE_STORAGE, true);
         this.createEntry(Entry.COMPONENT_ENABLE_SIMPLE_STORAGE, false);
         this.<String>createEntrySet(Entry.SIMPLE_STORAGE_PATH);

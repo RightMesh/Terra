@@ -12,6 +12,7 @@ public class APIDaemonAgent extends Component {
     // ---- SINGLETON ----
     private static APIDaemonAgent instance = new APIDaemonAgent();
     public static APIDaemonAgent getInstance() {  return instance; }
+    public static void init() {}
 
     APIDaemonAgent() {
         super(COMPONENT_ENABLE_DAEMON_API);

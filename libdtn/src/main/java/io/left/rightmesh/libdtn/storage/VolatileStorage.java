@@ -36,14 +36,6 @@ public class VolatileStorage extends Component implements BundleStorage {
         super(COMPONENT_ENABLE_VOLATILE_STORAGE);
     }
 
-    @Override
-    protected void componentUp() {
-    }
-
-    @Override
-    protected void componentDown() {
-    }
-
     /**
      * Create a new {@see VolatileBLOB}.
      *
@@ -218,90 +210,82 @@ public class VolatileStorage extends Component implements BundleStorage {
 
     private Map<BundleID, Bundle> bundles = new HashMap<>();
 
-    @Override
-    public Completable clear() {
-        if(!isEnabled()) {
+    public static Completable clear() {
+        if(!getInstance().isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
         return Completable.create(s -> {
-            bundles.clear();
+            getInstance().bundles.clear();
             s.onComplete();
         });
     }
 
-    @Override
-    public Single<Integer> count() {
-        if(!isEnabled()) {
+    public static Single<Integer> count() {
+        if(!getInstance().isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
         return Single.create(s -> {
-            s.onSuccess(bundles.size());
+            s.onSuccess(getInstance().bundles.size());
         });
     }
 
-    @Override
-    public Completable store(Bundle bundle) {
-        if(!isEnabled()) {
+    public static Completable store(Bundle bundle) {
+        if(!getInstance().isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
         return Completable.create(s -> {
-            this.contains(bundle.bid).subscribe(
+            contains(bundle.bid).subscribe(
                     b -> {
                         if (b) {
                             s.onError(new BundleAlreadyExistsException());
                         } else {
-                            bundles.put(bundle.bid, bundle);
+                            getInstance().bundles.put(bundle.bid, bundle);
                             s.onComplete();
                         }
                     });
         });
     }
 
-    @Override
-    public Single<Boolean> contains(BundleID id) {
-        if(!isEnabled()) {
+    public static Single<Boolean> contains(BundleID id) {
+        if(!getInstance().isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
-
-        return Single.create(s -> s.onSuccess(bundles.containsKey(id)));
+        return Single.create(s -> s.onSuccess(getInstance().bundles.containsKey(id)));
     }
 
-    @Override
-    public Single<Bundle> get(BundleID id) {
-        if(!isEnabled()) {
+    public static Single<Bundle> get(BundleID id) {
+        if(!getInstance().isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
-
         return Single.create(s -> {
-            this.contains(id).subscribe(
+            contains(id).subscribe(
                     b -> {
                         if (!b) {
                             s.onError(new BundleNotFoundException());
                         } else {
-                            s.onSuccess(bundles.get(id));
+                            s.onSuccess(getInstance().bundles.get(id));
                         }
                     });
         });
     }
 
-    @Override
-    public Completable remove(BundleID id) {
-        if(!isEnabled()) {
+    public static Completable remove(BundleID id) {
+        if(!getInstance().isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
         return Completable.create(s -> {
-            this.contains(id).subscribe(
+            contains(id).subscribe(
                     b -> {
                         if (!b) {
                             s.onComplete();
                         } else {
-                            bundles.remove(id);
+                            getInstance().bundles.remove(id);
                             s.onComplete();
                         }
                     });

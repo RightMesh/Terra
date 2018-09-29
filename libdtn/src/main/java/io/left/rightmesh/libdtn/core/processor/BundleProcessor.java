@@ -10,6 +10,7 @@ import io.left.rightmesh.libdtn.data.EID;
 import io.left.rightmesh.libdtn.data.StatusReport;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
 import io.left.rightmesh.libdtn.storage.SimpleStorage;
+import io.left.rightmesh.libdtn.storage.Storage;
 import io.left.rightmesh.libdtn.storage.VolatileStorage;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_FORWARDING;
@@ -122,7 +123,16 @@ public class BundleProcessor {
         if (is_failure) {
             bundleForwardingFailed(bundle);
         } else {
-            RoutingEngine.forwardLater(bundle);
+            Storage.store(bundle).subscribe(
+                    () -> {
+                        /* in storage, defer forwarding */
+                        RoutingEngine.forwardLater(bundle);
+                    },
+                    storageFailure -> {
+                        /* storage failed, abandon forwarding */
+                        bundleForwardingFailed(bundle);
+                    }
+            );
         }
     }
 
@@ -200,9 +210,18 @@ public class BundleProcessor {
                             // todo generate status report
                         }
                     },
-                    e -> {
-                        /* 5.7 - step 2 - delivery failure - defer */
-                        RegistrationTable.deliverLater(sink, bundle);
+                    deliveryFailure -> {
+                        /* 5.7 - step 2 - delivery failure */
+                        Storage.store(bundle).subscribe(
+                                () -> {
+                                    /* defer delivery */
+                                    RegistrationTable.deliverLater(sink, bundle);
+                                },
+                                storageFailure -> {
+                                    /* abandon delivery */
+                                    bundleDeletion(bundle);
+                                }
+                        );
                     });
         } else {
             // it should never happen because we already checked that the bundle was local.

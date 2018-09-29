@@ -23,30 +23,17 @@ public class StaticRouting extends Component {
     // ---- SINGLETON ----
     private static StaticRouting instance = new StaticRouting();
     public static StaticRouting getInstance() { return instance; }
+    public static void init() {}
 
     private Map<EID, EID> staticRoutingTable = new HashMap<>();
 
     private StaticRouting() {
         super(COMPONENT_ENABLE_STATIC_ROUTING);
-        DTNConfiguration.<Map<String, String>>get(STATIC_ROUTE_CONFIGURATION).observe().subscribe(
-                m -> {
-                    Map<EID, EID> routes = new HashMap<>();
-                    try {
-                        for (String deststr : m.keySet()) {
-                            String nextstr = m.get(deststr);
-                            EID dest = EID.create(deststr);
-                            EID next = EID.create(nextstr);
-                            routes.put(dest, next);
-                        }
-                        staticRoutingTable = routes;
-                    } catch (EID.EIDFormatException efe) {
-                        // ignore this configuration update
-                    }
-                }
-        );
+        DTNConfiguration.<Map<EID, EID>>get(STATIC_ROUTE_CONFIGURATION).observe().subscribe(
+                m -> staticRoutingTable = m);
     }
 
-    public static CLAChannel findCLA(Bundle bundle) {
+    static CLAChannel findCLA(Bundle bundle) {
         if (!getInstance().isEnabled()) {
             return null;
         }

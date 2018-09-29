@@ -14,6 +14,7 @@ public class SmartRouting extends Component {
     // ---- SINGLETON ----
     private static SmartRouting instance = new SmartRouting();
     public static SmartRouting getInstance() {  return instance; }
+    public static void init() {}
 
     private SmartRouting() {
         super(COMPONENT_ENABLE_SMART_ROUTING);

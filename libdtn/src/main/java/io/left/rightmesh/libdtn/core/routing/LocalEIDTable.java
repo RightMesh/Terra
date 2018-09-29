@@ -16,6 +16,7 @@ public class LocalEIDTable {
     // ---- SINGLETON ----
     private static LocalEIDTable instance = new LocalEIDTable();
     public static LocalEIDTable getInstance() {  return instance; }
+    public static void init() {}
 
     private EID localEID;
     private Set<EID> aliases;

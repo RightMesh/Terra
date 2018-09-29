@@ -21,6 +21,7 @@ public class LinkLocalRouting extends Component {
     // ---- SINGLETON ----
     private static LinkLocalRouting instance = new LinkLocalRouting();
     public static LinkLocalRouting getInstance() {  return instance; }
+    public static void init() {}
 
     private Map<EID, CLAChannel> linkLocalTable = new HashMap<>();
 

@@ -22,6 +22,7 @@ public class APIStaticAgent extends Component {
     // ---- SINGLETON ----
     private static APIStaticAgent instance = new APIStaticAgent();
     public static APIStaticAgent getInstance() {  return instance; }
+    public static void init() {}
 
     APIStaticAgent() {
         super(COMPONENT_ENABLE_STATIC_API);

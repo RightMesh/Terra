@@ -17,6 +17,7 @@ public class STCPAgent extends Component {
     public static STCPAgent getInstance() {
         return instance;
     }
+    public static void init() {}
 
     private STCPAgent() {
         super(COMPONENT_ENABLE_CLA_STCP);

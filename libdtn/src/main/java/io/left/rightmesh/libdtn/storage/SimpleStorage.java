@@ -34,6 +34,7 @@ public class SimpleStorage extends Component implements BundleStorage {
     public static final String BLOB_FOLDER = "/blob/";
     public static final String BUNDLE_FOLDER = "/bundle/";
 
+    // ---- SINGLETON ----
     private static SimpleStorage instance = new SimpleStorage();
     public static SimpleStorage getInstance() { return instance; }
 
@@ -49,16 +50,6 @@ public class SimpleStorage extends Component implements BundleStorage {
                         storage_paths.addAll(paths);
                     }
                 );
-    }
-
-    @Override
-    protected void componentUp() {
-
-    }
-
-    @Override
-    protected void componentDown() {
-
     }
 
     private void addPath(String path) {
@@ -126,8 +117,8 @@ public class SimpleStorage extends Component implements BundleStorage {
     }
 
 
-    private File createBundleEntry(long expectedSize) throws StorageFullException {
-        for (String path : storage_paths) {
+    private static File createBundleEntry(long expectedSize) throws StorageFullException {
+        for (String path : getInstance().storage_paths) {
             if (spaceLeft(path + BUNDLE_FOLDER) < expectedSize) {
                 continue;
             } else {
@@ -144,24 +135,22 @@ public class SimpleStorage extends Component implements BundleStorage {
         throw new StorageFullException();
     }
 
-    @Override
-    public Single<Integer> count() {
-        if(!isEnabled()) {
+    public static Single<Integer> count() {
+        if(!getInstance().isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
-        return Single.just(index.size());
+        return Single.just(getInstance().index.size());
     }
 
-    @Override
-    public Completable store(Bundle bundle) {
-        if(!isEnabled()) {
+    public static Completable store(Bundle bundle) {
+        if(!getInstance().isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
         return Completable.create(
                 s -> {
-                    if (!index.containsKey(bundle.bid)) {
+                    if (!getInstance().index.containsKey(bundle.bid)) {
                         // first determine size of bundle
                         CborEncoder encodedB = BundleV7Serializer.encode(bundle);
                         long[] size = {0};
@@ -206,7 +195,7 @@ public class SimpleStorage extends Component implements BundleStorage {
                         out.close();
 
                         if (b.get()) {
-                            index.put(bundle.bid, fbundle.getAbsolutePath());
+                            getInstance().index.put(bundle.bid, fbundle.getAbsolutePath());
                             s.onComplete();
                         } else {
                             fbundle.delete();
@@ -218,27 +207,25 @@ public class SimpleStorage extends Component implements BundleStorage {
         ).subscribeOn(Schedulers.io());
     }
 
-    @Override
-    public Single<Boolean> contains(BundleID id) {
-        if(!isEnabled()) {
+    public static Single<Boolean> contains(BundleID id) {
+        if(!getInstance().isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
-        return Single.just(index.containsKey(id));
+        return Single.just(getInstance().index.containsKey(id));
     }
 
-    @Override
-    public Single<Bundle> get(BundleID id) {
-        if(!isEnabled()) {
+    public static Single<Bundle> get(BundleID id) {
+        if(!getInstance().isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
         return Single.<Bundle>create(s -> {
-            if (!index.containsKey(id)) {
+            if (!getInstance().index.containsKey(id)) {
                 s.onError(new Throwable("no such bundle in storage: " + id.toString()));
                 return;
             }
-            String path = index.get(id);
+            String path = getInstance().index.get(id);
             File fbundle = new File(path);
             if (!fbundle.exists() || !fbundle.canRead()) {
                 s.onError(new Throwable("can't read bundle in storage: " + path));
@@ -265,37 +252,35 @@ public class SimpleStorage extends Component implements BundleStorage {
         }).subscribeOn(Schedulers.io());
     }
 
-    @Override
-    public Completable remove(BundleID id) {
-        if(!isEnabled()) {
+    public static Completable remove(BundleID id) {
+        if(!getInstance().isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
         return Completable.create(s -> {
-            if (!index.containsKey(id)) {
+            if (!getInstance().index.containsKey(id)) {
                 s.onComplete();
                 return;
             }
-            String path = index.get(id);
+            String path = getInstance().index.get(id);
             File fbundle = new File(path);
             if (!fbundle.exists() || !fbundle.canWrite()) {
                 s.onError(new Throwable("can't access bundle file for deletion"));
                 return;
             }
             fbundle.delete();
-            index.remove(id);
+            getInstance().index.remove(id);
             s.onComplete();
         });
     }
 
-    @Override
-    public Completable clear() {
-        if(!isEnabled()) {
+    public static Completable clear() {
+        if(!getInstance().isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
         return Completable.create(s -> {
-            for (BundleID id : index.keySet()) {
+            for (BundleID id : getInstance().index.keySet()) {
                 remove(id).subscribe();
             }
             s.onComplete();
