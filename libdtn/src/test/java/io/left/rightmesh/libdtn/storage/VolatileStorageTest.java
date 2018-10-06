@@ -14,7 +14,7 @@ import static org.junit.Assert.fail;
 public class VolatileStorageTest {
 
     @Test
-    public void testStoreBundle() {
+    public void testVolatileStoreBundle() {
         System.out.println("[+] storage: test store one bundle in volatile storage");
 
         Bundle[] bundles = {
@@ -37,10 +37,7 @@ public class VolatileStorageTest {
                         storage.count().subscribe(k -> assertEquals(j+1, k.intValue()));
                         storage.contains(bundles[j].bid).subscribe(b -> assertEquals(true, b));
                     },
-                    e -> {
-                        System.out.println(e.getMessage());
-                        fail();
-                    });
+                    e -> fail());
         }
         
         storage.count().subscribe(i -> assertEquals(bundles.length, i.intValue()));

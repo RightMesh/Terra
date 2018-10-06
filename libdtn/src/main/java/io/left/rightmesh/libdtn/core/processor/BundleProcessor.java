@@ -251,8 +251,12 @@ public class BundleProcessor {
 
     /* 5.11 */
     public static void bundleDiscarding(Bundle bundle) {
-        VolatileStorage.getInstance().remove(bundle.bid).subscribe();
-        SimpleStorage.getInstance().remove(bundle.bid).subscribe();
+        Storage.remove(bundle.bid).subscribe(
+                () -> {},
+                e -> {
+                    bundle.getPayloadBlock().data.getWritableBLOB().clear();
+                }
+        );
     }
 
 }

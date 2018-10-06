@@ -15,11 +15,14 @@ public class Storage {
     public static Storage getInstance() {
         return instance;
     }
-    public static void init() {}
+    public static void init() {
+        VolatileStorage.init();
+        SimpleStorage.init();
+    }
 
     private Storage() {
-        VolatileStorage.getInstance();
-        SimpleStorage.getInstance();
+        // todo should always store in simplestorage and store in volatile storage if
+        // enough space
     }
 
     /**

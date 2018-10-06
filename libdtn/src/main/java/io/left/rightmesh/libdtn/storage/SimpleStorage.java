@@ -37,6 +37,9 @@ public class SimpleStorage extends Component implements BundleStorage {
     // ---- SINGLETON ----
     private static SimpleStorage instance = new SimpleStorage();
     public static SimpleStorage getInstance() { return instance; }
+    public static void init() {
+        // todo load bundle from files
+    }
 
     private LinkedList<String> storage_paths = new LinkedList<>();
     private HashMap<BundleID, String> index = new HashMap<>();

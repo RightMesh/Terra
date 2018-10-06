@@ -68,8 +68,8 @@ public class RxTCP {
     }
 
     /**
-     * NIOEngine is an event loop for the Java NIO. It listens for the Selector and pushes event
-     * whenever there are any.
+     * NIOEngine is an event loop for the Java NIO. It listens for the Selector and call relevant
+     * callbacks.
      */
     private static class NIOEngine {
 
@@ -175,24 +175,6 @@ public class RxTCP {
                 } catch (IOException io) {
                     // do nothing
                 } finally {
-                    /*
-                     * tell callback that an error happened
-                    for(SelectionKey key : selector.keys()) {
-                        NIOCallback cb = ((NIOCallback)key.attachment());
-                        if(cb.a != null) {
-                            cb.a.onAcceptEvent(null);
-                        }
-                        if(cb.c != null) {
-                            cb.c.onConnectEvent(null);
-                        }
-                        if(cb.r != null) {
-                            cb.r.onReadEvent(null);
-                        }
-                        if(cb.w != null) {
-                            cb.w.onWriteEvent(null);
-                        }
-                    }
-                    */
                     try {
                         selector.close();
                     } catch (IOException io) {
@@ -214,7 +196,7 @@ public class RxTCP {
          * @return the registered SelectionKey
          */
         public Single<SelectionKey> register(SelectableChannel channel, int op) {
-            if (niothread != null && Thread.currentThread().equals(niothread)) {
+            if (Thread.currentThread().equals(niothread)) {
                 try {
                     return Single.just(doRegister(channel, op));
                 } catch (ClosedChannelException cce) {
@@ -236,7 +218,7 @@ public class RxTCP {
          * @param job to run in NIO Thread
          */
         public void doInNIOThread(Runnable job) {
-            if (niothread != null && Thread.currentThread().equals(niothread)) {
+            if (Thread.currentThread().equals(niothread)) {
                 job.run();
             } else {
                 runnableQueue.add(job);
@@ -245,7 +227,7 @@ public class RxTCP {
     }
 
     /**
-     * A Reactive TCP Server.
+     * A Non-Blocking Reactive TCP Server using NIOEngine event loop.
      */
     public static class Server {
 

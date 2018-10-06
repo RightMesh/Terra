@@ -1,5 +1,9 @@
 apply plugin: 'java-library'
 
+test {
+    systemProperty 'path', '/tmp/'
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
@@ -15,7 +19,7 @@ dependencies {
     // ByteArrayDataOutput ByteStreams
     api (group: 'com.google.guava', name: 'guava', version: 'r05')
 
-    // junit
+    // jUnit
     testImplementation 'junit:junit:4.12'
 }
 

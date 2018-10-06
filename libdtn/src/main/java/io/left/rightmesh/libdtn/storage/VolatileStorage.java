@@ -31,6 +31,7 @@ public class VolatileStorage extends Component implements BundleStorage {
 
     private static VolatileStorage instance = new VolatileStorage();
     public static VolatileStorage getInstance() { return instance; }
+    public static void init() { }
 
     private VolatileStorage() {
         super(COMPONENT_ENABLE_VOLATILE_STORAGE);
