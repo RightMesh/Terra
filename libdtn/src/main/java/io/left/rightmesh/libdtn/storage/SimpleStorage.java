@@ -4,12 +4,15 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -31,14 +34,17 @@ import io.reactivex.schedulers.Schedulers;
  */
 public class SimpleStorage extends Component implements BundleStorage {
 
-    public static final String BLOB_FOLDER = "/blob/";
-    public static final String BUNDLE_FOLDER = "/bundle/";
+    public static final String BLOB_FOLDER = File.separator+"blob"+File.separator;
+    public static final String BUNDLE_FOLDER = File.separator+"bundle"+File.separator;
 
     // ---- SINGLETON ----
     private static SimpleStorage instance = new SimpleStorage();
-    public static SimpleStorage getInstance() { return instance; }
+
+    public static SimpleStorage getInstance() {
+        return instance;
+    }
+
     public static void init() {
-        // todo load bundle from files
     }
 
     private LinkedList<String> storage_paths = new LinkedList<>();
@@ -48,10 +54,12 @@ public class SimpleStorage extends Component implements BundleStorage {
         super(DTNConfiguration.Entry.COMPONENT_ENABLE_SIMPLE_STORAGE);
         DTNConfiguration.<Set<String>>get(DTNConfiguration.Entry.SIMPLE_STORAGE_PATH).observe()
                 .subscribe(
-                    paths -> {
-                        storage_paths.clear();
-                        storage_paths.addAll(paths);
-                    }
+                        paths -> {
+                            storage_paths.clear();
+                            for (String path : paths) {
+                                addPath(path);
+                            }
+                        }
                 );
     }
 
@@ -67,16 +75,25 @@ public class SimpleStorage extends Component implements BundleStorage {
                 if (!fbundle.exists() && !fbundle.mkdir()) {
                     return;
                 }
-                // index all existing bundles
+                indexBundles(f);
                 storage_paths.add(path);
             }
         }
     }
 
-    public static File createNewFile(String suffix, String path) throws IOException {
+    private void indexBundles(File directory) {
+        String[] indexFileNames = directory.list((__, name) -> name.endsWith(".bundle"));
+        if (indexFileNames != null) {
+            for (String name : indexFileNames) {
+
+            }
+        }
+    }
+
+    public static File createNewFile(String prefix, String suffix, String path) throws IOException {
         File f = new File(path);
         if (f.exists() && f.canRead() && f.canWrite()) {
-            return File.createTempFile("", suffix, f);
+            return File.createTempFile(prefix, suffix, f);
         } else {
             return null;
         }
@@ -98,7 +115,7 @@ public class SimpleStorage extends Component implements BundleStorage {
      * @throws StorageFullException if there isn't enough space in Volatile Memory
      */
     public static FileBLOB createBLOB(long expectedSize) throws StorageUnavailableException, StorageFullException {
-        if(!getInstance().isEnabled()) {
+        if (!getInstance().isEnabled()) {
             throw new StorageUnavailableException();
         }
 
@@ -107,7 +124,7 @@ public class SimpleStorage extends Component implements BundleStorage {
                 continue;
             } else {
                 try {
-                    File fblob = createNewFile(".blob", path);
+                    File fblob = createNewFile("blob-", ".blob", path + BLOB_FOLDER);
                     if (fblob != null) {
                         return new FileBLOB(fblob);
                     }
@@ -119,19 +136,17 @@ public class SimpleStorage extends Component implements BundleStorage {
         throw new StorageFullException();
     }
 
-
-    private static File createBundleEntry(long expectedSize) throws StorageFullException {
+    private static File createBundleEntry(BundleID bid, long expectedSize) throws StorageFullException {
         for (String path : getInstance().storage_paths) {
-            if (spaceLeft(path + BUNDLE_FOLDER) < expectedSize) {
-                continue;
-            } else {
+            if (spaceLeft(path + BUNDLE_FOLDER) > expectedSize) {
                 try {
-                    File fblob = createNewFile(".blob", path);
-                    if (fblob != null) {
-                        return fblob;
+                    String safeBID=bid.toString().replaceAll("/", "_");
+                    File fbundle = new File(path + BUNDLE_FOLDER + "bid-" + safeBID + ".bundle");
+                    if (fbundle.createNewFile()) {
+                        return fbundle;
                     }
                 } catch (IOException io) {
-                    // ignore and try next path
+                    System.out.println("IOException createNewFile: "+io.getMessage()+" : "+path + BUNDLE_FOLDER + "bid-" + bid + ".bundle");
                 }
             }
         }
@@ -139,7 +154,7 @@ public class SimpleStorage extends Component implements BundleStorage {
     }
 
     public static Single<Integer> count() {
-        if(!getInstance().isEnabled()) {
+        if (!getInstance().isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
@@ -147,7 +162,7 @@ public class SimpleStorage extends Component implements BundleStorage {
     }
 
     public static Completable store(Bundle bundle) {
-        if(!getInstance().isEnabled()) {
+        if (!getInstance().isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
@@ -171,13 +186,13 @@ public class SimpleStorage extends Component implements BundleStorage {
 
                         File fbundle = null;
                         try {
-                            fbundle = createBundleEntry(size[0]);
+                            fbundle = createBundleEntry(bundle.bid, size[0]);
                         } catch (StorageFullException sfe) {
                             s.onError(new Throwable("storage is full"));
                             return;
                         }
                         if (fbundle == null) {
-                            s.onError(new Throwable("storage is full"));
+                            s.onError(new Throwable("could not create file"));
                             return;
                         }
 
@@ -211,7 +226,7 @@ public class SimpleStorage extends Component implements BundleStorage {
     }
 
     public static Single<Boolean> contains(BundleID id) {
-        if(!getInstance().isEnabled()) {
+        if (!getInstance().isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
@@ -219,7 +234,7 @@ public class SimpleStorage extends Component implements BundleStorage {
     }
 
     public static Single<Bundle> get(BundleID id) {
-        if(!getInstance().isEnabled()) {
+        if (!getInstance().isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
@@ -256,7 +271,7 @@ public class SimpleStorage extends Component implements BundleStorage {
     }
 
     public static Completable remove(BundleID id) {
-        if(!getInstance().isEnabled()) {
+        if (!getInstance().isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
@@ -278,12 +293,14 @@ public class SimpleStorage extends Component implements BundleStorage {
     }
 
     public static Completable clear() {
-        if(!getInstance().isEnabled()) {
+        if (!getInstance().isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
         return Completable.create(s -> {
-            for (BundleID id : getInstance().index.keySet()) {
+            Set<BundleID> bids = new HashSet<>();
+            bids.addAll(getInstance().index.keySet());
+            for (BundleID id : bids) {
                 remove(id).subscribe();
             }
             s.onComplete();

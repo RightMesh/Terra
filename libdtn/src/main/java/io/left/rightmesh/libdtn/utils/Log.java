@@ -1,10 +1,30 @@
 package io.left.rightmesh.libdtn.utils;
 
+import io.left.rightmesh.libdtn.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.Component;
+
+import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_LOGGING;
+import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.LOG_LEVEL;
+
 /**
  * Simple Logger
  * @author Lucien Loiseau on 15/09/18.
  */
-public class Log {
+public class Log extends Component {
+
+
+    // ---- SINGLETON ----
+    private static Log instance = new Log();
+    public static Log getInstance() {
+        return instance;
+    }
+    public static void init() {}
+
+    private Log() {
+        super(COMPONENT_ENABLE_LOGGING);
+        DTNConfiguration.<LOGLevel>get(LOG_LEVEL).observe()
+                .subscribe(l -> level = l);
+    }
 
     public enum LOGLevel {
         DEBUG("DEBUG"),
@@ -26,7 +46,11 @@ public class Log {
     private static LOGLevel level = LOGLevel.DEBUG;
 
     private static void log(LOGLevel l, String tag, String msg) {
-        System.out.println(l+":"+ tag+" > "+msg);
+        if(getInstance().isEnabled()) {
+            if (level.ordinal() >= l.ordinal()) {
+                System.out.println(l + " - " + tag + ": " + msg);
+            }
+        }
     }
 
     public static void set(LOGLevel level) {

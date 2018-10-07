@@ -29,7 +29,7 @@ public abstract class BLOB {
         try {
             return SimpleStorage.createBLOB(expectedSize);
         } catch(BundleStorage.StorageException se) {
-            throw new BundleStorage.StorageException();
+            throw new BundleStorage.StorageFailedException();
         }
     }
 

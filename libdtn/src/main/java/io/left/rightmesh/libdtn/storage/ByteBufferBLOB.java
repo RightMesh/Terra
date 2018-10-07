@@ -57,7 +57,6 @@ public class ByteBufferBLOB extends BLOB {
         }, BackpressureStrategy.BUFFER);
     }
 
-
     @Override
     public ReadableBLOB getReadableBLOB() {
         return new ReadableBLOB() {

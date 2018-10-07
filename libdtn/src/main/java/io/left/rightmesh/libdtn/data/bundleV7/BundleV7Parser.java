@@ -26,11 +26,14 @@ import io.left.rightmesh.libdtn.storage.BLOB;
 import io.left.rightmesh.libdtn.storage.BundleStorage;
 import io.left.rightmesh.libdtn.storage.NullBLOB;
 import io.left.rightmesh.libdtn.storage.WritableBLOB;
+import io.left.rightmesh.libdtn.utils.Log;
 
 /**
  * @author Lucien Loiseau on 10/09/18.
  */
 public class BundleV7Parser  {
+
+    private static final String TAG = "BundleV7Parser";
 
     public interface BundleParsedCallback {
         void onBundleParsed(Bundle b);
@@ -48,11 +51,14 @@ public class BundleV7Parser  {
         public CborParser getItemParser() {
             return CBOR.parser()
                     .cbor_open_array((__, ___, ____) -> {
+                        Log.d(TAG, "[+] parsing new bundle");
                     })
                     .cbor_parse_custom_item(PrimaryBlockItem::new, (__, ___, item) -> {
+                        Log.d(TAG, "-> primary block parsed");
                         bundle = item.b;
                     })
                     .cbor_parse_array_items(CanonicalBlockItem::new, (__, ___, item) -> {
+                        Log.d(TAG, "-> canonical block parsed");
                         bundle.addBlock(item.block);
                     });
         }
@@ -66,21 +72,30 @@ public class BundleV7Parser  {
         public CborParser getItemParser() {
             return CBOR.parser()
                     .do_here((__) -> {
+                        Log.d(TAG, ". preparing primary block CRC");
                         crc16 = CRC.init(CRC.CRCType.CRC16); // prepare CRC16 feeding
                         crc32 = CRC.init(CRC.CRCType.CRC32); // prepare CRC32 feeding
                     })
                     .do_for_each("crc-16", (__, buffer) -> crc16.read(buffer)) // feed CRC16 with every parsed buffer from this sequence
                     .do_for_each("crc-32", (__, buffer) -> crc32.read(buffer)) // feed CRC32 with every parsed buffer from this sequence
                     .cbor_open_array((__, ___, i) -> {
+                        Log.d(TAG, ". array size="+i);
                         if ((i < 8) || (i > 11)) {
                             throw new RxParserException("wrong number of element in primary block");
                         } else {
                             this.b = new Bundle();
                         }
                     })
-                    .cbor_parse_int((__, ___, i) -> b.version = (int) i)
-                    .cbor_parse_int((__, ___, i) -> b.procV7Flags = i)
+                    .cbor_parse_int((__, ___, i) -> {
+                        Log.d(TAG, ". version="+i);
+                        b.version = (int) i;
+                    })
+                    .cbor_parse_int((__, ___, i) -> {
+                        Log.d(TAG, ". flags="+i);
+                        b.procV7Flags = i;
+                    })
                     .cbor_parse_int((p, ___, i) -> {
+                        Log.d(TAG, ". crc="+i);
                         switch ((int) i) {
                             case 0:
                                 b.crcType = PrimaryBlock.CRCFieldType.NO_CRC;
@@ -101,18 +116,37 @@ public class BundleV7Parser  {
                                 throw new RxParserException("wrong CRC type");
                         }
                     })
-                    .cbor_parse_custom_item(EIDItem::new, (__, ___, item) -> b.destination = item.eid)
-                    .cbor_parse_custom_item(EIDItem::new, (__, ___, item) -> b.source = item.eid)
-                    .cbor_parse_custom_item(EIDItem::new, (__, ___, item) -> b.reportto = item.eid)
+                    .cbor_parse_custom_item(EIDItem::new, (__, ___, item) -> {
+                        Log.d(TAG, ". destination="+item.eid.toString());
+                        b.destination = item.eid;
+                    })
+                    .cbor_parse_custom_item(EIDItem::new, (__, ___, item) -> {
+                        Log.d(TAG, ". source="+item.eid.toString());
+                        b.source = item.eid;
+                    })
+                    .cbor_parse_custom_item(EIDItem::new, (__, ___, item) -> {
+                        Log.d(TAG, ". reportto="+item.eid.toString());
+                        b.reportto = item.eid;
+                    })
                     .cbor_open_array(2)
-                    .cbor_parse_int((__, ___, i) -> b.creationTimestamp = i)
                     .cbor_parse_int((__, ___, i) -> {
+                        Log.d(TAG, ". creationTimestamp="+i);
+                        b.creationTimestamp = i;
+                    })
+                    .cbor_parse_int((__, ___, i) -> {
+                        Log.d(TAG, ". sequenceNumber="+i);
                         b.sequenceNumber = i;
                         b.bid = new BundleID(b.source, b.creationTimestamp, b.sequenceNumber);
                     })
-                    .cbor_parse_int((__, ___, i) -> b.lifetime = i)
+                    .cbor_parse_int((__, ___, i) -> {
+                        Log.d(TAG, ". lifetime="+i);
+                        b.lifetime = i;
+                    })
                     .do_here(p -> p.insert_now(close_crc)) // validate close_crc
-                    .do_here(__ -> b.tag("crc_check", this.crc_ok)); // tag the block
+                    .do_here(__ -> {
+                        Log.d(TAG, ". crc_check="+this.crc_ok);
+                        b.tag("crc_check", this.crc_ok);
+                    }); // tag the block
         }
     }
 
@@ -126,17 +160,20 @@ public class BundleV7Parser  {
         public CborParser getItemParser() {
             return CBOR.parser()
                     .do_here((__) -> {
+                        Log.d(TAG, ". preparing canonical block CRC");
                         crc16 = CRC.init(CRC.CRCType.CRC16); // prepare CRC16 feeding
                         crc32 = CRC.init(CRC.CRCType.CRC32); // prepare CRC32 feeding
                     })
                     .do_for_each("crc-16", (__, buffer) -> crc16.read(buffer))
                     .do_for_each("crc-32", (__, buffer) -> crc32.read(buffer))
                     .cbor_open_array((__, ___, i) -> {
+                        Log.d(TAG, ". array size="+i);
                         if ((i != 5) && (i != 6)) {
                             throw new RxParserException("wrong number of element in canonical block");
                         }
                     })
                     .cbor_parse_int((p, __, i) -> { // block type
+                        Log.d(TAG, ". type="+i);
                         switch ((int) i) {
                             case PayloadBlock.type:
                                 block = new PayloadBlock();
@@ -172,9 +209,16 @@ public class BundleV7Parser  {
                                 break;
                         }
                     })
-                    .cbor_parse_int((__, ___, i) -> block.number = (int) i)
-                    .cbor_parse_int((__, ___, i) -> block.procV7flags = i)
+                    .cbor_parse_int((__, ___, i) -> {
+                        Log.d(TAG, ". number="+i);
+                        block.number = (int) i;
+                    })
+                    .cbor_parse_int((__, ___, i) -> {
+                        Log.d(TAG, ". procV7flags="+i);
+                        block.procV7flags = i;
+                    })
                     .cbor_parse_int((p, ___, i) -> {
+                        Log.d(TAG, ". crc="+i);
                         switch ((int) i) {
                             case 0:
                                 block.crcType = BlockHeader.CRCFieldType.NO_CRC;
@@ -197,7 +241,10 @@ public class BundleV7Parser  {
                     })
                     .do_here(p -> p.insert_now(payload))
                     .do_here(p -> p.insert_now(close_crc))  // validate close_crc
-                    .do_here(__ -> block.tag("crc_check", crc_ok)); // tag the block
+                    .do_here(__ -> {
+                        Log.d(TAG, ". crc_check="+this.crc_ok);
+                        block.tag("crc_check", this.crc_ok);
+                    }); // tag the block
         }
 
         WritableBLOB wblob;

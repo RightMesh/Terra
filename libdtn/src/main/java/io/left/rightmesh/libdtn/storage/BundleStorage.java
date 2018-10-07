@@ -13,24 +13,45 @@ package io.left.rightmesh.libdtn.storage;
 public interface BundleStorage {
 
     class StorageException extends Exception {
+        StorageException(String msg) {
+            super(msg);
+        }
     }
 
     class StorageFailedException extends StorageException {
+        StorageFailedException() {
+            super("storage failed");
+        }
     }
 
     class StorageCorruptedException extends StorageException {
+        StorageCorruptedException() {
+            super("storage corrupted");
+        }
     }
 
     class StorageUnavailableException extends StorageException {
+        StorageUnavailableException() {
+            super("storage unavailable");
+        }
     }
 
     class StorageFullException extends StorageException {
+        StorageFullException() {
+            super("storage full");
+        }
     }
 
     class BundleAlreadyExistsException extends StorageException {
+        BundleAlreadyExistsException() {
+            super("bundle already exists");
+        }
     }
 
     class BundleNotFoundException extends StorageException {
+        BundleNotFoundException() {
+            super("bundle not found");
+        }
     }
 
 }

@@ -30,7 +30,6 @@ public class BundleV7Test {
 
     public static String testPayload = "This is a test for bundle serialization";
 
-
     public static Bundle testBundle0() {
         Bundle bundle = new Bundle();
         bundle.destination = new EID.IPN(5, 12);
@@ -42,7 +41,7 @@ public class BundleV7Test {
 
     public static Bundle testBundle1() {
         Bundle bundle = testBundle0();
-        bundle.addBlock(new PayloadBlock(testPayload));
+        bundle.addBlock(new PayloadBlock(new String(testPayload)));
         return bundle;
     }
 
@@ -185,13 +184,15 @@ public class BundleV7Test {
         return (formatter.toString());
     }
 
-    private void showRemaining(String prefix, ByteBuffer buf) {
+    public static void showRemaining(String prefix, ByteBuffer buf) {
+        buf.mark();
         Formatter formatter = new Formatter();
         formatter.format(prefix + " remaining (" + buf.remaining() + "): 0x");
         while (buf.hasRemaining()) {
             formatter.format("%02x", buf.get());
         }
         System.out.println(formatter.toString());
+        buf.reset();
     }
 
 }

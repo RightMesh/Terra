@@ -4,6 +4,10 @@ import org.junit.Test;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.data.Bundle;
@@ -38,51 +42,79 @@ public class SimpleStorageTest {
                 BundleV7Test.testBundle6()
         };
 
-        SimpleStorage.clear();
-        SimpleStorage.count().subscribe(
-                i -> assertEquals(0, i.intValue()),
-                e -> {
-                    System.out.println("cannot count: "+e.getMessage());
-                    fail();
-                });
+        final AtomicReference<CountDownLatch> lock = new AtomicReference<>(new CountDownLatch(1));
 
+        /* store the bundles in storage */
+        clearStorage();
+        assertStorageSize(0);
+
+
+        /* store the bundles in storage */
+        lock.set(new CountDownLatch(6));
         for (int i = 0; i < bundles.length; i++) {
             final int j = i;
             SimpleStorage.store(bundles[j]).subscribe(
                     () -> {
-                        SimpleStorage.count().subscribe(
-                                k -> assertEquals(j + 1, k.intValue()),
-                                e -> {
-                                    System.out.println("cannot count: "+e.getMessage());
-                                    fail();
-                                });
                         SimpleStorage.contains(bundles[j].bid).subscribe(
-                                b -> assertEquals(true, b),
+                                b -> {
+                                    lock.get().countDown();
+                                },
                                 e -> {
-                                    System.out.println("cannot contain: "+e.getMessage());
-                                    fail();
+                                    System.out.println("cannot contain: " + e.getMessage());
+                                    lock.get().countDown();
                                 });
                     },
-                    e -> fail());
+                    e -> {
+                        System.out.println("error> "+e.getMessage());
+                        lock.get().countDown();
+                    });
         }
+        try {
+            lock.get().await(2000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException ie) {
+            // ignore
+        }
+        assertStorageSize(6);
 
-        SimpleStorage.count().subscribe(
-                i -> assertEquals(bundles.length, i.intValue()),
-                e -> {
-                    System.out.println("cannot count: "+e.getMessage());
-                    fail();
-                });
-
-        SimpleStorage.clear().subscribe(
-                () -> SimpleStorage.count().subscribe(
-                        i -> assertEquals(0, i.intValue()),
-                        e -> {
-                            System.out.println("cannot count: "+e.getMessage());
-                            fail();
-                        }),
-                e -> {
-                    System.out.println("cannot clear: "+e.getMessage());
-                    fail();
-                });
+        /* clear the storage */
+        clearStorage();
+        assertStorageSize(0);
     }
+
+    private void clearStorage() {
+        final AtomicReference<CountDownLatch> lock = new AtomicReference<>(new CountDownLatch(1));
+        lock.set(new CountDownLatch(1));
+        SimpleStorage.clear().subscribe(
+                () -> lock.get().countDown(),
+                e -> {
+                    System.out.println("cannot clear storage: "+e.getMessage());
+                    e.printStackTrace();
+                    lock.get().countDown();
+                });
+        try {
+            lock.get().await(2000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException ie) {
+            // ignore
+        }
+    }
+
+    private void assertStorageSize(int expectedSize) {
+        final AtomicReference<CountDownLatch> lock = new AtomicReference<>(new CountDownLatch(1));
+        final AtomicInteger storageSize = new AtomicInteger();
+        SimpleStorage.count().subscribe(
+                i -> {
+                    storageSize.set(i);
+                    lock.get().countDown();
+                },
+                e -> {
+                    System.out.println("cannot count: " + e.getMessage());
+                });
+        try {
+            lock.get().await(2000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException ie) {
+            // ignore
+        }
+        assertEquals(expectedSize, storageSize.get());
+    }
+
 }

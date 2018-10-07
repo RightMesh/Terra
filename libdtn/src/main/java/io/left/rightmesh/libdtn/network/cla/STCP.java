@@ -205,8 +205,10 @@ public class STCP {
                 c.recv().subscribe(
                         buffer -> {
                             try {
-                                if (pdu.read(buffer)) {
-                                    pdu.reset();
+                                while(buffer.hasRemaining()) {
+                                    if (pdu.read(buffer)) {
+                                        pdu.reset();
+                                    }
                                 }
                             } catch (RxParserException rpe) {
                                 s.onComplete();

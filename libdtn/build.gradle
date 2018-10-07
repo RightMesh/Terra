@@ -1,7 +1,7 @@
 apply plugin: 'java-library'
 
 test {
-    systemProperty 'path', '/tmp/'
+    systemProperty 'path', '/tmp'
 }
 
 repositories {
@@ -12,7 +12,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     // libcbor for bundleV7
-    implementation 'com.github.RightMesh:libcbor:v1.0'
+    implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
 
     // RxBus
     implementation 'com.github.RightMesh:RxBus:v1.0'

@@ -1,6 +1,7 @@
 package io.left.rightmesh.libdtn;
 
 import io.left.rightmesh.libdtn.data.EID;
+import io.left.rightmesh.libdtn.utils.Log;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 
@@ -53,7 +54,9 @@ public class DTNConfiguration {
         COMPONENT_ENABLE_VOLATILE_STORAGE("component_enable_volatile_storage"),
         COMPONENT_ENABLE_SIMPLE_STORAGE("component_enable_simple_storage"),
         SIMPLE_STORAGE_PATH("simple_storage_paths"),
-        LIMIT_BLOCKSIZE("limit_blocksize");
+        LIMIT_BLOCKSIZE("limit_blocksize"),
+        COMPONENT_ENABLE_LOGGING("component_enable_logging"),
+        LOG_LEVEL("log_level");
 
         private final String key;
 
@@ -247,6 +250,8 @@ public class DTNConfiguration {
         this.createEntry(Entry.COMPONENT_ENABLE_SIMPLE_STORAGE, false);
         this.<String>createEntrySet(Entry.SIMPLE_STORAGE_PATH);
         this.createEntry(Entry.LIMIT_BLOCKSIZE, (long) 1000000000);
+        this.createEntry(Entry.COMPONENT_ENABLE_LOGGING, false);
+        this.<Log.LOGLevel>createEntry(Entry.LOG_LEVEL, Log.LOGLevel.ERROR);
     }
 
     @SuppressWarnings("unchecked")
