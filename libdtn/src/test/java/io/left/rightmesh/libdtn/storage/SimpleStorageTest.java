@@ -102,12 +102,34 @@ public class SimpleStorageTest {
                 if(bundles[j].bid.toString().equals(bundle.bid.toString())) {
                     found = true;
                     assertArrayEquals(
-                            flowableToByteArray(bundle.getPayloadBlock().data.observe()),
+                            flowableToByteArray(bundles[j].getPayloadBlock().data.observe()),
                             flowableToByteArray(bundle.getPayloadBlock().data.observe()));
                 }
             }
             assertTrue(found);
         }
+
+        /* check remove path */
+        paths.clear();
+        DTNConfiguration.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
+        try {
+            // give it time to unindex
+            Thread.sleep(200);
+        } catch (InterruptedException ie) {
+            // ignore
+        }
+        assertStorageSize(0);
+
+        /* check indexing new path */
+        paths.add(System.getProperty("path"));
+        DTNConfiguration.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
+        try {
+            // give it time to index
+            Thread.sleep(200);
+        } catch (InterruptedException ie) {
+            // ignore
+        }
+        assertStorageSize(6);
 
         /* clear the storage */
         clearStorage();

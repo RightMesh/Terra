@@ -77,31 +77,58 @@ public class SimpleStorage extends Component implements BundleStorage {
         super(DTNConfiguration.Entry.COMPONENT_ENABLE_SIMPLE_STORAGE);
         DTNConfiguration.<Set<String>>get(DTNConfiguration.Entry.SIMPLE_STORAGE_PATH).observe()
                 .subscribe(
-                        paths -> {
-                            storage_paths.clear();
-                            for (String path : paths) {
-                                addPath(path);
-                            }
+                        updated_paths -> {
+                            /* remove obsolete path */
+                            LinkedList<String> pathsToRemove = new LinkedList<>();
+                            storage_paths.stream()
+                                    .filter(p -> !updated_paths.contains(p))
+                                    .map(pathsToRemove::add)
+                                    .count();
+                            pathsToRemove.stream().map(this::removePath).count();
+
+                            /* add new path */
+                            LinkedList<String> pathsToAdd = new LinkedList<>();
+                            updated_paths.stream()
+                                    .filter(p -> !storage_paths.contains(p))
+                                    .map(pathsToAdd::add)
+                                    .count();
+                            pathsToAdd.stream().map(this::addPath).count();
                         }
                 );
     }
 
-    private void addPath(String path) {
+    private boolean removePath(String path) {
+        if (storage_paths.contains(path)) {
+            Set<BundleID> bundlesToRemove = new HashSet<>();
+            index.keySet().stream()
+                    .filter(b -> index.get(b).path.startsWith(path))
+                    .map(b -> {bundlesToRemove.add(b); return b;})
+                    .count();
+            bundlesToRemove.stream().map(index::remove).count();
+            storage_paths.remove(path);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean addPath(String path) {
         if (!storage_paths.contains(path)) {
             File f = new File(path);
             if (f.exists() && f.canRead() && f.canWrite()) {
                 File fblob = new File(path + BLOB_FOLDER);
                 File fbundle = new File(path + BUNDLE_FOLDER);
                 if (!fblob.exists() && !fblob.mkdir()) {
-                    return;
+                    return false;
                 }
                 if (!fbundle.exists() && !fbundle.mkdir()) {
-                    return;
+                    return false;
                 }
                 indexBundles(fbundle);
                 storage_paths.add(path);
+                return true;
             }
         }
+        return false;
     }
 
     private void indexBundles(File folder) {
