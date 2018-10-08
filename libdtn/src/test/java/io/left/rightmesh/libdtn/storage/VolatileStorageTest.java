@@ -28,21 +28,43 @@ public class VolatileStorageTest {
 
         VolatileStorage storage = VolatileStorage.getInstance();
         storage.clear();
-        storage.count().subscribe(i -> assertEquals(0, i.intValue()));
+        try {
+            assertEquals(0, storage.count());
+        } catch(BundleStorage.StorageUnavailableException e) {
+            fail();
+        }
 
         for (int i = 0; i < bundles.length; i++) {
             final int  j = i;
             storage.store(bundles[j]).subscribe(
                     () -> {
-                        storage.count().subscribe(k -> assertEquals(j+1, k.intValue()));
-                        storage.contains(bundles[j].bid).subscribe(b -> assertEquals(true, b));
+                        try {
+                            assertEquals(j+1, storage.count());
+                        } catch(BundleStorage.StorageUnavailableException e) {
+                            fail();
+                        }
+
+                        try {
+                            assertEquals(true, storage.contains(bundles[j].bid));
+                        } catch(BundleStorage.StorageUnavailableException e) {
+                            fail();
+                        }
                     },
                     e -> fail());
         }
-        
-        storage.count().subscribe(i -> assertEquals(bundles.length, i.intValue()));
-        storage.clear().subscribe(
-                () -> storage.count().subscribe(i -> assertEquals(0, i.intValue())));
+
+        try {
+            assertEquals(bundles.length, storage.count());
+        } catch(BundleStorage.StorageUnavailableException e) {
+            fail();
+        }
+
+        storage.clear().subscribe();
+        try {
+            assertEquals(0, storage.count());
+        } catch(BundleStorage.StorageUnavailableException e) {
+            fail();
+        }
     }
 
 }

@@ -162,23 +162,11 @@ public class SimpleStorageTest {
     }
 
     private void assertStorageSize(int expectedSize) {
-        final AtomicReference<CountDownLatch> lock = new AtomicReference<>(new CountDownLatch(1));
-        final AtomicInteger storageSize = new AtomicInteger();
-        SimpleStorage.count().subscribe(
-                i -> {
-                    storageSize.set(i);
-                    lock.get().countDown();
-                },
-                e -> {
-                    System.out.println("[!] cannot count: " + e.getMessage());
-                    lock.get().countDown();
-                });
         try {
-            lock.get().await(2000, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException ie) {
-            // ignore
+            assertEquals(SimpleStorage.getInstance().count(), expectedSize);
+        } catch (BundleStorage.StorageUnavailableException ie) {
+            fail();
         }
-        assertEquals(expectedSize, storageSize.get());
     }
 
 }

@@ -221,6 +221,11 @@ public class VolatileStorage extends Component implements BundleStorage {
 
     private Map<BundleID, IndexEntry> bundles = new HashMap<>();
 
+    /**
+     * Clear the entire volatile storage.
+     *
+     * @return Completable that completes once it is done
+     */
     public static Completable clear() {
         if (!getInstance().isEnabled()) {
             return Completable.error(new StorageUnavailableException());
@@ -232,68 +237,88 @@ public class VolatileStorage extends Component implements BundleStorage {
         });
     }
 
-    public static Single<Integer> count() {
+    /**
+     * Returns the number of bundle indexed in volatile storage
+     * @return number of bundle
+     * @throws StorageUnavailableException if VolatileStorage is disabled
+     */
+    public static int count() throws StorageUnavailableException {
         if (!getInstance().isEnabled()) {
-            return Single.error(new StorageUnavailableException());
+            throw new StorageUnavailableException();
         }
 
-        return Single.create(s -> {
-            s.onSuccess(getInstance().bundles.size());
-        });
+        return getInstance().bundles.size();
     }
 
+    /**
+     * Stores a bundle into VolatileStorage
+     *
+     * @param bundle to store
+     * @return Completable that completes once it is done
+     */
     public static Completable store(Bundle bundle) {
         if (!getInstance().isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
         return Completable.create(s -> {
-            contains(bundle.bid).subscribe(
-                    b -> {
-                        if (b) {
-                            s.onError(new BundleAlreadyExistsException());
-                        } else {
-                            IndexEntry meta = new IndexEntry(bundle);
-                            getInstance().bundles.put(bundle.bid, meta);
-                            s.onComplete();
-                        }
-                    });
+            if (getInstance().bundles.containsKey(bundle.bid)) {
+                s.onError(new BundleAlreadyExistsException());
+            } else {
+                IndexEntry meta = new IndexEntry(bundle);
+                getInstance().bundles.put(bundle.bid, meta);
+                s.onComplete();
+            }
         });
     }
 
-    public static Single<Boolean> contains(BundleID id) {
+    /**
+     * Check wether or not this bundle ID is already indexed in VolatileStorage
+     *
+     * @param id of the bundle
+     * @return true if bundle is already indexed, false otherwise
+     * @throws StorageUnavailableException if the storage is disabled
+     */
+    public static boolean contains(BundleID id) throws StorageUnavailableException {
         if (!getInstance().isEnabled()) {
-            return Single.error(new StorageUnavailableException());
+            throw new StorageUnavailableException();
         }
 
-        return Single.create(s -> s.onSuccess(getInstance().bundles.containsKey(id)));
+        return getInstance().bundles.containsKey(id);
     }
 
+    /**
+     * Pull the bundle from storage
+     *
+     * @param id of the bundle
+     * @return Single RxJava
+     */
     public static Single<Bundle> get(BundleID id) {
         if (!getInstance().isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
-        return contains(id).flatMap(b ->
-                b ? Single.just(getInstance().bundles.get(id).bundle) : Single.error(BundleNotFoundException::new)
-        );
+        if (getInstance().bundles.containsKey(id)) {
+            return Single.just(getInstance().bundles.get(id).bundle);
+        } else {
+            return Single.error(BundleNotFoundException::new);
+        }
     }
 
+    /**
+     * Remove the bundle whose id is given as a parameter from VolatileStorage.
+     *
+     * @param id of the bundle
+     * @return Completable that completes once it is done
+     */
     public static Completable remove(BundleID id) {
         if (!getInstance().isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
-        return Completable.create(s -> {
-            contains(id).subscribe(
-                    b -> {
-                        if (!b) {
-                            s.onComplete();
-                        } else {
-                            getInstance().bundles.remove(id);
-                            s.onComplete();
-                        }
-                    });
-        });
+        if (getInstance().bundles.containsKey(id)) {
+            getInstance().bundles.remove(id);
+        }
+        return Completable.complete();
     }
 }
