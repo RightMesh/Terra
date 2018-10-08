@@ -2,20 +2,26 @@ package io.left.rightmesh.libdtn.storage;
 
 import org.junit.Test;
 
+import java.nio.ByteBuffer;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Test;
+import io.reactivex.Flowable;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_SIMPLE_STORAGE;
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.SIMPLE_STORAGE_PATH;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -52,8 +58,34 @@ public class SimpleStorageTest {
         for (int i = 0; i < bundles.length; i++) {
             final int j = i;
             SimpleStorage.store(bundles[j]).subscribe(
-                    () -> lock.get().countDown(),
-                    e -> lock.get().countDown());
+                    () -> {
+                        lock.get().countDown();
+                    },
+                    e -> {
+                        System.out.println(e.getMessage());
+                        lock.get().countDown();
+                    });
+        }
+        try {
+            lock.get().await(2000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException ie) {
+            // ignore
+        }
+        assertStorageSize(6);
+
+        /* pull the bundles from storage  */
+        lock.set(new CountDownLatch(6));
+        final LinkedList<Bundle> pulledBundles = new LinkedList<>();
+        for (Bundle bundle : bundles) {
+            SimpleStorage.get(bundle.bid).subscribe(
+                    b -> {
+                        pulledBundles.add(b);
+                        lock.get().countDown();
+                    },
+                    e -> {
+                        System.out.println(e.getMessage());
+                        lock.get().countDown();
+                    });
         }
 
         try {
@@ -61,12 +93,33 @@ public class SimpleStorageTest {
         } catch (InterruptedException ie) {
             // ignore
         }
+        assertEquals(6, pulledBundles.size());
 
-        assertStorageSize(6);
+        /* check that they are the same */
+        for (Bundle bundle : pulledBundles) {
+            boolean found = false;
+            for(int j = 0; j < bundles.length; j++) {
+                if(bundles[j].bid.toString().equals(bundle.bid.toString())) {
+                    found = true;
+                    assertArrayEquals(
+                            flowableToByteArray(bundle.getPayloadBlock().data.observe()),
+                            flowableToByteArray(bundle.getPayloadBlock().data.observe()));
+                }
+            }
+            assertTrue(found);
+        }
 
         /* clear the storage */
         clearStorage();
         assertStorageSize(0);
+    }
+
+    private byte[] flowableToByteArray(Flowable<ByteBuffer> f) {
+        AtomicInteger size = new AtomicInteger();
+        f.subscribe(b -> size.addAndGet(b.remaining()));
+        ByteBuffer ret = ByteBuffer.allocate(size.get());
+        f.subscribe(ret::put);
+        return ret.array();
     }
 
     private void clearStorage() {
@@ -96,6 +149,7 @@ public class SimpleStorageTest {
                 },
                 e -> {
                     System.out.println("[!] cannot count: " + e.getMessage());
+                    lock.get().countDown();
                 });
         try {
             lock.get().await(2000, TimeUnit.MILLISECONDS);

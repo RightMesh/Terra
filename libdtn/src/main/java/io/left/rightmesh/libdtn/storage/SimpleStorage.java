@@ -9,9 +9,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -41,13 +43,8 @@ public class SimpleStorage extends Component implements BundleStorage {
 
     // ---- SINGLETON ----
     private static SimpleStorage instance = new SimpleStorage();
-
-    public static SimpleStorage getInstance() {
-        return instance;
-    }
-
-    public static void init() {
-    }
+    public static SimpleStorage getInstance() { return instance;  }
+    public static void init() {    }
 
     private static class IndexEntry extends MetaBundle {
         String path; /* path to the file where the bundle is serialized */
@@ -74,7 +71,7 @@ public class SimpleStorage extends Component implements BundleStorage {
     }
 
     private LinkedList<String> storage_paths = new LinkedList<>();
-    private HashMap<BundleID, IndexEntry> index = new HashMap<>();
+    private Map<BundleID, IndexEntry> index = Collections.synchronizedMap(new HashMap<>());
 
     private SimpleStorage() {
         super(DTNConfiguration.Entry.COMPONENT_ENABLE_SIMPLE_STORAGE);
@@ -361,7 +358,9 @@ public class SimpleStorage extends Component implements BundleStorage {
                             })
                     .cbor_parse_custom_item(
                             BundleV7Parser.BundleItem::new,
-                            (__, ___, item) -> ret.set(item.bundle));
+                            (__, ___, item) -> {
+                                ret.set(item.bundle);
+                            });
 
             ByteBuffer buffer = ByteBuffer.allocate(2048);
             FileChannel in = new FileInputStream(meta.path).getChannel();
@@ -381,13 +380,15 @@ public class SimpleStorage extends Component implements BundleStorage {
 
             /* return */
             if (ret.get() != null) {
-                if(blob_path.get() != null) {
+                if(blob_path.get() != null) { /* payload block is a FileBLOB */
                     try {
                         ret.get().getPayloadBlock().data = new FileBLOB(blob_path.get());
                         s.onSuccess(ret.get());
                     } catch(IOException io) {
                         s.onError(new Throwable("can't retrieve payload blob"));
                     }
+                } else {
+                    s.onSuccess(ret.get());
                 }
             } else {
                 s.onError(new Throwable("can't retrieve bundle, file is probably corrupt"));
