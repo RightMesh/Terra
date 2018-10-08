@@ -64,7 +64,7 @@ public class BundleV7Parser  {
         }
     }
 
-    static class PrimaryBlockItem extends BlockWithCRC {
+    public static class PrimaryBlockItem extends BlockWithCRC {
 
         Bundle b;
 
@@ -150,7 +150,7 @@ public class BundleV7Parser  {
         }
     }
 
-    static class CanonicalBlockItem extends BlockWithCRC {
+    public static class CanonicalBlockItem extends BlockWithCRC {
 
         CanonicalBlock block;
 
@@ -337,7 +337,7 @@ public class BundleV7Parser  {
                         });
     }
 
-    static class EIDItem implements CborParser.ParseableItem {
+    public static class EIDItem implements CborParser.ParseableItem {
 
         public EID eid;
 

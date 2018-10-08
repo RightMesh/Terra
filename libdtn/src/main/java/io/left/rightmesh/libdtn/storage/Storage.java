@@ -21,12 +21,10 @@ public class Storage {
     }
 
     private Storage() {
-        // todo should always store in simplestorage and store in volatile storage if
-        // enough space
     }
 
     /**
-     * Try to store in persistant storage first, otherwise volatile storage.
+     * Try to store in persistant storage first and then in volatile storage.
      *
      * @param bundle to store
      * @return Completable that complete whenever the bundle is stored, error otherwise

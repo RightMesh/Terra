@@ -3,6 +3,7 @@ package io.left.rightmesh.libdtn.storage;
 import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.BundleID;
+import io.left.rightmesh.libdtn.data.MetaBundle;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
@@ -29,10 +30,11 @@ public class VolatileStorage extends Component implements BundleStorage {
     private static final int VOLATILE_BLOB_STORAGE_MAX_CAPACITY = 10000000; // 10M
     private static int CurrentBLOBMemoryUsage = 0;
 
+    // ---- SINGLETON ----
     private static VolatileStorage instance = new VolatileStorage();
     public static VolatileStorage getInstance() { return instance; }
-    public static void init() { }
-
+    public static void init() {
+    }
     private VolatileStorage() {
         super(COMPONENT_ENABLE_VOLATILE_STORAGE);
     }
@@ -45,7 +47,7 @@ public class VolatileStorage extends Component implements BundleStorage {
      * @throws StorageFullException if there isn't enough space in Volatile Memory
      */
     public static VolatileBLOB createBLOB(int expectedSize) throws StorageFullException, StorageUnavailableException {
-        if(!getInstance().isEnabled()) {
+        if (!getInstance().isEnabled()) {
             throw new StorageUnavailableException();
         }
 
@@ -185,7 +187,7 @@ public class VolatileStorage extends Component implements BundleStorage {
                     if (length > data.length - position) {
                         throw new BLOBOverflowException();
                     }
-                    while(buffer.hasRemaining()) {
+                    while (buffer.hasRemaining()) {
                         data[position++] = buffer.get();
                     }
                     return length;
@@ -209,10 +211,18 @@ public class VolatileStorage extends Component implements BundleStorage {
         }
     }
 
-    private Map<BundleID, Bundle> bundles = new HashMap<>();
+    private static class IndexEntry extends MetaBundle {
+        Bundle bundle;
+        IndexEntry(Bundle bundle) {
+            super(bundle);
+            this.bundle = bundle;
+        }
+    }
+
+    private Map<BundleID, IndexEntry> bundles = new HashMap<>();
 
     public static Completable clear() {
-        if(!getInstance().isEnabled()) {
+        if (!getInstance().isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
@@ -223,7 +233,7 @@ public class VolatileStorage extends Component implements BundleStorage {
     }
 
     public static Single<Integer> count() {
-        if(!getInstance().isEnabled()) {
+        if (!getInstance().isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
@@ -233,7 +243,7 @@ public class VolatileStorage extends Component implements BundleStorage {
     }
 
     public static Completable store(Bundle bundle) {
-        if(!getInstance().isEnabled()) {
+        if (!getInstance().isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
@@ -243,7 +253,8 @@ public class VolatileStorage extends Component implements BundleStorage {
                         if (b) {
                             s.onError(new BundleAlreadyExistsException());
                         } else {
-                            getInstance().bundles.put(bundle.bid, bundle);
+                            IndexEntry meta = new IndexEntry(bundle);
+                            getInstance().bundles.put(bundle.bid, meta);
                             s.onComplete();
                         }
                     });
@@ -251,7 +262,7 @@ public class VolatileStorage extends Component implements BundleStorage {
     }
 
     public static Single<Boolean> contains(BundleID id) {
-        if(!getInstance().isEnabled()) {
+        if (!getInstance().isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
@@ -259,24 +270,17 @@ public class VolatileStorage extends Component implements BundleStorage {
     }
 
     public static Single<Bundle> get(BundleID id) {
-        if(!getInstance().isEnabled()) {
+        if (!getInstance().isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
-        return Single.create(s -> {
-            contains(id).subscribe(
-                    b -> {
-                        if (!b) {
-                            s.onError(new BundleNotFoundException());
-                        } else {
-                            s.onSuccess(getInstance().bundles.get(id));
-                        }
-                    });
-        });
+        return contains(id).flatMap(b ->
+                b ? Single.just(getInstance().bundles.get(id).bundle) : Single.error(BundleNotFoundException::new)
+        );
     }
 
     public static Completable remove(BundleID id) {
-        if(!getInstance().isEnabled()) {
+        if (!getInstance().isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 

@@ -44,36 +44,24 @@ public class SimpleStorageTest {
 
         final AtomicReference<CountDownLatch> lock = new AtomicReference<>(new CountDownLatch(1));
 
-        /* store the bundles in storage */
         clearStorage();
         assertStorageSize(0);
-
 
         /* store the bundles in storage */
         lock.set(new CountDownLatch(6));
         for (int i = 0; i < bundles.length; i++) {
             final int j = i;
             SimpleStorage.store(bundles[j]).subscribe(
-                    () -> {
-                        SimpleStorage.contains(bundles[j].bid).subscribe(
-                                b -> {
-                                    lock.get().countDown();
-                                },
-                                e -> {
-                                    System.out.println("cannot contain: " + e.getMessage());
-                                    lock.get().countDown();
-                                });
-                    },
-                    e -> {
-                        System.out.println("error> "+e.getMessage());
-                        lock.get().countDown();
-                    });
+                    () -> lock.get().countDown(),
+                    e -> lock.get().countDown());
         }
+
         try {
             lock.get().await(2000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException ie) {
             // ignore
         }
+
         assertStorageSize(6);
 
         /* clear the storage */
@@ -87,7 +75,7 @@ public class SimpleStorageTest {
         SimpleStorage.clear().subscribe(
                 () -> lock.get().countDown(),
                 e -> {
-                    System.out.println("cannot clear storage: "+e.getMessage());
+                    System.out.println("[!] cannot clear storage: "+e.getMessage());
                     e.printStackTrace();
                     lock.get().countDown();
                 });
@@ -107,7 +95,7 @@ public class SimpleStorageTest {
                     lock.get().countDown();
                 },
                 e -> {
-                    System.out.println("cannot count: " + e.getMessage());
+                    System.out.println("[!] cannot count: " + e.getMessage());
                 });
         try {
             lock.get().await(2000, TimeUnit.MILLISECONDS);

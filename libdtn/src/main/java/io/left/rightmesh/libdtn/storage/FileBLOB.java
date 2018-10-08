@@ -54,6 +54,10 @@ public class FileBLOB extends BLOB {
         }
     }
 
+    public String getAbsolutePath() {
+        return file.getAbsolutePath();
+    }
+
     @Override
     public long size() {
         if (!file.exists()) {

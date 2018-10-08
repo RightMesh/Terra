@@ -157,7 +157,7 @@ public class BundleV7Serializer {
                     .cbor_encode_int(0);
         }
 
-        if (eid instanceof EID.DTN) {
+        if (eid instanceof EID.DTN || eid instanceof EID.CLA) {
             return CBOR.encoder()
                     .cbor_start_array(2)
                     .cbor_encode_int(eid.IANA())
@@ -172,6 +172,7 @@ public class BundleV7Serializer {
                     .cbor_encode_int(((EID.IPN) eid).node_number)
                     .cbor_encode_int(((EID.IPN) eid).service_number);
         }
+
         return CBOR.encoder(); // that should not happen
     }
 
