@@ -125,10 +125,7 @@ public class BundleProcessor {
             bundleForwardingFailed(bundle);
         } else {
             Storage.store(bundle).subscribe(
-                    (b) -> {
-                        /* in storage, defer forwarding */
-                        RoutingEngine.forwardLater(b);
-                    },
+                    RoutingEngine::forwardLater, /* in storage, defer forwarding */
                     storageFailure -> {
                         /* storage failed, abandon forwarding */
                         bundleForwardingFailed(bundle);
@@ -216,7 +213,7 @@ public class BundleProcessor {
                         Storage.store(bundle).subscribe(
                                 (b) -> {
                                     /* defer delivery */
-                                    RegistrationTable.deliverLater(b, sink);
+                                    RegistrationTable.deliverLater(b);
                                 },
                                 storageFailure -> {
                                     /* abandon delivery */

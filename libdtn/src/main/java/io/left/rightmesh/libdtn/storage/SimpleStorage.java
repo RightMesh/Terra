@@ -27,6 +27,8 @@ import io.left.rightmesh.libdtn.data.BundleID;
 import io.left.rightmesh.libdtn.data.MetaBundle;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Serializer;
+import io.left.rightmesh.libdtn.events.BundleIndexed;
+import io.left.rightmesh.librxbus.RxBus;
 import io.reactivex.Completable;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
@@ -167,6 +169,7 @@ public class SimpleStorage extends Component implements BundleStorage {
                                         file.getAbsolutePath(),
                                         p.<FileHeaderItem>get("header").has_blob,
                                         p.<FileHeaderItem>get("header").blob_path));
+                                RxBus.post(new BundleIndexed(meta));
                             });
             ByteBuffer buffer = ByteBuffer.allocate(500);
             FileChannel in;
@@ -368,6 +371,20 @@ public class SimpleStorage extends Component implements BundleStorage {
         }
 
         return getInstance().index.containsKey(id);
+    }
+
+    public static Single<MetaBundle> getMetaBundle(BundleID id) {
+        if (!getInstance().isEnabled()) {
+            return Single.error(new StorageUnavailableException());
+        }
+
+        return Single.create(s -> {
+            if(contains(id)) {
+                s.onSuccess(getInstance().index.get(id));
+            } else {
+                s.onError(new BundleNotFoundException());
+            }
+        });
     }
 
     /**

@@ -4,7 +4,12 @@ import java.util.HashMap;
 
 import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.data.Bundle;
+import io.left.rightmesh.libdtn.events.BundlePulled;
+import io.left.rightmesh.libdtn.events.RegistrationActive;
 import io.left.rightmesh.libdtn.storage.BLOB;
+import io.left.rightmesh.libdtn.storage.Storage;
+import io.left.rightmesh.librxbus.RxBus;
+import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Completable;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_REGISTRATION;
@@ -53,6 +58,7 @@ public class RegistrationTable extends Component {
 
     private RegistrationTable() {
         super(COMPONENT_ENABLE_REGISTRATION);
+        RxBus.register(this);
     }
 
     private HashMap<String, RegistrationCallback> registrations;
@@ -142,7 +148,18 @@ public class RegistrationTable extends Component {
         }
     }
 
-    public static void deliverLater(Bundle bundle, String sink) {
-        // todo
+    public static void deliverLater(final Bundle bundle) {
+        bundle.tag("deliverLater", new Object() {
+            Bundle b;
+            {{
+                this.b = bundle;
+                RxBus.register(this);
+            }}
+
+            @Subscribe
+            public void onEvent(RegistrationActive event) {
+                // do stuff
+            }
+        });
     }
 }

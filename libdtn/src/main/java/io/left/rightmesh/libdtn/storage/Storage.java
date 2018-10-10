@@ -1,7 +1,17 @@
 package io.left.rightmesh.libdtn.storage;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.BundleID;
+import io.left.rightmesh.libdtn.events.BundlePulled;
+import io.left.rightmesh.libdtn.events.ChannelOpened;
+import io.left.rightmesh.libdtn.events.DTNEvent;
+import io.left.rightmesh.librxbus.RxBus;
+import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Completable;
 import io.reactivex.Single;
 
@@ -21,6 +31,7 @@ public class Storage {
     }
 
     private Storage() {
+        RxBus.register(this);
     }
 
     /**
@@ -39,14 +50,30 @@ public class Storage {
                 });
     }
 
+    /**
+     * Pull a Bundle from Storage. It will try to pull it from Volatile if it exists, or from
+     * SimpleStorage otherwise.
+     *
+     * @param id of the bundle to pull from storage
+     * @return a Single that completes if the Bundle was successfully pulled, onError otherwise
+     */
     public static Single<Bundle> get(BundleID id) {
+        /* add bundle in both storage if possible, otherwise just SimpleStorage */
         return VolatileStorage.get(id)
                 .onErrorResumeNext(SimpleStorage.get(id));
     }
 
+    /**
+     * Delete a Bundle from all storage and removes all event registration to it.
+     *
+     * @param id of the bundle to delete
+     * @return Completable
+     */
     public static Completable remove(BundleID id) {
+        /* remove bundle from all storage */
         return VolatileStorage.remove(id)
                 .onErrorComplete(e -> true)
                 .andThen(SimpleStorage.remove(id));
+
     }
 }
