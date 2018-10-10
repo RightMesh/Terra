@@ -8,11 +8,13 @@ import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.EID;
+import io.left.rightmesh.libdtn.data.MetaBundle;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Serializer;
 import io.left.rightmesh.libdtn.network.Peer;
 import io.left.rightmesh.libdtn.network.RxTCP;
 import io.left.rightmesh.libdtn.network.TCPPeer;
+import io.left.rightmesh.libdtn.storage.Storage;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -136,14 +138,30 @@ public class STCP {
                 return Observable.error(new RecvOnlyPeerException());
             }
 
-            Flowable<ByteBuffer> job = createBundleJob(bundle);
-            if (job == null) {
-                return Observable.error(new Throwable("Cannot serialize the bundle"));
-            }
+            /* pull the bundle from storage if necessary */
+            if(bundle instanceof MetaBundle) {
+                return Observable.create(s -> Storage.get(bundle.bid).subscribe(
+                        b -> {
+                            Flowable<ByteBuffer> job = createBundleJob(bundle);
+                            if (job == null) {
+                                s.onError(new Throwable("Cannot serialize the bundle"));
+                            }
 
-            RxTCP.Connection.JobHandle handle = c.order(job);
-            return handle.observe();
+                            RxTCP.Connection.JobHandle handle = c.order(job);
+                            handle.observe().subscribe(s::onNext);
+                        },
+                        s::onError));
+            } else {
+                Flowable<ByteBuffer> job = createBundleJob(bundle);
+                if (job == null) {
+                    return Observable.error(new Throwable("Cannot serialize the bundle"));
+                }
+
+                RxTCP.Connection.JobHandle handle = c.order(job);
+                return handle.observe();
+            }
         }
+
 
         @Override
         public Observable<Integer> sendBundles(Flowable<Bundle> upstream) {

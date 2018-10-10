@@ -15,8 +15,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
@@ -78,10 +76,10 @@ public class SimpleStorage extends Component implements BundleStorage {
             blob_path = "";
         }
 
-        IndexEntry(MetaBundle meta, String path, String blobPath) {
+        IndexEntry(MetaBundle meta, String path, boolean has_blob, String blobPath) {
             super(meta);
             this.path = path;
-            has_blob = true;
+            this.has_blob = has_blob;
             blob_path = blobPath;
         }
     }
@@ -148,21 +146,28 @@ public class SimpleStorage extends Component implements BundleStorage {
 
     private void indexBundles(File folder) {
         for (final File file : folder.listFiles()) {
-            /* preparing file and parser, we just parse the file header */
-            CborParser p = CBOR.parser()
+            /*
+             * preparing the parser. We just parse the file header and the primary block of
+             * the bundle and then build a MetaBundle that will be use for processing
+             */
+            CborParser parser = CBOR.parser()
                     .cbor_open_array(2)
                     .cbor_parse_custom_item(
                             FileHeaderItem::new,
-                            (__, ___, item) -> {
-                                if(item.has_blob) {
-                                    index.put(item.meta.bid, new IndexEntry(item.meta,
-                                            file.getAbsolutePath(), item.blob_path));
-                                } else {
-                                    index.put(item.meta.bid, new IndexEntry(item.meta,
-                                            file.getAbsolutePath()));
-                                }
+                            (p, ___, item) -> {
+                                p.save("header", item);
+                            })
+                    .cbor_open_array((__, ___, ____) -> {})
+                    .cbor_parse_custom_item(
+                            BundleV7Parser.PrimaryBlockItem::new,
+                            (p, ___, item) -> {
+                                MetaBundle meta = new MetaBundle(item.b);
+                                meta.bundle_size = p.<FileHeaderItem>get("header").bundle_size;
+                                index.put(meta.bid, new IndexEntry(meta,
+                                        file.getAbsolutePath(),
+                                        p.<FileHeaderItem>get("header").has_blob,
+                                        p.<FileHeaderItem>get("header").blob_path));
                             });
-
             ByteBuffer buffer = ByteBuffer.allocate(500);
             FileChannel in;
             try {
@@ -176,7 +181,7 @@ public class SimpleStorage extends Component implements BundleStorage {
             try {
                 while ((in.read(buffer) > 0) && !done) {
                     buffer.flip();
-                    done = p.read(buffer);
+                    done = parser.read(buffer);
                     buffer.clear();
                 }
                 in.close();
@@ -267,20 +272,20 @@ public class SimpleStorage extends Component implements BundleStorage {
      * @param bundle to store
      * @return Completable
      */
-    public static Completable store(Bundle bundle) {
+    public static Single<Bundle> store(Bundle bundle) {
         if (!getInstance().isEnabled()) {
-            return Completable.error(new StorageUnavailableException());
+            return Single.error(new StorageUnavailableException());
         }
 
-        return Completable.create(
+        return Single.<Bundle>create(
                 s -> {
                     if (!getInstance().index.containsKey(bundle.bid)) {
                         /* prepare bundle encoder and metabundle */
                         CborEncoder bundleEncoder = BundleV7Serializer.encode(bundle);
-                        MetaBundle meta = new MetaBundle(bundle, bundleEncoder);
+                        final MetaBundle meta = new MetaBundle(bundle, bundleEncoder);
 
                         /* create file and assess available space */
-                        File fbundle = null;
+                        File fbundle;
                         try {
                             fbundle = createBundleEntry(bundle.bid, meta.bundle_size);
                         } catch (StorageFullException sfe) {
@@ -304,64 +309,45 @@ public class SimpleStorage extends Component implements BundleStorage {
                             // momentarily remove the blob from bundle for serialization
                             bundle.getPayloadBlock().data = new NullBLOB();
                         }
+                        final IndexEntry entry = new IndexEntry(
+                                meta,
+                                fbundle.getAbsolutePath(),
+                                has_blob,
+                                blob_path);
 
                         /*
                          * the bundle will be serialized in the file as a CBOR array containing
                          * two item, the file header and the bundle
                          */
-                        CborEncoder enc = CBOR.encoder();
-                        if(has_blob) {
-                            enc.cbor_start_array(2)
-                                    .cbor_start_array(3)
-                                    .cbor_encode_boolean(has_blob)
-                                    .cbor_encode_text_string(blob_path)
-                                    .merge(meta.encode())
-                                    .merge(bundleEncoder);
-                        } else {
-                            enc.cbor_start_array(2)
-                                    .cbor_start_array(2)
-                                    .cbor_encode_boolean(has_blob)
-                                    .merge(meta.encode())
-                                    .merge(bundleEncoder);
-                        }
+                        CborEncoder enc = CBOR.encoder()
+                                .cbor_start_array(2)  /* File = header + bundle */
+                                .cbor_start_array(3)  /* File Header */
+                                .cbor_encode_int(meta.bundle_size)
+                                .cbor_encode_boolean(has_blob)
+                                .cbor_encode_text_string(blob_path)
+                                .merge(bundleEncoder); /* bundle */
 
                         /* bundle and actual serialization */
                         OutputStream out = new BufferedOutputStream(
                                 new FileOutputStream(fbundle));
-                        AtomicBoolean b = new AtomicBoolean(true);
 
-                        enc.observe().subscribe(
+                        enc.observe().subscribe( /* same thread */
                                 buffer -> {
                                     while (buffer.hasRemaining()) {
                                         out.write(buffer.get());
                                     }
+                                    getInstance().index.put(bundle.bid, entry);
+                                    s.onSuccess(meta);
                                 },
-                                e -> b.set(false));
+                                e -> {
+                                    fbundle.delete();
+                                    s.onError(new Throwable("serialized into file failed"));
+                                });
                         out.close();
 
                         /* if we removed the payload BLOB, we put it back */
                         if(has_blob) {
                             bundle.getPayloadBlock().data = blob;
-                        }
-
-                        /* add bundle into index */
-                        if (b.get()) {
-                            if(has_blob) {
-                                getInstance().index.put(bundle.bid,
-                                        new IndexEntry(
-                                                meta,
-                                                fbundle.getAbsolutePath(),
-                                                blob_path));
-                            } else {
-                                getInstance().index.put(bundle.bid,
-                                        new IndexEntry(
-                                                meta,
-                                                fbundle.getAbsolutePath()));
-                            }
-                            s.onComplete();
-                        } else {
-                            fbundle.delete();
-                            s.onError(new Throwable("serialized into file failed"));
                         }
 
                     }
@@ -402,62 +388,49 @@ public class SimpleStorage extends Component implements BundleStorage {
                 return;
             }
 
-            /* extracting meta */
-            IndexEntry meta = getInstance().index.get(id);
-            File fbundle = new File(meta.path);
+            /* pulling entry from index */
+            IndexEntry entry = getInstance().index.get(id);
+            File fbundle = new File(entry.path);
             if (!fbundle.exists() || !fbundle.canRead()) {
-                s.onError(new Throwable("can't read bundle in storage: " + meta.path));
+                s.onError(new Throwable("can't read bundle file in storage: " + entry.path));
                 return;
             }
 
             /* preparing file and parser */
-            AtomicReference<Bundle> ret = new AtomicReference<>();
-            AtomicReference<String> blob_path = new AtomicReference<>(null);
-            CborParser p = CBOR.parser()
+            CborParser parser = CBOR.parser()
                     .cbor_open_array(2)
                     .cbor_parse_custom_item(
                             FileHeaderItem::new,
-                            (__, ___, item) -> {
-                                if(item.has_blob) {
-                                    blob_path.set(item.blob_path);
-                                }
-                            })
+                            (p, ___, item) -> p.save("header", item))
                     .cbor_parse_custom_item(
                             BundleV7Parser.BundleItem::new,
-                            (__, ___, item) -> {
-                                ret.set(item.bundle);
+                            (p, ___, item) -> {
+                                if(p.<FileHeaderItem>get("header").has_blob) {
+                                    String path = p.<FileHeaderItem>get("header").blob_path;
+                                    try {
+                                        item.bundle.getPayloadBlock().data = new FileBLOB(path);
+                                        s.onSuccess(item.bundle);
+                                    } catch(IOException io) {
+                                        s.onError(new Throwable("can't retrieve payload blob"));
+                                    }
+                                }
+                                s.onSuccess(item.bundle);
                             });
 
+            /* extracting bundle from file */
             ByteBuffer buffer = ByteBuffer.allocate(2048);
-            FileChannel in = new FileInputStream(meta.path).getChannel();
-
-            /* extracting bundle */
+            FileChannel in = new FileInputStream(entry.path).getChannel();
             try {
                 boolean done = false;
                 while ((in.read(buffer) > 0) && !done) {
                     buffer.flip();
-                    done = p.read(buffer);
+                    done = parser.read(buffer);
                     buffer.clear();
                 }
                 in.close();
             } catch(RxParserException | IOException rpe) {
                 /* should not happen */
-            }
-
-            /* return */
-            if (ret.get() != null) {
-                if(blob_path.get() != null) { /* payload block is a FileBLOB */
-                    try {
-                        ret.get().getPayloadBlock().data = new FileBLOB(blob_path.get());
-                        s.onSuccess(ret.get());
-                    } catch(IOException io) {
-                        s.onError(new Throwable("can't retrieve payload blob"));
-                    }
-                } else {
-                    s.onSuccess(ret.get());
-                }
-            } else {
-                s.onError(new Throwable("can't retrieve bundle, file is probably corrupt"));
+                s.onError(rpe);
             }
         }).subscribeOn(Schedulers.io());
     }
@@ -531,27 +504,17 @@ public class SimpleStorage extends Component implements BundleStorage {
 
     private static class FileHeaderItem implements CborParser.ParseableItem {
 
-        MetaBundle meta;
+        long    bundle_size;
         boolean has_blob;
         String  blob_path;
 
         @Override
         public CborParser getItemParser() {
             return CBOR.parser()
-                    .cbor_open_array((__, ___, size) -> {
-                        if(size != 2 && size != 3) {
-                            throw new RxParserException("array size is not correct");
-                        }})
-                    .cbor_parse_boolean((p,b) -> {
-                        has_blob = b;
-                    })
-                    .do_insert_if(
-                            (__) -> has_blob,
-                            CBOR.parser().cbor_parse_text_string_full((__, str) -> blob_path = str)
-                    )
-                    .cbor_parse_custom_item(
-                            MetaBundle.MetaBundleItem::new,
-                            (__, ___, item) -> meta = item.meta);
+                    .cbor_open_array(3)
+                    .cbor_parse_int((__, ___, i) -> bundle_size = i)
+                    .cbor_parse_boolean((__,b) -> has_blob = b)
+                    .cbor_parse_text_string_full((__, str) -> blob_path = str);
         }
     }
 }

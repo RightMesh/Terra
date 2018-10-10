@@ -256,18 +256,18 @@ public class VolatileStorage extends Component implements BundleStorage {
      * @param bundle to store
      * @return Completable that completes once it is done
      */
-    public static Completable store(Bundle bundle) {
+    public static Single<Bundle> store(Bundle bundle) {
         if (!getInstance().isEnabled()) {
-            return Completable.error(new StorageUnavailableException());
+            return Single.error(new StorageUnavailableException());
         }
 
-        return Completable.create(s -> {
+        return Single.create(s -> {
             if (getInstance().bundles.containsKey(bundle.bid)) {
                 s.onError(new BundleAlreadyExistsException());
             } else {
                 IndexEntry meta = new IndexEntry(bundle);
                 getInstance().bundles.put(bundle.bid, meta);
-                s.onComplete();
+                s.onSuccess(bundle);
             }
         });
     }

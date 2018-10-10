@@ -66,7 +66,7 @@ public class BundleV7Parser  {
 
     public static class PrimaryBlockItem extends BlockWithCRC {
 
-        Bundle b;
+        public Bundle b;
 
         @Override
         public CborParser getItemParser() {
@@ -152,7 +152,7 @@ public class BundleV7Parser  {
 
     public static class CanonicalBlockItem extends BlockWithCRC {
 
-        CanonicalBlock block;
+        public CanonicalBlock block;
 
         CborParser payload;
 

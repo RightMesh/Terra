@@ -169,6 +169,7 @@ public class PrimaryBlock extends Block {
         this.lifetime = other.lifetime;
         this.appDataLength = other.appDataLength;
         this.fragmentOffset = other.fragmentOffset;
+        this.bid = other.bid;
     }
 
     /**

@@ -58,9 +58,7 @@ public class SimpleStorageTest {
         for (int i = 0; i < bundles.length; i++) {
             final int j = i;
             SimpleStorage.store(bundles[j]).subscribe(
-                    () -> {
-                        lock.get().countDown();
-                    },
+                    (b) -> lock.get().countDown(),
                     e -> {
                         System.out.println(e.getMessage());
                         lock.get().countDown();
@@ -163,7 +161,7 @@ public class SimpleStorageTest {
 
     private void assertStorageSize(int expectedSize) {
         try {
-            assertEquals(SimpleStorage.getInstance().count(), expectedSize);
+            assertEquals(expectedSize, SimpleStorage.count());
         } catch (BundleStorage.StorageUnavailableException ie) {
             fail();
         }

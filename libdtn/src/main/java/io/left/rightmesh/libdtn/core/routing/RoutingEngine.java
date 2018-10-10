@@ -8,9 +8,6 @@ import io.left.rightmesh.libdtn.network.cla.CLAChannel;
  */
 public class RoutingEngine {
 
-
-    //Map<EventID, Set<EventCallback>>  eventmap;
-
     public static CLAChannel findCLA(Bundle bundle) {
         CLAChannel ret;
         if((ret = LinkLocalRouting.findCLA(bundle)) != null) {
@@ -22,7 +19,11 @@ public class RoutingEngine {
         return null;
     }
 
-    public static void forwardLater(Bundle bundle) {
+    public static void forwardLater(final Bundle bundle) {
+        // register the bundle for linklocal and static routing event
+
+
+
         // step-1: read the bundle and extract the CBOR object (a map) for smart routing
         // step-2: for all key, registers the bundle to event ID
         // step-3: for each event the bundle is registered to, pull the bundle from storage,

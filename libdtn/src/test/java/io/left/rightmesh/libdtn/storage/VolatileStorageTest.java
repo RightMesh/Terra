@@ -37,7 +37,7 @@ public class VolatileStorageTest {
         for (int i = 0; i < bundles.length; i++) {
             final int  j = i;
             storage.store(bundles[j]).subscribe(
-                    () -> {
+                    (b) -> {
                         try {
                             assertEquals(j+1, storage.count());
                         } catch(BundleStorage.StorageUnavailableException e) {
@@ -45,7 +45,7 @@ public class VolatileStorageTest {
                         }
 
                         try {
-                            assertEquals(true, storage.contains(bundles[j].bid));
+                            assertEquals(true, storage.contains(b.bid));
                         } catch(BundleStorage.StorageUnavailableException e) {
                             fail();
                         }

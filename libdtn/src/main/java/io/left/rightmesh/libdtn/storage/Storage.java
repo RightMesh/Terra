@@ -29,24 +29,14 @@ public class Storage {
      * @param bundle to store
      * @return Completable that complete whenever the bundle is stored, error otherwise
      */
-    public static Completable store(Bundle bundle) {
+    public static Single<Bundle> store(Bundle bundle) {
         return SimpleStorage.store(bundle)
-                .onErrorComplete(e -> {
+                .onErrorResumeNext(e -> {
                     if(e instanceof BundleStorage.BundleAlreadyExistsException) {
-                        return false;
+                        return Single.error(e);
                     }
-                    if(e instanceof BundleStorage.StorageFullException) {
-                        return true;
-                    }
-                    if(e instanceof BundleStorage.StorageUnavailableException) {
-                        return true;
-                    }
-                    if(e instanceof BundleStorage.StorageException) {
-                        return true;
-                    }
-                    return false;
-                })
-                .andThen(VolatileStorage.store(bundle));
+                    return VolatileStorage.store(bundle);
+                });
     }
 
     public static Single<Bundle> get(BundleID id) {

@@ -142,7 +142,7 @@ public class RegistrationTable extends Component {
         }
     }
 
-    public static void deliverLater(String sink, Bundle bundle) {
+    public static void deliverLater(Bundle bundle, String sink) {
         // todo
     }
 }

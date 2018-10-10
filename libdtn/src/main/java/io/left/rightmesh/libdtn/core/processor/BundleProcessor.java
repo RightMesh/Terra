@@ -9,9 +9,7 @@ import io.left.rightmesh.libdtn.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.data.EID;
 import io.left.rightmesh.libdtn.data.StatusReport;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
-import io.left.rightmesh.libdtn.storage.SimpleStorage;
 import io.left.rightmesh.libdtn.storage.Storage;
-import io.left.rightmesh.libdtn.storage.VolatileStorage;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_FORWARDING;
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_STATUS_REPORTING;
@@ -27,6 +25,9 @@ import static io.left.rightmesh.libdtn.data.StatusReport.ReasonCode.NoKnownRoute
 import static io.left.rightmesh.libdtn.data.StatusReport.ReasonCode.TransmissionCancelled;
 
 /**
+ * BundleProcessor is the entry point of all Bundle (either from Application Agent or
+ * Convergence Layer) and follows the processing instruction described in the RFC.
+ *
  * @author Lucien Loiseau on 28/09/18.
  */
 public class BundleProcessor {
@@ -124,9 +125,9 @@ public class BundleProcessor {
             bundleForwardingFailed(bundle);
         } else {
             Storage.store(bundle).subscribe(
-                    () -> {
+                    (b) -> {
                         /* in storage, defer forwarding */
-                        RoutingEngine.forwardLater(bundle);
+                        RoutingEngine.forwardLater(b);
                     },
                     storageFailure -> {
                         /* storage failed, abandon forwarding */
@@ -213,9 +214,9 @@ public class BundleProcessor {
                     deliveryFailure -> {
                         /* 5.7 - step 2 - delivery failure */
                         Storage.store(bundle).subscribe(
-                                () -> {
+                                (b) -> {
                                     /* defer delivery */
-                                    RegistrationTable.deliverLater(sink, bundle);
+                                    RegistrationTable.deliverLater(b, sink);
                                 },
                                 storageFailure -> {
                                     /* abandon delivery */
