@@ -3,7 +3,10 @@ package io.left.rightmesh.libdtn.core.routing;
 import java.util.HashMap;
 
 import io.left.rightmesh.libdtn.core.Component;
+import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.data.Bundle;
+import io.left.rightmesh.libdtn.data.BundleID;
+import io.left.rightmesh.libdtn.data.EID;
 import io.left.rightmesh.libdtn.events.BundlePulled;
 import io.left.rightmesh.libdtn.events.RegistrationActive;
 import io.left.rightmesh.libdtn.storage.BLOB;
@@ -33,7 +36,8 @@ public class RegistrationTable extends Component {
         void close();
     }
 
-    public static class PassiveRegistration implements RegistrationCallback {
+    /* passive registration */
+    private static RegistrationCallback passiveRegistration = new RegistrationCallback() {
         @Override
         public boolean isActive() {
             return false;
@@ -47,7 +51,7 @@ public class RegistrationTable extends Component {
         @Override
         public void close() {
         }
-    }
+    };
 
     // ---- SINGLETON ----
     private static RegistrationTable instance = new RegistrationTable();
@@ -84,20 +88,15 @@ public class RegistrationTable extends Component {
      * @return true if the AA was registered, false otherwise
      */
     public static boolean register(String sink, RegistrationCallback cb) {
-        if (!getInstance().isEnabled()) {
+        if (!getInstance().isEnabled()
+                && sink != null
+                && cb != null
+                && getInstance().registrations.containsKey(sink)) {
+            getInstance().registrations.put(sink, cb);
+            return true;
+        } else {
             return false;
         }
-
-        if (sink == null || cb == null) {
-            return false;
-        }
-
-        if (getInstance().registrations.containsKey(sink)) {
-            return false;
-        }
-
-        getInstance().registrations.put(sink, cb);
-        return true;
     }
 
     /**
@@ -107,38 +106,36 @@ public class RegistrationTable extends Component {
      * @return true if the AA was unregister, false otherwise
      */
     public static boolean unregister(String sink) {
-        if (!getInstance().isEnabled()) {
-            return false;
-        }
-
-        if (sink == null) {
-            return false;
-        }
-
-        if (getInstance().registrations.containsKey(sink)) {
+        if (!getInstance().isEnabled() && sink == null
+                && getInstance().registrations.containsKey(sink)) {
             getInstance().registrations.get(sink).close();
             getInstance().registrations.remove(sink);
             return true;
+        } else {
+            return false;
         }
-
-        return false;
     }
 
+    /**
+     * Return the active registration for a given sink, null otherwise
+     * @param sink the registered sink
+     * @return RegistrationCallback
+     */
     public static RegistrationCallback getRegistration(String sink) {
-        if (!getInstance().isEnabled()) {
-            return new PassiveRegistration();
-        }
-
-        if (sink == null) {
-            return new PassiveRegistration();
-        }
-
-        if (getInstance().registrations.containsKey(sink)) {
+        if (!getInstance().isEnabled() && sink != null
+                && getInstance().registrations.containsKey(sink)) {
             return getInstance().registrations.get(sink);
+        } else {
+            return passiveRegistration;
         }
-        return new PassiveRegistration();
     }
 
+    /**
+     * Deliver a bundle to the registration
+     * @param sink registered
+     * @param bundle to deliver
+     * @return completes if the bundle was successfully delivered, onError otherwise
+     */
     public static Completable deliver(String sink, Bundle bundle) {
         RegistrationCallback cb = getRegistration(sink);
         if (cb.isActive()) {
@@ -148,17 +145,18 @@ public class RegistrationTable extends Component {
         }
     }
 
+    /**
+     * Register an EventListener that "wakes up" the bundle if a registration has turned active
+     * @param bundle
+     */
     public static void deliverLater(final Bundle bundle) {
-        bundle.tag("deliverLater", new Object() {
-            Bundle b;
-            {{
-                this.b = bundle;
-                RxBus.register(this);
-            }}
-
+        final BundleID bid = bundle.bid;
+        RxBus.register(new Object() {
             @Subscribe
             public void onEvent(RegistrationActive event) {
-                // do stuff
+                Storage.getMeta(bid).subscribe(
+                        BundleProcessor::bundleLocalDelivery,
+                        e -> RxBus.unregister(this));
             }
         });
     }

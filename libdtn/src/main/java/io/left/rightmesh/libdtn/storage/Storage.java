@@ -51,6 +51,18 @@ public class Storage {
     }
 
     /**
+     * Pull a MetaBundle from Storage. If the bundle is available in VolatileStorage it pulls
+     * the real Bundle from the index, otherwise it returns the MetaBundle from SimpleStorage index.
+     *
+     * @param id of the bundle to pull from storage
+     * @return a Bundle, either a real one or a MetaBundle
+     */
+    public static Single<Bundle> getMeta(BundleID id) {
+        return VolatileStorage.get(id)
+                .onErrorResumeNext(SimpleStorage.getMetaBundle(id));
+    }
+
+    /**
      * Pull a Bundle from Storage. It will try to pull it from Volatile if it exists, or from
      * SimpleStorage otherwise.
      *
@@ -58,7 +70,6 @@ public class Storage {
      * @return a Single that completes if the Bundle was successfully pulled, onError otherwise
      */
     public static Single<Bundle> get(BundleID id) {
-        /* add bundle in both storage if possible, otherwise just SimpleStorage */
         return VolatileStorage.get(id)
                 .onErrorResumeNext(SimpleStorage.get(id));
     }

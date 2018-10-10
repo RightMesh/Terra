@@ -81,10 +81,15 @@ public class BundleProcessor {
         }
 
         /* 5.4 - step 4 */
+        bundleActualForward(bundle, claChannel);
+    }
+
+    /* 5.4 - step 4 */
+    public static void bundleActualForward(Bundle bundle, CLAChannel claChannel) {
         claChannel.sendBundle(bundle).subscribe(
                 i -> { /* ignore transmission progress */ },
                 e -> {
-                    // if transmission has failed it is as if no CLA were found
+                    /* if transmission has failed it is as if no CLA were found */
                     bundle.tag("reason_code", TransmissionCancelled);
                     bundleForwardingContraindicated(bundle);
                 },
@@ -211,10 +216,7 @@ public class BundleProcessor {
                     deliveryFailure -> {
                         /* 5.7 - step 2 - delivery failure */
                         Storage.store(bundle).subscribe(
-                                (b) -> {
-                                    /* defer delivery */
-                                    RegistrationTable.deliverLater(b);
-                                },
+                                RegistrationTable::deliverLater,
                                 storageFailure -> {
                                     /* abandon delivery */
                                     bundleDeletion(bundle);
