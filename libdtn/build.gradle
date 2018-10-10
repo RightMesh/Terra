@@ -15,7 +15,11 @@ dependencies {
     implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
 
     // RxBus
-    implementation 'com.github.RightMesh:RxBus:v1.0'
+    implementation 'com.github.RightMesh:librxbus:master-SNAPSHOT'
+
+    // RxTCP
+    implementation 'com.github.RightMesh:librxtcp:master-SNAPSHOT'
+
 
     // RxJava library for reactive programming
     api 'io.reactivex.rxjava2:rxjava:2.1.1'

@@ -8,11 +8,11 @@ import java.util.concurrent.TimeUnit;
 
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
-import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Serializer;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Test;
+import io.left.rightmesh.librxtcp.RxTCP;
 
 import static junit.framework.TestCase.fail;
 

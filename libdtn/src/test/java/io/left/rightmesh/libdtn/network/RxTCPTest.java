@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import io.left.rightmesh.librxtcp.RxTCP;
 import io.reactivex.Flowable;
 
 import static junit.framework.TestCase.assertNotNull;
