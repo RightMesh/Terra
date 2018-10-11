@@ -5,21 +5,25 @@ test {
 }
 
 repositories {
+    google()
+    jcenter()
     maven { url 'https://jitpack.io' }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
+    // common dtn libraries
+    project ':libdtncommon'
+
     // libcbor for bundleV7
     implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
 
-    // RxBus
+    // RxBus for the event bus
     implementation 'com.github.RightMesh:librxbus:master-SNAPSHOT'
 
-    // RxTCP
+    // RxTCP for STCP and TCPCLv3/v4 CLAs
     implementation 'com.github.RightMesh:librxtcp:master-SNAPSHOT'
-
 
     // RxJava library for reactive programming
     api 'io.reactivex.rxjava2:rxjava:2.1.1'
@@ -28,7 +32,7 @@ dependencies {
     api(group: 'org.apache.commons', name: 'commons-lang3', version: '3.4')
 
     // ByteArrayDataOutput ByteStreams
-    api(group: 'com.google.guava', name: 'guava', version: 'r05')
+    testImplementation(group: 'com.google.guava', name: 'guava', version: 'r05')
 
     // jUnit
     testImplementation 'junit:junit:4.12'
