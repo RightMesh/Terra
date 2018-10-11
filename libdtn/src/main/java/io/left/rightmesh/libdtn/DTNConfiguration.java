@@ -44,6 +44,7 @@ public class DTNConfiguration {
         COMPONENT_ENABLE_REGISTRATION("component_enable_registration"),
         COMPONENT_ENABLE_STATIC_API("component_enable_static_api"),
         COMPONENT_ENABLE_DAEMON_API("component_enable_daemon_api"),
+        API_DAEMON_LISTENING_PORT("api_daemon_listening_port"),
         EID_SINGLETON_ONLY("eid_singleton_only"),
         COMPONENT_ENABLE_CLA_STCP("component_enable_cla_stcp"),
         CLA_STCP_LISTENING_PORT("cla_tcp_port"),
@@ -238,6 +239,7 @@ public class DTNConfiguration {
         this.createEntry(Entry.COMPONENT_ENABLE_REGISTRATION, true);
         this.createEntry(Entry.COMPONENT_ENABLE_STATIC_API, true);
         this.createEntry(Entry.COMPONENT_ENABLE_DAEMON_API, false);
+        this.createEntry(Entry.API_DAEMON_LISTENING_PORT, 4557);
         this.createEntry(Entry.ENABLE_FORWARDING, true);
         this.createEntry(Entry.EID_SINGLETON_ONLY, false);
         this.createEntry(Entry.COMPONENT_ENABLE_CLA_STCP, true);

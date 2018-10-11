@@ -13,9 +13,6 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    // common dtn libraries
-    project ':libdtncommon'
-
     // libcbor for bundleV7
     implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
 

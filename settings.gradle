@@ -1,1 +1,1 @@
-include ':libdtn', ':libdtncommon'
+include ':libdtn', ':libdtnagent', ':terra', ':dtnping'

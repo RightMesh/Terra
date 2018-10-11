@@ -1,16 +1,10 @@
 apply plugin: 'java-library'
 
-repositories {
-    google()
-    jcenter()
-    maven { url 'https://jitpack.io' }
-}
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    // libcbor for bundleV7
-    implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
+    project(":libdtn")
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8
