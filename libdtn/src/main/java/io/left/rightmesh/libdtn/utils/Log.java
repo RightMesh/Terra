@@ -12,18 +12,19 @@ import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.LOG_LEVEL;
  */
 public class Log extends Component {
 
+    private static final String TAG = "Log";
 
     // ---- SINGLETON ----
     private static Log instance = new Log();
-    public static Log getInstance() {
-        return instance;
+    public static Log getInstance() { return instance; }
+    public static void init() {
+        getInstance().initComponent(COMPONENT_ENABLE_LOGGING);
+        DTNConfiguration.<LOGLevel>get(LOG_LEVEL).observe().subscribe(l -> level = l);
     }
-    public static void init() {}
 
-    private Log() {
-        super(COMPONENT_ENABLE_LOGGING);
-        DTNConfiguration.<LOGLevel>get(LOG_LEVEL).observe()
-                .subscribe(l -> level = l);
+    @Override
+    protected String getComponentName() {
+        return TAG;
     }
 
     public enum LOGLevel {

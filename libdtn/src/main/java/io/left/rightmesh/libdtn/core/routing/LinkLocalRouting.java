@@ -4,6 +4,7 @@ import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
 import io.left.rightmesh.libdtn.data.EID;
+import io.left.rightmesh.libdtn.utils.Log;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,15 +19,20 @@ import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_L
  */
 public class LinkLocalRouting extends Component {
 
+    private static final String TAG = "LinkLocalRouting";
+
     // ---- SINGLETON ----
     private static LinkLocalRouting instance = new LinkLocalRouting();
     public static LinkLocalRouting getInstance() {  return instance; }
-    public static void init() {}
+    public static void init() {
+        getInstance().initComponent(COMPONENT_ENABLE_LINKLOCAL_ROUTING);
+    }
 
     private Map<EID, CLAChannel> linkLocalTable = new HashMap<>();
 
-    public LinkLocalRouting() {
-        super(COMPONENT_ENABLE_LINKLOCAL_ROUTING);
+    @Override
+    protected String getComponentName() {
+        return TAG;
     }
 
     public static void channelOpened(CLAChannel channel) {

@@ -13,7 +13,7 @@ import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Serializer;
 import io.left.rightmesh.libdtn.network.Peer;
 import io.left.rightmesh.libdtn.network.TCPPeer;
-import io.left.rightmesh.libdtn.storage.Storage;
+import io.left.rightmesh.libdtn.storage.bundle.Storage;
 import io.left.rightmesh.librxtcp.RxTCP;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
@@ -76,8 +76,12 @@ public class STCP {
             serverDraftSTCP.start()
                     .subscribe(
                             c -> s.onNext(new Channel(c, false)),
-                            s::onError,
-                            s::onComplete);
+                            e -> {
+                                System.out.println("listen stap lehhh");
+                            },
+                            () -> {
+                                System.out.println("listen complete lorr");
+                            });
         });
     }
 
@@ -111,12 +115,8 @@ public class STCP {
             this.c = c;
             this.initiator = initiator;
 
-            String remoteAddress = c.channel.socket().getRemoteSocketAddress()
-                    .toString().replace("/", "");
-            int remotePort = c.channel.socket().getPort();
-
             try {
-                channelEID = EID.create("cla:stcp:" + remoteAddress + ":" + remotePort);
+                channelEID = EID.create("cla:stcp:" + c.getRemoteHost() + ":" + c.getRemotePort());
             } catch (EID.EIDFormatException efe) {
                 channelEID = EID.generate();
             }

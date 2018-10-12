@@ -1,35 +1,45 @@
-apply plugin: 'java-library'
+plugins {
+    id("java-library")
+}
 
 test {
     systemProperty 'path', '/tmp'
+    useJUnit()
+    maxHeapSize = '1G'
+
+    filter {
+        //include all integration tests
+        includeTestsMatching "*Test"
+    }
 }
 
 repositories {
+    mavenLocal()
     google()
     jcenter()
-    maven { url 'https://jitpack.io' }
+    //maven { url 'https://jitpack.io' }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
+    // libdtnagent to receive command from tcp socket
+    compile project(path: ':libdtnagent')
+
     // libcbor for bundleV7
-    implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
+    //implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
+    compile project(path: ':libcbor')
 
     // RxBus for the event bus
-    implementation 'com.github.RightMesh:librxbus:master-SNAPSHOT'
+    //implementation 'com.github.RightMesh:librxbus:master-SNAPSHOT'
+    compile project(path: ':librxbus')
 
     // RxTCP for STCP and TCPCLv3/v4 CLAs
-    implementation 'com.github.RightMesh:librxtcp:master-SNAPSHOT'
+    //implementation 'com.github.RightMesh:librxtcp:master-SNAPSHOT'
+    compile project(path: ':librxtcp')
 
     // RxJava library for reactive programming
     api 'io.reactivex.rxjava2:rxjava:2.1.1'
-
-    //tuples, triples, immutable pairs, etc.
-    api(group: 'org.apache.commons', name: 'commons-lang3', version: '3.4')
-
-    // ByteArrayDataOutput ByteStreams
-    testImplementation(group: 'com.google.guava', name: 'guava', version: 'r05')
 
     // jUnit
     testImplementation 'junit:junit:4.12'

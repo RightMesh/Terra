@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.storage;
+package io.left.rightmesh.libdtn.storage.bundle;
 
 /**
  * The BundleStorage takes care of storing individual bundle and exposes a high level API to
@@ -13,43 +13,43 @@ package io.left.rightmesh.libdtn.storage;
 public interface BundleStorage {
 
     class StorageException extends Exception {
-        StorageException(String msg) {
+        public StorageException(String msg) {
             super(msg);
         }
     }
 
     class StorageFailedException extends StorageException {
-        StorageFailedException() {
+        public StorageFailedException() {
             super("storage failed");
         }
     }
 
     class StorageCorruptedException extends StorageException {
-        StorageCorruptedException() {
+        public StorageCorruptedException() {
             super("storage corrupted");
         }
     }
 
     class StorageUnavailableException extends StorageException {
-        StorageUnavailableException() {
+        public StorageUnavailableException() {
             super("storage unavailable");
         }
     }
 
     class StorageFullException extends StorageException {
-        StorageFullException() {
+        public StorageFullException() {
             super("storage full");
         }
     }
 
     class BundleAlreadyExistsException extends StorageException {
-        BundleAlreadyExistsException() {
+        public BundleAlreadyExistsException() {
             super("bundle already exists");
         }
     }
 
     class BundleNotFoundException extends StorageException {
-        BundleNotFoundException() {
+        public BundleNotFoundException() {
             super("bundle not found");
         }
     }

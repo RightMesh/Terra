@@ -1,5 +1,8 @@
-package io.left.rightmesh.libdtn.storage;
+package io.left.rightmesh.libdtn.storage.blob;
 
+import io.left.rightmesh.libdtn.storage.bundle.BundleStorage;
+import io.left.rightmesh.libdtn.storage.bundle.SimpleStorage;
+import io.left.rightmesh.libdtn.storage.bundle.VolatileStorage;
 import io.reactivex.Flowable;
 
 import java.nio.ByteBuffer;
@@ -12,6 +15,9 @@ import java.nio.ByteBuffer;
  */
 public abstract class BLOB {
 
+    public static class StorageFullException extends Exception {
+    }
+
     /**
      * Creates a new BLOB.
      *
@@ -19,17 +25,17 @@ public abstract class BLOB {
      * @return a VolatileBLOB if expectedSize fits in Volatile memory, a FileBLOB otherwise
      * @throws BundleStorage.StorageFullException if BLOB cannot be created
      */
-    public static BLOB createBLOB(int expectedSize) throws BundleStorage.StorageException {
+    public static BLOB createBLOB(int expectedSize) throws StorageFullException {
         try {
-            return VolatileStorage.createBLOB(expectedSize);
-        } catch(BundleStorage.StorageException e) {
+            return VolatileBLOB.createBLOB(expectedSize);
+        } catch(BLOB.StorageFullException e) {
             // ignore, try simple storage
         }
 
         try {
             return SimpleStorage.createBLOB(expectedSize);
         } catch(BundleStorage.StorageException se) {
-            throw new BundleStorage.StorageFailedException();
+            throw new StorageFullException();
         }
     }
 

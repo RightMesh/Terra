@@ -1,5 +1,6 @@
-apply plugin: 'java-library'
-
+plugins {
+    id("java-library")
+}
 repositories {
     google()
     jcenter()
@@ -9,11 +10,13 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    // libcbor for bundleV7
-    implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
+    // CBOR for communication with daemon
+    //implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
+    compile project(path: ':libcbor')
 
-    // RxTCP for STCP and TCPCLv3/v4 CLAs
-    implementation 'com.github.RightMesh:librxtcp:master-SNAPSHOT'
+    // RxTCP for communication with daemon
+    //implementation 'com.github.RightMesh:librxtcp:master-SNAPSHOT'
+    compile project(path: ':librxtcp')
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8

@@ -4,8 +4,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
-import io.left.rightmesh.libdtn.data.bundleV6.SDNV;
-
 /**
  * BundleID uniquely identifies a Bundle.
  *
@@ -33,8 +31,8 @@ public class BundleID {
             try {
                 MessageDigest md = MessageDigest.getInstance(algo);
                 md.update(source.toString().getBytes());
-                md.update(new SDNV(timestamp).getBytes());
-                md.update(new SDNV(sequence).getBytes());
+                md.update(String.valueOf(timestamp).getBytes());
+                md.update(String.valueOf(sequence).getBytes());
                 this.bid = Base64.getEncoder().encodeToString(md.digest());
                 return;
             } catch (NoSuchAlgorithmException ignore) {

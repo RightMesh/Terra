@@ -9,15 +9,18 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Test;
+import io.left.rightmesh.libdtn.storage.bundle.BundleStorage;
+import io.left.rightmesh.libdtn.storage.bundle.SimpleStorage;
+import io.left.rightmesh.libdtn.utils.Log;
 import io.reactivex.Flowable;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_SIMPLE_STORAGE;
+import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.LOG_LEVEL;
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.SIMPLE_STORAGE_PATH;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -32,7 +35,7 @@ public class SimpleStorageTest {
     @Test
     public void testSimpleStoreBundle() {
         System.out.println("[+] storage: test store bundles in simple storage");
-
+        DTNConfiguration.<Log.LOGLevel>get(LOG_LEVEL).update(Log.LOGLevel.INFO);
         Set<String> paths = new HashSet<>();
         paths.add(System.getProperty("path"));
         DTNConfiguration.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(true);
@@ -60,7 +63,7 @@ public class SimpleStorageTest {
             SimpleStorage.store(bundles[j]).subscribe(
                     (b) -> lock.get().countDown(),
                     e -> {
-                        System.out.println(e.getMessage());
+                        System.out.println("error storing bundle: "+e.getMessage());
                         lock.get().countDown();
                     });
         }
@@ -81,7 +84,8 @@ public class SimpleStorageTest {
                         lock.get().countDown();
                     },
                     e -> {
-                        System.out.println(e.getMessage());
+                        System.out.println("error pulling bundle from storage: "+e.getMessage());
+                        e.printStackTrace();
                         lock.get().countDown();
                     });
         }
@@ -130,8 +134,8 @@ public class SimpleStorageTest {
         assertStorageSize(6);
 
         /* clear the storage */
-        //clearStorage();
-        //assertStorageSize(0);
+        clearStorage();
+        assertStorageSize(0);
     }
 
     private byte[] flowableToByteArray(Flowable<ByteBuffer> f) {

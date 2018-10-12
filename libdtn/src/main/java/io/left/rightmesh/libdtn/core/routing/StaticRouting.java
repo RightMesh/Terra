@@ -8,6 +8,7 @@ import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.EID;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
+import io.left.rightmesh.libdtn.utils.Log;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_STATIC_ROUTING;
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.STATIC_ROUTE_CONFIGURATION;
@@ -20,17 +21,22 @@ import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.STATIC_ROUTE_CONFI
  */
 public class StaticRouting extends Component {
 
+    private static final String TAG = "StaticRouting";
+
     // ---- SINGLETON ----
     private static StaticRouting instance = new StaticRouting();
     public static StaticRouting getInstance() { return instance; }
-    public static void init() {}
+    public static void init() {
+        instance.initComponent(COMPONENT_ENABLE_STATIC_ROUTING);
+        DTNConfiguration.<Map<EID, EID>>get(STATIC_ROUTE_CONFIGURATION).observe().subscribe(
+                m -> instance.staticRoutingTable = m);
+    }
 
     private Map<EID, EID> staticRoutingTable = new HashMap<>();
 
-    private StaticRouting() {
-        super(COMPONENT_ENABLE_STATIC_ROUTING);
-        DTNConfiguration.<Map<EID, EID>>get(STATIC_ROUTE_CONFIGURATION).observe().subscribe(
-                m -> staticRoutingTable = m);
+    @Override
+    protected String getComponentName() {
+        return TAG;
     }
 
     static CLAChannel findCLA(Bundle bundle) {

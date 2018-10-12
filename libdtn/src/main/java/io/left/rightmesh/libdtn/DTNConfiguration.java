@@ -20,7 +20,6 @@ public class DTNConfiguration {
     // ---- SINGLETON ----
     private static final Object lock = new Object();
     private static DTNConfiguration instance;
-
     private static DTNConfiguration getInstance() {
         synchronized (lock) {
             if (instance == null) {
@@ -53,11 +52,14 @@ public class DTNConfiguration {
         COMPONENT_ENABLE_SMART_ROUTING("component_enable_smart_routing"),
         STATIC_ROUTE_CONFIGURATION("static_routes_configuration"),
         COMPONENT_ENABLE_VOLATILE_STORAGE("component_enable_volatile_storage"),
+        VOLATILE_BLOB_STORAGE_MAX_CAPACITY("volatile_blob_storage_max_capacity"),
         COMPONENT_ENABLE_SIMPLE_STORAGE("component_enable_simple_storage"),
         SIMPLE_STORAGE_PATH("simple_storage_paths"),
         LIMIT_BLOCKSIZE("limit_blocksize"),
         COMPONENT_ENABLE_LOGGING("component_enable_logging"),
-        LOG_LEVEL("log_level");
+        LOG_LEVEL("log_level"),
+        ENABLE_LOG_FILE("enable_log_file"),
+        LOG_FILE_PATH("log_file_path");
 
         private final String key;
 
@@ -238,7 +240,7 @@ public class DTNConfiguration {
         this.createEntry(Entry.ENABLE_STATUS_REPORTING, true);
         this.createEntry(Entry.COMPONENT_ENABLE_REGISTRATION, true);
         this.createEntry(Entry.COMPONENT_ENABLE_STATIC_API, true);
-        this.createEntry(Entry.COMPONENT_ENABLE_DAEMON_API, false);
+        this.createEntry(Entry.COMPONENT_ENABLE_DAEMON_API, true);
         this.createEntry(Entry.API_DAEMON_LISTENING_PORT, 4557);
         this.createEntry(Entry.ENABLE_FORWARDING, true);
         this.createEntry(Entry.EID_SINGLETON_ONLY, false);
@@ -249,11 +251,14 @@ public class DTNConfiguration {
         this.createEntry(Entry.COMPONENT_ENABLE_SMART_ROUTING, false);
         this.<EID, EID>createEntryMap(Entry.STATIC_ROUTE_CONFIGURATION);
         this.createEntry(Entry.COMPONENT_ENABLE_VOLATILE_STORAGE, true);
+        this.createEntry(Entry.VOLATILE_BLOB_STORAGE_MAX_CAPACITY, 10000000);
         this.createEntry(Entry.COMPONENT_ENABLE_SIMPLE_STORAGE, false);
         this.<String>createEntrySet(Entry.SIMPLE_STORAGE_PATH);
         this.createEntry(Entry.LIMIT_BLOCKSIZE, (long) 1000000000);
-        this.createEntry(Entry.COMPONENT_ENABLE_LOGGING, false);
+        this.createEntry(Entry.COMPONENT_ENABLE_LOGGING, true);
         this.<Log.LOGLevel>createEntry(Entry.LOG_LEVEL, Log.LOGLevel.ERROR);
+        this.createEntry(Entry.ENABLE_LOG_FILE, false);
+        this.createEntry(Entry.LOG_FILE_PATH, "");
     }
 
     @SuppressWarnings("unchecked")

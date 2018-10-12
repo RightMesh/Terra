@@ -9,7 +9,7 @@ import io.left.rightmesh.libdtn.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.data.EID;
 import io.left.rightmesh.libdtn.data.StatusReport;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
-import io.left.rightmesh.libdtn.storage.Storage;
+import io.left.rightmesh.libdtn.storage.bundle.Storage;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_FORWARDING;
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_STATUS_REPORTING;

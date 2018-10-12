@@ -4,6 +4,8 @@ import org.junit.Test;
 
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Test;
+import io.left.rightmesh.libdtn.storage.bundle.BundleStorage;
+import io.left.rightmesh.libdtn.storage.bundle.VolatileStorage;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -16,6 +18,7 @@ public class VolatileStorageTest {
     @Test
     public void testVolatileStoreBundle() {
         System.out.println("[+] storage: test store one bundle in volatile storage");
+        VolatileStorage.init();
 
         Bundle[] bundles = {
                 BundleV7Test.testBundle1(),

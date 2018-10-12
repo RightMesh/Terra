@@ -1,17 +1,8 @@
-package io.left.rightmesh.libdtn.storage;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+package io.left.rightmesh.libdtn.storage.bundle;
 
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.BundleID;
-import io.left.rightmesh.libdtn.events.BundlePulled;
-import io.left.rightmesh.libdtn.events.ChannelOpened;
-import io.left.rightmesh.libdtn.events.DTNEvent;
 import io.left.rightmesh.librxbus.RxBus;
-import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Completable;
 import io.reactivex.Single;
 
@@ -19,6 +10,7 @@ import io.reactivex.Single;
  * @author Lucien Loiseau on 29/09/18.
  */
 public class Storage {
+
 
     // ---- SINGLETON ----
     private static Storage instance = new Storage();

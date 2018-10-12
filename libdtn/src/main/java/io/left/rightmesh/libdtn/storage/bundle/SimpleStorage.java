@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.storage;
+package io.left.rightmesh.libdtn.storage.bundle;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -28,10 +28,15 @@ import io.left.rightmesh.libdtn.data.MetaBundle;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Serializer;
 import io.left.rightmesh.libdtn.events.BundleIndexed;
+import io.left.rightmesh.libdtn.storage.blob.BLOB;
+import io.left.rightmesh.libdtn.storage.blob.FileBLOB;
+import io.left.rightmesh.libdtn.storage.blob.NullBLOB;
 import io.left.rightmesh.librxbus.RxBus;
 import io.reactivex.Completable;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
+
+import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_SIMPLE_STORAGE;
 
 /**
  * SimpleStorage stores bundle in files but keep an index in memory of all the bundles in storage.
@@ -54,13 +59,42 @@ import io.reactivex.schedulers.Schedulers;
  */
 public class SimpleStorage extends Component implements BundleStorage {
 
+    private static final String TAG = "SimpleStorage";
+
     public static final String BLOB_FOLDER = File.separator + "blob" + File.separator;
     public static final String BUNDLE_FOLDER = File.separator + "bundle" + File.separator;
 
     // ---- SINGLETON ----
     private static SimpleStorage instance = new SimpleStorage();
     public static SimpleStorage getInstance() { return instance;  }
-    public static void init() {    }
+    public static void init() {
+        getInstance().initComponent(COMPONENT_ENABLE_SIMPLE_STORAGE);
+        DTNConfiguration.<Set<String>>get(DTNConfiguration.Entry.SIMPLE_STORAGE_PATH).observe()
+                .subscribe(
+                        updated_paths -> {
+                            /* remove obsolete path */
+                            LinkedList<String> pathsToRemove = new LinkedList<>();
+                            getInstance().storage_paths.stream()
+                                    .filter(p -> !updated_paths.contains(p))
+                                    .map(pathsToRemove::add)
+                                    .count();
+                            pathsToRemove.stream().map(instance::removePath).count();
+
+                            /* add new path */
+                            LinkedList<String> pathsToAdd = new LinkedList<>();
+                            updated_paths.stream()
+                                    .filter(p -> !getInstance().storage_paths.contains(p))
+                                    .map(pathsToAdd::add)
+                                    .count();
+                            pathsToAdd.stream().map(instance::addPath).count();
+                        }
+                );
+    }
+
+    @Override
+    protected String getComponentName() {
+        return TAG;
+    }
 
     private static class IndexEntry extends MetaBundle {
         String path; /* path to the file where the bundle is serialized */
@@ -87,30 +121,6 @@ public class SimpleStorage extends Component implements BundleStorage {
     }
     private LinkedList<String> storage_paths = new LinkedList<>();
     private Map<BundleID, IndexEntry> index = Collections.synchronizedMap(new HashMap<>());
-
-    private SimpleStorage() {
-        super(DTNConfiguration.Entry.COMPONENT_ENABLE_SIMPLE_STORAGE);
-        DTNConfiguration.<Set<String>>get(DTNConfiguration.Entry.SIMPLE_STORAGE_PATH).observe()
-                .subscribe(
-                        updated_paths -> {
-                            /* remove obsolete path */
-                            LinkedList<String> pathsToRemove = new LinkedList<>();
-                            storage_paths.stream()
-                                    .filter(p -> !updated_paths.contains(p))
-                                    .map(pathsToRemove::add)
-                                    .count();
-                            pathsToRemove.stream().map(this::removePath).count();
-
-                            /* add new path */
-                            LinkedList<String> pathsToAdd = new LinkedList<>();
-                            updated_paths.stream()
-                                    .filter(p -> !storage_paths.contains(p))
-                                    .map(pathsToAdd::add)
-                                    .count();
-                            pathsToAdd.stream().map(this::addPath).count();
-                        }
-                );
-    }
 
     private boolean removePath(String path) {
         if (storage_paths.contains(path)) {
@@ -218,7 +228,7 @@ public class SimpleStorage extends Component implements BundleStorage {
      * @return a new FileBLOB with capacity of expectedSize
      * @throws StorageFullException if there isn't enough space in SimpleStorage
      */
-    static FileBLOB createBLOB(long expectedSize) throws StorageUnavailableException, StorageFullException {
+    public static FileBLOB createBLOB(long expectedSize) throws StorageUnavailableException, StorageFullException {
         if (!getInstance().isEnabled()) {
             throw new StorageUnavailableException();
         }
@@ -352,7 +362,6 @@ public class SimpleStorage extends Component implements BundleStorage {
                         if(has_blob) {
                             bundle.getPayloadBlock().data = blob;
                         }
-
                     }
                 }
         ).subscribeOn(Schedulers.io());

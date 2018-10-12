@@ -22,10 +22,10 @@ import io.left.rightmesh.libdtn.data.PreviousNodeBlock;
 import io.left.rightmesh.libdtn.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.data.ScopeControlHopLimitBlock;
 import io.left.rightmesh.libdtn.data.UnknownExtensionBlock;
-import io.left.rightmesh.libdtn.storage.BLOB;
-import io.left.rightmesh.libdtn.storage.BundleStorage;
-import io.left.rightmesh.libdtn.storage.NullBLOB;
-import io.left.rightmesh.libdtn.storage.WritableBLOB;
+import io.left.rightmesh.libdtn.storage.blob.BLOB;
+import io.left.rightmesh.libdtn.storage.bundle.BundleStorage;
+import io.left.rightmesh.libdtn.storage.blob.NullBLOB;
+import io.left.rightmesh.libdtn.storage.blob.WritableBLOB;
 import io.left.rightmesh.libdtn.utils.Log;
 
 /**
@@ -258,7 +258,7 @@ public class BundleV7Parser  {
                                     // indefinite length BLOB
                                     ((BlockBLOB) block).data = BLOB.createBLOB(2048); //todo change that
                                 }
-                            } catch (BundleStorage.StorageException sfe) {
+                            } catch (BLOB.StorageFullException sfe) {
                                 ((BlockBLOB) block).data = new NullBLOB();
                             }
                             wblob = ((BlockBLOB) block).data.getWritableBLOB();

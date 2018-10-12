@@ -3,7 +3,7 @@ package io.left.rightmesh.libdtn.core.agents;
 import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.core.routing.RegistrationTable;
 import io.left.rightmesh.libdtn.core.routing.RegistrationTable.RegistrationCallback;
-import io.left.rightmesh.libdtn.storage.BLOB;
+import io.left.rightmesh.libdtn.storage.blob.BLOB;
 import io.reactivex.Completable;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_STATIC_API;
@@ -19,13 +19,18 @@ public class APIStaticAgent extends Component {
         void close();
     }
 
+    private static final String TAG = "APIStaticAgent";
+
     // ---- SINGLETON ----
     private static APIStaticAgent instance = new APIStaticAgent();
     public static APIStaticAgent getInstance() {  return instance; }
-    public static void init() {}
+    public static void init() {
+        getInstance().initComponent(COMPONENT_ENABLE_STATIC_API);
+    }
 
-    APIStaticAgent() {
-        super(COMPONENT_ENABLE_STATIC_API);
+    @Override
+    protected String getComponentName() {
+        return TAG;
     }
 
     public static boolean register(String sink, StaticAPICallback cb) {

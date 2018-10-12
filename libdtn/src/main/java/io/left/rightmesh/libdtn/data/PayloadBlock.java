@@ -2,8 +2,8 @@ package io.left.rightmesh.libdtn.data;
 
 import java.nio.ByteBuffer;
 
-import io.left.rightmesh.libdtn.storage.BLOB;
-import io.left.rightmesh.libdtn.storage.ByteBufferBLOB;
+import io.left.rightmesh.libdtn.storage.blob.BLOB;
+import io.left.rightmesh.libdtn.storage.blob.ByteBufferBLOB;
 
 /**
  * PayloadBlock is a CanonicalBlock that holds the payload of the Bundle.

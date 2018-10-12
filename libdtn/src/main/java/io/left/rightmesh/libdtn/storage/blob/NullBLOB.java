@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.storage;
+package io.left.rightmesh.libdtn.storage.blob;
 
 import io.reactivex.Flowable;
 

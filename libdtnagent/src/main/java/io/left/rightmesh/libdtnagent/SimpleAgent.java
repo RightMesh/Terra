@@ -1,6 +1,7 @@
 package io.left.rightmesh.libdtnagent;
 
 import io.left.rightmesh.librxtcp.RxTCP;
+import io.reactivex.Single;
 
 /**
  * @author Lucien Loiseau on 11/10/18.
@@ -8,19 +9,20 @@ import io.left.rightmesh.librxtcp.RxTCP;
 public class SimpleAgent {
     private static final String TAG = "SimpleAgent";
 
-    public void start() {
-        new RxTCP.ConnectionRequest("127.0.0.1",4557)
-                .connect()
-                .subscribe(
-                        Session::new,
-                        e -> {/* daemon is not started */}
-                );
+    public static Single<AASession> open(int port) {
+        return Single.create(s -> {
+            new RxTCP.ConnectionRequest("127.0.0.1", port)
+                    .connect()
+                    .subscribe(
+                            c -> s.onSuccess(new AASession(c)),
+                            s::onError);
+        });
     }
 
-    public static class Session {
+    public static class AASession {
         RxTCP.Connection c;
-        Session(RxTCP.Connection con) {
-            this.c = con;
+        AASession(RxTCP.Connection c) {
+            this.c = c;
         }
     }
 }

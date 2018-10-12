@@ -6,11 +6,9 @@ import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.BundleID;
-import io.left.rightmesh.libdtn.data.EID;
-import io.left.rightmesh.libdtn.events.BundlePulled;
 import io.left.rightmesh.libdtn.events.RegistrationActive;
-import io.left.rightmesh.libdtn.storage.BLOB;
-import io.left.rightmesh.libdtn.storage.Storage;
+import io.left.rightmesh.libdtn.storage.blob.BLOB;
+import io.left.rightmesh.libdtn.storage.bundle.Storage;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Completable;
@@ -24,6 +22,8 @@ import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_R
  * @author Lucien Loiseau on 24/08/18.
  */
 public class RegistrationTable extends Component {
+
+    private static final String TAG = "RegistrationTable";
 
     public static class RegistrationIsPassive extends Exception {
     }
@@ -58,22 +58,26 @@ public class RegistrationTable extends Component {
     public static RegistrationTable getInstance() {
         return instance;
     }
-    public static void init() {}
+    public static void init() {
+        getInstance().initComponent(COMPONENT_ENABLE_REGISTRATION);
+    }
 
-    private RegistrationTable() {
-        super(COMPONENT_ENABLE_REGISTRATION);
-        RxBus.register(this);
+    @Override
+    protected String getComponentName() {
+        return TAG;
     }
 
     private HashMap<String, RegistrationCallback> registrations;
 
     @Override
     protected void componentUp() {
+        super.componentUp();
         registrations = new HashMap<>();
     }
 
     @Override
     protected void componentDown() {
+        super.componentDown();
         for (String sink : getInstance().registrations.keySet()) {
             getInstance().registrations.get(sink).close();
         }

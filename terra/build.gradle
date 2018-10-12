@@ -1,10 +1,16 @@
-apply plugin: 'java-library'
+plugins {
+    id("application")
+}
 
+mainClassName="io.left.rightmesh.terra.Terra"
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    project(":libdtn")
+    compile project(path: ':libdtn')
+
+    // picocli framework for Command Line Interface
+    compile 'info.picocli:picocli:3.6.1'
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8

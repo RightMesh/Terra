@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.storage;
+package io.left.rightmesh.libdtn.storage.blob;
 
 import io.reactivex.Flowable;
 
@@ -14,8 +14,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.NonReadableChannelException;
-
-import org.apache.commons.lang3.tuple.ImmutablePair;
 
 /**
  * FileBLOB holds a BLOB in a file saved in persistent storage. Useful for large BLOB that can't
@@ -67,6 +65,15 @@ public class FileBLOB extends BLOB {
         }
     }
 
+    private static class State {
+        FileInputStream left;
+        ByteBuffer right;
+        State(FileInputStream left, ByteBuffer right) {
+            this.left = left;
+            this.right = right;
+        }
+    }
+
     @Override
     public Flowable<ByteBuffer> observe() {
         return Flowable.generate(
@@ -75,7 +82,7 @@ public class FileBLOB extends BLOB {
                         return null;
                     }
                     FileInputStream fis = new FileInputStream(file);
-                    return new ImmutablePair<>(fis, ByteBuffer.allocate(2048));
+                    return new State(fis, ByteBuffer.allocate(2048));
                 },
                 (state, emitter) -> {
                     if (state == null) {
@@ -94,13 +101,7 @@ public class FileBLOB extends BLOB {
                             buffer.flip();
                             emitter.onNext(buffer);
                         }
-                    } catch (NonReadableChannelException nrce) {
-                        emitter.onError(nrce);
-                        state.left.close();
-                    } catch (ClosedChannelException cce) {
-                        emitter.onError(cce);
-                        state.left.close();
-                    } catch (IOException io) {
+                    } catch (NonReadableChannelException  | IOException io) {
                         emitter.onError(io);
                         state.left.close();
                     }

@@ -1,8 +1,12 @@
-apply plugin: 'java-library'
+plugins {
+    id("application")
+}
+
+mainClassName="io.left.rightmesh.dtnping.DTNPing"
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
 
-sourceCompatibility = "6"
-targetCompatibility = "6"
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8

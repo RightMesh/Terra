@@ -11,13 +11,17 @@ import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_S
  */
 public class SmartRouting extends Component {
 
+    private static final String TAG = "SmartRouting";
+
     // ---- SINGLETON ----
     private static SmartRouting instance = new SmartRouting();
     public static SmartRouting getInstance() {  return instance; }
-    public static void init() {}
-
-    private SmartRouting() {
-        super(COMPONENT_ENABLE_SMART_ROUTING);
+    public static void init() {
+        instance.initComponent(COMPONENT_ENABLE_SMART_ROUTING);
     }
 
+    @Override
+    protected String getComponentName() {
+        return TAG;
+    }
 }

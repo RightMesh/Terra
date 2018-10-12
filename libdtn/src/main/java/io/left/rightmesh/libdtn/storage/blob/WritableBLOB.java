@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.storage;
+package io.left.rightmesh.libdtn.storage.blob;
 
 import java.io.IOException;
 import java.io.InputStream;

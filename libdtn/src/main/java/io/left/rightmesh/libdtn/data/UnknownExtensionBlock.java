@@ -2,7 +2,7 @@ package io.left.rightmesh.libdtn.data;
 
 import io.left.rightmesh.libdtn.core.processor.ProcessingException;
 import io.left.rightmesh.libdtn.core.processor.ProcessorNotFoundException;
-import io.left.rightmesh.libdtn.storage.BLOB;
+import io.left.rightmesh.libdtn.storage.blob.BLOB;
 
 /**
  * UnknownExtensionBlock is used to create a generic Extension CanonicalBlock in case when a block type is

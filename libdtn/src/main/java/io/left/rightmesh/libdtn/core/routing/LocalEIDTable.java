@@ -3,6 +3,7 @@ package io.left.rightmesh.libdtn.core.routing;
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.data.EID;
+import io.left.rightmesh.libdtn.utils.Log;
 
 import java.util.Set;
 
@@ -13,10 +14,14 @@ import java.util.Set;
  */
 public class LocalEIDTable {
 
+    private static final String TAG = "LocalEIDTable";
+
     // ---- SINGLETON ----
     private static LocalEIDTable instance = new LocalEIDTable();
     public static LocalEIDTable getInstance() {  return instance; }
-    public static void init() {}
+    public static void init() {
+        Log.i(TAG, "component up");
+    }
 
     private EID localEID;
     private Set<EID> aliases;

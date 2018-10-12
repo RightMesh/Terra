@@ -5,7 +5,7 @@ import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.BundleID;
 import io.left.rightmesh.libdtn.events.ChannelOpened;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
-import io.left.rightmesh.libdtn.storage.Storage;
+import io.left.rightmesh.libdtn.storage.bundle.Storage;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 
@@ -14,21 +14,6 @@ import io.left.rightmesh.librxbus.Subscribe;
  * @author Lucien Loiseau on 28/09/18.
  */
 public class RoutingEngine {
-
-    // ---- SINGLETON ----
-    private static RoutingEngine instance = new RoutingEngine();
-
-    public static RoutingEngine getInstance() {
-        return instance;
-    }
-
-    public static void init() {
-    }
-
-    private RoutingEngine() {
-        RxBus.register(this);
-    }
-
     public static CLAChannel findCLA(Bundle bundle) {
         CLAChannel ret;
         if ((ret = LinkLocalRouting.findCLA(bundle)) != null) {

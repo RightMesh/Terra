@@ -1,7 +1,7 @@
 package io.left.rightmesh.libdtn.data;
 
-import io.left.rightmesh.libdtn.storage.BLOB;
-import io.left.rightmesh.libdtn.storage.NullBLOB;
+import io.left.rightmesh.libdtn.storage.blob.BLOB;
+import io.left.rightmesh.libdtn.storage.blob.NullBLOB;
 
 /**
  * A BlockBLOB is a generic CanonicalBlock with a BLOB object as payload.
