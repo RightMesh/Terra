@@ -1,7 +1,8 @@
-include ':libdtn', ':libdtnagent', ':terra', ':dtnping'
+include ':libdtn', ':libdtnagent', ':terra', ':dtnping', ':dtnconf'
 
 project(":terra").projectDir = file("linux/terra")
 project(":dtnping").projectDir = file("linux/dtnping")
+project(":dtnconf").projectDir = file("linux/dtnconf")
 
 include ':librxbus', ':libcbor', ':librxtcp'
 
