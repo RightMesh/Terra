@@ -5,6 +5,7 @@ import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.network.cla.STCP;
 import io.left.rightmesh.libdtn.utils.Log;
+import io.left.rightmesh.librxtcp.RxTCP;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_CLA_STCP;
 
@@ -24,7 +25,7 @@ public class STCPAgent extends Component {
         getInstance().initComponent(COMPONENT_ENABLE_CLA_STCP);
     }
 
-    private STCP stcp;
+    private RxTCP.Server<STCP.Channel> server;
 
     @Override
     protected String getComponentName() {
@@ -35,8 +36,8 @@ public class STCPAgent extends Component {
     protected void componentUp() {
         super.componentUp();
         int port = (Integer) DTNConfiguration.get(DTNConfiguration.Entry.CLA_STCP_LISTENING_PORT).value();
-        stcp = new STCP();
-        stcp.listen(port).subscribe(
+        server = new RxTCP.Server<>(port, () -> new STCP.Channel(false));
+        server.start().subscribe(
                 dtnChannel -> {
                     // a new peer has opened a unicast channel, we receive bundle
                     dtnChannel.recvBundle().subscribe(
@@ -52,8 +53,8 @@ public class STCPAgent extends Component {
     @Override
     protected void componentDown() {
         super.componentDown();
-        if(stcp != null) {
-            stcp.stop();
+        if(server != null) {
+            server.stop();
         }
     }
 }

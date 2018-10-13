@@ -21,32 +21,31 @@ import io.reactivex.Single;
 import io.reactivex.subscribers.DisposableSubscriber;
 
 /**
- * Simple TCP (STCP) is a TCP Convergence Layer (CL) for the Bundle Protocol. it was introduced in
- * 2018 as an alternative to the quite complicated TCPCLv4. As per the author's own words
- * (Scott Burleigh):
- * <p>
+ * Simple TCP (STCP) is a TCP Convergence Layer Adapter (CLA) for the Bundle Protocol. it was
+ * introduced by Scott Burleigh in 2018 as an alternative to the quite complicated TCPCLv4.
+ * As per the author's own words:
+ *
  * <pre>
  *    It is less capable than tcpcl but quite a lot simpler.
  * </pre>
- * <p>
+ *
  * <p> An STCP session is unidirectional and bundles flow from the peer that initiated the
  * connection towards the one that passively listen for incoming connection. When the connection
  * is open, bundles can be send without signalling needed. Each bundle is represented as a cbor
- * array with only two item, first item being a cbor integer value representing the length of the
+ * array with only two items, first item being a cbor integer value representing the length of the
  * serialized bundle followed by the serialized bundle itself. The connection can be shutdown by
- * any peer without any signalling. </p>
- * <p>
- * <p>Mmore details can be read in the draft itself:
+ * any peer without any signalling needed. </p>
+ *
+ * <p>More details can be read in the draft itself:
  * https://www.ietf.org/id/draft-burleigh-dtn-stcp-00.txt</p>
  *
  * @author Lucien Loiseau on 17/08/18.
  */
 public class STCP {
 
-    private static final String TAG = "stcp";
+    private static final String TAG = "STCP";
 
     public static class STCPPeer extends TCPPeer {
-
         public STCPPeer(String host, int port) {
             super(host, port);
         }
@@ -57,66 +56,21 @@ public class STCP {
         }
     }
 
-    public static final int IANA_STCP_PORT_TO_DEFINE = 4557;
+    public static class Channel extends RxTCP.Connection implements CLAChannel {
 
-    private RxTCP.Server serverDraftSTCP = null;
-
-    public STCP() {
-    }
-
-    public void stop() {
-        if (serverDraftSTCP != null) {
-            serverDraftSTCP.stop();
-        }
-    }
-
-    public Observable<CLAChannel> listen(int port) {
-        return Observable.create(s -> {
-            serverDraftSTCP = new RxTCP.Server(port);
-            serverDraftSTCP.start()
-                    .subscribe(
-                            c -> s.onNext(new Channel(c, false)),
-                            e -> {
-                                System.out.println("listen stap lehhh");
-                            },
-                            () -> {
-                                System.out.println("listen complete lorr");
-                            });
-        });
-    }
-
-    public static Single<CLAChannel> open(Peer peer) {
-        if (!(peer instanceof TCPPeer)) {
-            return Single.error(new Throwable("Peer is not a TCP Peer"));
-        }
-
-        return Single.create(s -> {
-            TCPPeer p = (TCPPeer) peer;
-            new RxTCP.ConnectionRequest(p.host, p.port)
-                    .connect()
-                    .subscribe(
-                            c -> s.onSuccess(new Channel(c, true)),
-                            s::onError);
-        });
-    }
-
-    public static class Channel implements CLAChannel {
-
-        RxTCP.Connection c;
         EID channelEID;
         boolean initiator;
 
         /**
          * Constructor.
          *
-         * @param c RxTCP underlying connection
+         * @param initiator true if current node initiated the STCP connection, false otherwise
          */
-        public Channel(RxTCP.Connection c, boolean initiator) {
-            this.c = c;
+        public Channel(boolean initiator) {
             this.initiator = initiator;
 
             try {
-                channelEID = EID.create("cla:stcp:" + c.getRemoteHost() + ":" + c.getRemotePort());
+                channelEID = EID.create("cla:stcp:" + getRemoteHost() + ":" + getRemotePort());
             } catch (EID.EIDFormatException efe) {
                 channelEID = EID.generate();
             }
@@ -129,7 +83,7 @@ public class STCP {
 
         @Override
         public void close() {
-            c.closeJobsDone();
+            closeJobsDone();
         }
 
         @Override
@@ -147,7 +101,7 @@ public class STCP {
                                 s.onError(new Throwable("Cannot serialize the bundle"));
                             }
 
-                            RxTCP.Connection.JobHandle handle = c.order(job);
+                            RxTCP.Connection.JobHandle handle = order(job);
                             handle.observe().subscribe(s::onNext);
                         },
                         s::onError));
@@ -157,7 +111,7 @@ public class STCP {
                     return Observable.error(new Throwable("Cannot serialize the bundle"));
                 }
 
-                RxTCP.Connection.JobHandle handle = c.order(job);
+                RxTCP.Connection.JobHandle handle = order(job);
                 return handle.observe();
             }
         }
@@ -220,7 +174,7 @@ public class STCP {
                             s.onNext(item.bundle);
                         });
 
-                c.recv().subscribe(
+                recv().subscribe(
                         buffer -> {
                             try {
                                 while(buffer.hasRemaining()) {

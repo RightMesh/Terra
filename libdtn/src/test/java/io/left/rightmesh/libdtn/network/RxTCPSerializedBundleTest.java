@@ -29,7 +29,9 @@ public class RxTCPSerializedBundleTest {
         Bundle[] recv = {null, null, null, null, null, null};
         int[] i = {0};
 
-        new RxTCP.Server(4561).start().subscribe(
+
+        new RxTCP.SimpleServer(4561)
+                .start().subscribe(
                 connection -> {
                     // prepare parser
                     CborParser p = BundleV7Parser.create(b -> {
@@ -54,7 +56,7 @@ public class RxTCPSerializedBundleTest {
                 },
                 e -> fail());
 
-        new RxTCP.ConnectionRequest("127.0.0.1", 4561).connect().subscribe(
+        new RxTCP.SimpleConnectionRequest("127.0.0.1", 4561).connect().subscribe(
                 connection -> {
                     Bundle[] bundles = {
                             BundleV7Test.testBundle1(),

@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Test;
 import io.left.rightmesh.libdtn.network.cla.STCP;
+import io.left.rightmesh.librxtcp.RxTCP;
 import io.reactivex.Flowable;
 
 import static junit.framework.TestCase.fail;
@@ -27,7 +28,8 @@ public class STCPTest {
         Bundle[] recv = {null, null, null, null, null, null};
         int[] i = {0};
 
-        new STCP().listen(4591).subscribe(
+        new RxTCP.Server<>(4591, () -> new STCP.Channel(false))
+                .start().subscribe(
                 channel -> {
                     channel.recvBundle().subscribe(
                             b -> {
@@ -45,7 +47,8 @@ public class STCPTest {
                     lock.countDown();
                 });
 
-        STCP.open(new STCP.STCPPeer("127.0.0.1", 4591)).subscribe(
+        new RxTCP.ConnectionRequest<>("127.0.0.1", 4591, () -> new STCP.Channel(true))
+                .connect().subscribe(
                 dtnChannel -> {
                     Bundle[] bundles = {
                             BundleV7Test.testBundle1(),
@@ -90,7 +93,8 @@ public class STCPTest {
 
         CountDownLatch lock = new CountDownLatch(10);
 
-        new STCP().listen(4592).subscribe(
+        new RxTCP.Server<>(4592, () -> new STCP.Channel(false))
+                .start().subscribe(
                 channel -> {
                     channel.recvBundle().subscribe(
                             BundleV7Test::checkBundlePayload,
@@ -104,8 +108,9 @@ public class STCPTest {
                     lock.countDown();
                 });
 
-        for(int k = 0 ; k < 10; k++) {
-            STCP.open(new STCP.STCPPeer("127.0.0.1", 4592)).subscribe(
+        for (int k = 0; k < 10; k++) {
+            new RxTCP.ConnectionRequest<>("127.0.0.1", 4592, () -> new STCP.Channel(true))
+                    .connect().subscribe(
                     dtnChannel -> {
                         Bundle[] bundles = {
                                 BundleV7Test.testBundle1(),
