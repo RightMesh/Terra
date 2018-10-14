@@ -27,13 +27,11 @@ public class APIDaemonCBORAgent extends Component {
     private static final String TAG = "APIDaemonCBORAgent";
 
     // ---- SINGLETON ----
-    private static APIDaemonCBORAgent instance = new APIDaemonCBORAgent();
+    private static APIDaemonCBORAgent instance;
+    public static APIDaemonCBORAgent getInstance() { return instance; }
 
-    public static APIDaemonCBORAgent getInstance() {
-        return instance;
-    }
-
-    public static void init() {
+    static {
+        instance = new APIDaemonCBORAgent();
         getInstance().initComponent(COMPONENT_ENABLE_CBOR_DAEMON_API);
     }
 
@@ -52,12 +50,12 @@ public class APIDaemonCBORAgent extends Component {
 
         server = new RxTCP.Server<>(serverPort, RequestChannel::new);
         server.start().subscribe(
-                c -> {
-                } /* ignore */,
-                e -> {
-                } /* ignore */,
-                () -> {
-                } /* ignore */);
+                c -> { /* ignore */
+                },
+                e -> { /* ignore */
+                },
+                () -> { /* ignore */
+                });
     }
 
     @Override

@@ -22,27 +22,27 @@ public class DTNCore {
 
     public static void init() {
         /* init logging */
-        Log.init();
+        Log.getInstance();
 
         /* init local EID ConfigurationAPI */
-        LocalEIDTable.init();
+        LocalEIDTable.getInstance();
 
         /* init StorageAPI */
-        Storage.init();
+        Storage.getInstance();
 
         /* init Routing modules */
-        LinkLocalRouting.init();
-        StaticRouting.init();
-        SmartRouting.init();
+        LinkLocalRouting.getInstance();
+        StaticRouting.getInstance();
+        SmartRouting.getInstance();
 
         /* init Application Agents API */
-        RegistrationTable.init();
-        APIStaticApplicationAgent.init();
-        APIDaemonCBORAgent.init();
-        APIDaemonHTTPAgent.init();
+        RegistrationTable.getInstance();
+        APIStaticApplicationAgent.getInstance();
+        APIDaemonCBORAgent.getInstance();
+        APIDaemonHTTPAgent.getInstance();
 
         /* init Convergence Layer Adapters */
-        STCPAgent.init();
+        STCPAgent.getInstance();
     }
 
 }

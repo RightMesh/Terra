@@ -6,10 +6,13 @@ import io.left.rightmesh.libdtn.data.BundleID;
 import io.left.rightmesh.libdtn.data.MetaBundle;
 import io.left.rightmesh.libdtn.data.PrimaryBlock;
 import io.reactivex.Completable;
+import io.reactivex.Observable;
 import io.reactivex.Single;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_VOLATILE_STORAGE;
 
@@ -23,9 +26,11 @@ public class VolatileStorage extends Component implements BundleStorage {
     private static final String TAG = "VolatileStorage";
 
     // ---- SINGLETON ----
-    private static VolatileStorage instance = new VolatileStorage();
+    private static VolatileStorage instance;
     public static VolatileStorage getInstance() { return instance; }
-    public static void init() {
+
+    static {
+        instance = new VolatileStorage();
         instance.initComponent(COMPONENT_ENABLE_VOLATILE_STORAGE);
     }
 
@@ -37,7 +42,7 @@ public class VolatileStorage extends Component implements BundleStorage {
     @Override
     protected void componentDown() {
         super.componentDown();
-        removeVolatileBundle();
+        VolatileStorage.clear();
     }
 
     /**
@@ -70,19 +75,40 @@ public class VolatileStorage extends Component implements BundleStorage {
     }
 
     /**
+     * Remove a volatile bundle. If the bundle has a persistent copy, replace the bundle with
+     * the MetaBundle, otherwise delete from index.
+     */
+    public static Completable remove(BundleID bid, Storage.IndexEntry entry) {
+        return Completable.create(s -> {
+            if(!entry.isPersistent) {
+                Storage.removeEntry(bid, entry);
+            } else {
+                entry.bundle = new MetaBundle(entry.bundle);
+            }
+            s.onComplete();
+        });
+    }
+
+    /**
+     * Remove a volatile bundle. If the bundle has a persistent copy, replace the bundle with
+     * the MetaBundle, otherwise delete from index.
+     */
+    public static Completable remove(BundleID bid) {
+        Storage.IndexEntry entry = Storage.index.get(bid);
+        return remove(bid, entry);
+    }
+
+    /**
      * Remove all volatile bundle. If the bundle has a persistent copy, replace the bundle with
      * the MetaBundle, otherwise delete from index.
      */
-    public static Completable removeVolatileBundle() {
-        return Completable.create(s -> {
-            Storage.index.forEach((bid, entry) -> {
-                if(!entry.isPersistent) {
-                    Storage.index.remove(bid, entry);
-                } else {
-                    entry.bundle = new MetaBundle(entry.bundle);
-                }
-            });
-            s.onComplete();
-        });
+    public static Completable clear() {
+        if (!getInstance().isEnabled()) {
+            return Completable.error(new StorageUnavailableException());
+        }
+
+        return Observable.fromIterable(Storage.index.entrySet())
+                .flatMapCompletable(e -> remove(e.getKey(), e.getValue()))
+                .onErrorComplete();
     }
 }

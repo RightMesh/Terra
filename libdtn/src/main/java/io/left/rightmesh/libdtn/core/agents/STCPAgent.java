@@ -17,12 +17,14 @@ public class STCPAgent extends Component {
     private static final String TAG = "STCPAgent";
 
     // ---- SINGLETON ----
-    private static STCPAgent instance = new STCPAgent();
+    private static STCPAgent instance;
     public static STCPAgent getInstance() {
         return instance;
     }
-    public static void init() {
-        getInstance().initComponent(COMPONENT_ENABLE_CLA_STCP);
+
+    static {
+        instance = new STCPAgent();
+        instance.initComponent(COMPONENT_ENABLE_CLA_STCP);
     }
 
     private RxTCP.Server<STCP.Channel> server;

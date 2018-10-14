@@ -20,13 +20,11 @@ public class APIDaemonHTTPAgent extends Component {
     private static final String TAG = "APIDaemonHTTPAgent";
 
     // ---- SINGLETON ----
-    private static APIDaemonHTTPAgent instance = new APIDaemonHTTPAgent();
+    private static APIDaemonHTTPAgent instance;
+    public static APIDaemonHTTPAgent getInstance() { return instance; }
 
-    public static APIDaemonHTTPAgent getInstance() {
-        return instance;
-    }
-
-    public static void init() {
+    static {
+        instance = new APIDaemonHTTPAgent();
         getInstance().initComponent(COMPONENT_ENABLE_DAEMON_HTTP_API);
     }
 

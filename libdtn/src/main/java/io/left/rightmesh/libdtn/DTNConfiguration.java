@@ -40,7 +40,8 @@ public class DTNConfiguration {
         ALLOW_RECEIVE_ANONYMOUS_BUNDLE("allow_receive_anonymous_bundle"),
         ENABLE_STATUS_REPORTING("enable_status_reporting"),
         ENABLE_FORWARDING("dtn_enable_forwarding"),
-        COMPONENT_ENABLE_REGISTRATION("component_enable_registration"),
+        COMPONENT_ENABLE_EVENT_PROCESSING("component_enable_event_processing"),
+        COMPONENT_ENABLE_AA_REGISTRATION("component_enable_aa_registration"),
         COMPONENT_ENABLE_STATIC_API("component_enable_static_api"),
         COMPONENT_ENABLE_CBOR_DAEMON_API("component_enable_daemon_api"),
         API_CBOR_DAEMON_CHANNEL_PORT("api_daemon_channel_port"),
@@ -240,7 +241,8 @@ public class DTNConfiguration {
         this.createEntry(Entry.MAX_TIMESTAMP_FUTURE, (long) 0);
         this.createEntry(Entry.ALLOW_RECEIVE_ANONYMOUS_BUNDLE, false);
         this.createEntry(Entry.ENABLE_STATUS_REPORTING, true);
-        this.createEntry(Entry.COMPONENT_ENABLE_REGISTRATION, true);
+        this.createEntry(Entry.COMPONENT_ENABLE_EVENT_PROCESSING, true);
+        this.createEntry(Entry.COMPONENT_ENABLE_AA_REGISTRATION, true);
         this.createEntry(Entry.COMPONENT_ENABLE_STATIC_API, true);
         this.createEntry(Entry.COMPONENT_ENABLE_CBOR_DAEMON_API, false);
         this.createEntry(Entry.API_CBOR_DAEMON_CHANNEL_PORT, 4557);
@@ -260,7 +262,7 @@ public class DTNConfiguration {
         this.<String>createEntrySet(Entry.SIMPLE_STORAGE_PATH);
         this.createEntry(Entry.LIMIT_BLOCKSIZE, (long) 1000000000);
         this.createEntry(Entry.COMPONENT_ENABLE_LOGGING, true);
-        this.<Log.LOGLevel>createEntry(Entry.LOG_LEVEL, Log.LOGLevel.ERROR);
+        this.<Log.LOGLevel>createEntry(Entry.LOG_LEVEL, Log.LOGLevel.INFO);
         this.createEntry(Entry.ENABLE_LOG_FILE, false);
         this.createEntry(Entry.LOG_FILE_PATH, "");
     }

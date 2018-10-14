@@ -3,18 +3,10 @@ package io.left.rightmesh.libdtn.core.routing;
 import java.util.HashMap;
 
 import io.left.rightmesh.libdtn.core.Component;
-import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.data.Bundle;
-import io.left.rightmesh.libdtn.data.BundleID;
-import io.left.rightmesh.libdtn.events.BundleDeleted;
-import io.left.rightmesh.libdtn.events.RegistrationActive;
-import io.left.rightmesh.libdtn.storage.blob.BLOB;
-import io.left.rightmesh.libdtn.storage.bundle.Storage;
-import io.left.rightmesh.librxbus.RxBus;
-import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Completable;
 
-import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_REGISTRATION;
+import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_AA_REGISTRATION;
 
 
 /**
@@ -26,6 +18,7 @@ public class RegistrationTable extends Component {
 
     private static final String TAG = "RegistrationTable";
 
+    // ----- public interface and exception
     public static class RegistrationIsPassive extends Exception {
     }
 
@@ -55,23 +48,19 @@ public class RegistrationTable extends Component {
     };
 
     // ---- SINGLETON ----
-    private static RegistrationTable instance = new RegistrationTable();
+    private static RegistrationTable instance;
+    public static RegistrationTable getInstance() { return instance; }
 
-    public static RegistrationTable getInstance() {
-        return instance;
+    static {
+        instance = new RegistrationTable();
+        getInstance().initComponent(COMPONENT_ENABLE_AA_REGISTRATION);
     }
 
-    public static void init() {
-        getInstance().initComponent(COMPONENT_ENABLE_REGISTRATION);
-    }
-
-    // ---- Component Specific ----
+    // ---- Component Specific Override----
     @Override
     protected String getComponentName() {
         return TAG;
     }
-
-    private HashMap<String, RegistrationCallback> registrations;
 
     @Override
     protected void componentUp() {
@@ -88,7 +77,9 @@ public class RegistrationTable extends Component {
         getInstance().registrations.clear();
     }
 
-    // ---- Business Logic ----
+    // ----  Business Logic ----
+    private HashMap<String, RegistrationCallback> registrations;
+
     /**
      * Register an application agent
      *

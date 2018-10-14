@@ -22,10 +22,11 @@ public class LinkLocalRouting extends Component {
     private static final String TAG = "LinkLocalRouting";
 
     // ---- SINGLETON ----
-    private static LinkLocalRouting instance = new LinkLocalRouting();
+    private static LinkLocalRouting instance;
     public static LinkLocalRouting getInstance() {  return instance; }
-    public static void init() {
-        getInstance().initComponent(COMPONENT_ENABLE_LINKLOCAL_ROUTING);
+    static {
+        instance = new LinkLocalRouting();
+        instance.initComponent(COMPONENT_ENABLE_LINKLOCAL_ROUTING);
     }
 
     private Map<EID, CLAChannel> linkLocalTable = new HashMap<>();

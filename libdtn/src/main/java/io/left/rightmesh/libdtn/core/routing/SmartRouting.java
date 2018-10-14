@@ -14,10 +14,12 @@ public class SmartRouting extends Component {
     private static final String TAG = "SmartRouting";
 
     // ---- SINGLETON ----
-    private static SmartRouting instance = new SmartRouting();
+    private static SmartRouting instance;
     public static SmartRouting getInstance() {  return instance; }
-    public static void init() {
-        instance.initComponent(COMPONENT_ENABLE_SMART_ROUTING);
+
+    static {
+        instance = new SmartRouting();
+        getInstance().initComponent(COMPONENT_ENABLE_SMART_ROUTING);
     }
 
     @Override

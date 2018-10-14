@@ -12,14 +12,18 @@ public abstract class Component {
 
     public void initComponent(DTNConfiguration.Entry entry) {
         DTNConfiguration.<Boolean>get(entry).observe()
-                .subscribe(enabled -> {
-                    this.enabled = enabled;
-                    if(enabled) {
-                        componentUp();
-                    } else {
-                        componentDown();
-                    }
-                });
+                .subscribe(
+                        enabled -> {
+                            this.enabled = enabled;
+                            if (enabled) {
+                                componentUp();
+                            } else {
+                                componentDown();
+                            }
+                        },
+                        e -> {
+                            /* ignore */
+                        });
     }
 
     public boolean isEnabled() {

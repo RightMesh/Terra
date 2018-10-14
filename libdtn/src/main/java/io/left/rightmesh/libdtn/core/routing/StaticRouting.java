@@ -24,9 +24,11 @@ public class StaticRouting extends Component {
     private static final String TAG = "StaticRouting";
 
     // ---- SINGLETON ----
-    private static StaticRouting instance = new StaticRouting();
+    private static StaticRouting instance;
     public static StaticRouting getInstance() { return instance; }
-    public static void init() {
+
+    static {
+        instance = new StaticRouting();
         instance.initComponent(COMPONENT_ENABLE_STATIC_ROUTING);
         DTNConfiguration.<Map<EID, EID>>get(STATIC_ROUTE_CONFIGURATION).observe().subscribe(
                 m -> instance.staticRoutingTable = m);

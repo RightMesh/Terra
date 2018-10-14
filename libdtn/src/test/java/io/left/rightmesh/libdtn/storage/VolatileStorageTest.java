@@ -2,12 +2,15 @@ package io.left.rightmesh.libdtn.storage;
 
 import org.junit.Test;
 
+import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Test;
 import io.left.rightmesh.libdtn.storage.bundle.BundleStorage;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
 import io.left.rightmesh.libdtn.storage.bundle.VolatileStorage;
 
+import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_SIMPLE_STORAGE;
+import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_VOLATILE_STORAGE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -18,37 +21,41 @@ public class VolatileStorageTest {
 
     @Test
     public void testVolatileStoreBundle() {
-        System.out.println("[+] storage: test store one bundle in volatile storage");
-        VolatileStorage.init();
+        synchronized (StorageTest.lock) {
+            System.out.println("[+] Volatile Storage");
+            VolatileStorage.getInstance();
+            DTNConfiguration.<Boolean>get(COMPONENT_ENABLE_VOLATILE_STORAGE).update(true);
+            DTNConfiguration.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(false);
 
-        Bundle[] bundles = {
-                BundleV7Test.testBundle1(),
-                BundleV7Test.testBundle2(),
-                BundleV7Test.testBundle3(),
-                BundleV7Test.testBundle4(),
-                BundleV7Test.testBundle5(),
-                BundleV7Test.testBundle6()
-        };
+            Bundle[] bundles = {
+                    BundleV7Test.testBundle1(),
+                    BundleV7Test.testBundle2(),
+                    BundleV7Test.testBundle3(),
+                    BundleV7Test.testBundle4(),
+                    BundleV7Test.testBundle5(),
+                    BundleV7Test.testBundle6()
+            };
 
-        VolatileStorage storage = VolatileStorage.getInstance();
-        VolatileStorage.removeVolatileBundle().subscribe();
+            System.out.println("[.] clear VolatileStorage");
+            VolatileStorage.clear().subscribe();
+            assertEquals(0, VolatileStorage.count());
 
-        assertEquals(0, VolatileStorage.count());
+            System.out.println("[.] store bundle in VolatileStorage");
+            for (int i = 0; i < bundles.length; i++) {
+                final int j = i;
+                VolatileStorage.store(bundles[j]).subscribe(
+                        (b) -> {
+                            assertEquals(j + 1, VolatileStorage.count());
+                            assertEquals(true, Storage.containsVolatile(b.bid));
+                        },
+                        e -> fail());
+            }
+            assertEquals(bundles.length, VolatileStorage.count());
 
-        for (int i = 0; i < bundles.length; i++) {
-            final int  j = i;
-            storage.store(bundles[j]).subscribe(
-                    (b) -> {
-                        assertEquals(j+1, VolatileStorage.count());
-                        assertEquals(true, Storage.containsVolatile(b.bid));
-                    },
-                    e -> fail());
+            System.out.println("[.] clear VolatileStorage");
+            VolatileStorage.clear().subscribe();
+            assertEquals(0, VolatileStorage.count());
         }
-
-        assertEquals(bundles.length, VolatileStorage.count());
-
-        VolatileStorage.removeVolatileBundle().subscribe();
-        assertEquals(0, VolatileStorage.count());
     }
 
 }

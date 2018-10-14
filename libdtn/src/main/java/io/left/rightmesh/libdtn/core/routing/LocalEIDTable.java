@@ -17,9 +17,11 @@ public class LocalEIDTable {
     private static final String TAG = "LocalEIDTable";
 
     // ---- SINGLETON ----
-    private static LocalEIDTable instance = new LocalEIDTable();
+    private static LocalEIDTable instance;
     public static LocalEIDTable getInstance() {  return instance; }
-    public static void init() {
+
+    static {
+        instance = new LocalEIDTable();
         Log.i(TAG, "component up");
     }
 

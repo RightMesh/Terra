@@ -8,6 +8,7 @@ import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.LOG_LEVEL;
 
 /**
  * Simple Logger
+ *
  * @author Lucien Loiseau on 15/09/18.
  */
 public class Log extends Component {
@@ -15,9 +16,15 @@ public class Log extends Component {
     private static final String TAG = "Log";
 
     // ---- SINGLETON ----
-    private static Log instance = new Log();
-    public static Log getInstance() { return instance; }
-    public static void init() {
+    private static Log instance;
+
+    public static Log getInstance() {
+        return instance;
+    }
+
+    static {
+        instance = new Log();
+        level = LOGLevel.INFO;
         getInstance().initComponent(COMPONENT_ENABLE_LOGGING);
         DTNConfiguration.<LOGLevel>get(LOG_LEVEL).observe().subscribe(l -> level = l);
     }
@@ -44,19 +51,17 @@ public class Log extends Component {
             return level;
         }
     }
-    private static LOGLevel level = LOGLevel.DEBUG;
+    private static LOGLevel level;
 
     private static void log(LOGLevel l, String tag, String msg) {
-        if(getInstance().isEnabled()) {
-            if (level.ordinal() >= l.ordinal()) {
+        if (getInstance().isEnabled()) {
+            if (l.ordinal() >= level.ordinal()) {
                 System.out.println(l + " - " + tag + ": " + msg);
             }
         }
     }
 
-    public static void set(LOGLevel level) {
-        Log.level = level;
-    }
+    public static void set(LOGLevel level) { Log.level = level; }
 
     public static void d(String tag, String msg) {
         log(LOGLevel.DEBUG, tag, msg);

@@ -1,16 +1,12 @@
 package io.left.rightmesh.libdtn.storage.bundle;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Observable;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.BundleID;
-import io.left.rightmesh.libdtn.data.MetaBundle;
-import io.left.rightmesh.librxbus.RxBus;
 import io.reactivex.Completable;
+import io.reactivex.Observable;
 import io.reactivex.Single;
 
 /**
@@ -19,15 +15,16 @@ import io.reactivex.Single;
 public class Storage {
 
     // ---- SINGLETON ----
-    private static Storage instance = new Storage();
+    private static Storage instance;
 
     public static Storage getInstance() {
         return instance;
     }
 
-    public static void init() {
-        VolatileStorage.init();
-        SimpleStorage.init();
+    static {
+        instance = new Storage();
+        VolatileStorage.getInstance();
+        SimpleStorage.getInstance();
     }
 
     static class IndexEntry {
@@ -46,7 +43,6 @@ public class Storage {
 
     static Map<BundleID, IndexEntry> index = new ConcurrentHashMap<>();
 
-
     static IndexEntry addEntry(BundleID bid, Bundle bundle) {
         IndexEntry entry = new IndexEntry(bundle);
         index.put(bid, entry);
@@ -62,20 +58,55 @@ public class Storage {
         }
     }
 
+    static void removeEntry(BundleID bid, IndexEntry entry) {
+        index.remove(bid, entry);
+    }
+
+    /**
+     * count the total number of bundle indexed, wether in persistant or volatile storage
+     */
+    public static int count() {
+        return index.size();
+    }
+
+    /**
+     * check if a Bundle is in storage
+     *
+     * @param bid of the bundle
+     * @return true if the Bundle is stored in volatile storage, false otherwise
+     */
     public static boolean contains(BundleID bid) {
         return index.containsKey(bid);
     }
 
+
+    /**
+     * check if a Bundle is stored in volatile storage
+     *
+     * @param bid of the bundle
+     * @return true if the Bundle is stored in volatile storage, false otherwise
+     */
     public static boolean containsVolatile(BundleID bid) {
         return index.containsKey(bid) && index.get(bid).isVolatile;
     }
 
+    /**
+     * check if a Bundle is stored in persistent storage
+     *
+     * @param bid of the bundle
+     * @return true if the Bundle is stored in persistent storage, false otherwise
+     */
     public static boolean containsPersistent(BundleID bid) {
         return index.containsKey(bid) && index.get(bid).isPersistent;
     }
 
     /**
      * Try to store in volatile storage first and then copy in persistent storage whatever happens
+     * If Volatile Storage is enabled, it will return the whole Bundle, otherwise it returns
+     * a MetaBundle.
+     *
+     * Whenever the Single completes, the caller can expect that no further operations is needed
+     * in background to store the bundle.
      *
      * @param bundle to store
      * @return Completable that complete whenever the bundle is stored, error otherwise
@@ -85,17 +116,15 @@ public class Storage {
             return Single.error(new BundleStorage.BundleAlreadyExistsException());
         }
 
-        return Single.create(s -> {
-            VolatileStorage.store(bundle).subscribe(
-                    vb -> {
-                        SimpleStorage.store(vb);
-                        s.onSuccess(vb);
-                    },
-                    e -> SimpleStorage.store(bundle)
-                            .subscribe(
-                                    s::onSuccess,
-                                    s::onError));
-        });
+        return Single.create(s -> VolatileStorage.store(bundle).subscribe(
+                vb -> SimpleStorage.store(vb).onErrorReturnItem(vb)
+                        .subscribe(
+                                pb -> s.onSuccess(vb),
+                                e -> s.onSuccess(vb)),
+                e -> SimpleStorage.store(bundle)
+                        .subscribe(
+                                s::onSuccess,
+                                s::onError)));
     }
 
     /**
@@ -135,17 +164,25 @@ public class Storage {
      * @return Completable
      */
     public static Completable remove(BundleID id) {
-        if (contains(id)) {
+        if (!contains(id)) {
             return Completable.error(BundleStorage.BundleNotFoundException::new);
         }
 
-        Completable removeFromIndex = Completable.fromCallable(() -> index.remove(id));
         if (containsPersistent(id)) {
             return SimpleStorage.remove(id)
                     .onErrorComplete()
-                    .andThen(removeFromIndex);
+                    .andThen(VolatileStorage.remove(id));
         } else {
-            return removeFromIndex;
+            return VolatileStorage.remove(id);
         }
+    }
+
+    /**
+     * Clear all bundles
+     */
+    public static Completable clear() {
+        return Observable.fromIterable(index.keySet())
+                .flatMapCompletable(bid -> remove(bid))
+                .onErrorComplete();
     }
 }

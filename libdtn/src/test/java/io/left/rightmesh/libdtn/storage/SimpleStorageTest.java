@@ -15,142 +15,150 @@ import java.util.concurrent.atomic.AtomicReference;
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Test;
-import io.left.rightmesh.libdtn.storage.bundle.BundleStorage;
 import io.left.rightmesh.libdtn.storage.bundle.SimpleStorage;
-import io.left.rightmesh.libdtn.utils.Log;
+import io.left.rightmesh.libdtn.storage.bundle.Storage;
+import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import io.reactivex.Observable;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_SIMPLE_STORAGE;
-import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.LOG_LEVEL;
+import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_VOLATILE_STORAGE;
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.SIMPLE_STORAGE_PATH;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * @author Lucien Loiseau on 04/10/18.
  */
 public class SimpleStorageTest {
 
+    public static final AtomicReference<CountDownLatch> waitLock = new AtomicReference<>(new CountDownLatch(1));
+
     @Test
     public void testSimpleStoreBundle() {
-        System.out.println("[+] storage: test store bundles in simple storage");
-        DTNConfiguration.<Log.LOGLevel>get(LOG_LEVEL).update(Log.LOGLevel.INFO);
-        Set<String> paths = new HashSet<>();
-        paths.add(System.getProperty("path"));
-        File dir = new File(System.getProperty("path")+"/bundle/");
-        DTNConfiguration.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(true);
-        DTNConfiguration.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
-        SimpleStorage.init();
+        synchronized (StorageTest.lock) {
+            System.out.println("[+] SimpleStorage");
+            Set<String> paths = new HashSet<>();
+            DTNConfiguration.<Boolean>get(COMPONENT_ENABLE_VOLATILE_STORAGE).update(false);
+            DTNConfiguration.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(true);
+            paths.add(System.getProperty("path"));
+            File dir = new File(System.getProperty("path") + "/bundle/");
+            DTNConfiguration.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
+            SimpleStorage.getInstance();
 
-        Bundle[] bundles = {
-                BundleV7Test.testBundle1(),
-                BundleV7Test.testBundle2(),
-                BundleV7Test.testBundle3(),
-                BundleV7Test.testBundle4(),
-                BundleV7Test.testBundle5(),
-                BundleV7Test.testBundle6()
-        };
+            Bundle[] bundles = {
+                    BundleV7Test.testBundle1(),
+                    BundleV7Test.testBundle2(),
+                    BundleV7Test.testBundle3(),
+                    BundleV7Test.testBundle4(),
+                    BundleV7Test.testBundle5(),
+                    BundleV7Test.testBundle6()
+            };
 
-        final AtomicReference<CountDownLatch> lock = new AtomicReference<>(new CountDownLatch(1));
-
-        System.out.println("[+] clear storage");
-        clearStorage();
-        assertStorageSize(0);
-        assertFileStorageSize(0, dir);
+            System.out.println("[.] clear SimpleStorage");
+            clearStorage();
+            assertStorageSize(0);
+            assertFileStorageSize(0, dir);
 
 
-        /* store the bundles in storage */
-        System.out.println("[+] store in storage");
-        lock.set(new CountDownLatch(6));
-        for (int i = 0; i < bundles.length; i++) {
-            final int j = i;
-            SimpleStorage.store(bundles[j]).subscribe(
-                    (b) -> lock.get().countDown(),
-                    e -> {
-                        System.out.println("error storing bundle: "+e.getMessage());
-                        lock.get().countDown();
-                    });
-        }
-        try {
-            lock.get().await(2000, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException ie) {
-            // ignore
-        }
-        assertStorageSize(6);
-        assertFileStorageSize(6, dir);
+            /* store the bundles in storage */
+            System.out.println("[.] store in SimpleStorage");
+            cockLock();
+            Observable.fromArray(bundles).flatMapCompletable(
+                    b -> Completable.fromSingle(SimpleStorage.store(b)))
+                    .subscribe(
+                            () -> {
+                                waitLock.get().countDown();
+                            },
+                            e -> {
+                                waitLock.get().countDown();
+                            });
+            waitFinish();
+            assertStorageSize(bundles.length);
+            assertFileStorageSize(bundles.length, dir);
 
-        /* pull the bundles from storage  */
-        System.out.println("[+] pull from storage");
-        lock.set(new CountDownLatch(6));
-        final LinkedList<Bundle> pulledBundles = new LinkedList<>();
-        for (Bundle bundle : bundles) {
-            SimpleStorage.get(bundle.bid).subscribe(
-                    b -> {
-                        pulledBundles.add(b);
-                        lock.get().countDown();
-                    },
-                    e -> {
-                        System.out.println("error pulling bundle from storage: "+e.getMessage());
-                        e.printStackTrace();
-                        lock.get().countDown();
-                    });
-        }
+            /* pull the bundles from storage  */
+            System.out.println("[.] pull from SimpleStorage");
+            final LinkedList<Bundle> pulledBundles = new LinkedList<>();
+            cockLock();
+            Observable.fromArray(bundles).flatMapCompletable(
+                    b -> Completable.create(s ->
+                            SimpleStorage.get(b.bid).subscribe(
+                                    pb -> {
+                                        pulledBundles.add(pb);
+                                        s.onComplete();
+                                    },
+                                    e -> {
+                                        System.out.println("error pulling bundle: " + e.getMessage());
+                                        s.onComplete();
+                                    })))
+                    .subscribe(
+                            () -> waitLock.get().countDown(),
+                            e -> waitLock.get().countDown());
+            waitFinish();
+            assertEquals(bundles.length, pulledBundles.size());
+            assertFileStorageSize(bundles.length, dir);
 
-        try {
-            lock.get().await(2000, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException ie) {
-            // ignore
-        }
-        assertEquals(6, pulledBundles.size());
-        assertFileStorageSize(6, dir);
-
-        /* check that they are the same */
-        for (Bundle bundle : pulledBundles) {
-            boolean found = false;
-            for(int j = 0; j < bundles.length; j++) {
-                if(bundles[j].bid.toString().equals(bundle.bid.toString())) {
-                    found = true;
-                    assertArrayEquals(
-                            flowableToByteArray(bundles[j].getPayloadBlock().data.observe()),
-                            flowableToByteArray(bundle.getPayloadBlock().data.observe()));
+            /* check that they are the same */
+            for (Bundle bundle : pulledBundles) {
+                boolean found = false;
+                for (int j = 0; j < bundles.length; j++) {
+                    if (bundles[j].bid.toString().equals(bundle.bid.toString())) {
+                        found = true;
+                        assertArrayEquals(
+                                flowableToByteArray(bundles[j].getPayloadBlock().data.observe()),
+                                flowableToByteArray(bundle.getPayloadBlock().data.observe()));
+                    }
                 }
+                assertTrue(found);
             }
-            assertTrue(found);
-        }
 
-        /* check remove path */
-        System.out.println("[+] remove path from configuration");
-        paths.clear();
-        DTNConfiguration.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
+            /* check remove path */
+            System.out.println("[.] remove path from SimpleStorage configuration");
+            paths.clear();
+            DTNConfiguration.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
+            try {
+                // give it time to unindex
+                Thread.sleep(200);
+            } catch (InterruptedException ie) {
+                // ignore
+            }
+            assertStorageSize(0);
+            assertFileStorageSize(6, dir);
+
+            /* check indexing new path */
+            System.out.println("[.] add path to SimpleStorage configuration for indexing");
+            paths.add(System.getProperty("path"));
+            DTNConfiguration.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
+            try {
+                // give it time to index
+                Thread.sleep(200);
+            } catch (InterruptedException ie) {
+                // ignore
+            }
+            assertStorageSize(6);
+            assertFileStorageSize(6, dir);
+
+            /* clear the storage */
+            System.out.println("[.] clear SimpleStorage");
+            clearStorage();
+            assertStorageSize(0);
+            assertFileStorageSize(0, dir);
+        }
+    }
+
+
+    public static void cockLock() {
+        waitLock.set(new CountDownLatch(1));
+    }
+
+    public static void waitFinish() {
         try {
-            // give it time to unindex
-            Thread.sleep(200);
+            waitLock.get().await(2000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException ie) {
             // ignore
         }
-        assertStorageSize(0);
-        assertFileStorageSize(6, dir);
-
-        /* check indexing new path */
-        System.out.println("[+] add path to configuration for indexing");
-        paths.add(System.getProperty("path"));
-        DTNConfiguration.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
-        try {
-            // give it time to index
-            Thread.sleep(200);
-        } catch (InterruptedException ie) {
-            // ignore
-        }
-        assertStorageSize(6);
-        assertFileStorageSize(6, dir);
-
-        /* clear the storage */
-        System.out.println("[+] clear again");
-        clearStorage();
-        assertStorageSize(0);
-        assertFileStorageSize(0, dir);
     }
 
     private byte[] flowableToByteArray(Flowable<ByteBuffer> f) {
@@ -162,27 +170,19 @@ public class SimpleStorageTest {
     }
 
     private void clearStorage() {
-        final AtomicReference<CountDownLatch> lock = new AtomicReference<>(new CountDownLatch(1));
-        lock.set(new CountDownLatch(1));
-        SimpleStorage.clear().subscribe(
-                () -> lock.get().countDown(),
-                e -> {
-                    System.out.println("[!] cannot clear storage: "+e.getMessage());
-                    e.printStackTrace();
-                    lock.get().countDown();
-                });
-        try {
-            lock.get().await(2000, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException ie) {
-            // ignore
-        }
+        cockLock();
+        Storage.clear().subscribe(
+                () -> waitLock.get().countDown(),
+                e -> waitLock.get().countDown()
+        );
+        waitFinish();
     }
 
-    private void assertStorageSize(int expectedSize) {
+    static void assertStorageSize(int expectedSize) {
         assertEquals(expectedSize, SimpleStorage.count());
     }
 
-    private void assertFileStorageSize(int expectedSize, File dir) {
+    static void assertFileStorageSize(int expectedSize, File dir) {
         assertEquals(expectedSize, dir.listFiles().length);
     }
 

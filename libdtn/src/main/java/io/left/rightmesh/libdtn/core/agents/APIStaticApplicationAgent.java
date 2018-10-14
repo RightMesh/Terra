@@ -23,10 +23,11 @@ public class APIStaticApplicationAgent extends Component {
     private static final String TAG = "APIStaticApplicationAgent";
 
     // ---- SINGLETON ----
-    private static APIStaticApplicationAgent instance = new APIStaticApplicationAgent();
+    private static APIStaticApplicationAgent instance;
     public static APIStaticApplicationAgent getInstance() {  return instance; }
-    public static void init() {
-        getInstance().initComponent(COMPONENT_ENABLE_STATIC_API);
+    static {
+        instance = new APIStaticApplicationAgent();
+        instance.initComponent(COMPONENT_ENABLE_STATIC_API);
     }
 
     @Override
