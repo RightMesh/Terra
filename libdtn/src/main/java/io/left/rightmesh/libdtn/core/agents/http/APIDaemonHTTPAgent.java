@@ -1,11 +1,7 @@
-package io.left.rightmesh.libdtn.core.agents;
-
-import java.io.IOException;
+package io.left.rightmesh.libdtn.core.agents.http;
 
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.Component;
-import io.left.rightmesh.libdtn.core.routing.RegistrationTable;
-import io.left.rightmesh.libdtn.utils.nettyrouter.Route;
 import io.left.rightmesh.libdtn.utils.nettyrouter.Router;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -14,7 +10,6 @@ import rx.Observable;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_DAEMON_HTTP_API;
 import static io.left.rightmesh.libdtn.utils.nettyrouter.Dispatch.using;
-import static rx.Observable.just;
 
 /**
  * @author Lucien Loiseau on 13/10/18.
@@ -49,16 +44,16 @@ public class APIDaemonHTTPAgent extends Component {
         server = HttpServer.newServer(serverPort)
                 .start(using(new Router<ByteBuf, ByteBuf>()
                         .GET("/", rootAction)
-                        .GET("/register", registerAction)
-                        .GET("/register/:*", registerAction)
-                        .GET("/unregister/", unregisterAction)
-                        .GET("/unregister/:*", unregisterAction)
-                        .GET("/fetch/", fetchAction)
-                        .GET("/fetch/:*", fetchAction)
-                        .GET("/conf/", confAction)
-                        .GET("/conf/:*", confAction)
-                        .GET("/cache/", cacheAction)
-                        .GET("/cache/:*", cacheAction)
+                        .GET("/register", RegistrationAPI.registerAction)
+                        .GET("/register/:*", RegistrationAPI.registerAction)
+                        .GET("/unregister/", RegistrationAPI.unregisterAction)
+                        .GET("/unregister/:*", RegistrationAPI.unregisterAction)
+                        .GET("/cache/", StorageAPI.cacheAction)
+                        .GET("/cache/:*", StorageAPI.cacheAction)
+                        .GET("/fetch/", StorageAPI.fetchAction)
+                        .GET("/fetch/:*", StorageAPI.fetchAction)
+                        .GET("/conf/", ConfigurationAPI.confAction)
+                        .GET("/conf/:*", ConfigurationAPI.confAction)
                         .notFound(handler404)));
     }
 
@@ -69,57 +64,6 @@ public class APIDaemonHTTPAgent extends Component {
             server.shutdown();
         }
     }
-
-    private interface Action extends Route<ByteBuf, ByteBuf> {
-    }
-
-    private static Action registerAction = (params, req, res) -> {
-        String sink = params.get("*");
-        if (sink == null) {
-            return res.setStatus(HttpResponseStatus.BAD_REQUEST)
-                    .writeString(just("incorrect sink"))
-                    .writeString(just(RegistrationTable.printTable()));
-        }
-        if (RegistrationTable.register(sink)) {
-            return res.setStatus(HttpResponseStatus.OK)
-                    .writeString(just("sink registered: " + sink))
-                    .writeString(just(RegistrationTable.printTable()));
-        } else {
-            return res.setStatus(HttpResponseStatus.BAD_REQUEST)
-                    .writeString(just("sink registered: " + sink))
-                    .writeString(just(RegistrationTable.printTable()));
-        }
-    };
-
-    private static Action unregisterAction = (params, req, res) -> {
-        String sink = params.get("*");
-        if (sink == null) {
-            return res.setStatus(HttpResponseStatus.BAD_REQUEST)
-                    .writeString(just("incorrect sink"))
-                    .writeString(just(RegistrationTable.printTable()));
-        }
-        if (RegistrationTable.unregister(sink)) {
-            return res.setStatus(HttpResponseStatus.OK)
-                    .writeString(just("sink unregistered: " + sink))
-                    .writeString(just(RegistrationTable.printTable()));
-        } else {
-            return res.setStatus(HttpResponseStatus.BAD_REQUEST)
-                    .writeString(just("no such sink: " + sink))
-                    .writeString(just(RegistrationTable.printTable()));
-        }
-    };
-
-    private static Action fetchAction = (params, req, res) -> {
-        return res.writeString(just("fetch"));
-    };
-
-    private static Action confAction = (params, req, res) -> {
-        return res.setStatus(HttpResponseStatus.OK).writeString(just("conf"));
-    };
-
-    private static Action cacheAction = (params, req, res) -> {
-        return res.setStatus(HttpResponseStatus.OK).writeString(just("cache"));
-    };
 
     private static Action rootAction = (params, req, res) -> {
         String[] header = {

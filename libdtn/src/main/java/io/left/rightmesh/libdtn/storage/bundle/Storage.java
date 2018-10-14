@@ -43,7 +43,7 @@ public class Storage {
     }
 
     /**
-     * Pull a MetaBundle from Storage. If the bundle is available in VolatileStorage it pulls
+     * Pull a MetaBundle from StorageAPI. If the bundle is available in VolatileStorage it pulls
      * the real Bundle from the index, otherwise it returns the MetaBundle from SimpleStorage index.
      *
      * @param id of the bundle to pull from storage
@@ -55,7 +55,7 @@ public class Storage {
     }
 
     /**
-     * Pull a Bundle from Storage. It will try to pull it from Volatile if it exists, or from
+     * Pull a Bundle from StorageAPI. It will try to pull it from Volatile if it exists, or from
      * SimpleStorage otherwise.
      *
      * @param id of the bundle to pull from storage

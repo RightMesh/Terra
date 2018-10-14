@@ -52,7 +52,7 @@ import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_S
  * <ul>
  *     <li>COMPONENT_ENABLE_SIMPLE_STORAGE: enable/disable SimpleStorage</li>
  *     <li>SIMPLE_STORAGE_PATH: update the list of path to be used as storage.
- *                              Storage priority follows the list order</li>
+ *                              StorageAPI priority follows the list order</li>
  * </ul>
  *
  * @author Lucien Loiseau on 20/09/18.

@@ -1,7 +1,7 @@
 package io.left.rightmesh.libdtn.core;
 
 import io.left.rightmesh.libdtn.core.agents.APIDaemonCBORAgent;
-import io.left.rightmesh.libdtn.core.agents.APIDaemonHTTPAgent;
+import io.left.rightmesh.libdtn.core.agents.http.APIDaemonHTTPAgent;
 import io.left.rightmesh.libdtn.core.agents.APIStaticApplicationAgent;
 import io.left.rightmesh.libdtn.core.agents.STCPAgent;
 import io.left.rightmesh.libdtn.core.routing.LinkLocalRouting;
@@ -24,10 +24,10 @@ public class DTNCore {
         /* init logging */
         Log.init();
 
-        /* init local EID Configuration */
+        /* init local EID ConfigurationAPI */
         LocalEIDTable.init();
 
-        /* init Storage */
+        /* init StorageAPI */
         Storage.init();
 
         /* init Routing modules */

@@ -18,7 +18,7 @@ import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_R
 
 
 /**
- * Registration Routing keeps track of the registered application agent.
+ * RegistrationAPI Routing keeps track of the registered application agent.
  *
  * @author Lucien Loiseau on 24/08/18.
  */
@@ -125,7 +125,7 @@ public class RegistrationTable extends Component {
      * @return true if the AA was unregister, false otherwise
      */
     public static boolean unregister(String sink) {
-        if (!getInstance().isEnabled() && sink == null
+        if (getInstance().isEnabled() && sink != null
                 && getInstance().registrations.containsKey(sink)) {
             getInstance().registrations.get(sink).close();
             getInstance().registrations.remove(sink);
@@ -178,7 +178,7 @@ public class RegistrationTable extends Component {
     public static String printTable() {
         StringBuilder sb = new StringBuilder("\n\ncurrent registration table:\n");
         sb.append("---------------------------\n\n");
-        if (!getInstance().isEnabled()) {
+        if (getInstance().isEnabled()) {
             for (String sink : getInstance().registrations.keySet()) {
                 sb.append(sink).append(" ");
                 if(getRegistration(sink) == passiveRegistration){
