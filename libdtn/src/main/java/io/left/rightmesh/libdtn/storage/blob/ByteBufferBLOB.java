@@ -39,7 +39,9 @@ public class ByteBufferBLOB extends BLOB {
     }
 
     public ByteBufferBLOB(ByteBuffer data) {
-        this.data = data;
+        this.data = ByteBuffer.allocate(data.remaining());
+        this.data.put(data);
+        this.data.position(0);
     }
 
     @Override

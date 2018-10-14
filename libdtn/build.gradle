@@ -17,26 +17,31 @@ repositories {
     mavenLocal()
     google()
     jcenter()
+    maven { url 'https://oss.jfrog.org/libs-snapshot' }
     //maven { url 'https://jitpack.io' }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
+    // lib rx netty for http API
+    implementation "io.reactivex:rxnetty-http:${rxnetty_version}"
+    implementation "tv.cntt:jauter:${jauter_version}"
+
     // libdtnagent to receive command from tcp socket
-    compile project(path: ':libdtnagent')
+    implementation project(path: ':libdtnagent')
 
     // libcbor for bundleV7
     //implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
-    compile project(path: ':libcbor')
+    implementation project(path: ':libcbor')
 
     // RxBus for the event bus
     //implementation 'com.github.RightMesh:librxbus:master-SNAPSHOT'
-    compile project(path: ':librxbus')
+    implementation project(path: ':librxbus')
 
     // RxTCP for STCP and TCPCLv3/v4 CLAs
     //implementation 'com.github.RightMesh:librxtcp:master-SNAPSHOT'
-    compile project(path: ':librxtcp')
+    implementation project(path: ':librxtcp')
 
     // RxJava library for reactive programming
     api 'io.reactivex.rxjava2:rxjava:2.1.1'

@@ -5,4 +5,26 @@ package io.left.rightmesh.libdtnagent;
  */
 public class ResponseMessage {
 
+    public enum ResponseCode {
+        OK(0),
+        ERROR(1);
+
+        int code;
+
+        ResponseCode(int id) {
+            this.code = id;
+        }
+
+        public static ResponseMessage.ResponseCode fromId(int id) {
+            for (ResponseMessage.ResponseCode type : values()) {
+                if (type.code == id) {
+                    return type;
+                }
+            }
+            return null;
+        }
+    }
+
+    public ResponseMessage.ResponseCode code;
+
 }

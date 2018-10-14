@@ -167,7 +167,7 @@ public class SimpleStorage extends Component implements BundleStorage {
                     .cbor_parse_custom_item(
                             FileHeaderItem::new,
                             (p, ___, item) -> {
-                                p.save("header", item);
+                                p.set("header", item);
                             })
                     .cbor_open_array((__, ___, ____) -> {})
                     .cbor_parse_custom_item(
@@ -283,7 +283,7 @@ public class SimpleStorage extends Component implements BundleStorage {
      * a different thread and returns a Completable.
      *
      * @param bundle to store
-     * @return Completable
+     * @return Single of the MetaBundle
      */
     public static Single<Bundle> store(Bundle bundle) {
         if (!getInstance().isEnabled()) {
@@ -350,6 +350,8 @@ public class SimpleStorage extends Component implements BundleStorage {
                                         out.write(buffer.get());
                                     }
                                     getInstance().index.put(bundle.bid, entry);
+                                    meta.tag("in_storage");
+                                    bundle.tag("in_storage");
                                     s.onSuccess(meta);
                                 },
                                 e -> {
@@ -389,7 +391,9 @@ public class SimpleStorage extends Component implements BundleStorage {
 
         return Single.create(s -> {
             if(contains(id)) {
-                s.onSuccess(getInstance().index.get(id));
+                MetaBundle meta = getInstance().index.get(id);
+                meta.tag("in_storage");
+                s.onSuccess(meta);
             } else {
                 s.onError(new BundleNotFoundException());
             }
@@ -427,7 +431,7 @@ public class SimpleStorage extends Component implements BundleStorage {
                     .cbor_open_array(2)
                     .cbor_parse_custom_item(
                             FileHeaderItem::new,
-                            (p, ___, item) -> p.save("header", item))
+                            (p, ___, item) -> p.set("header", item))
                     .cbor_parse_custom_item(
                             BundleV7Parser.BundleItem::new,
                             (p, ___, item) -> {
@@ -435,11 +439,13 @@ public class SimpleStorage extends Component implements BundleStorage {
                                     String path = p.<FileHeaderItem>get("header").blob_path;
                                     try {
                                         item.bundle.getPayloadBlock().data = new FileBLOB(path);
+                                        item.bundle.tag("in_storage");
                                         s.onSuccess(item.bundle);
                                     } catch(IOException io) {
                                         s.onError(new Throwable("can't retrieve payload blob"));
                                     }
                                 }
+                                item.bundle.tag("in_storage");
                                 s.onSuccess(item.bundle);
                             });
 

@@ -5,11 +5,17 @@ import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
 import io.left.rightmesh.libdtn.core.routing.RegistrationTable;
 import io.left.rightmesh.libdtn.core.routing.RoutingEngine;
 import io.left.rightmesh.libdtn.data.Bundle;
+import io.left.rightmesh.libdtn.data.BundleID;
 import io.left.rightmesh.libdtn.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.data.EID;
 import io.left.rightmesh.libdtn.data.StatusReport;
+import io.left.rightmesh.libdtn.events.BundleDeleted;
+import io.left.rightmesh.libdtn.events.ChannelOpened;
+import io.left.rightmesh.libdtn.events.RegistrationActive;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
+import io.left.rightmesh.librxbus.RxBus;
+import io.left.rightmesh.librxbus.Subscribe;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_FORWARDING;
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_STATUS_REPORTING;
@@ -72,7 +78,7 @@ public class BundleProcessor {
         bundle.tag("forward_pending");
 
         /* 5.4 - step 2 */
-        CLAChannel claChannel = RoutingEngine.findCLA(bundle);
+        CLAChannel claChannel = RoutingEngine.findCLA(bundle.destination);
         if (claChannel == null) {
             /* 5.4 - step 3 */
             bundle.tag("reason_code", NoKnownRouteForDestination);
@@ -81,11 +87,6 @@ public class BundleProcessor {
         }
 
         /* 5.4 - step 4 */
-        bundleActualForward(bundle, claChannel);
-    }
-
-    /* 5.4 - step 4 */
-    public static void bundleActualForward(Bundle bundle, CLAChannel claChannel) {
         claChannel.sendBundle(bundle).subscribe(
                 i -> { /* ignore transmission progress */ },
                 e -> {
@@ -130,13 +131,50 @@ public class BundleProcessor {
             bundleForwardingFailed(bundle);
         } else {
             Storage.store(bundle).subscribe(
-                    RoutingEngine::forwardLater, /* in storage, defer forwarding */
+                    b -> {
+                        /* in storage, defer forwarding */
+                        forwardLater(b);
+                    },
                     storageFailure -> {
                         /* storage failed, abandon forwarding */
                         bundleForwardingFailed(bundle);
                     }
             );
         }
+    }
+
+    public static void forwardLater(final Bundle bundle) {
+        /* register a listener that will listen for ChannelOpened event
+         * and pull the bundle from storage if there is a match */
+        final BundleID bid = bundle.bid;
+        final EID destination = bundle.destination;
+        RxBus.register(new Object() {
+            @Subscribe
+            public void onEvent(ChannelOpened event) {
+                CLAChannel claChannel = RoutingEngine.findCLA(destination);
+                if (claChannel != null) {
+                    /* this is a transmission opportunity */
+                    Storage.getMeta(bid).subscribe(
+                            meta -> {
+                                claChannel.sendBundle(meta).subscribe(
+                                        i -> { /* ignore transmission progress */ },
+                                        e -> { /* ignore failed transmission */ },
+                                        () -> {
+                                            /* 5.4 - step 5 */
+                                            // todo careful, there might be multiple transmission
+                                            meta.removeTag("forward_pending");
+                                            RxBus.unregister(this);
+                                            bundleDiscarding(meta);
+                                        }
+                                );
+                            },
+                            e -> {
+                                /* somehow bundle was deleted */
+                                RxBus.unregister(this);
+                            });
+                }
+            }
+        });
     }
 
     /* 5.4.2 */
@@ -199,6 +237,7 @@ public class BundleProcessor {
 
     /* 5.7 */
     public static void bundleLocalDelivery(Bundle bundle) {
+        bundle.tag("delivery_pending");
         /* 5.7 - step 1 */
         // atm we don't support fragmentation
 
@@ -207,28 +246,74 @@ public class BundleProcessor {
         if (localMatch != null) {
             String sink = bundle.destination.eid.replaceFirst(localMatch.eid, "");
             RegistrationTable.deliver(sink, bundle).subscribe(
-                    () -> {
-                        /* 5.7 - step 3 */
-                        if (bundle.getV7Flag(DELIVERY_REPORT) && reporting()) {
-                            // todo generate status report
-                        }
-                    },
-                    deliveryFailure -> {
-                        /* 5.7 - step 2 - delivery failure */
-                        Storage.store(bundle).subscribe(
-                                RegistrationTable::deliverLater,
-                                storageFailure -> {
-                                    /* abandon delivery */
-                                    bundleDeletion(bundle);
-                                }
-                        );
-                    });
+                    () -> bundleLocalDeliverySuccessful(bundle),
+                    deliveryFailure -> bundleLocalDeliveryFailure(bundle));
         } else {
             // it should never happen because we already checked that the bundle was local.
             // but if the configuration changed right when the thread was jumping here it
             // may happen. In such unlikely event, we simply go back to bundleDispatching.
             bundleDispatching(bundle);
         }
+    }
+
+    /* 5.7 - step 3 */
+    public static void bundleLocalDeliverySuccessful(Bundle bundle) {
+        bundle.removeTag("delivery_pending");
+        if (bundle.getV7Flag(DELIVERY_REPORT) && reporting()) {
+            // todo generate status report
+        }
+        bundleDeletion(bundle);
+    }
+
+    /* 5.7 - step 2 - delivery failure */
+    public static void bundleLocalDeliveryFailure(Bundle bundle) {
+        if(!bundle.isTagged("in_storage")) {
+            Storage.store(bundle).subscribe(
+                    b -> {
+                        /* register for event and deliver later */
+                        deliverLater(bundle);
+                    },
+                    storageFailure -> {
+                        /* abandon delivery */
+                        bundleDeletion(bundle);
+                    }
+            );
+        }
+    }
+
+    /**
+     * Register an EventListener that "wakes up" the bundle if a registration has turned active.
+     * This method should be called only once upon storage order.
+     *
+     * @param bundle
+     */
+    public static void deliverLater(final Bundle bundle) {
+        final BundleID bid = bundle.bid;
+        RxBus.register(new Object() { /* lives in RxBus and will unregister itself when delivered */
+            @Subscribe
+            public void onEvent(RegistrationActive event) {
+                Storage.getMeta(bid).subscribe( /* same thread */
+                        meta -> {
+                            event.cb.send(meta).subscribe(
+                                    () -> {
+                                        RxBus.unregister(this);
+                                        BundleProcessor.bundleLocalDeliverySuccessful(meta);
+                                    },
+                                    e -> BundleProcessor.bundleLocalDeliveryFailure(meta));
+                        },
+                        e -> {
+                            /* somehow bundle was deleted */
+                            RxBus.unregister(this);
+                        });
+            }
+
+            @Subscribe
+            public void onEvent(BundleDeleted event) {
+                if (bid.equals(event.bid)) {
+                    RxBus.unregister(this);
+                }
+            }
+        });
     }
 
     /* 5.8 */
@@ -246,6 +331,7 @@ public class BundleProcessor {
         /* 5.10 - step 2 */
         bundle.removeTag("dispatch_pending");
         bundle.removeTag("forward_pending");
+        bundle.removeTag("delivery_pending");
         bundleDiscarding(bundle);
     }
 

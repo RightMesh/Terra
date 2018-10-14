@@ -6,6 +6,7 @@ import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.BundleID;
+import io.left.rightmesh.libdtn.events.BundleDeleted;
 import io.left.rightmesh.libdtn.events.RegistrationActive;
 import io.left.rightmesh.libdtn.storage.blob.BLOB;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
@@ -31,7 +32,7 @@ public class RegistrationTable extends Component {
     public interface RegistrationCallback {
         boolean isActive();
 
-        Completable send(BLOB payload);
+        Completable send(Bundle bundle);
 
         void close();
     }
@@ -44,7 +45,7 @@ public class RegistrationTable extends Component {
         }
 
         @Override
-        public Completable send(BLOB payload) {
+        public Completable send(Bundle bundle) {
             return Completable.error(new RegistrationIsPassive());
         }
 
@@ -55,13 +56,16 @@ public class RegistrationTable extends Component {
 
     // ---- SINGLETON ----
     private static RegistrationTable instance = new RegistrationTable();
+
     public static RegistrationTable getInstance() {
         return instance;
     }
+
     public static void init() {
         getInstance().initComponent(COMPONENT_ENABLE_REGISTRATION);
     }
 
+    // ---- Component Specific ----
     @Override
     protected String getComponentName() {
         return TAG;
@@ -84,6 +88,17 @@ public class RegistrationTable extends Component {
         getInstance().registrations.clear();
     }
 
+    // ---- Business Logic ----
+    /**
+     * Register an application agent
+     *
+     * @param sink identifying this AA
+     * @return true if the AA was registered, false otherwise
+     */
+    public static boolean register(String sink) {
+        return register(sink, passiveRegistration);
+    }
+
     /**
      * Register an application agent
      *
@@ -92,10 +107,10 @@ public class RegistrationTable extends Component {
      * @return true if the AA was registered, false otherwise
      */
     public static boolean register(String sink, RegistrationCallback cb) {
-        if (!getInstance().isEnabled()
+        if (getInstance().isEnabled()
                 && sink != null
                 && cb != null
-                && getInstance().registrations.containsKey(sink)) {
+                && !getInstance().registrations.containsKey(sink)) {
             getInstance().registrations.put(sink, cb);
             return true;
         } else {
@@ -122,11 +137,12 @@ public class RegistrationTable extends Component {
 
     /**
      * Return the active registration for a given sink, null otherwise
+     *
      * @param sink the registered sink
      * @return RegistrationCallback
      */
     public static RegistrationCallback getRegistration(String sink) {
-        if (!getInstance().isEnabled() && sink != null
+        if (getInstance().isEnabled() && sink != null
                 && getInstance().registrations.containsKey(sink)) {
             return getInstance().registrations.get(sink);
         } else {
@@ -136,32 +152,45 @@ public class RegistrationTable extends Component {
 
     /**
      * Deliver a bundle to the registration
-     * @param sink registered
+     *
+     * @param sink   registered
      * @param bundle to deliver
      * @return completes if the bundle was successfully delivered, onError otherwise
      */
     public static Completable deliver(String sink, Bundle bundle) {
+        if (!getInstance().isEnabled()) {
+            return Completable.error(new Throwable("disabled component"));
+        }
+
         RegistrationCallback cb = getRegistration(sink);
         if (cb.isActive()) {
-            return cb.send(bundle.getPayloadBlock().data);
+            return cb.send(bundle);
         } else {
             return Completable.error(new RegistrationIsPassive());
         }
     }
 
     /**
-     * Register an EventListener that "wakes up" the bundle if a registration has turned active
-     * @param bundle
+     * print the state of the registration table
+     *
+     * @return String
      */
-    public static void deliverLater(final Bundle bundle) {
-        final BundleID bid = bundle.bid;
-        RxBus.register(new Object() {
-            @Subscribe
-            public void onEvent(RegistrationActive event) {
-                Storage.getMeta(bid).subscribe(
-                        BundleProcessor::bundleLocalDelivery,
-                        e -> RxBus.unregister(this));
+    public static String printTable() {
+        StringBuilder sb = new StringBuilder("\n\ncurrent registration table:\n");
+        sb.append("---------------------------\n\n");
+        if (!getInstance().isEnabled()) {
+            for (String sink : getInstance().registrations.keySet()) {
+                sb.append(sink).append(" ");
+                if(getRegistration(sink) == passiveRegistration){
+                    sb.append("PASSIVE\n");
+                } else {
+                    sb.append("ACTIVE\n");
+                }
             }
-        });
+        } else {
+            sb.append("disabled");
+        }
+        sb.append("\n");
+        return sb.toString();
     }
 }

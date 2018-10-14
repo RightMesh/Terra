@@ -43,13 +43,13 @@ public class LinkLocalRouting extends Component {
         getInstance().linkLocalTable.remove(channel.channelEID());
     }
 
-    public static CLAChannel findCLA(Bundle bundle) {
+    public static CLAChannel findCLA(EID destination) {
         if(!getInstance().isEnabled()) {
             return null;
         }
 
         for(EID peer : getInstance().linkLocalTable.keySet()) {
-            if(bundle.destination.matches(peer)) {
+            if(destination.matches(peer)) {
                 return getInstance().linkLocalTable.get(peer);
             }
         }

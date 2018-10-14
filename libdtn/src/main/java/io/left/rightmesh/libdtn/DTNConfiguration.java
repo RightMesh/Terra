@@ -42,9 +42,10 @@ public class DTNConfiguration {
         ENABLE_FORWARDING("dtn_enable_forwarding"),
         COMPONENT_ENABLE_REGISTRATION("component_enable_registration"),
         COMPONENT_ENABLE_STATIC_API("component_enable_static_api"),
-        COMPONENT_ENABLE_DAEMON_API("component_enable_daemon_api"),
-        API_DAEMON_SIGNAL_PORT("api_daemon_signal_port"),
-        API_DAEMON_CHANNEL_PORT("api_daemon_channel_port"),
+        COMPONENT_ENABLE_CBOR_DAEMON_API("component_enable_daemon_api"),
+        API_CBOR_DAEMON_CHANNEL_PORT("api_daemon_channel_port"),
+        COMPONENT_ENABLE_DAEMON_HTTP_API("component_enable_daemon_http_api"),
+        API_DAEMON_HTTP_API_PORT("api_daemon_http_port"),
         EID_SINGLETON_ONLY("eid_singleton_only"),
         COMPONENT_ENABLE_CLA_STCP("component_enable_cla_stcp"),
         CLA_STCP_LISTENING_PORT("cla_tcp_port"),
@@ -241,9 +242,10 @@ public class DTNConfiguration {
         this.createEntry(Entry.ENABLE_STATUS_REPORTING, true);
         this.createEntry(Entry.COMPONENT_ENABLE_REGISTRATION, true);
         this.createEntry(Entry.COMPONENT_ENABLE_STATIC_API, true);
-        this.createEntry(Entry.COMPONENT_ENABLE_DAEMON_API, true);
-        this.createEntry(Entry.API_DAEMON_SIGNAL_PORT, 4559);
-        this.createEntry(Entry.API_DAEMON_CHANNEL_PORT, 4557);
+        this.createEntry(Entry.COMPONENT_ENABLE_CBOR_DAEMON_API, false);
+        this.createEntry(Entry.API_CBOR_DAEMON_CHANNEL_PORT, 4557);
+        this.createEntry(Entry.COMPONENT_ENABLE_DAEMON_HTTP_API, true);
+        this.createEntry(Entry.API_DAEMON_HTTP_API_PORT, 8080);
         this.createEntry(Entry.ENABLE_FORWARDING, true);
         this.createEntry(Entry.EID_SINGLETON_ONLY, false);
         this.createEntry(Entry.COMPONENT_ENABLE_CLA_STCP, true);

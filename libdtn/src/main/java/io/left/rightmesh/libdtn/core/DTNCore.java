@@ -1,7 +1,8 @@
 package io.left.rightmesh.libdtn.core;
 
-import io.left.rightmesh.libdtn.core.agents.APIDaemonAgent;
-import io.left.rightmesh.libdtn.core.agents.APIStaticAgent;
+import io.left.rightmesh.libdtn.core.agents.APIDaemonCBORAgent;
+import io.left.rightmesh.libdtn.core.agents.APIDaemonHTTPAgent;
+import io.left.rightmesh.libdtn.core.agents.APIStaticApplicationAgent;
 import io.left.rightmesh.libdtn.core.agents.STCPAgent;
 import io.left.rightmesh.libdtn.core.routing.LinkLocalRouting;
 import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
@@ -36,8 +37,9 @@ public class DTNCore {
 
         /* init Application Agents API */
         RegistrationTable.init();
-        APIStaticAgent.init();
-        APIDaemonAgent.init();
+        APIStaticApplicationAgent.init();
+        APIDaemonCBORAgent.init();
+        APIDaemonHTTPAgent.init();
 
         /* init Convergence Layer Adapters */
         STCPAgent.init();

@@ -39,13 +39,13 @@ public class StaticRouting extends Component {
         return TAG;
     }
 
-    static CLAChannel findCLA(Bundle bundle) {
+    static CLAChannel findCLA(EID destination) {
         if (!getInstance().isEnabled()) {
             return null;
         }
 
         for (EID entry : getInstance().staticRoutingTable.keySet()) {
-            if (bundle.destination.matches(entry)) {
+            if (destination.matches(entry)) {
                 EID next = getInstance().staticRoutingTable.get(entry);
                 CLAChannel channel = LinkLocalRouting.isPeerLinkLocal(next);
                 if(channel != null) {

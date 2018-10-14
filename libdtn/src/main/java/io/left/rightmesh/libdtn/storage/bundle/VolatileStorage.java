@@ -89,6 +89,7 @@ public class VolatileStorage extends Component implements BundleStorage {
             } else {
                 IndexEntry meta = new IndexEntry(bundle);
                 getInstance().bundles.put(bundle.bid, meta);
+                bundle.tag("in_storage");
                 s.onSuccess(bundle);
             }
         });
@@ -121,7 +122,9 @@ public class VolatileStorage extends Component implements BundleStorage {
         }
 
         if (getInstance().bundles.containsKey(id)) {
-            return Single.just(getInstance().bundles.get(id).bundle);
+            Bundle bundle = getInstance().bundles.get(id).bundle;
+            bundle.tag("in_storage");
+            return Single.just(bundle);
         } else {
             return Single.error(BundleNotFoundException::new);
         }

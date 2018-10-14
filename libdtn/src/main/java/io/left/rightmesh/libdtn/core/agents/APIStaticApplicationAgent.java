@@ -3,6 +3,7 @@ package io.left.rightmesh.libdtn.core.agents;
 import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.core.routing.RegistrationTable;
 import io.left.rightmesh.libdtn.core.routing.RegistrationTable.RegistrationCallback;
+import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.storage.blob.BLOB;
 import io.reactivex.Completable;
 
@@ -11,7 +12,7 @@ import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_S
 /**
  * @author Lucien Loiseau on 28/09/18.
  */
-public class APIStaticAgent extends Component {
+public class APIStaticApplicationAgent extends Component {
 
     public interface StaticAPICallback {
         void recv(BLOB payload);
@@ -19,11 +20,11 @@ public class APIStaticAgent extends Component {
         void close();
     }
 
-    private static final String TAG = "APIStaticAgent";
+    private static final String TAG = "APIStaticApplicationAgent";
 
     // ---- SINGLETON ----
-    private static APIStaticAgent instance = new APIStaticAgent();
-    public static APIStaticAgent getInstance() {  return instance; }
+    private static APIStaticApplicationAgent instance = new APIStaticApplicationAgent();
+    public static APIStaticApplicationAgent getInstance() {  return instance; }
     public static void init() {
         getInstance().initComponent(COMPONENT_ENABLE_STATIC_API);
     }
@@ -45,8 +46,8 @@ public class APIStaticAgent extends Component {
             }
 
             @Override
-            public Completable send(BLOB payload) {
-                cb.recv(payload);
+            public Completable send(Bundle bundle) {
+                cb.recv(bundle.getPayloadBlock().data);
                 return Completable.complete();
             }
 
