@@ -5,6 +5,7 @@ import org.junit.Test;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Test;
 import io.left.rightmesh.libdtn.storage.bundle.BundleStorage;
+import io.left.rightmesh.libdtn.storage.bundle.Storage;
 import io.left.rightmesh.libdtn.storage.bundle.VolatileStorage;
 
 import static org.junit.Assert.assertEquals;
@@ -30,44 +31,24 @@ public class VolatileStorageTest {
         };
 
         VolatileStorage storage = VolatileStorage.getInstance();
-        storage.clear();
-        try {
-            assertEquals(0, storage.count());
-        } catch(BundleStorage.StorageUnavailableException e) {
-            fail();
-        }
+        VolatileStorage.removeVolatileBundle().subscribe();
+
+        assertEquals(0, VolatileStorage.count());
 
         for (int i = 0; i < bundles.length; i++) {
             final int  j = i;
             storage.store(bundles[j]).subscribe(
                     (b) -> {
-                        try {
-                            assertEquals(j+1, storage.count());
-                        } catch(BundleStorage.StorageUnavailableException e) {
-                            fail();
-                        }
-
-                        try {
-                            assertEquals(true, storage.contains(b.bid));
-                        } catch(BundleStorage.StorageUnavailableException e) {
-                            fail();
-                        }
+                        assertEquals(j+1, VolatileStorage.count());
+                        assertEquals(true, Storage.containsVolatile(b.bid));
                     },
                     e -> fail());
         }
 
-        try {
-            assertEquals(bundles.length, storage.count());
-        } catch(BundleStorage.StorageUnavailableException e) {
-            fail();
-        }
+        assertEquals(bundles.length, VolatileStorage.count());
 
-        storage.clear().subscribe();
-        try {
-            assertEquals(0, storage.count());
-        } catch(BundleStorage.StorageUnavailableException e) {
-            fail();
-        }
+        VolatileStorage.removeVolatileBundle().subscribe();
+        assertEquals(0, VolatileStorage.count());
     }
 
 }

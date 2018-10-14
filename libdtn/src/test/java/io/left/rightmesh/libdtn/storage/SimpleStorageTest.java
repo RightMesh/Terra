@@ -2,6 +2,7 @@ package io.left.rightmesh.libdtn.storage;
 
 import org.junit.Test;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -38,6 +39,7 @@ public class SimpleStorageTest {
         DTNConfiguration.<Log.LOGLevel>get(LOG_LEVEL).update(Log.LOGLevel.INFO);
         Set<String> paths = new HashSet<>();
         paths.add(System.getProperty("path"));
+        File dir = new File(System.getProperty("path")+"/bundle/");
         DTNConfiguration.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(true);
         DTNConfiguration.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
         SimpleStorage.init();
@@ -53,10 +55,14 @@ public class SimpleStorageTest {
 
         final AtomicReference<CountDownLatch> lock = new AtomicReference<>(new CountDownLatch(1));
 
+        System.out.println("[+] clear storage");
         clearStorage();
         assertStorageSize(0);
+        assertFileStorageSize(0, dir);
+
 
         /* store the bundles in storage */
+        System.out.println("[+] store in storage");
         lock.set(new CountDownLatch(6));
         for (int i = 0; i < bundles.length; i++) {
             final int j = i;
@@ -73,8 +79,10 @@ public class SimpleStorageTest {
             // ignore
         }
         assertStorageSize(6);
+        assertFileStorageSize(6, dir);
 
         /* pull the bundles from storage  */
+        System.out.println("[+] pull from storage");
         lock.set(new CountDownLatch(6));
         final LinkedList<Bundle> pulledBundles = new LinkedList<>();
         for (Bundle bundle : bundles) {
@@ -96,6 +104,7 @@ public class SimpleStorageTest {
             // ignore
         }
         assertEquals(6, pulledBundles.size());
+        assertFileStorageSize(6, dir);
 
         /* check that they are the same */
         for (Bundle bundle : pulledBundles) {
@@ -112,6 +121,7 @@ public class SimpleStorageTest {
         }
 
         /* check remove path */
+        System.out.println("[+] remove path from configuration");
         paths.clear();
         DTNConfiguration.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
         try {
@@ -121,8 +131,10 @@ public class SimpleStorageTest {
             // ignore
         }
         assertStorageSize(0);
+        assertFileStorageSize(6, dir);
 
         /* check indexing new path */
+        System.out.println("[+] add path to configuration for indexing");
         paths.add(System.getProperty("path"));
         DTNConfiguration.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
         try {
@@ -132,10 +144,13 @@ public class SimpleStorageTest {
             // ignore
         }
         assertStorageSize(6);
+        assertFileStorageSize(6, dir);
 
         /* clear the storage */
+        System.out.println("[+] clear again");
         clearStorage();
         assertStorageSize(0);
+        assertFileStorageSize(0, dir);
     }
 
     private byte[] flowableToByteArray(Flowable<ByteBuffer> f) {
@@ -164,11 +179,12 @@ public class SimpleStorageTest {
     }
 
     private void assertStorageSize(int expectedSize) {
-        try {
-            assertEquals(expectedSize, SimpleStorage.count());
-        } catch (BundleStorage.StorageUnavailableException ie) {
-            fail();
-        }
+        assertEquals(expectedSize, SimpleStorage.count());
     }
+
+    private void assertFileStorageSize(int expectedSize, File dir) {
+        assertEquals(expectedSize, dir.listFiles().length);
+    }
+
 
 }

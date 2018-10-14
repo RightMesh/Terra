@@ -30,7 +30,6 @@ public class VolatileBLOB extends BLOB {
                 .value();
     }
 
-
     /**
      * Create a new {@see VolatileBLOB}.
      *

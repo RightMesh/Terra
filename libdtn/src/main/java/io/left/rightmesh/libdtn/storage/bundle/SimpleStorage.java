@@ -13,8 +13,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
@@ -35,6 +37,7 @@ import io.left.rightmesh.librxbus.RxBus;
 import io.reactivex.Completable;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
+import rx.Observable;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_SIMPLE_STORAGE;
 
@@ -50,9 +53,9 @@ import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_S
  *
  * <p>The SimpleStorage is configurable through {@see DTNConfiguration} by updating two values:
  * <ul>
- *     <li>COMPONENT_ENABLE_SIMPLE_STORAGE: enable/disable SimpleStorage</li>
- *     <li>SIMPLE_STORAGE_PATH: update the list of path to be used as storage.
- *                              StorageAPI priority follows the list order</li>
+ * <li>COMPONENT_ENABLE_SIMPLE_STORAGE: enable/disable SimpleStorage</li>
+ * <li>SIMPLE_STORAGE_PATH: update the list of path to be used as storage.
+ * StorageAPI priority follows the list order</li>
  * </ul>
  *
  * @author Lucien Loiseau on 20/09/18.
@@ -66,7 +69,11 @@ public class SimpleStorage extends Component implements BundleStorage {
 
     // ---- SINGLETON ----
     private static SimpleStorage instance = new SimpleStorage();
-    public static SimpleStorage getInstance() { return instance;  }
+
+    public static SimpleStorage getInstance() {
+        return instance;
+    }
+
     public static void init() {
         getInstance().initComponent(COMPONENT_ENABLE_SIMPLE_STORAGE);
         DTNConfiguration.<Set<String>>get(DTNConfiguration.Entry.SIMPLE_STORAGE_PATH).observe()
@@ -96,40 +103,29 @@ public class SimpleStorage extends Component implements BundleStorage {
         return TAG;
     }
 
-    private static class IndexEntry extends MetaBundle {
-        String path; /* path to the file where the bundle is serialized */
-        boolean has_blob;
-        String blob_path;
-
-        IndexEntry(Bundle bundle) {
-            super(bundle);
-        }
-
-        IndexEntry(MetaBundle meta, String path) {
-            super(meta);
-            this.path = path;
-            has_blob = false;
-            blob_path = "";
-        }
-
-        IndexEntry(MetaBundle meta, String path, boolean has_blob, String blobPath) {
-            super(meta);
-            this.path = path;
-            this.has_blob = has_blob;
-            blob_path = blobPath;
-        }
-    }
     private LinkedList<String> storage_paths = new LinkedList<>();
-    private Map<BundleID, IndexEntry> index = Collections.synchronizedMap(new HashMap<>());
+
+
+    /**
+     * Count the number of Persistent Bundlel in Storage. This method iterates over the entire index.
+     *
+     * @return number of Persistent bundle in storage
+     */
+    public static int count() {
+        return (int)Storage.index.values().stream().filter(e -> e.isPersistent).count();
+    }
 
     private boolean removePath(String path) {
         if (storage_paths.contains(path)) {
-            Set<BundleID> bundlesToRemove = new HashSet<>();
-            index.keySet().stream()
-                    .filter(b -> index.get(b).path.startsWith(path))
-                    .map(b -> {bundlesToRemove.add(b); return b;})
-                    .count();
-            bundlesToRemove.stream().map(index::remove).count();
+            Storage.index.forEach(
+                    (bid, entry) -> {
+                        if(entry.isPersistent && entry.bundle_path.startsWith(path)) {
+                            entry.isPersistent = false;
+                            if(!entry.isVolatile) {
+                                Storage.index.remove(bid, entry);
+                            }
+                        }
+                    });
             storage_paths.remove(path);
             return true;
         }
@@ -148,7 +144,7 @@ public class SimpleStorage extends Component implements BundleStorage {
                 if (!fbundle.exists() && !fbundle.mkdir()) {
                     return false;
                 }
-                indexBundles(fbundle);
+                indexBundlesFromPath(fbundle);
                 storage_paths.add(path);
                 return true;
             }
@@ -156,7 +152,7 @@ public class SimpleStorage extends Component implements BundleStorage {
         return false;
     }
 
-    private void indexBundles(File folder) {
+    private void indexBundlesFromPath(File folder) {
         for (final File file : folder.listFiles()) {
             /*
              * preparing the parser. We just parse the file header and the primary block of
@@ -167,25 +163,27 @@ public class SimpleStorage extends Component implements BundleStorage {
                     .cbor_parse_custom_item(
                             FileHeaderItem::new,
                             (p, ___, item) -> {
-                                p.set("header", item);
+                                p.setReg(0, item);
                             })
-                    .cbor_open_array((__, ___, ____) -> {})
+                    .cbor_open_array((__, ___, ____) -> {
+                    }) /* we are just parsing te primary block */
                     .cbor_parse_custom_item(
                             BundleV7Parser.PrimaryBlockItem::new,
                             (p, ___, item) -> {
                                 MetaBundle meta = new MetaBundle(item.b);
-                                meta.bundle_size = p.<FileHeaderItem>get("header").bundle_size;
-                                index.put(meta.bid, new IndexEntry(meta,
-                                        file.getAbsolutePath(),
-                                        p.<FileHeaderItem>get("header").has_blob,
-                                        p.<FileHeaderItem>get("header").blob_path));
+                                Storage.IndexEntry entry = Storage.getEntryOrCreate(meta.bid, meta);
+                                entry.bundle_path = file.getAbsolutePath();
+                                entry.has_blob = p.<FileHeaderItem>getReg(0).has_blob;
+                                entry.blob_path = p.<FileHeaderItem>getReg(0).blob_path;
+                                entry.isPersistent = true;
                                 RxBus.post(new BundleIndexed(meta));
                             });
+
             ByteBuffer buffer = ByteBuffer.allocate(500);
             FileChannel in;
             try {
                 in = new FileInputStream(file).getChannel();
-            } catch(FileNotFoundException fnfe) {
+            } catch (FileNotFoundException fnfe) {
                 continue; /* cannot happen */
             }
 
@@ -198,7 +196,7 @@ public class SimpleStorage extends Component implements BundleStorage {
                     buffer.clear();
                 }
                 in.close();
-            } catch(RxParserException | IOException rpe) {
+            } catch (RxParserException | IOException rpe) {
                 continue;
             }
         }
@@ -266,19 +264,6 @@ public class SimpleStorage extends Component implements BundleStorage {
     }
 
     /**
-     * count the number of bundles accessible
-     *
-     * @return number of bundles indexed
-     */
-    public static int count() throws StorageUnavailableException {
-        if (!getInstance().isEnabled()) {
-            throw new StorageUnavailableException();
-        }
-
-        return getInstance().index.size();
-    }
-
-    /**
      * store a bundle into persistent storage. This operation can take time so it is done in
      * a different thread and returns a Completable.
      *
@@ -290,43 +275,29 @@ public class SimpleStorage extends Component implements BundleStorage {
             return Single.error(new StorageUnavailableException());
         }
 
+        if (Storage.containsPersistent(bundle.bid)) {
+            return Single.error(new BundleAlreadyExistsException());
+        }
+
         return Single.<Bundle>create(
                 s -> {
-                    if (!getInstance().index.containsKey(bundle.bid)) {
+                    /* prepare bundle: we do not serialize the payload fileBLOB, if any */
+                    boolean has_blob = false;
+                    String blob_path = "";
+                    BLOB blob = new NullBLOB();
+                    if (bundle.getPayloadBlock().data instanceof FileBLOB) {
+                        blob = bundle.getPayloadBlock().data;
+                        has_blob = true;
+                        blob_path = ((FileBLOB) blob).getAbsolutePath();
+
+                        /* momentarily remove the blob from bundle for serialization */
+                        bundle.getPayloadBlock().data = new NullBLOB();
+                    }
+
+                    try {
                         /* prepare bundle encoder and metabundle */
                         CborEncoder bundleEncoder = BundleV7Serializer.encode(bundle);
-                        final MetaBundle meta = new MetaBundle(bundle, bundleEncoder);
-
-                        /* create file and assess available space */
-                        File fbundle;
-                        try {
-                            fbundle = createBundleEntry(bundle.bid, meta.bundle_size);
-                        } catch (StorageFullException sfe) {
-                            s.onError(new Throwable("storage is full"));
-                            return;
-                        }
-                        if (fbundle == null) {
-                            s.onError(new Throwable("could not create file"));
-                            return;
-                        }
-
-                        /* prepare bundle: we do not serialize the payload fileBLOB, if any */
-                        boolean has_blob = false;
-                        String  blob_path = "";
-                        BLOB blob = new NullBLOB();
-                        if(bundle.getPayloadBlock().data instanceof FileBLOB) {
-                            blob = bundle.getPayloadBlock().data;
-                            has_blob = true;
-                            blob_path = ((FileBLOB)blob).getAbsolutePath();
-
-                            // momentarily remove the blob from bundle for serialization
-                            bundle.getPayloadBlock().data = new NullBLOB();
-                        }
-                        final IndexEntry entry = new IndexEntry(
-                                meta,
-                                fbundle.getAbsolutePath(),
-                                has_blob,
-                                blob_path);
+                        final MetaBundle meta = new MetaBundle(bundle);
 
                         /*
                          * the bundle will be serialized in the file as a CBOR array containing
@@ -334,23 +305,43 @@ public class SimpleStorage extends Component implements BundleStorage {
                          */
                         CborEncoder enc = CBOR.encoder()
                                 .cbor_start_array(2)  /* File = header + bundle */
-                                .cbor_start_array(3)  /* File Header */
-                                .cbor_encode_int(meta.bundle_size)
+                                .cbor_start_array(2)  /* File Header */
                                 .cbor_encode_boolean(has_blob)
                                 .cbor_encode_text_string(blob_path)
                                 .merge(bundleEncoder); /* bundle */
 
-                        /* bundle and actual serialization */
-                        OutputStream out = new BufferedOutputStream(
-                                new FileOutputStream(fbundle));
+                        /* asses file size */
+                        AtomicLong size = new AtomicLong();
+                        BundleV7Serializer.encode(bundle).observe()
+                                .subscribe(
+                                        buffer -> size.set(size.get() + buffer.remaining()),
+                                        e -> size.set(-1),
+                                        () -> { /* ignore */ });
 
-                        enc.observe().subscribe( /* same thread */
+                        /* create file */
+                        File fbundle;
+                        try {
+                            fbundle = createBundleEntry(bundle.bid, size.get());
+                        } catch (StorageFullException sfe) {
+                            s.onError(new Throwable("storage is full"));
+                            return;
+                        }
+
+                        /* actual serialization of the bundle */
+                        OutputStream out = new BufferedOutputStream(new FileOutputStream(fbundle));
+
+                        final boolean hb = has_blob; /* for use in lambda */
+                        final String bp = blob_path; /* for use in lambda */
+                        enc.observe().subscribe( /* encoded in same thread */
                                 buffer -> {
                                     while (buffer.hasRemaining()) {
                                         out.write(buffer.get());
                                     }
-                                    getInstance().index.put(bundle.bid, entry);
-                                    meta.tag("in_storage");
+                                    final Storage.IndexEntry entry = Storage.getEntryOrCreate(meta.bid, meta);
+                                    entry.isPersistent = true;
+                                    entry.bundle_path = fbundle.getAbsolutePath();
+                                    entry.has_blob = hb;
+                                    entry.blob_path = bp;
                                     bundle.tag("in_storage");
                                     s.onSuccess(meta);
                                 },
@@ -359,45 +350,16 @@ public class SimpleStorage extends Component implements BundleStorage {
                                     s.onError(new Throwable("serialized into file failed"));
                                 });
                         out.close();
-
-                        /* if we removed the payload BLOB, we put it back */
-                        if(has_blob) {
+                    } finally {
+                        /* normally the reference to this bundle will be GC as we returned a
+                         * MetaBundle, but just in case if we removed the payload BLOB,
+                         * we put it back. */
+                        if (has_blob) {
                             bundle.getPayloadBlock().data = blob;
                         }
                     }
                 }
         ).subscribeOn(Schedulers.io());
-    }
-
-    /**
-     * returns true if the bundle id is present in the index
-     *
-     * @param id of the bundle
-     * @return true if present, false otherwise
-     * @throws StorageUnavailableException if the SimpleStorage is disabled
-     */
-    public static boolean contains(BundleID id) throws StorageUnavailableException {
-        if (!getInstance().isEnabled()) {
-            throw new StorageUnavailableException();
-        }
-
-        return getInstance().index.containsKey(id);
-    }
-
-    public static Single<MetaBundle> getMetaBundle(BundleID id) {
-        if (!getInstance().isEnabled()) {
-            return Single.error(new StorageUnavailableException());
-        }
-
-        return Single.create(s -> {
-            if(contains(id)) {
-                MetaBundle meta = getInstance().index.get(id);
-                meta.tag("in_storage");
-                s.onSuccess(meta);
-            } else {
-                s.onError(new BundleNotFoundException());
-            }
-        });
     }
 
     /**
@@ -412,17 +374,19 @@ public class SimpleStorage extends Component implements BundleStorage {
             return Single.error(new StorageUnavailableException());
         }
 
+
+
         return Single.<Bundle>create(s -> {
-            if (!getInstance().index.containsKey(id)) {
+            if(!Storage.containsPersistent(id)) {
                 s.onError(new Throwable("no such bundle in storage: " + id.toString()));
                 return;
             }
 
             /* pulling entry from index */
-            IndexEntry entry = getInstance().index.get(id);
-            File fbundle = new File(entry.path);
+            Storage.IndexEntry entry = Storage.index.get(id);
+            File fbundle = new File(entry.bundle_path);
             if (!fbundle.exists() || !fbundle.canRead()) {
-                s.onError(new Throwable("can't read bundle file in storage: " + entry.path));
+                s.onError(new Throwable("can't read bundle file in storage: " + entry.bundle_path));
                 return;
             }
 
@@ -431,17 +395,18 @@ public class SimpleStorage extends Component implements BundleStorage {
                     .cbor_open_array(2)
                     .cbor_parse_custom_item(
                             FileHeaderItem::new,
-                            (p, ___, item) -> p.set("header", item))
+                            (p, ___, item) -> p.setReg(0, item))
                     .cbor_parse_custom_item(
                             BundleV7Parser.BundleItem::new,
                             (p, ___, item) -> {
-                                if(p.<FileHeaderItem>get("header").has_blob) {
-                                    String path = p.<FileHeaderItem>get("header").blob_path;
+                                if (p.<FileHeaderItem>getReg(0).has_blob) {
+                                    String path = p.<FileHeaderItem>getReg(0).blob_path;
                                     try {
                                         item.bundle.getPayloadBlock().data = new FileBLOB(path);
                                         item.bundle.tag("in_storage");
+                                        p.setReg(0, null);
                                         s.onSuccess(item.bundle);
-                                    } catch(IOException io) {
+                                    } catch (IOException io) {
                                         s.onError(new Throwable("can't retrieve payload blob"));
                                     }
                                 }
@@ -451,7 +416,7 @@ public class SimpleStorage extends Component implements BundleStorage {
 
             /* extracting bundle from file */
             ByteBuffer buffer = ByteBuffer.allocate(2048);
-            FileChannel in = new FileInputStream(entry.path).getChannel();
+            FileChannel in = new FileInputStream(entry.bundle_path).getChannel();
             try {
                 boolean done = false;
                 while ((in.read(buffer) > 0) && !done) {
@@ -460,7 +425,7 @@ public class SimpleStorage extends Component implements BundleStorage {
                     buffer.clear();
                 }
                 in.close();
-            } catch(RxParserException | IOException rpe) {
+            } catch (RxParserException | IOException rpe) {
                 /* should not happen */
                 s.onError(rpe);
             }
@@ -469,43 +434,52 @@ public class SimpleStorage extends Component implements BundleStorage {
 
     /**
      * Remove a bundle from persistent storage. Removing implies deleting the file, deleting
-     * the payload blob (if any) and remove the reference from the index. This operation can take
-     * some time so it is done in a different thread and returns a Comnpletable.
+     * the payload blob (if any) and updating the entry in Storage. If the entry has no volatile
+     * copy, it deletes the entry from the index. This operation can take some time so it is done
+     * in a different thread and returns a Completable.
      *
      * @param id of the bundle to delete
      * @return Completable
      */
     public static Completable remove(BundleID id) {
         if (!getInstance().isEnabled()) {
-            return Completable.error(new StorageUnavailableException());
+            return Completable.error(StorageUnavailableException::new);
         }
 
         return Completable.create(s -> {
-            if (!getInstance().index.containsKey(id)) {
-                s.onComplete();
+            if (!Storage.containsPersistent(id)) {
+                s.onError(new BundleNotFoundException());
                 return;
             }
-            String error = "";
-            IndexEntry meta = getInstance().index.get(id);
-            getInstance().index.remove(id);
 
-            File fbundle = new File(meta.path);
+            String error = "";
+            Storage.IndexEntry entry = Storage.index.get(id);
+
+            File fbundle = new File(entry.bundle_path);
             if (fbundle.exists() && !fbundle.canWrite()) {
                 error += "can't access bundle file for deletion";
             } else {
                 fbundle.delete();
             }
 
-            if (meta.has_blob) {
-                File fblob = new File(meta.blob_path);
+            if (entry.has_blob) {
+                File fblob = new File(entry.blob_path);
                 if (fblob.exists() && !fbundle.canWrite()) {
                     error += "can't access payload blob file for deletion";
                 } else {
                     fblob.delete();
                 }
             }
+            entry.has_blob = false;
+            entry.bundle_path = "";
+            entry.blob_path = "";
+            entry.isPersistent = false;
 
-            if(error.length() > 0) {
+            if(!entry.isVolatile) {
+                Storage.index.remove(id);
+            }
+
+            if (error.length() > 0) {
                 s.onError(new Throwable(error));
             } else {
                 s.onComplete();
@@ -524,28 +498,23 @@ public class SimpleStorage extends Component implements BundleStorage {
             return Completable.error(new StorageUnavailableException());
         }
 
-        return Completable.create(s -> {
-            Set<BundleID> bids = new HashSet<>();
-            bids.addAll(getInstance().index.keySet());
-            for (BundleID id : bids) {
-                remove(id).subscribe();
-            }
-            s.onComplete();
-        });
+        Completable c = Completable.complete();
+        for(BundleID bid : Storage.index.keySet()) {
+            c = c.onErrorComplete().andThen(remove(bid));
+        }
+        return c;
     }
 
     private static class FileHeaderItem implements CborParser.ParseableItem {
 
-        long    bundle_size;
         boolean has_blob;
-        String  blob_path;
+        String blob_path;
 
         @Override
         public CborParser getItemParser() {
             return CBOR.parser()
-                    .cbor_open_array(3)
-                    .cbor_parse_int((__, ___, i) -> bundle_size = i)
-                    .cbor_parse_boolean((__,b) -> has_blob = b)
+                    .cbor_open_array(2)
+                    .cbor_parse_boolean((__, b) -> has_blob = b)
                     .cbor_parse_text_string_full((__, str) -> blob_path = str);
         }
     }

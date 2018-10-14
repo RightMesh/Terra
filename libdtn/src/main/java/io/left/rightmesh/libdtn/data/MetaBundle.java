@@ -11,34 +11,14 @@ import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Serializer;
  */
 public class MetaBundle extends Bundle {
 
-    public long bundle_size;
-
     public MetaBundle() {
-        bundle_size = 0;
     }
 
     public MetaBundle(MetaBundle meta) {
         super((PrimaryBlock)meta);
-        this.bundle_size = meta.bundle_size;
     }
 
     public MetaBundle(Bundle bundle) {
         super((PrimaryBlock)bundle);
-        AtomicLong size = new AtomicLong();
-        BundleV7Serializer.encode(bundle).observe()
-                .subscribe(
-                        buffer -> size.set(size.get() + buffer.remaining()),
-                        e -> bundle_size = -1,
-                        () -> bundle_size = size.get());
-    }
-
-    public MetaBundle(Bundle bundle, CborEncoder bundleEncoder) {
-        super((PrimaryBlock)bundle);
-        AtomicLong size = new AtomicLong();
-        bundleEncoder.observe()
-                .subscribe(
-                        buffer -> size.set(size.get() + buffer.remaining()),
-                        e -> bundle_size = -1,
-                        () -> bundle_size = size.get());
     }
 }

@@ -50,8 +50,8 @@ public class APIDaemonHTTPAgent extends Component {
                         .GET("/unregister/:*", RegistrationAPI.unregisterAction)
                         .GET("/cache/", StorageAPI.cacheAction)
                         .GET("/cache/:*", StorageAPI.cacheAction)
-                        .GET("/fetch/", StorageAPI.fetchAction)
-                        .GET("/fetch/:*", StorageAPI.fetchAction)
+                        .GET("/recv/", StorageAPI.fetchAction)
+                        .GET("/recv/:*", StorageAPI.fetchAction)
                         .GET("/conf/", ConfigurationAPI.confAction)
                         .GET("/conf/:*", ConfigurationAPI.confAction)
                         .notFound(handler404)));
