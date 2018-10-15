@@ -1,24 +1,24 @@
 package io.left.rightmesh.libdtn.core.processor;
 
 import io.left.rightmesh.libdtn.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.routing.AARegistrar;
 import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
-import io.left.rightmesh.libdtn.core.routing.RegistrationTable;
 import io.left.rightmesh.libdtn.core.routing.RoutingEngine;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.BundleID;
 import io.left.rightmesh.libdtn.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.data.EID;
 import io.left.rightmesh.libdtn.data.StatusReport;
-import io.left.rightmesh.libdtn.events.BundleDeleted;
 import io.left.rightmesh.libdtn.events.ChannelOpened;
-import io.left.rightmesh.libdtn.events.RegistrationActive;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
+import io.left.rightmesh.libdtn.utils.Log;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_FORWARDING;
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_STATUS_REPORTING;
+import static io.left.rightmesh.libdtn.core.DTNCore.TAG;
 import static io.left.rightmesh.libdtn.data.BlockHeader.BlockV7Flags.DELETE_BUNDLE_IF_NOT_PROCESSED;
 import static io.left.rightmesh.libdtn.data.BlockHeader.BlockV7Flags.DISCARD_IF_NOT_PROCESSED;
 import static io.left.rightmesh.libdtn.data.BlockHeader.BlockV7Flags.TRANSMIT_STATUSREPORT_IF_NOT_PROCESSED;
@@ -38,6 +38,8 @@ import static io.left.rightmesh.libdtn.data.StatusReport.ReasonCode.Transmission
  */
 public class BundleProcessor {
 
+    private static final String TAG = "BundleProcessor";
+
     public static boolean reporting() {
         return DTNConfiguration.<Boolean>get(ENABLE_STATUS_REPORTING).value();
     }
@@ -56,6 +58,7 @@ public class BundleProcessor {
 
     /* 5.3 */
     public static void bundleDispatching(Bundle bundle) {
+        Log.i(TAG, "dispatching bundle: "+bundle.bid);
         /* 5.3 - step 1 */
         if (LocalEIDTable.isLocal(bundle.destination)) {
             bundleLocalDelivery(bundle);
@@ -245,9 +248,9 @@ public class BundleProcessor {
         EID localMatch = LocalEIDTable.matchLocal(bundle.destination);
         if (localMatch != null) {
             String sink = bundle.destination.eid.replaceFirst(localMatch.eid, "");
-            RegistrationTable.deliver(sink, bundle).subscribe(
+            AARegistrar.deliver(sink, bundle).subscribe(
                     () -> bundleLocalDeliverySuccessful(bundle),
-                    deliveryFailure -> bundleLocalDeliveryFailure(bundle));
+                    deliveryFailure -> bundleLocalDeliveryFailure(sink, bundle));
         } else {
             // it should never happen because we already checked that the bundle was local.
             // but if the configuration changed right when the thread was jumping here it
@@ -266,12 +269,12 @@ public class BundleProcessor {
     }
 
     /* 5.7 - step 2 - delivery failure */
-    public static void bundleLocalDeliveryFailure(Bundle bundle) {
+    public static void bundleLocalDeliveryFailure(String sink, Bundle bundle) {
         if(!bundle.isTagged("in_storage")) {
             Storage.store(bundle).subscribe(
                     b -> {
                         /* register for event and deliver later */
-                        deliverLater(bundle);
+                        AARegistrar.deliverLater(sink, bundle);
                     },
                     storageFailure -> {
                         /* abandon delivery */
@@ -279,41 +282,6 @@ public class BundleProcessor {
                     }
             );
         }
-    }
-
-    /**
-     * Register an EventListener that "wakes up" the bundle if a registration has turned active.
-     * This method should be called only once upon storage order.
-     *
-     * @param bundle
-     */
-    public static void deliverLater(final Bundle bundle) {
-        final BundleID bid = bundle.bid;
-        RxBus.register(new Object() { /* lives in RxBus and will unregister itself when delivered */
-            @Subscribe
-            public void onEvent(RegistrationActive event) {
-                Storage.getMeta(bid).subscribe( /* same thread */
-                        meta -> {
-                            event.cb.send(meta).subscribe(
-                                    () -> {
-                                        RxBus.unregister(this);
-                                        BundleProcessor.bundleLocalDeliverySuccessful(meta);
-                                    },
-                                    e -> BundleProcessor.bundleLocalDeliveryFailure(meta));
-                        },
-                        e -> {
-                            /* somehow bundle was deleted */
-                            RxBus.unregister(this);
-                        });
-            }
-
-            @Subscribe
-            public void onEvent(BundleDeleted event) {
-                if (bid.equals(event.bid)) {
-                    RxBus.unregister(this);
-                }
-            }
-        });
     }
 
     /* 5.8 */

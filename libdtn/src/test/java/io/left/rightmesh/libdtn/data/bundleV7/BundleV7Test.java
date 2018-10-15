@@ -35,7 +35,7 @@ public class BundleV7Test {
         bundle.destination = new EID.IPN(5, 12);
         bundle.source = new EID.DTN("source");
         bundle.reportto = EID.NullEID();
-        bundle.bid = new BundleID(bundle);
+        bundle.bid = BundleID.create(bundle);
         return bundle;
     }
 

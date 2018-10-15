@@ -5,14 +5,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.BundleID;
+import io.left.rightmesh.libdtn.utils.Log;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
+
 
 /**
  * @author Lucien Loiseau on 29/09/18.
  */
 public class Storage {
+
+    private static final String TAG = "Storage";
 
     // ---- SINGLETON ----
     private static Storage instance;
@@ -54,12 +58,16 @@ public class Storage {
         if (contains(bid)) {
             return index.get(bid);
         } else {
+            Log.i(TAG, "new entry: "+bid);
             return addEntry(bid, bundle);
         }
     }
 
     static void removeEntry(BundleID bid, IndexEntry entry) {
-        index.remove(bid, entry);
+        if(index.containsKey(bid)) {
+            Log.i(TAG, "deleting from storage: "+bid);
+            index.remove(bid, entry);
+        }
     }
 
     /**
@@ -115,7 +123,6 @@ public class Storage {
         if (index.containsKey(bundle.bid)) {
             return Single.error(new BundleStorage.BundleAlreadyExistsException());
         }
-
         return Single.create(s -> VolatileStorage.store(bundle).subscribe(
                 vb -> SimpleStorage.store(vb).onErrorReturnItem(vb)
                         .subscribe(
@@ -184,5 +191,18 @@ public class Storage {
         return Observable.fromIterable(index.keySet())
                 .flatMapCompletable(bid -> remove(bid))
                 .onErrorComplete();
+    }
+
+    public static String print() {
+        StringBuilder sb = new StringBuilder("current cache:\n");
+        sb.append("--------------\n\n");
+        index.forEach((bid, entry) -> {
+            String dest = entry.bundle.destination.toString();
+            String vol = entry.isVolatile ? "V" : "";
+            String per = entry.isPersistent ? "P=" + entry.bundle_path : "";
+            sb.append(bid+"  -  "+dest+"  -  "+vol+" "+per+"\n");
+        });
+        sb.append("\n");
+        return sb.toString();
     }
 }

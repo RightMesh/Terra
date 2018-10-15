@@ -1,8 +1,8 @@
 package io.left.rightmesh.libdtn.core.agents;
 
 import io.left.rightmesh.libdtn.core.Component;
-import io.left.rightmesh.libdtn.core.routing.RegistrationTable;
-import io.left.rightmesh.libdtn.core.routing.RegistrationTable.RegistrationCallback;
+import io.left.rightmesh.libdtn.core.routing.AARegistrar;
+import io.left.rightmesh.libdtn.core.routing.AARegistrar.RegistrationCallback;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.storage.blob.BLOB;
 import io.reactivex.Completable;
@@ -40,7 +40,7 @@ public class APIStaticApplicationAgent extends Component {
             return false;
         }
 
-        return RegistrationTable.register(sink, new RegistrationCallback() {
+        return AARegistrar.register(sink, new RegistrationCallback() {
             @Override
             public boolean isActive() {
                 return true;
@@ -65,7 +65,7 @@ public class APIStaticApplicationAgent extends Component {
             return false;
         }
 
-        return RegistrationTable.unregister(sink);
+        return AARegistrar.unregister(sink);
     }
 
 }

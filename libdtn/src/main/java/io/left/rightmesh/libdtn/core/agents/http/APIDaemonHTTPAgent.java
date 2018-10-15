@@ -49,10 +49,11 @@ public class APIDaemonHTTPAgent extends Component {
                         .GET("/unregister/:*", RegistrationAPI.unregisterAction)
                         .GET("/cache/", StorageAPI.cacheAction)
                         .GET("/cache/:*", StorageAPI.cacheAction)
-                        .GET("/recv/", StorageAPI.fetchAction)
-                        .GET("/recv/:*", StorageAPI.fetchAction)
                         .GET("/conf/", ConfigurationAPI.confAction)
                         .GET("/conf/:*", ConfigurationAPI.confAction)
+                        .GET("/fetch/", ApplicationAgentAPI.fetchAction)
+                        .GET("/fetch/:*", ApplicationAgentAPI.fetchAction)
+                        .POST("/send/", ApplicationAgentAPI.sendAction)
                         .notFound(handler404)));
     }
 

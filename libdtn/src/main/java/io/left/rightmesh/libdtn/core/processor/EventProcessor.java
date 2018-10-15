@@ -124,7 +124,7 @@ public class EventProcessor extends Component {
     public abstract static class Listener<T> {
         Map<T, Set<BundleID>> watchList;
 
-        Listener() {
+        public Listener() {
             watchList = new ConcurrentHashMap<>();
         }
 
@@ -188,6 +188,15 @@ public class EventProcessor extends Component {
                 return true;
             } else {
                 return false;
+            }
+        }
+
+        public Set<BundleID> getBundlesOfInterest(T key) {
+            Set<BundleID> set = watchList.get(key);
+            if(set == null) {
+                return new HashSet<>();
+            } else {
+                return set;
             }
         }
     }

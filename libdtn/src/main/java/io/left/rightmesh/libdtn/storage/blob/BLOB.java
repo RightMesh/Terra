@@ -3,7 +3,10 @@ package io.left.rightmesh.libdtn.storage.blob;
 import io.left.rightmesh.libdtn.storage.bundle.BundleStorage;
 import io.left.rightmesh.libdtn.storage.bundle.SimpleStorage;
 import io.left.rightmesh.libdtn.storage.bundle.VolatileStorage;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.reactivex.Flowable;
+import rx.Observable;
 
 import java.nio.ByteBuffer;
 
@@ -54,6 +57,22 @@ public abstract class BLOB {
      */
     public abstract Flowable<ByteBuffer> observe();
 
+
+    /**
+     * - UGLY -
+     * unfortunately, RxNetty uses RxJava 1.x so we have to make the conversion :(
+     *
+     * @return Flowable of ByteBuffer
+     */
+    public Observable<ByteBuf> netty() {
+        return Observable.create(s -> {
+            observe().toObservable().subscribe(
+                    byteBuffer -> s.onNext(Unpooled.wrappedBuffer(byteBuffer)),
+                    s::onError,
+                    s::onCompleted
+            );
+        });
+    }
 
     /**
      * new {@see ReadableBLOB} from this BLOB. The ReadableBLOB will lock the BLOB for read-only

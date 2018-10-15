@@ -136,7 +136,7 @@ public class BundleV7Parser  {
                     .cbor_parse_int((__, ___, i) -> {
                         Log.d(TAG, ". sequenceNumber="+i);
                         b.sequenceNumber = i;
-                        b.bid = new BundleID(b.source, b.creationTimestamp, b.sequenceNumber);
+                        b.bid = BundleID.create(b.source, b.creationTimestamp, b.sequenceNumber);
                     })
                     .cbor_parse_int((__, ___, i) -> {
                         Log.d(TAG, ". lifetime="+i);

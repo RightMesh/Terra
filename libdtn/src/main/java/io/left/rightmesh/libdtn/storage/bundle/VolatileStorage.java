@@ -68,7 +68,7 @@ public class VolatileStorage extends Component implements BundleStorage {
         if (Storage.containsVolatile(bundle.bid)) {
             return Single.error(new BundleAlreadyExistsException());
         } else {
-            Storage.IndexEntry entry = Storage.addEntry(bundle.bid, bundle);
+            Storage.IndexEntry entry = Storage.getEntryOrCreate(bundle.bid, bundle);
             entry.isVolatile = true;
             return Single.just(bundle);
         }

@@ -3,6 +3,7 @@ package io.left.rightmesh.libdtn.data;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.UUID;
 
 /**
  * BundleID uniquely identifies a Bundle.
@@ -13,19 +14,19 @@ public class BundleID {
 
     protected String bid;
 
-    public BundleID(String bid) {
+    private BundleID(String bid) {
         this.bid = bid;
     }
 
-    public BundleID(PrimaryBlock bundle) {
-        this(bundle.source, bundle.creationTimestamp, bundle.sequenceNumber);
+    public static BundleID create(String bid) {
+        return new BundleID(bid);
     }
 
-    public BundleID(EID source, long timestamp, long sequence) {
-        computeBundleUID(source, timestamp, sequence);
+    public static BundleID create(PrimaryBlock bundle) {
+        return create(bundle.source, bundle.creationTimestamp, bundle.sequenceNumber);
     }
 
-    private void computeBundleUID(EID source, long timestamp, long sequence) {
+    public static BundleID create(EID source, long timestamp, long sequence) {
         String[] algorithms = {"SHA-256", "SHA-512", "SHA-384", "SHA-1", "MD5"};
         for (String algo : algorithms) {
             try {
@@ -33,8 +34,8 @@ public class BundleID {
                 md.update(source.toString().getBytes());
                 md.update(String.valueOf(timestamp).getBytes());
                 md.update(String.valueOf(sequence).getBytes());
-                this.bid = Base64.getEncoder().encodeToString(md.digest());
-                return;
+                String bid = UUID.nameUUIDFromBytes(md.digest()).toString();
+                return new BundleID(bid);
             } catch (NoSuchAlgorithmException ignore) {
                 // that should never happen
             }
@@ -45,7 +46,8 @@ public class BundleID {
         String sb = new StringBuilder("s=" + source.toString())
                 + "t=" + Long.toString(timestamp)
                 + "s=" + Long.toString(sequence);
-        this.bid = Base64.getEncoder().encodeToString(sb.getBytes());
+        String bid = Base64.getEncoder().encodeToString(sb.getBytes());
+        return new BundleID(bid);
     }
 
 

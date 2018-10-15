@@ -1,6 +1,6 @@
 package io.left.rightmesh.libdtn.events;
 
-import io.left.rightmesh.libdtn.core.routing.RegistrationTable;
+import io.left.rightmesh.libdtn.core.routing.AARegistrar;
 
 /**
  * @author Lucien Loiseau on 10/10/18.
@@ -8,9 +8,9 @@ import io.left.rightmesh.libdtn.core.routing.RegistrationTable;
 public class RegistrationActive implements DTNEvent {
     
     public String sink;
-    public RegistrationTable.RegistrationCallback cb;
+    public AARegistrar.RegistrationCallback cb;
 
-    RegistrationActive(String sink, RegistrationTable.RegistrationCallback cb) {
+    RegistrationActive(String sink, AARegistrar.RegistrationCallback cb) {
         this.sink = sink;
         this.cb = cb;
     }

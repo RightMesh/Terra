@@ -1,12 +1,12 @@
 package io.left.rightmesh.libdtn.core;
 
-import io.left.rightmesh.libdtn.core.agents.APIDaemonCBORAgent;
 import io.left.rightmesh.libdtn.core.agents.http.APIDaemonHTTPAgent;
 import io.left.rightmesh.libdtn.core.agents.APIStaticApplicationAgent;
 import io.left.rightmesh.libdtn.core.agents.STCPAgent;
+import io.left.rightmesh.libdtn.core.processor.EventProcessor;
+import io.left.rightmesh.libdtn.core.routing.AARegistrar;
 import io.left.rightmesh.libdtn.core.routing.LinkLocalRouting;
 import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
-import io.left.rightmesh.libdtn.core.routing.RegistrationTable;
 import io.left.rightmesh.libdtn.core.routing.SmartRouting;
 import io.left.rightmesh.libdtn.core.routing.StaticRouting;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
@@ -27,21 +27,23 @@ public class DTNCore {
         /* init local EID ConfigurationAPI */
         LocalEIDTable.getInstance();
 
-        /* init StorageAPI */
-        Storage.getInstance();
+        /* init event processor */
+        EventProcessor.getInstance();
 
         /* init Routing modules */
         LinkLocalRouting.getInstance();
         StaticRouting.getInstance();
         SmartRouting.getInstance();
+        AARegistrar.getInstance();
 
-        /* init Application Agents API */
-        RegistrationTable.getInstance();
+        /* init StorageAPI (index bundles in storage) */
+        Storage.getInstance();
+
+        /* init Application Agents API (receive bundle from AA) */
         APIStaticApplicationAgent.getInstance();
-        APIDaemonCBORAgent.getInstance();
         APIDaemonHTTPAgent.getInstance();
 
-        /* init Convergence Layer Adapters */
+        /* init Convergence Layer Adapters (receive bundle from CLA) */
         STCPAgent.getInstance();
     }
 

@@ -38,6 +38,15 @@ public class Bundle extends PrimaryBlock {
     }
 
     /**
+     * Constructor: creates a Bundle out of a PrimaryBlock.
+     *
+     * @param block the primary block
+     */
+    public Bundle(EID destination, long lifetime) {
+        super(destination, lifetime);
+    }
+
+    /**
      * return the list of {@see CanonicalBlock} that are encapsulated in this current Bundle.
      *
      * @return list of blocks

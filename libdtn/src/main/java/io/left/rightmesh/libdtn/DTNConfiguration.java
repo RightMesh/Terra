@@ -241,7 +241,7 @@ public class DTNConfiguration {
         this.createEntry(Entry.MAX_TIMESTAMP_FUTURE, (long) 0);
         this.createEntry(Entry.ALLOW_RECEIVE_ANONYMOUS_BUNDLE, false);
         this.createEntry(Entry.ENABLE_STATUS_REPORTING, true);
-        this.createEntry(Entry.COMPONENT_ENABLE_EVENT_PROCESSING, true);
+        this.createEntry(Entry.COMPONENT_ENABLE_EVENT_PROCESSING, false);
         this.createEntry(Entry.COMPONENT_ENABLE_AA_REGISTRATION, true);
         this.createEntry(Entry.COMPONENT_ENABLE_STATIC_API, true);
         this.createEntry(Entry.COMPONENT_ENABLE_CBOR_DAEMON_API, false);

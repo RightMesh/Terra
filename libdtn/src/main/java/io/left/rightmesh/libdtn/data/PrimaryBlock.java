@@ -136,7 +136,7 @@ public class PrimaryBlock extends Block {
         this.reportto = EID.NullEID();
         this.creationTimestamp = System.currentTimeMillis();
         this.sequenceNumber = sequence_counter++;
-        bid = new BundleID(this);
+        bid = BundleID.create(this);
         this.lifetime = 10000;
     }
 

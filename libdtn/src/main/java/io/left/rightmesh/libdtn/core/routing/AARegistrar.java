@@ -3,7 +3,15 @@ package io.left.rightmesh.libdtn.core.routing;
 import java.util.HashMap;
 
 import io.left.rightmesh.libdtn.core.Component;
+import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
+import io.left.rightmesh.libdtn.core.processor.EventProcessor;
 import io.left.rightmesh.libdtn.data.Bundle;
+import io.left.rightmesh.libdtn.data.BundleID;
+import io.left.rightmesh.libdtn.events.BundleDeleted;
+import io.left.rightmesh.libdtn.events.RegistrationActive;
+import io.left.rightmesh.libdtn.storage.bundle.Storage;
+import io.left.rightmesh.librxbus.RxBus;
+import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Completable;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_AA_REGISTRATION;
@@ -14,9 +22,9 @@ import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_A
  *
  * @author Lucien Loiseau on 24/08/18.
  */
-public class RegistrationTable extends Component {
+public class AARegistrar extends Component {
 
-    private static final String TAG = "RegistrationTable";
+    private static final String TAG = "AARegistrar";
 
     // ----- public interface and exception
     public static class RegistrationIsPassive extends Exception {
@@ -48,11 +56,13 @@ public class RegistrationTable extends Component {
     };
 
     // ---- SINGLETON ----
-    private static RegistrationTable instance;
-    public static RegistrationTable getInstance() { return instance; }
+    private static AARegistrar instance;
+    public static AARegistrar getInstance() { return instance; }
 
     static {
-        instance = new RegistrationTable();
+        instance = new AARegistrar();
+        registrations = new HashMap<>();
+        listener = new DeliveryListener();
         getInstance().initComponent(COMPONENT_ENABLE_AA_REGISTRATION);
     }
 
@@ -65,20 +75,39 @@ public class RegistrationTable extends Component {
     @Override
     protected void componentUp() {
         super.componentUp();
-        registrations = new HashMap<>();
+        listener.up();
     }
 
     @Override
     protected void componentDown() {
         super.componentDown();
-        for (String sink : getInstance().registrations.keySet()) {
-            getInstance().registrations.get(sink).close();
+        listener.down();
+        for (String sink : registrations.keySet()) {
+            registrations.get(sink).close();
         }
-        getInstance().registrations.clear();
+        registrations.clear();
     }
 
     // ----  Business Logic ----
-    private HashMap<String, RegistrationCallback> registrations;
+    private static HashMap<String, RegistrationCallback> registrations;
+    private static DeliveryListener listener;
+
+    private static class DeliveryListener extends EventProcessor.Listener<String> {
+        @Subscribe
+        public void onEvent(RegistrationActive active) {
+            /* deliver every bundle of interest */
+            getBundlesOfInterest(active.sink).forEach(
+                    bundleID -> {
+                        /* retrieve the bundle - should be constant operation */
+                        Storage.getMeta(bundleID).subscribe(
+                                /* deliver it */
+                                bundle -> active.cb.send(bundle).subscribe(
+                                        () -> BundleProcessor.bundleLocalDeliverySuccessful(bundle),
+                                        e -> BundleProcessor.bundleLocalDeliveryFailure(active.sink, bundle)),
+                                e -> {});
+                    });
+        }
+    }
 
     /**
      * Register an application agent
@@ -117,9 +146,9 @@ public class RegistrationTable extends Component {
      */
     public static boolean unregister(String sink) {
         if (getInstance().isEnabled() && sink != null
-                && getInstance().registrations.containsKey(sink)) {
-            getInstance().registrations.get(sink).close();
-            getInstance().registrations.remove(sink);
+                && registrations.containsKey(sink)) {
+            registrations.get(sink).close();
+            registrations.remove(sink);
             return true;
         } else {
             return false;
@@ -134,8 +163,8 @@ public class RegistrationTable extends Component {
      */
     public static RegistrationCallback getRegistration(String sink) {
         if (getInstance().isEnabled() && sink != null
-                && getInstance().registrations.containsKey(sink)) {
-            return getInstance().registrations.get(sink);
+                && registrations.containsKey(sink)) {
+            return registrations.get(sink);
         } else {
             return passiveRegistration;
         }
@@ -161,6 +190,11 @@ public class RegistrationTable extends Component {
         }
     }
 
+
+    public static void deliverLater(String sink, final Bundle bundle) {
+        listener.watch(sink, bundle.bid);
+    }
+
     /**
      * print the state of the registration table
      *
@@ -170,7 +204,7 @@ public class RegistrationTable extends Component {
         StringBuilder sb = new StringBuilder("\n\ncurrent registration table:\n");
         sb.append("---------------------------\n\n");
         if (getInstance().isEnabled()) {
-            for (String sink : getInstance().registrations.keySet()) {
+            for (String sink : registrations.keySet()) {
                 sb.append(sink).append(" ");
                 if(getRegistration(sink) == passiveRegistration){
                     sb.append("PASSIVE\n");

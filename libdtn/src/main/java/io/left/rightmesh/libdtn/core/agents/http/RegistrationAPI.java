@@ -1,6 +1,6 @@
 package io.left.rightmesh.libdtn.core.agents.http;
 
-import io.left.rightmesh.libdtn.core.routing.RegistrationTable;
+import io.left.rightmesh.libdtn.core.routing.AARegistrar;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
 import static rx.Observable.just;
@@ -15,16 +15,16 @@ public class RegistrationAPI {
         if (sink == null) {
             return res.setStatus(HttpResponseStatus.BAD_REQUEST)
                     .writeString(just("incorrect sink"))
-                    .writeString(just(RegistrationTable.printTable()));
+                    .writeString(just(AARegistrar.printTable()));
         }
-        if (RegistrationTable.register(sink)) {
+        if (AARegistrar.register(sink)) {
             return res.setStatus(HttpResponseStatus.OK)
                     .writeString(just("sink registered: " + sink))
-                    .writeString(just(RegistrationTable.printTable()));
+                    .writeString(just(AARegistrar.printTable()));
         } else {
             return res.setStatus(HttpResponseStatus.BAD_REQUEST)
                     .writeString(just("sink already registered: " + sink))
-                    .writeString(just(RegistrationTable.printTable()));
+                    .writeString(just(AARegistrar.printTable()));
         }
     };
 
@@ -33,16 +33,16 @@ public class RegistrationAPI {
         if (sink == null) {
             return res.setStatus(HttpResponseStatus.BAD_REQUEST)
                     .writeString(just("incorrect sink"))
-                    .writeString(just(RegistrationTable.printTable()));
+                    .writeString(just(AARegistrar.printTable()));
         }
-        if (RegistrationTable.unregister(sink)) {
+        if (AARegistrar.unregister(sink)) {
             return res.setStatus(HttpResponseStatus.OK)
                     .writeString(just("sink unregistered: " + sink))
-                    .writeString(just(RegistrationTable.printTable()));
+                    .writeString(just(AARegistrar.printTable()));
         } else {
             return res.setStatus(HttpResponseStatus.BAD_REQUEST)
                     .writeString(just("no such sink: " + sink))
-                    .writeString(just(RegistrationTable.printTable()));
+                    .writeString(just(AARegistrar.printTable()));
         }
     };
 }
