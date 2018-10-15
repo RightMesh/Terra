@@ -44,6 +44,7 @@ public class BundleProcessor {
         return DTNConfiguration.<Boolean>get(ENABLE_STATUS_REPORTING).value();
     }
 
+
     /* 5.2 */
     public static void bundleTransmission(Bundle bundle) {
         /* 5.2 - step 1 */

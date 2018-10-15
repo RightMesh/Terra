@@ -68,7 +68,7 @@ public class AARegistrar extends Component {
 
     // ---- Component Specific Override----
     @Override
-    protected String getComponentName() {
+    public String getComponentName() {
         return TAG;
     }
 

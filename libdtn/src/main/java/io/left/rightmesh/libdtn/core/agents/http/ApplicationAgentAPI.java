@@ -27,7 +27,29 @@ public class ApplicationAgentAPI {
     }
 
     /**
-     * Fetch a bundle and deliver it to the client
+     * Fetch a bundle and deliver it to the client but don't mark the bundle as delivered
+     */
+    static Action getAction = (params, req, res) -> {
+        String param = params.get("*");
+        BundleID bid = BundleID.create(param);
+        if (Storage.contains(bid)) {
+            Log.i(TAG, "delivering payload: "+bid);
+            return Observable.<Bundle>create(s ->
+                    Storage.get(bid).subscribe(
+                            bundle -> {
+                                s.onNext(bundle);
+                                s.onCompleted();
+                            },
+                            s::onError))
+                    .flatMap((bundle) -> res.write(bundle.getPayloadBlock().data.netty()));
+        } else {
+            return res.writeString(just("no such bundle"));
+        }
+    };
+
+    /**
+     * Fetch a bundle and deliver it to the client then mark the bundle as delivered
+     * (remove from storage, send report
      */
     static Action fetchAction = (params, req, res) -> {
         String param = params.get("*");

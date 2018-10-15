@@ -38,7 +38,7 @@ public class APIDaemonCBORAgent extends Component {
     RxTCP.Server<RequestChannel> server;
 
     @Override
-    protected String getComponentName() {
+    public String getComponentName() {
         return TAG;
     }
 

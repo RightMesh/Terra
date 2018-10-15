@@ -95,7 +95,7 @@ public class EventProcessor extends Component {
     private static List<Listener> listeners;
 
     @Override
-    protected String getComponentName() {
+    public String getComponentName() {
         return TAG;
     }
 

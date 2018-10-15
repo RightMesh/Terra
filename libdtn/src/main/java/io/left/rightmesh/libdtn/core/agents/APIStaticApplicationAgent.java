@@ -31,7 +31,7 @@ public class APIStaticApplicationAgent extends Component {
     }
 
     @Override
-    protected String getComponentName() {
+    public String getComponentName() {
         return TAG;
     }
 

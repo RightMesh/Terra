@@ -23,7 +23,7 @@ public class SmartRouting extends Component {
     }
 
     @Override
-    protected String getComponentName() {
+    public String getComponentName() {
         return TAG;
     }
 }

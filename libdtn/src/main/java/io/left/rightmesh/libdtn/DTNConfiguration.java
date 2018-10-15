@@ -40,6 +40,9 @@ public class DTNConfiguration {
         ALLOW_RECEIVE_ANONYMOUS_BUNDLE("allow_receive_anonymous_bundle"),
         ENABLE_STATUS_REPORTING("enable_status_reporting"),
         ENABLE_FORWARDING("dtn_enable_forwarding"),
+        ENABLE_AUTO_CONNECT("dtn_enable_auto_connect"),
+        AUTO_CONNECT_USE_WHITELIST("dtn_auto_connect_use_whitelist"),
+        AUTO_CONNECT_WHITELIST("dtn_auto_connect_whitelist"),
         COMPONENT_ENABLE_EVENT_PROCESSING("component_enable_event_processing"),
         COMPONENT_ENABLE_AA_REGISTRATION("component_enable_aa_registration"),
         COMPONENT_ENABLE_STATIC_API("component_enable_static_api"),
@@ -249,6 +252,9 @@ public class DTNConfiguration {
         this.createEntry(Entry.COMPONENT_ENABLE_DAEMON_HTTP_API, true);
         this.createEntry(Entry.API_DAEMON_HTTP_API_PORT, 8080);
         this.createEntry(Entry.ENABLE_FORWARDING, true);
+        this.createEntry(Entry.ENABLE_AUTO_CONNECT, true);
+        this.createEntry(Entry.AUTO_CONNECT_USE_WHITELIST, true);
+        this.<String>createEntrySet(Entry.AUTO_CONNECT_WHITELIST);
         this.createEntry(Entry.EID_SINGLETON_ONLY, false);
         this.createEntry(Entry.COMPONENT_ENABLE_CLA_STCP, true);
         this.createEntry(Entry.CLA_STCP_LISTENING_PORT, 4556);

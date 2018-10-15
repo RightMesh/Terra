@@ -32,7 +32,7 @@ public class LinkLocalRouting extends Component {
     private Map<EID, CLAChannel> linkLocalTable = new HashMap<>();
 
     @Override
-    protected String getComponentName() {
+    public String getComponentName() {
         return TAG;
     }
 

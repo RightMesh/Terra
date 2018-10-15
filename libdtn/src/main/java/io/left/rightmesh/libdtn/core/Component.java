@@ -38,5 +38,5 @@ public abstract class Component {
         Log.i(getComponentName(), "component down");
     }
 
-    protected abstract String getComponentName();
+    public abstract String getComponentName();
 }

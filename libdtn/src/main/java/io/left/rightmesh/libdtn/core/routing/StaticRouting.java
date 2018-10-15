@@ -37,7 +37,7 @@ public class StaticRouting extends Component {
     private Map<EID, EID> staticRoutingTable = new HashMap<>();
 
     @Override
-    protected String getComponentName() {
+    public String getComponentName() {
         return TAG;
     }
 

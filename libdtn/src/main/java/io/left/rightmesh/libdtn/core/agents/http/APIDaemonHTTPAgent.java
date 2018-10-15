@@ -31,7 +31,7 @@ public class APIDaemonHTTPAgent extends Component {
     HttpServer<ByteBuf, ByteBuf> server;
 
     @Override
-    protected String getComponentName() {
+    public String getComponentName() {
         return TAG;
     }
 
@@ -43,14 +43,16 @@ public class APIDaemonHTTPAgent extends Component {
                 .start(using(new Router<ByteBuf, ByteBuf>()
                         .GET("/", rootAction)
                         .GET("/help", rootAction)
+                        .GET("/conf/", ConfigurationAPI.confAction)
+                        .GET("/conf/:*", ConfigurationAPI.confAction)
                         .GET("/register", RegistrationAPI.registerAction)
                         .GET("/register/:*", RegistrationAPI.registerAction)
                         .GET("/unregister/", RegistrationAPI.unregisterAction)
                         .GET("/unregister/:*", RegistrationAPI.unregisterAction)
                         .GET("/cache/", StorageAPI.cacheAction)
                         .GET("/cache/:*", StorageAPI.cacheAction)
-                        .GET("/conf/", ConfigurationAPI.confAction)
-                        .GET("/conf/:*", ConfigurationAPI.confAction)
+                        .GET("/get/", ApplicationAgentAPI.getAction)
+                        .GET("/get/:*", ApplicationAgentAPI.getAction)
                         .GET("/fetch/", ApplicationAgentAPI.fetchAction)
                         .GET("/fetch/:*", ApplicationAgentAPI.fetchAction)
                         .POST("/send/", ApplicationAgentAPI.sendAction)

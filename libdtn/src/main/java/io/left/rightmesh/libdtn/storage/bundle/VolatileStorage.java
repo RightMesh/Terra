@@ -35,7 +35,7 @@ public class VolatileStorage extends Component implements BundleStorage {
     }
 
     @Override
-    protected String getComponentName() {
+    public String getComponentName() {
         return TAG;
     }
 

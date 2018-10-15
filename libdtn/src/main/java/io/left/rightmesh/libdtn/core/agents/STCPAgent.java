@@ -30,7 +30,7 @@ public class STCPAgent extends Component {
     private RxTCP.Server<STCP.Channel> server;
 
     @Override
-    protected String getComponentName() {
+    public String getComponentName() {
         return TAG;
     }
 

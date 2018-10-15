@@ -30,7 +30,7 @@ public class Log extends Component {
     }
 
     @Override
-    protected String getComponentName() {
+    public String getComponentName() {
         return TAG;
     }
 
