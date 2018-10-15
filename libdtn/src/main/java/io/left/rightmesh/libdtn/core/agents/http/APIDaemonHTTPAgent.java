@@ -42,6 +42,7 @@ public class APIDaemonHTTPAgent extends Component {
         server = HttpServer.newServer(serverPort)
                 .start(using(new Router<ByteBuf, ByteBuf>()
                         .GET("/", rootAction)
+                        .GET("/help", rootAction)
                         .GET("/register", RegistrationAPI.registerAction)
                         .GET("/register/:*", RegistrationAPI.registerAction)
                         .GET("/unregister/", RegistrationAPI.unregisterAction)
@@ -63,7 +64,7 @@ public class APIDaemonHTTPAgent extends Component {
         }
     }
 
-    private static Action rootAction = (params, req, res) -> {
+    private Action rootAction = (params, req, res) -> {
         String[] header = {
                 "         *                                                   .             \n",
                 "      +. | .+         .                  .              .         .        \n",
@@ -118,9 +119,10 @@ public class APIDaemonHTTPAgent extends Component {
                 "/conf/forwarding/{enable|disable}\n",
                 "/conf/blocksize/{max}\n",
                 ""};
-        return res.setStatus(HttpResponseStatus.OK).writeString(Observable.from(header));
+        return res.setStatus(HttpResponseStatus.OK)
+                .writeString(Observable.from(header));
     };
 
-    private static Action handler404 = (params, req, res) ->
+    private Action handler404 = (params, req, res) ->
             res.setStatus(HttpResponseStatus.NOT_FOUND);
 }
