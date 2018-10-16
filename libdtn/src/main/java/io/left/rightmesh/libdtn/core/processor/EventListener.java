@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.data.BundleID;
 import io.left.rightmesh.libdtn.events.BundleDeleted;
+import io.left.rightmesh.libdtn.utils.Log;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 
@@ -72,6 +73,8 @@ import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_E
  */
 public abstract class EventListener<T> {
 
+    private static final String TAG = "EventListener";
+
     boolean enabled;
     Map<T, Set<BundleID>> watchList;
 
@@ -113,6 +116,7 @@ public abstract class EventListener<T> {
             return false;
         }
 
+        Log.d(TAG, "add bundle to a watchlist: "+bid);
         return watchList.putIfAbsent(key, new HashSet<>())
                 .add(bid);
     }
@@ -122,6 +126,7 @@ public abstract class EventListener<T> {
             return;
         }
 
+        Log.d(TAG, "remove bundle from a watchlist: "+bid);
         for (T key : watchList.keySet()) {
             Set<BundleID> set = watchList.get(key);
             if (set != null) {

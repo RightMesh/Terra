@@ -1,6 +1,7 @@
 package io.left.rightmesh.libdtn.core.routing;
 
 import java.util.HashMap;
+import java.util.NoSuchElementException;
 
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.core.processor.EventListener;
@@ -12,6 +13,7 @@ import io.left.rightmesh.libdtn.network.ConnectionAgent;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
 import io.left.rightmesh.libdtn.network.cla.CLAManager;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
+import io.left.rightmesh.libdtn.utils.Log;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Maybe;
@@ -81,9 +83,14 @@ public class RoutingEngine {
         ).subscribe();
 
         // create opportunity
-        potentialCLAs.flatMapMaybe(claeid ->
-                Maybe.fromSingle(CLAManager.openChannel(claeid)).onErrorComplete()
-        ).blockingFirst();
+        try {
+            potentialCLAs.flatMapMaybe(claeid ->
+                    Maybe.fromSingle(ConnectionAgent.createOpportunity(claeid))
+                            .onErrorComplete())
+                    .blockingFirst();
+        } catch(NoSuchElementException nse) {
+            /* ignore */
+        }
     }
 
 

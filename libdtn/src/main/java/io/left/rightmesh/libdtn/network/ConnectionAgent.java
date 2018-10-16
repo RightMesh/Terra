@@ -4,7 +4,10 @@ import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.data.EID;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
+import io.left.rightmesh.libdtn.network.cla.CLAManager;
+import io.left.rightmesh.libdtn.utils.Log;
 import io.reactivex.Maybe;
+import io.reactivex.Single;
 
 /**
  * The ConnectionAgent takes decision as to how to connect/disconnect and generally affect the
@@ -34,17 +37,20 @@ public class ConnectionAgent extends Component {
 
     /**
      * Try to create an opportunity for this destination.
-     * @param destination
+     * @param eid
      */
-    public static Maybe<CLAChannel> createOpportunity(EID.CLA destination) {
+    public static Single<CLAChannel> createOpportunity(EID.CLA eid) {
         if(!instance.isEnabled()) {
-            return Maybe.error(new Throwable(TAG+" is disabled"));
+            return Single.error(new Throwable(TAG+" is disabled"));
         }
 
         if(!DTNConfiguration.<Boolean>get(DTNConfiguration.Entry.ENABLE_AUTO_CONNECT).value()) {
-            return Maybe.error(new Throwable("AutoConnect is disabled"));
+            return Single.error(new Throwable("AutoConnect is disabled"));
         }
 
-        return Maybe.empty();
+        Log.i(TAG, "trying to create an opportunity for: " + eid.toString());
+        return CLAManager.openChannel(eid)
+                .doOnError(e -> Log.i(TAG, "opportunity creation failed: " + eid.toString()))
+                .doOnSuccess((c) -> Log.i(TAG, "opportunity creation success: " + eid.toString()));
     }
 }

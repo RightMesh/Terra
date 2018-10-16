@@ -86,9 +86,11 @@ public class RoutingTable extends Component {
 
 
     static Observable<EID> lookupPotentialNextHops(EID destination) {
-        return compoundTableObservable()
-                .filter(entry -> destination.matches(entry.to))
-                .map(entry -> entry.next);
+        return Observable.concat(Observable.just(destination)
+                        .filter(eid -> destination instanceof EID.CLA),
+                compoundTableObservable()
+                        .filter(entry -> destination.matches(entry.to))
+                        .map(entry -> entry.next));
     }
 
     static Observable<EID.CLA> resolveEID(EID destination) {
@@ -103,7 +105,7 @@ public class RoutingTable extends Component {
         return Observable.concat(
                 lookupPotentialNextHops(destination)
                         .filter(eid -> eid.getScheme().equals(CLA))
-                        .map(eid -> (EID.CLA)eid),
+                        .map(eid -> (EID.CLA) eid),
                 lookupPotentialNextHops(destination)
                         .filter(eid -> !eid.getScheme().equals(CLA))
                         .flatMap(candidate ->
