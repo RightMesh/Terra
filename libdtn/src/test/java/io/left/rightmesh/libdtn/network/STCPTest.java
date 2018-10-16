@@ -28,51 +28,53 @@ public class STCPTest {
         Bundle[] recv = {null, null, null, null, null, null};
         int[] i = {0};
 
-        new RxTCP.Server<>(4591, () -> new STCP.Channel(false))
-                .start().subscribe(
-                channel -> {
-                    channel.recvBundle().subscribe(
-                            b -> {
-                                recv[i[0]++] = b;
-                            },
-                            e -> {
-                                lock.countDown();
-                            },
-                            () -> {
-                                lock.countDown();
-                            });
-                },
-                e -> {
-                    fail();
-                    lock.countDown();
-                });
-
-        new RxTCP.ConnectionRequest<>("127.0.0.1", 4591, () -> new STCP.Channel(true))
-                .connect().subscribe(
-                dtnChannel -> {
-                    Bundle[] bundles = {
-                            BundleV7Test.testBundle1(),
-                            BundleV7Test.testBundle2(),
-                            BundleV7Test.testBundle3(),
-                            BundleV7Test.testBundle4(),
-                            BundleV7Test.testBundle5(),
-                            BundleV7Test.testBundle6()
-                    };
-                    dtnChannel
-                            .sendBundles(Flowable.fromArray(bundles))
-                            .subscribe(
-                                    j -> {
-                                        // ignore
+        new STCP()
+                .setPort(4591)
+                .start()
+                .subscribe(
+                        channel -> {
+                            channel.recvBundle().subscribe(
+                                    b -> {
+                                        recv[i[0]++] = b;
                                     },
                                     e -> {
-                                        // ignore
+                                        lock.countDown();
                                     },
-                                    dtnChannel::close);
-                },
-                e -> {
-                    fail();
-                    lock.countDown();
-                });
+                                    () -> {
+                                        lock.countDown();
+                                    });
+                        },
+                        e -> {
+                            fail();
+                            lock.countDown();
+                        });
+
+        STCP.open("127.0.0.1", 4591)
+                .subscribe(
+                        dtnChannel -> {
+                            Bundle[] bundles = {
+                                    BundleV7Test.testBundle1(),
+                                    BundleV7Test.testBundle2(),
+                                    BundleV7Test.testBundle3(),
+                                    BundleV7Test.testBundle4(),
+                                    BundleV7Test.testBundle5(),
+                                    BundleV7Test.testBundle6()
+                            };
+                            dtnChannel
+                                    .sendBundles(Flowable.fromArray(bundles))
+                                    .subscribe(
+                                            j -> {
+                                                // ignore
+                                            },
+                                            e -> {
+                                                // ignore
+                                            },
+                                            dtnChannel::close);
+                        },
+                        e -> {
+                            fail();
+                            lock.countDown();
+                        });
 
         try {
             lock.await(2000, TimeUnit.MILLISECONDS);
@@ -93,48 +95,50 @@ public class STCPTest {
 
         CountDownLatch lock = new CountDownLatch(10);
 
-        new RxTCP.Server<>(4592, () -> new STCP.Channel(false))
-                .start().subscribe(
-                channel -> {
-                    channel.recvBundle().subscribe(
-                            BundleV7Test::checkBundlePayload,
-                            e -> {
-                                lock.countDown();
-                            },
-                            lock::countDown);
-                },
-                e -> {
-                    fail();
-                    lock.countDown();
-                });
+        new STCP()
+                .setPort(4592)
+                .start()
+                .subscribe(
+                        channel -> {
+                            channel.recvBundle().subscribe(
+                                    BundleV7Test::checkBundlePayload,
+                                    e -> {
+                                        lock.countDown();
+                                    },
+                                    lock::countDown);
+                        },
+                        e -> {
+                            fail();
+                            lock.countDown();
+                        });
 
         for (int k = 0; k < 10; k++) {
-            new RxTCP.ConnectionRequest<>("127.0.0.1", 4592, () -> new STCP.Channel(true))
-                    .connect().subscribe(
-                    dtnChannel -> {
-                        Bundle[] bundles = {
-                                BundleV7Test.testBundle1(),
-                                BundleV7Test.testBundle2(),
-                                BundleV7Test.testBundle3(),
-                                BundleV7Test.testBundle4(),
-                                BundleV7Test.testBundle5(),
-                                BundleV7Test.testBundle6()
-                        };
-                        dtnChannel
-                                .sendBundles(Flowable.fromArray(bundles))
-                                .subscribe(
-                                        j -> {
-                                            // ignore
-                                        },
-                                        e -> {
-                                            // ignore
-                                        },
-                                        dtnChannel::close);
-                    },
-                    e -> {
-                        fail();
-                        lock.countDown();
-                    });
+            STCP.open("127.0.0.1", 4592)
+                    .subscribe(
+                            dtnChannel -> {
+                                Bundle[] bundles = {
+                                        BundleV7Test.testBundle1(),
+                                        BundleV7Test.testBundle2(),
+                                        BundleV7Test.testBundle3(),
+                                        BundleV7Test.testBundle4(),
+                                        BundleV7Test.testBundle5(),
+                                        BundleV7Test.testBundle6()
+                                };
+                                dtnChannel
+                                        .sendBundles(Flowable.fromArray(bundles))
+                                        .subscribe(
+                                                j -> {
+                                                    // ignore
+                                                },
+                                                e -> {
+                                                    // ignore
+                                                },
+                                                dtnChannel::close);
+                            },
+                            e -> {
+                                fail();
+                                lock.countDown();
+                            });
         }
 
         try {

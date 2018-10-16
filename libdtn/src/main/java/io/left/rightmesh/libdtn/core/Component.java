@@ -1,5 +1,10 @@
 package io.left.rightmesh.libdtn.core;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.utils.Log;
 
@@ -9,8 +14,10 @@ import io.left.rightmesh.libdtn.utils.Log;
 public abstract class Component {
 
     private boolean enabled = false;
+    private static final Set<Component> registeredComponents = new HashSet<>();
 
     public void initComponent(DTNConfiguration.Entry entry) {
+        registeredComponents.add(this);
         DTNConfiguration.<Boolean>get(entry).observe()
                 .subscribe(
                         enabled -> {
@@ -26,6 +33,10 @@ public abstract class Component {
                         });
     }
 
+    public static Collection<Component> getAllComponents() {
+        return Collections.unmodifiableCollection(registeredComponents);
+    }
+
     public boolean isEnabled() {
         return enabled;
     }
@@ -39,4 +50,21 @@ public abstract class Component {
     }
 
     public abstract String getComponentName();
+
+    @Override
+    public int hashCode() {
+        return getComponentName().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if(o == null) {
+            return false;
+        }
+        if(o instanceof Component) {
+            return this.getComponentName().equals(((Component)o).getComponentName());
+        } else {
+            return false;
+        }
+    }
 }

@@ -11,11 +11,10 @@ import io.left.rightmesh.libdtn.data.EID;
 import io.left.rightmesh.libdtn.data.MetaBundle;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Serializer;
-import io.left.rightmesh.libdtn.network.Peer;
-import io.left.rightmesh.libdtn.network.TCPPeer;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
 import io.left.rightmesh.librxtcp.RxTCP;
 import io.reactivex.Flowable;
+import io.reactivex.Maybe;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.subscribers.DisposableSubscriber;
@@ -41,9 +40,10 @@ import io.reactivex.subscribers.DisposableSubscriber;
  *
  * @author Lucien Loiseau on 17/08/18.
  */
-public class STCP {
+public class STCP implements CLAInterface {
 
     private static final String TAG = "STCP";
+    private static final int defaultPort = 4778;
 
     public static class STCPPeer extends TCPPeer {
         public STCPPeer(String host, int port) {
@@ -56,9 +56,55 @@ public class STCP {
         }
     }
 
-    public static class Channel extends RxTCP.Connection implements CLAChannel {
+    private RxTCP.Server<RxTCP.Connection> server;
+    private int port;
 
-        EID channelEID;
+    public static String getCLAName() {
+        return "stcp";
+    }
+
+    public STCP() {
+        this.port = defaultPort;
+    }
+
+    public STCP setPort(int port) {
+        this.port = port;
+        return this;
+    }
+
+    @Override
+    public Observable<CLAChannel> start() {
+        server = new RxTCP.Server(port);
+        return server.start()
+                .map(tcpcon -> new Channel(tcpcon, false));
+    }
+
+    @Override
+    public void stop() {
+        if (server != null) {
+            server.stop();
+        }
+    }
+
+    public static Single<CLAChannel> open(String host, int port) {
+        return new RxTCP.ConnectionRequest<>(host, port)
+                .connect()
+                .map(con -> new Channel(con, true));
+    }
+
+    public static Single<CLAChannel> open(EID.CLA peer) {
+        if (peer instanceof EID.CLASTCP) {
+            return Single.error(new Throwable("wrong stcp specific EID"));
+        } else {
+            EID.CLASTCP stcpPeer = (EID.CLASTCP) peer;
+            return open(stcpPeer.host, stcpPeer.port);
+        }
+    }
+
+    public static class Channel implements CLAChannel {
+
+        RxTCP.Connection tcpcon;
+        EID.CLA channelEID;
         boolean initiator;
 
         /**
@@ -66,24 +112,20 @@ public class STCP {
          *
          * @param initiator true if current node initiated the STCP connection, false otherwise
          */
-        public Channel(boolean initiator) {
+        public Channel(RxTCP.Connection tcpcon, boolean initiator) {
+            this.tcpcon = tcpcon;
             this.initiator = initiator;
-
-            try {
-                channelEID = EID.create("cla:stcp:" + getRemoteHost() + ":" + getRemotePort());
-            } catch (EID.EIDFormatException efe) {
-                channelEID = EID.generate();
-            }
+            channelEID = new EID.CLASTCP(tcpcon.getRemoteHost(),tcpcon.getRemotePort(),"/");
         }
 
         @Override
-        public EID channelEID() {
+        public EID.CLA channelEID() {
             return channelEID;
         }
 
         @Override
         public void close() {
-            closeJobsDone();
+            tcpcon.closeJobsDone();
         }
 
         @Override
@@ -93,7 +135,7 @@ public class STCP {
             }
 
             /* pull the bundle from storage if necessary */
-            if(bundle instanceof MetaBundle) {
+            if (bundle instanceof MetaBundle) {
                 return Observable.create(s -> Storage.get(bundle.bid).subscribe(
                         b -> {
                             Flowable<ByteBuffer> job = createBundleJob(bundle);
@@ -101,7 +143,7 @@ public class STCP {
                                 s.onError(new Throwable("Cannot serialize the bundle"));
                             }
 
-                            RxTCP.Connection.JobHandle handle = order(job);
+                            RxTCP.Connection.JobHandle handle = tcpcon.order(job);
                             handle.observe().subscribe(s::onNext);
                         },
                         s::onError));
@@ -111,7 +153,7 @@ public class STCP {
                     return Observable.error(new Throwable("Cannot serialize the bundle"));
                 }
 
-                RxTCP.Connection.JobHandle handle = order(job);
+                RxTCP.Connection.JobHandle handle = tcpcon.order(job);
                 return handle.observe();
             }
         }
@@ -174,10 +216,10 @@ public class STCP {
                             s.onNext(item.bundle);
                         });
 
-                recv().subscribe(
+                tcpcon.recv().subscribe(
                         buffer -> {
                             try {
-                                while(buffer.hasRemaining()) {
+                                while (buffer.hasRemaining()) {
                                     if (pdu.read(buffer)) {
                                         pdu.reset();
                                     }

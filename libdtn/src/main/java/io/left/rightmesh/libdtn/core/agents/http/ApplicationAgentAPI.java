@@ -8,9 +8,12 @@ import io.left.rightmesh.libdtn.data.PayloadBlock;
 import io.left.rightmesh.libdtn.storage.blob.ByteBufferBLOB;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
 import io.left.rightmesh.libdtn.utils.Log;
+import io.left.rightmesh.libdtn.utils.nettyrouter.Router;
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import rx.Observable;
 
+import static io.left.rightmesh.libdtn.utils.nettyrouter.Dispatch.using;
 import static rx.Observable.just;
 
 /**
@@ -29,8 +32,13 @@ public class ApplicationAgentAPI {
     /**
      * Fetch a bundle and deliver it to the client but don't mark the bundle as delivered
      */
-    static Action getAction = (params, req, res) -> {
+    private static Action aaActionGet = (params, req, res) -> {
+        System.out.println("coucou");
         String param = params.get("*");
+        if(param == null) {
+            return res.setStatus(HttpResponseStatus.BAD_REQUEST)
+                    .writeStringAndFlushOnEach(just("incorrect BundleID"));
+        }
         BundleID bid = BundleID.create(param);
         if (Storage.contains(bid)) {
             Log.i(TAG, "delivering payload: "+bid);
@@ -51,7 +59,7 @@ public class ApplicationAgentAPI {
      * Fetch a bundle and deliver it to the client then mark the bundle as delivered
      * (remove from storage, send report
      */
-    static Action fetchAction = (params, req, res) -> {
+    private static Action aaActionFetch = (params, req, res) -> {
         String param = params.get("*");
         BundleID bid = BundleID.create(param);
         if (Storage.contains(bid)) {
@@ -74,7 +82,7 @@ public class ApplicationAgentAPI {
     /**
      * Create a new bundle and dispatch it immediatly
      */
-    static Action sendAction = (params, req, res) -> {
+    private static Action aaActionPost = (params, req, res) -> {
         final String destEID = req.getHeader("BundleDestinationEID");
         final String reportToEID = req.getHeader("BundleReportToEID");
         final String lifetime = req.getHeader("BundleLifetime");
@@ -94,6 +102,7 @@ public class ApplicationAgentAPI {
                     .flatMap((wblob) -> {
                         wblob.close();
                         bundle.addBlock(new PayloadBlock(blob));
+                        final String bundleid = bundle.bid.toString();
                         res.setStatus(HttpResponseStatus.OK);
                         BundleProcessor.bundleDispatching(bundle);
                         return res;
@@ -104,7 +113,7 @@ public class ApplicationAgentAPI {
         }
     };
 
-    static Bundle createBundleSkeletonFromHTTPHeaders(String destinationstr,
+    private static Bundle createBundleSkeletonFromHTTPHeaders(String destinationstr,
                                                       String reporttostr,
                                                       String lifetimestr)
             throws BadRequestException, EID.EIDFormatException, NumberFormatException {
@@ -133,5 +142,11 @@ public class ApplicationAgentAPI {
         bundle.reportto = reportTo;
         return bundle;
     }
+
+    static Action aaAction = (params, req, res) -> using(new Router<ByteBuf, ByteBuf>()
+            .GET("/aa/bundle/:*", aaActionGet)
+            .DELETE("/aa/bundle/:*", aaActionFetch)
+            .POST("/aa/bundle/", aaActionPost))
+            .handle(req, res);
 
 }

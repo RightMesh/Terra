@@ -53,10 +53,10 @@ public class EIDTest {
     public void testEIDCLA() {
         System.out.println("[+] eid: testing CLA Scheme");
 
-        EID.CLA cla = new EID.CLA("stcp", "google.com:4556");
-        assertEquals("cla:stcp:google.com:4556", cla.eid);
+        EID.CLA cla = new EID.CLASTCP("google.com", 4556, "/");
+        assertEquals("cla:stcp:google.com:4556/", cla.eid);
         assertEquals("stcp", cla.cl_name);
-        assertEquals("google.com:4556", cla.cl_specific);
+        assertEquals("google.com:4556/", cla.cl_specific);
 
         try {
             EID eid = EID.create( "cla:stcp:google.com:4556");

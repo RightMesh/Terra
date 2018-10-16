@@ -3,6 +3,8 @@ package io.left.rightmesh.terra;
 import java.util.concurrent.Callable;
 
 import io.left.rightmesh.libdtn.core.DTNCore;
+import io.left.rightmesh.libdtn.core.agents.APIStaticApplicationAgent;
+import io.left.rightmesh.libdtn.storage.blob.BLOB;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -48,6 +50,17 @@ public class Terra implements Callable<Void> {
     @Override
     public Void call() throws Exception {
         DTNCore.init();
+        APIStaticApplicationAgent.register("/netflix/video/", new APIStaticApplicationAgent.StaticAPICallback() {
+            @Override
+            public void recv(BLOB payload) {
+                System.out.println("receive a BLOB");
+            }
+
+            @Override
+            public void close() {
+
+            }
+        });
         return null;
     }
 

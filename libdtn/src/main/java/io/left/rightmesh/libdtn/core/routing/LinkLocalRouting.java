@@ -1,10 +1,10 @@
 package io.left.rightmesh.libdtn.core.routing;
 
 import io.left.rightmesh.libdtn.core.Component;
-import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
 import io.left.rightmesh.libdtn.data.EID;
-import io.left.rightmesh.libdtn.utils.Log;
+import io.reactivex.Maybe;
+import io.reactivex.Observable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,10 +26,11 @@ public class LinkLocalRouting extends Component {
     public static LinkLocalRouting getInstance() {  return instance; }
     static {
         instance = new LinkLocalRouting();
+        linkLocalTable = new HashMap<>();
         instance.initComponent(COMPONENT_ENABLE_LINKLOCAL_ROUTING);
     }
 
-    private Map<EID, CLAChannel> linkLocalTable = new HashMap<>();
+    private static Map<EID.CLA, CLAChannel> linkLocalTable;
 
     @Override
     public String getComponentName() {
@@ -37,31 +38,34 @@ public class LinkLocalRouting extends Component {
     }
 
     public static void channelOpened(CLAChannel channel) {
-        getInstance().linkLocalTable.put(channel.channelEID(), channel);
+        linkLocalTable.put(channel.channelEID(), channel);
     }
 
     public static void channelClosed(CLAChannel channel) {
-        getInstance().linkLocalTable.remove(channel.channelEID());
+        linkLocalTable.remove(channel.channelEID());
     }
 
-    public static CLAChannel findCLA(EID destination) {
+    public static boolean isEIDLinkLocal(EID eid) {
         if(!getInstance().isEnabled()) {
-            return null;
+            return false;
         }
 
-        for(EID peer : getInstance().linkLocalTable.keySet()) {
-            if(destination.matches(peer)) {
-                return getInstance().linkLocalTable.get(peer);
+        for(EID key : linkLocalTable.keySet()) {
+            if(eid.matches(key)) {
+                return true;
             }
         }
-
-        return null;
+        return false;
     }
 
-    public static CLAChannel isPeerLinkLocal(EID eid) {
-        if(getInstance().linkLocalTable.containsKey(eid)) {
-            return getInstance().linkLocalTable.get(eid);
+    public static Maybe<CLAChannel> findCLA(EID destination) {
+        if(!getInstance().isEnabled()) {
+            Maybe.error(new Throwable(TAG+" is disabled"));
         }
-        return null;
+
+        return Observable.fromIterable(linkLocalTable.keySet())
+                .filter(destination::matches)
+                .map(linkLocalTable::get)
+                .lastElement();
     }
 }

@@ -24,42 +24,38 @@ public abstract class EID {
 
     public static int EID_DTN_IANA_VALUE = 1;
     public static int EID_IPN_IANA_VALUE = 2;
-    public static int EID_CLA_IANA_VALUE = 3; // not actually an IANA value
+    public static int EID_CLA_IANA_VALUE = 3;   // not actually an IANA value
+    public static int EID_UNK_IANA_VALUE = 253; // not actually an IANA value
 
     public enum EIDScheme {
-        DTN,
-        IPN,
-        CLA,
-        UNKNOWN
-    }
-    EIDScheme scheme_code;
+        DTN(EID_DTN_IANA_VALUE),
+        IPN(EID_IPN_IANA_VALUE),
+        CLA(EID_CLA_IANA_VALUE),
+        UNKNOWN(EID_UNK_IANA_VALUE);
 
-    public int iana_value;
+        int iana_value;
+        EIDScheme(int value) {
+            this.iana_value = value;
+        }
+
+    }
+
+    EIDScheme scheme_code;
     public String eid;
     public String scheme;
     public String ssp;
 
 
-    private EID(int iana_value, String str) {
-        this.iana_value = iana_value;
-        this.eid = str;
-        Pattern r = Pattern.compile(RFC3986URIRegExp);
-        Matcher m = r.matcher(eid);
-        if (m.find()) {
-            scheme = m.group(2);
-            String authority = m.group(4) == null ? "" : m.group(4);
-            String path      = m.group(5) == null ? "" : m.group(5);
-            String query     = m.group(7) == null ? "" : m.group(7);
-            String fragment  = m.group(9) == null ? "" : m.group(9);
-            ssp       = authority+path+query+fragment;
-        } else {
-            scheme = ""; // should never happen because we checked validity beforehand
-        }
+    private EID(EIDScheme scheme_code, String scheme, String ssp) {
+        this.scheme_code = scheme_code;
+        this.scheme = scheme;
+        this.ssp = ssp;
+        this.eid = scheme+":"+ssp;
     }
 
 
     public int IANA() {
-        return iana_value;
+        return scheme_code.iana_value;
     }
 
     /**
@@ -73,26 +69,33 @@ public abstract class EID {
     }
 
     public static EID create(String str) throws EIDFormatException {
-        if(!isValidEID(str)) {
+        String scheme;
+        String ssp;
+        Pattern r = Pattern.compile(RFC3986URIRegExp);
+        Matcher m = r.matcher(str);
+        if (m.find()) {
+            scheme = m.group(2);
+            String slashedAuthority = m.group(3) == null ? "" : m.group(3);
+            String authority = m.group(4) == null ? "" : m.group(4);
+            String path      = m.group(5) == null ? "" : m.group(5);
+            String undef     = m.group(6) == null ? "" : m.group(6);
+            String query     = m.group(7) == null ? "" : m.group(7);
+            String related   = m.group(8) == null ? "" : m.group(8);
+            String fragment  = m.group(9) == null ? "" : m.group(9);
+            ssp       = slashedAuthority+path+undef+query+related;
+        } else {
             throw new EIDFormatException("not a URI");
         }
-        EID eid = new UNK(127, str);
-        if(eid.scheme.equals("dtn")) {
-            return new DTN(eid.ssp);
+        if(scheme.equals("dtn")) {
+            return DTN.create(ssp);
         }
-        if(eid.scheme.equals("ipn")) {
-            return new IPN(eid.ssp);
+        if(scheme.equals("ipn")) {
+            return IPN.create(ssp);
         }
-        if(eid.scheme.equals("cla")) {
-            if(eid.ssp.startsWith("stcp:")) {
-                return new CLASTCP(eid.ssp.replaceFirst("stcp:",""));
-            } else {
-                return new CLA(eid.ssp);
-            }
-        } else {
-            eid.scheme_code = EIDScheme.UNKNOWN;
-            return eid;
+        if(scheme.equals("cla")) {
+            return CLA.create(ssp);
         }
+        return new UNK(127, scheme, ssp);
     }
 
     public static EID.DTN generate() {
@@ -102,8 +105,8 @@ public abstract class EID {
 
 
     public static class UNK extends EID {
-        public UNK(int iana_value, String str) {
-            super(iana_value, str);
+        public UNK(int iana_value, String scheme, String ssp) {
+            super(EIDScheme.UNKNOWN, scheme, ssp);
         }
 
         @Override
@@ -116,8 +119,13 @@ public abstract class EID {
     }
 
     public static class DTN extends EID {
+
+        public static DTN create(String ssp) {
+            return new DTN(ssp);
+        }
+
         public DTN(String ssp) {
-            super(EID_DTN_IANA_VALUE, "dtn:"+ssp);
+            super(EIDScheme.DTN, "dtn", ssp);
         }
 
         @Override
@@ -134,23 +142,23 @@ public abstract class EID {
         public int node_number;
         public int service_number;
 
-        protected IPN(String ssp) throws EIDFormatException {
-            super(EID_IPN_IANA_VALUE, "ipn:"+ssp);
+        public static IPN create(String ssp) throws EIDFormatException {
             final String regex = "^([0-9]+)\\.([0-9]+)";
             Pattern r = Pattern.compile(regex);
             Matcher m = r.matcher(ssp);
             if (m.find()) {
                 String node = m.group(1);
                 String service = m.group(2);
-                this.node_number = Integer.valueOf(node);
-                this.service_number = Integer.valueOf(service);
+                int node_number = Integer.valueOf(node);
+                int service_number = Integer.valueOf(service);
+                return new IPN(node_number, service_number);
             } else {
                 throw new EIDFormatException("not an IPN");
             }
         }
 
         public IPN(int node, int service) {
-            super(2, "ipn:"+node+"."+service);
+            super(EIDScheme.IPN, "ipn", node+"."+service);
             this.node_number = node;
             this.service_number = service;
         }
@@ -190,28 +198,33 @@ public abstract class EID {
     }
 
 
-    public static class CLA extends EID {
+    public static abstract class CLA extends EID {
 
         public String cl_name;
         public String cl_specific;
 
-        public CLA(String claname, String claSpecificPart) {
-            super(EID_CLA_IANA_VALUE, "cla:"+claname+":"+claSpecificPart);
-            this.cl_name = claname;
-            this.cl_specific = claSpecificPart;
-        }
 
-        public CLA(String ssp) throws EIDFormatException  {
-            super(EID_CLA_IANA_VALUE, "cla:"+ssp);
-            final String regex = "^([^:/?#]+):([^:/?#]+)";
+        public static CLA create(String ssp) throws EIDFormatException {
+            final String regex = "^([^:/?#]+):(.*)";
             Pattern r = Pattern.compile(regex);
             Matcher m = r.matcher(ssp);
-            if (m.find()) {
-                this.cl_name = m.group(1);
-                this.cl_specific = m.group(2);
-            } else {
+            if (!m.find()) {
                 throw new EIDFormatException("not a CLA");
             }
+            String cl_name = m.group(1);
+            String cl_specific = m.group(2);
+
+            if(cl_name.equals("stcp")) {
+                return CLASTCP.create(cl_specific);
+            } else {
+                return new UNKCLA(cl_name, cl_specific);
+            }
+        }
+
+        public CLA(String claname, String claSpecificPart) {
+            super(EIDScheme.CLA, "cla", claname+":"+claSpecificPart);
+            this.cl_name = claname;
+            this.cl_specific = claSpecificPart;
         }
 
         @Override
@@ -228,22 +241,21 @@ public abstract class EID {
         public int port;
         public String path;
 
-        public CLASTCP(String ssp) throws EIDFormatException  {
-            super("stcp", ssp);
+        public static CLA create(String ssp) throws EIDFormatException {
             final String regex = "^([^:/?#]+):([0-9]+)(/.*)?";
             Pattern r = Pattern.compile(regex);
             Matcher m = r.matcher(ssp);
-            if (m.find()) {
-                this.host = m.group(1);
-                this.port = Integer.valueOf(m.group(2));
-                this.path = m.group(3) == null ? "" : m.group(3);
-            } else {
+            if (!m.find()) {
                 throw new EIDFormatException("not an STCP CLA: "+ssp);
             }
+            String host = m.group(1);
+            int port = Integer.valueOf(m.group(2));
+            String path = m.group(3) == null ? "" : m.group(3);
+            return new CLASTCP(host, port, path);
         }
 
         public CLASTCP(String host, int port, String path) {
-            super("stcp", host+":"+port);
+            super("stcp", host+":"+port+path);
             this.host = host;
             this.port = port;
             this.path = path;
@@ -262,7 +274,11 @@ public abstract class EID {
         }
     }
 
-
+    public static class UNKCLA extends CLA {
+        public UNKCLA(String cl_name, String cl_specific) {
+            super(cl_name, cl_specific);
+        }
+    }
 
     /**
      * Matching between two EIDs is scheme specific
@@ -271,6 +287,16 @@ public abstract class EID {
      * @return
      */
     public abstract boolean matches(EID other);
+
+
+    /**
+     * Return EID scheme
+     *
+     * @return EIDScheme
+     */
+    public EIDScheme getScheme() {
+        return scheme_code;
+    }
 
     /**
      * Check that the EID is a URI as defined in RFC 3986:

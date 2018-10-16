@@ -4,13 +4,10 @@ import java.util.HashMap;
 
 import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
-import io.left.rightmesh.libdtn.core.processor.EventProcessor;
+import io.left.rightmesh.libdtn.core.processor.EventListener;
 import io.left.rightmesh.libdtn.data.Bundle;
-import io.left.rightmesh.libdtn.data.BundleID;
-import io.left.rightmesh.libdtn.events.BundleDeleted;
 import io.left.rightmesh.libdtn.events.RegistrationActive;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
-import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Completable;
 
@@ -75,13 +72,11 @@ public class AARegistrar extends Component {
     @Override
     protected void componentUp() {
         super.componentUp();
-        listener.up();
     }
 
     @Override
     protected void componentDown() {
         super.componentDown();
-        listener.down();
         for (String sink : registrations.keySet()) {
             registrations.get(sink).close();
         }
@@ -92,7 +87,7 @@ public class AARegistrar extends Component {
     private static HashMap<String, RegistrationCallback> registrations;
     private static DeliveryListener listener;
 
-    private static class DeliveryListener extends EventProcessor.Listener<String> {
+    private static class DeliveryListener extends EventListener<String> {
         @Subscribe
         public void onEvent(RegistrationActive active) {
             /* deliver every bundle of interest */
@@ -102,18 +97,37 @@ public class AARegistrar extends Component {
                         Storage.getMeta(bundleID).subscribe(
                                 /* deliver it */
                                 bundle -> active.cb.send(bundle).subscribe(
-                                        () -> BundleProcessor.bundleLocalDeliverySuccessful(bundle),
+                                        () -> {
+                                            listener.unwatch(active.sink, bundle.bid);
+                                            BundleProcessor.bundleLocalDeliverySuccessful(bundle);
+                                        },
                                         e -> BundleProcessor.bundleLocalDeliveryFailure(active.sink, bundle)),
                                 e -> {});
                     });
         }
     }
 
+
+    /**
+     * Check wether a sink is registered or not
+     *
+     * @param sink identifying this AA
+     * @return true if the AA is registered, false otherwise
+     */
+    public static boolean isRegistered(String sink) {
+        if (getInstance().isEnabled() && sink != null) {
+            return registrations.containsKey(sink);
+        } else {
+            return false;
+        }
+    }
+
+
     /**
      * Register an application agent
      *
      * @param sink identifying this AA
-     * @return true if the AA was registered, false otherwise
+     * @return true if the AA was successfully registered, false otherwise
      */
     public static boolean register(String sink) {
         return register(sink, passiveRegistration);
@@ -130,8 +144,8 @@ public class AARegistrar extends Component {
         if (getInstance().isEnabled()
                 && sink != null
                 && cb != null
-                && !getInstance().registrations.containsKey(sink)) {
-            getInstance().registrations.put(sink, cb);
+                && !registrations.containsKey(sink)) {
+            registrations.put(sink, cb);
             return true;
         } else {
             return false;

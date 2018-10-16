@@ -40,7 +40,8 @@ public class Bundle extends PrimaryBlock {
     /**
      * Constructor: creates a Bundle out of a PrimaryBlock.
      *
-     * @param block the primary block
+     * @param destination of the bundle
+     * @param lifetime of the bundle
      */
     public Bundle(EID destination, long lifetime) {
         super(destination, lifetime);

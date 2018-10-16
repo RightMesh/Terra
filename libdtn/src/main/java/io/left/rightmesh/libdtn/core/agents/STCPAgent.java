@@ -3,6 +3,7 @@ package io.left.rightmesh.libdtn.core.agents;
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
+import io.left.rightmesh.libdtn.network.cla.CLAManager;
 import io.left.rightmesh.libdtn.network.cla.STCP;
 import io.left.rightmesh.libdtn.utils.Log;
 import io.left.rightmesh.librxtcp.RxTCP;
@@ -27,7 +28,7 @@ public class STCPAgent extends Component {
         instance.initComponent(COMPONENT_ENABLE_CLA_STCP);
     }
 
-    private RxTCP.Server<STCP.Channel> server;
+    private STCP cla = null;
 
     @Override
     public String getComponentName() {
@@ -38,25 +39,29 @@ public class STCPAgent extends Component {
     protected void componentUp() {
         super.componentUp();
         int port = (Integer) DTNConfiguration.get(DTNConfiguration.Entry.CLA_STCP_LISTENING_PORT).value();
-        server = new RxTCP.Server<>(port, () -> new STCP.Channel(false));
-        server.start().subscribe(
-                dtnChannel -> {
-                    // a new peer has opened a unicast channel, we receive bundle
-                    dtnChannel.recvBundle().subscribe(
-                            BundleProcessor::bundleReception,
-                            e ->  { /* channel has closed */ },
-                            () -> { /* channel has closed */ }
-                    );
-                },
-                e ->  Log.w(TAG, "can't listen on TCP port " + port),
-                () -> Log.w(TAG, "server has stopped"));
+        CLAManager.<STCP>create(STCP.getCLAName())
+                .subscribe(cl -> {
+                    this.cla = cl;
+                    cla.setPort(port);
+                    cla.start().subscribe(
+                            dtnChannel -> {
+                                // a new peer has opened a unicast channel, we receive bundle
+                                dtnChannel.recvBundle().subscribe(
+                                        BundleProcessor::bundleReception,
+                                        e ->  { /* channel has closed */ },
+                                        () -> { /* channel has closed */ }
+                                );
+                            },
+                            e ->  Log.w(TAG, "can't listen on TCP port " + port),
+                            () -> Log.w(TAG, "server has stopped"));
+                });
     }
 
     @Override
     protected void componentDown() {
         super.componentDown();
-        if(server != null) {
-            server.stop();
+        if(cla != null) {
+            cla.stop();
         }
     }
 }

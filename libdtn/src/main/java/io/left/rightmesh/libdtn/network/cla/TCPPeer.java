@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.network;
+package io.left.rightmesh.libdtn.network.cla;
 
 import io.left.rightmesh.libdtn.network.Peer;
 
@@ -16,7 +16,7 @@ public abstract class TCPPeer extends Peer {
     }
 
     public String getTCPAddress() {
-        return "tcp://"+host+":"+port;
+        return "tcp:"+host+":"+port;
     }
 
 }

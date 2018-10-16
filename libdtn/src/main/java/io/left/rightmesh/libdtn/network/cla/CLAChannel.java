@@ -6,7 +6,7 @@ import io.reactivex.Flowable;
 import io.reactivex.Observable;
 
 /**
- * A DTNhannel is an abstraction of the underlying networking technology and should be
+ * A CLAChannel is an abstraction of the underlying transport protocol used by a CLA and should be
  * able to receive and send DTN Bundles.
  *
  * @author Lucien Loiseau on 04/09/18.
@@ -19,7 +19,7 @@ public interface CLAChannel {
      *
      * @return EID of this channel
      */
-    EID channelEID();
+    EID.CLA channelEID();
 
     /**
      * Receive the deserialized stream of Bundle from this Convergence Layer.

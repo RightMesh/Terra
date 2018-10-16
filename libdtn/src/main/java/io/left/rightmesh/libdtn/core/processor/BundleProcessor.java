@@ -1,5 +1,7 @@
 package io.left.rightmesh.libdtn.core.processor;
 
+import java.util.NoSuchElementException;
+
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.routing.AARegistrar;
 import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
@@ -10,12 +12,14 @@ import io.left.rightmesh.libdtn.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.data.EID;
 import io.left.rightmesh.libdtn.data.StatusReport;
 import io.left.rightmesh.libdtn.events.ChannelOpened;
+import io.left.rightmesh.libdtn.network.ConnectionAgent;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
 import io.left.rightmesh.libdtn.utils.Log;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 
+import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_AUTO_CONNECT;
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_FORWARDING;
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_STATUS_REPORTING;
 import static io.left.rightmesh.libdtn.core.DTNCore.TAG;
@@ -59,7 +63,7 @@ public class BundleProcessor {
 
     /* 5.3 */
     public static void bundleDispatching(Bundle bundle) {
-        Log.i(TAG, "dispatching bundle: "+bundle.bid);
+        Log.i(TAG, "dispatching bundle: " + bundle.bid);
         /* 5.3 - step 1 */
         if (LocalEIDTable.isLocal(bundle.destination)) {
             bundleLocalDelivery(bundle);
@@ -82,35 +86,36 @@ public class BundleProcessor {
         bundle.tag("forward_pending");
 
         /* 5.4 - step 2 */
-        CLAChannel claChannel = RoutingEngine.findCLA(bundle.destination);
-        if (claChannel == null) {
+        try {
+            RoutingEngine.findCLA(bundle.destination)
+                    .flatMapMaybe(claChannel ->
+                            claChannel.sendBundle(bundle)
+                            .lastElement()
+                            .onErrorComplete())
+                    .blockingFirst();
+
+            /* 5.4 - step 5 */
+            bundleForwardingSuccessful(bundle);
+        } catch (NoSuchElementException nse) {
             /* 5.4 - step 3 */
             bundle.tag("reason_code", NoKnownRouteForDestination);
             bundleForwardingContraindicated(bundle);
-            return;
         }
-
-        /* 5.4 - step 4 */
-        claChannel.sendBundle(bundle).subscribe(
-                i -> { /* ignore transmission progress */ },
-                e -> {
-                    /* if transmission has failed it is as if no CLA were found */
-                    bundle.tag("reason_code", TransmissionCancelled);
-                    bundleForwardingContraindicated(bundle);
-                },
-                () -> {
-                    /* 5.4 - step 5 */
-                    bundle.removeTag("forward_pending");
-                    bundleDiscarding(bundle);
-                }
-        );
     }
+
+    /* 5.4 - step 5 */
+    public static void bundleForwardingSuccessful(Bundle bundle) {
+        bundle.removeTag("forward_pending");
+        bundleDiscarding(bundle);
+    }
+
 
     /* 5.4.1 */
     public static void bundleForwardingContraindicated(Bundle bundle) {
+        Log.i(TAG, "forwarding contraindicated ("+bundle.<StatusReport.ReasonCode>getTagAttachment("reason_code")+ "): " + bundle.bid);
+
         /* 5.4.1 - step 1 */
         boolean is_failure;
-
         switch (bundle.<StatusReport.ReasonCode>getTagAttachment("reason_code")) {
             case DepletedStorage:
             case DestinationEIDUnintellegible:
@@ -134,51 +139,19 @@ public class BundleProcessor {
         if (is_failure) {
             bundleForwardingFailed(bundle);
         } else {
-            Storage.store(bundle).subscribe(
-                    b -> {
-                        /* in storage, defer forwarding */
-                        forwardLater(b);
-                    },
-                    storageFailure -> {
-                        /* storage failed, abandon forwarding */
-                        bundleForwardingFailed(bundle);
-                    }
-            );
-        }
-    }
-
-    public static void forwardLater(final Bundle bundle) {
-        /* register a listener that will listen for ChannelOpened event
-         * and pull the bundle from storage if there is a match */
-        final BundleID bid = bundle.bid;
-        final EID destination = bundle.destination;
-        RxBus.register(new Object() {
-            @Subscribe
-            public void onEvent(ChannelOpened event) {
-                CLAChannel claChannel = RoutingEngine.findCLA(destination);
-                if (claChannel != null) {
-                    /* this is a transmission opportunity */
-                    Storage.getMeta(bid).subscribe(
-                            meta -> {
-                                claChannel.sendBundle(meta).subscribe(
-                                        i -> { /* ignore transmission progress */ },
-                                        e -> { /* ignore failed transmission */ },
-                                        () -> {
-                                            /* 5.4 - step 5 */
-                                            // todo careful, there might be multiple transmission
-                                            meta.removeTag("forward_pending");
-                                            RxBus.unregister(this);
-                                            bundleDiscarding(meta);
-                                        }
-                                );
-                            },
-                            e -> {
-                                /* somehow bundle was deleted */
-                                RxBus.unregister(this);
-                            });
-                }
+            if (!bundle.isTagged("in_storage")) {
+                Storage.store(bundle).subscribe(
+                        b -> {
+                            /* in storage, defer forwarding */
+                            RoutingEngine.forwardLater(b);
+                        },
+                        storageFailure -> {
+                            /* storage failed, abandon forwarding */
+                            bundleForwardingFailed(bundle);
+                        }
+                );
             }
-        });
+        }
     }
 
     /* 5.4.2 */
@@ -271,7 +244,7 @@ public class BundleProcessor {
 
     /* 5.7 - step 2 - delivery failure */
     public static void bundleLocalDeliveryFailure(String sink, Bundle bundle) {
-        if(!bundle.isTagged("in_storage")) {
+        if (!bundle.isTagged("in_storage")) {
             Storage.store(bundle).subscribe(
                     b -> {
                         /* register for event and deliver later */
@@ -293,7 +266,7 @@ public class BundleProcessor {
     /* 5.10 */
     public static void bundleDeletion(Bundle bundle) {
         /* 5.10 - step 1 */
-        if(bundle.getV7Flag(DELETION_REPORT) && reporting()) {
+        if (bundle.getV7Flag(DELETION_REPORT) && reporting()) {
             // todo generate deletion report
         }
 
@@ -307,7 +280,8 @@ public class BundleProcessor {
     /* 5.11 */
     public static void bundleDiscarding(Bundle bundle) {
         Storage.remove(bundle.bid).subscribe(
-                () -> {},
+                () -> {
+                },
                 e -> {
                     bundle.getPayloadBlock().data.getWritableBLOB().clear();
                 }

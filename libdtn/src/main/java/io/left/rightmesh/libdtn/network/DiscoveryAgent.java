@@ -5,9 +5,8 @@ package io.left.rightmesh.libdtn.network;
  * and throws appropriate Events whenever there is a change to the topology. It should be able to
  * detect Bluetooth neighbor, WiFi neighbor and neighbor over Internet link (such as superpeers).
  *
- * <p>The Discovery Agent, basically acts as a scanner and maintain a local routing table. Those
- * features are mostly already part of the RightMesh middleware and so it is mostly listening for
- * the RightMeshEvents to maintain the local routing table.
+ * <p>The Discovery Agent, basically simply acts as a scanner. Any actual connection decision are
+ * taken by the ConnectionAgent.
  *
  * @author Lucien Loiseau on 16/07/18.
  */

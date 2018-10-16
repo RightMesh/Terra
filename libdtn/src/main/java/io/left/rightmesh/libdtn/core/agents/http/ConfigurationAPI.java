@@ -4,19 +4,8 @@ import java.util.Set;
 
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.Component;
-import io.left.rightmesh.libdtn.core.agents.APIStaticApplicationAgent;
-import io.left.rightmesh.libdtn.core.agents.STCPAgent;
-import io.left.rightmesh.libdtn.core.processor.EventProcessor;
-import io.left.rightmesh.libdtn.core.routing.AARegistrar;
-import io.left.rightmesh.libdtn.core.routing.LinkLocalRouting;
 import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
-import io.left.rightmesh.libdtn.core.routing.SmartRouting;
-import io.left.rightmesh.libdtn.core.routing.StaticRouting;
 import io.left.rightmesh.libdtn.data.EID;
-import io.left.rightmesh.libdtn.storage.bundle.SimpleStorage;
-import io.left.rightmesh.libdtn.storage.bundle.Storage;
-import io.left.rightmesh.libdtn.storage.bundle.VolatileStorage;
-import io.left.rightmesh.libdtn.utils.Log;
 import io.left.rightmesh.libdtn.utils.nettyrouter.Router;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -43,24 +32,9 @@ public class ConfigurationAPI {
                         .flatMap((a) -> just(a.toString() + "\n")));
     };
 
-    private static Action confComponents = (params, req, res) -> {
-        Component[] components = {
-                Log.getInstance(),
-                EventProcessor.getInstance(),
-                LinkLocalRouting.getInstance(),
-                StaticRouting.getInstance(),
-                SmartRouting.getInstance(),
-                AARegistrar.getInstance(),
-                VolatileStorage.getInstance(),
-                SimpleStorage.getInstance(),
-                APIStaticApplicationAgent.getInstance(),
-                APIDaemonHTTPAgent.getInstance(),
-                STCPAgent.getInstance(),
-        };
-        return res.setStatus(HttpResponseStatus.OK).writeString(
-                Observable.from(components).flatMap((c) ->
+    private static Action confComponents = (params, req, res) -> res.setStatus(HttpResponseStatus.OK).writeString(
+                Observable.from(Component.getAllComponents()).flatMap((c) ->
                         just(c.getComponentName() + " - " + (c.isEnabled() ? "UP" : "DOWN") + "\n")));
-    };
 
     private static Action dumpConfiguration = (params, req, res) ->
             res.setStatus(HttpResponseStatus.OK).writeString(just("conf"));
