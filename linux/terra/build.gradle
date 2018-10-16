@@ -4,6 +4,11 @@ plugins {
 
 mainClassName="io.left.rightmesh.terra.Terra"
 
+repositories {
+    google()
+    jcenter()
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
