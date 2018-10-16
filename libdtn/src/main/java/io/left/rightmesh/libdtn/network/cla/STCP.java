@@ -12,6 +12,7 @@ import io.left.rightmesh.libdtn.data.MetaBundle;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Serializer;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
+import io.left.rightmesh.libdtn.utils.Log;
 import io.left.rightmesh.librxtcp.RxTCP;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
@@ -75,6 +76,7 @@ public class STCP implements CLAInterface {
     @Override
     public Observable<CLAChannel> start() {
         server = new RxTCP.Server(port);
+        Log.i(TAG, "starting a STCP CLA on port "+port);
         return server.start()
                 .map(tcpcon -> new Channel(tcpcon, false));
     }
@@ -116,6 +118,7 @@ public class STCP implements CLAInterface {
             this.tcpcon = tcpcon;
             this.initiator = initiator;
             channelEID = new EID.CLASTCP(tcpcon.getRemoteHost(),tcpcon.getRemotePort(),"/");
+            Log.i(TAG, "new STCP CLA channel openned (initiated="+initiator+"): "+channelEID);
         }
 
         @Override
