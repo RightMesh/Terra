@@ -41,7 +41,8 @@ public class DTNConfiguration {
         ENABLE_STATUS_REPORTING("enable_status_reporting"),
         ENABLE_FORWARDING("dtn_enable_forwarding"),
         COMPONENT_ENABLE_CONNECTION_AGENT("component_enable_connection_agent"),
-        ENABLE_AUTO_CONNECT("dtn_enable_auto_connect"),
+        ENABLE_AUTO_CONNECT_FOR_BUNDLE("dtn_enable_auto_connect_bundle"),
+        ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT("dtn_enable_auto_connect_detect"),
         AUTO_CONNECT_USE_WHITELIST("dtn_auto_connect_use_whitelist"),
         AUTO_CONNECT_WHITELIST("dtn_auto_connect_whitelist"),
         COMPONENT_ENABLE_EVENT_PROCESSING("component_enable_event_processing"),
@@ -254,7 +255,8 @@ public class DTNConfiguration {
         this.createEntry(Entry.COMPONENT_ENABLE_DAEMON_HTTP_API, true);
         this.createEntry(Entry.API_DAEMON_HTTP_API_PORT, 8080);
         this.createEntry(Entry.ENABLE_FORWARDING, true);
-        this.createEntry(Entry.ENABLE_AUTO_CONNECT, true);
+        this.createEntry(Entry.ENABLE_AUTO_CONNECT_FOR_BUNDLE, false);
+        this.createEntry(Entry.ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT, true);
         this.createEntry(Entry.AUTO_CONNECT_USE_WHITELIST, true);
         this.<String>createEntrySet(Entry.AUTO_CONNECT_WHITELIST);
         this.createEntry(Entry.EID_SINGLETON_ONLY, false);

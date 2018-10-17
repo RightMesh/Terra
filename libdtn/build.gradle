@@ -39,6 +39,9 @@ dependencies {
     //implementation 'com.github.RightMesh:librxbus:master-SNAPSHOT'
     implementation project(path: ':librxbus')
 
+    // libdetect to detect neighbour
+    implementation project(path: ':libdetect')
+
     // RxTCP for CLASTCP and TCPCLv3/v4 CLAs
     //implementation 'com.github.RightMesh:librxtcp:master-SNAPSHOT'
     implementation project(path: ':librxtcp')
