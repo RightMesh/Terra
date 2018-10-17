@@ -1,6 +1,7 @@
 package io.left.rightmesh.libdtn.core.routing;
 
-import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
@@ -58,7 +59,7 @@ public class AARegistrar extends Component {
 
     static {
         instance = new AARegistrar();
-        registrations = new HashMap<>();
+        registrations = new ConcurrentHashMap<>();
         listener = new DeliveryListener();
         getInstance().initComponent(COMPONENT_ENABLE_AA_REGISTRATION);
     }
@@ -84,7 +85,7 @@ public class AARegistrar extends Component {
     }
 
     // ----  Business Logic ----
-    private static HashMap<String, RegistrationCallback> registrations;
+    private static Map<String, RegistrationCallback> registrations;
     private static DeliveryListener listener;
 
     public static class DeliveryListener extends EventListener<String> {

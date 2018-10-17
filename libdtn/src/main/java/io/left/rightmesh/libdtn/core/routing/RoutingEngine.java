@@ -1,7 +1,8 @@
 package io.left.rightmesh.libdtn.core.routing;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ConcurrentHashMap;
 
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.core.processor.EventListener;
@@ -29,11 +30,11 @@ import static io.left.rightmesh.libdtn.data.StatusReport.ReasonCode.Transmission
 public class RoutingEngine {
 
     static {
-        registrations = new HashMap<>();
+        registrations = new ConcurrentHashMap<>();
         listener = new ForwardingListener();
     }
 
-    private static HashMap<String, AARegistrar.RegistrationCallback> registrations;
+    private static Map<String, AARegistrar.RegistrationCallback> registrations;
     private static ForwardingListener listener;
 
     public static class ForwardingListener extends EventListener<String> {

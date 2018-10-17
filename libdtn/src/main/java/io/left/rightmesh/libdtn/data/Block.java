@@ -1,7 +1,7 @@
 package io.left.rightmesh.libdtn.data;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Lucien Loiseau on 28/09/18.
@@ -9,10 +9,10 @@ import java.util.Map;
 public abstract class Block {
 
     // processing
-    public Map<String, Object> attachement;
+    private Map<String, Object> attachement;
 
     Block() {
-        attachement = new HashMap<>();
+        attachement = new ConcurrentHashMap<>();
     }
 
     /**
