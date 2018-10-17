@@ -26,20 +26,6 @@ public class ConnectionAgent {
 
     private static final String TAG = "ConnectionAgent";
 
-    static {
-        LibDetect.start(4000, new ActionListener() {
-            @Override
-            public void onPeerReachable(PeerReachable peer) {
-                Log.i(TAG, "peer detected :"+peer.address.getHostAddress());
-                createOpportunityLibDetect(peer.address.getHostAddress());
-            }
-
-            @Override
-            public void onPeerUnreachable(PeerUnreachable peer) {
-                Log.i(TAG, "peer unreachable");
-            }
-        }, true);
-    }
 
     static boolean isEnabled() {
         return DTNConfiguration.<Boolean>get(COMPONENT_ENABLE_CONNECTION_AGENT).value();

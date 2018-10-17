@@ -42,6 +42,7 @@ public class DTNConfiguration {
         ENABLE_FORWARDING("dtn_enable_forwarding"),
         COMPONENT_ENABLE_CONNECTION_AGENT("component_enable_connection_agent"),
         ENABLE_AUTO_CONNECT_FOR_BUNDLE("dtn_enable_auto_connect_bundle"),
+        ENABLE_COMPONENT_DETECT_PEER_ON_LAN("component_enable_detect_peer_lan"),
         ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT("dtn_enable_auto_connect_detect"),
         AUTO_CONNECT_USE_WHITELIST("dtn_auto_connect_use_whitelist"),
         AUTO_CONNECT_WHITELIST("dtn_auto_connect_whitelist"),
@@ -246,6 +247,7 @@ public class DTNConfiguration {
         this.createEntry(Entry.MAX_TIMESTAMP_FUTURE, (long) 0);
         this.createEntry(Entry.ALLOW_RECEIVE_ANONYMOUS_BUNDLE, false);
         this.createEntry(Entry.ENABLE_STATUS_REPORTING, true);
+        this.createEntry(Entry.ENABLE_COMPONENT_DETECT_PEER_ON_LAN, true);
         this.createEntry(Entry.COMPONENT_ENABLE_CONNECTION_AGENT, true);
         this.createEntry(Entry.COMPONENT_ENABLE_EVENT_PROCESSING, true);
         this.createEntry(Entry.COMPONENT_ENABLE_AA_REGISTRATION, true);

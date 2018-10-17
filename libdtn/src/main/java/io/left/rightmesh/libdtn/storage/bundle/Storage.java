@@ -200,7 +200,7 @@ public class Storage {
             String dest = entry.bundle.destination.getEIDString();
             String vol = entry.isVolatile ? "V" : "";
             String per = entry.isPersistent ? "P=" + entry.bundle_path : "";
-            sb.append(bid.toString() + "  -  " + dest + "  -  " + vol + " " + per + "\n");
+            sb.append(bid.getBIDString() + "  -  " + dest + "  -  " + vol + " " + per + "\n");
         });
         sb.append("\n");
         return sb.toString();

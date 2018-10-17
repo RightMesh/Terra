@@ -10,6 +10,7 @@ import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
 import io.left.rightmesh.libdtn.core.routing.RoutingTable;
 import io.left.rightmesh.libdtn.core.routing.SmartRouting;
 import io.left.rightmesh.libdtn.network.ConnectionAgent;
+import io.left.rightmesh.libdtn.network.DiscoveryAgent;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
 import io.left.rightmesh.libdtn.utils.Log;
 
@@ -37,6 +38,9 @@ public class DTNCore {
         /* init Application Agents API (receive bundle from AA) */
         APIStaticApplicationAgent.getInstance();
         APIDaemonHTTPAgent.getInstance();
+
+        /* init connection agent */
+        DiscoveryAgent.getInstance();
 
         /* init Convergence Layer Adapters (receive bundle from CLA) */
         STCPAgent.getInstance();
