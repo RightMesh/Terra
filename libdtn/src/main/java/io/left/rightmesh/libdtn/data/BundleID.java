@@ -5,6 +5,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.UUID;
 
+import io.left.rightmesh.libdtn.data.eid.EID;
+
 /**
  * BundleID uniquely identifies a Bundle.
  *
@@ -31,7 +33,7 @@ public class BundleID {
         for (String algo : algorithms) {
             try {
                 MessageDigest md = MessageDigest.getInstance(algo);
-                md.update(source.toString().getBytes());
+                md.update(source.getEIDString().getBytes());
                 md.update(String.valueOf(timestamp).getBytes());
                 md.update(String.valueOf(sequence).getBytes());
                 String bid = UUID.nameUUIDFromBytes(md.digest()).toString();
@@ -43,7 +45,7 @@ public class BundleID {
 
         // no algorithm were found so we make something up (that should never happen though)
         // FIXME this method provides a unique bid but can be long, should probably use some XOR
-        String sb = new StringBuilder("s=" + source.toString())
+        String sb = new StringBuilder("s=" + source.getEIDString())
                 + "t=" + Long.toString(timestamp)
                 + "s=" + Long.toString(sequence);
         String bid = Base64.getEncoder().encodeToString(sb.getBytes());
@@ -68,8 +70,7 @@ public class BundleID {
         return this.bid.hashCode();
     }
 
-    @Override
-    public String toString() {
+    public String getBIDString() {
         return bid;
     }
 }

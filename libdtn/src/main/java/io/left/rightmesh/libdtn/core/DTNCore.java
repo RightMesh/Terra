@@ -25,11 +25,7 @@ public class DTNCore {
         /* init logging */
         Log.getInstance();
 
-        /* init local EID ConfigurationAPI */
-        LocalEIDTable.getInstance();
-
         /* init Routing modules */
-        ConnectionAgent.getInstance();
         LinkLocalRouting.getInstance();
         RoutingTable.getInstance();
         SmartRouting.getInstance();

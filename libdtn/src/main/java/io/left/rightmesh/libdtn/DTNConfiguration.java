@@ -1,6 +1,6 @@
 package io.left.rightmesh.libdtn;
 
-import io.left.rightmesh.libdtn.data.EID;
+import io.left.rightmesh.libdtn.data.eid.EID;
 import io.left.rightmesh.libdtn.utils.Log;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
@@ -246,7 +246,7 @@ public class DTNConfiguration {
         this.createEntry(Entry.ALLOW_RECEIVE_ANONYMOUS_BUNDLE, false);
         this.createEntry(Entry.ENABLE_STATUS_REPORTING, true);
         this.createEntry(Entry.COMPONENT_ENABLE_CONNECTION_AGENT, true);
-        this.createEntry(Entry.COMPONENT_ENABLE_EVENT_PROCESSING, false);
+        this.createEntry(Entry.COMPONENT_ENABLE_EVENT_PROCESSING, true);
         this.createEntry(Entry.COMPONENT_ENABLE_AA_REGISTRATION, true);
         this.createEntry(Entry.COMPONENT_ENABLE_STATIC_API, true);
         this.createEntry(Entry.COMPONENT_ENABLE_CBOR_DAEMON_API, false);
@@ -270,7 +270,7 @@ public class DTNConfiguration {
         this.<String>createEntrySet(Entry.SIMPLE_STORAGE_PATH);
         this.createEntry(Entry.LIMIT_BLOCKSIZE, (long) 1000000000);
         this.createEntry(Entry.COMPONENT_ENABLE_LOGGING, true);
-        this.<Log.LOGLevel>createEntry(Entry.LOG_LEVEL, Log.LOGLevel.INFO);
+        this.<Log.LOGLevel>createEntry(Entry.LOG_LEVEL, Log.LOGLevel.VERBOSE);
         this.createEntry(Entry.ENABLE_LOG_FILE, false);
         this.createEntry(Entry.LOG_FILE_PATH, "");
     }

@@ -197,7 +197,7 @@ public class Storage {
         StringBuilder sb = new StringBuilder("current cache:\n");
         sb.append("--------------\n\n");
         index.forEach((bid, entry) -> {
-            String dest = entry.bundle.destination.toString();
+            String dest = entry.bundle.destination.getEIDString();
             String vol = entry.isVolatile ? "V" : "";
             String per = entry.isPersistent ? "P=" + entry.bundle_path : "";
             sb.append(bid+"  -  "+dest+"  -  "+vol+" "+per+"\n");

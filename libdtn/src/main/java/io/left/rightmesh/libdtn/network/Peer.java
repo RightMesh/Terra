@@ -1,6 +1,6 @@
 package io.left.rightmesh.libdtn.network;
 
-import io.left.rightmesh.libdtn.data.EID;
+import io.left.rightmesh.libdtn.data.eid.EID;
 
 /**
  * Peer class holds information about a peer, that is, a unique DTN device.

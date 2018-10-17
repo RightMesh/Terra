@@ -11,13 +11,16 @@ import io.left.rightmesh.libdtn.data.BlockHeader;
 import io.left.rightmesh.libdtn.data.BlockIntegrityBlock;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.CRC;
-import io.left.rightmesh.libdtn.data.EID;
+import io.left.rightmesh.libdtn.data.eid.CLA;
+import io.left.rightmesh.libdtn.data.eid.DTN;
+import io.left.rightmesh.libdtn.data.eid.EID;
 import io.left.rightmesh.libdtn.data.FlowLabelBlock;
 import io.left.rightmesh.libdtn.data.ManifestBlock;
 import io.left.rightmesh.libdtn.data.PayloadBlock;
 import io.left.rightmesh.libdtn.data.PreviousNodeBlock;
 import io.left.rightmesh.libdtn.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.data.ScopeControlHopLimitBlock;
+import io.left.rightmesh.libdtn.data.eid.IPN;
 import io.reactivex.Flowable;
 
 /**
@@ -157,20 +160,20 @@ public class BundleV7Serializer {
                     .cbor_encode_int(0);
         }
 
-        if (eid instanceof EID.DTN || eid instanceof EID.CLA) {
+        if (eid instanceof DTN || eid instanceof CLA) {
             return CBOR.encoder()
                     .cbor_start_array(2)
                     .cbor_encode_int(eid.IANA())
-                    .cbor_encode_text_string(eid.ssp);
+                    .cbor_encode_text_string(eid.getSsp());
         }
 
-        if (eid instanceof EID.IPN) {
+        if (eid instanceof IPN) {
             return CBOR.encoder()
                     .cbor_start_array(2)
                     .cbor_encode_int(eid.IANA())
                     .cbor_start_array(2)
-                    .cbor_encode_int(((EID.IPN) eid).node_number)
-                    .cbor_encode_int(((EID.IPN) eid).service_number);
+                    .cbor_encode_int(((IPN) eid).node_number)
+                    .cbor_encode_int(((IPN) eid).service_number);
         }
 
         return CBOR.encoder(); // that should not happen

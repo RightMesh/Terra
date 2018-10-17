@@ -1,5 +1,7 @@
 package io.left.rightmesh.libdtn.data;
 
+import io.left.rightmesh.libdtn.data.eid.EID;
+
 /**
  * @author Lucien Loiseau on 17/09/18.
  */
@@ -23,7 +25,7 @@ public class PreviousNodeBlock extends CanonicalBlock {
     public String toString() {
         StringBuilder sb = new StringBuilder("PreviousNodeBlock");
         if(previous != null) {
-            sb.append(": previous node=").append(previous.toString());
+            sb.append(": previous node=").append(previous.getEIDString());
         } else {
             sb.append(": previous node is unset");
         }

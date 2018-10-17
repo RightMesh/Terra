@@ -5,7 +5,7 @@ import java.util.Set;
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
-import io.left.rightmesh.libdtn.data.EID;
+import io.left.rightmesh.libdtn.data.eid.EID;
 import io.left.rightmesh.libdtn.utils.nettyrouter.Router;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -20,7 +20,7 @@ import static rx.Observable.just;
 public class ConfigurationAPI {
 
     private static Action confLocalEID = (params, req, res) -> {
-        final String localeid = LocalEIDTable.localEID().toString();
+        final String localeid = LocalEIDTable.localEID().getEIDString();
         return res.setStatus(HttpResponseStatus.OK).writeString(just("localeid=" + localeid));
     };
 
@@ -29,7 +29,7 @@ public class ConfigurationAPI {
 
         return res.setStatus(HttpResponseStatus.OK).writeString(
                 Observable.from(aliases)
-                        .flatMap((a) -> just(a.toString() + "\n")));
+                        .flatMap((a) -> just(a.getEIDString() + "\n")));
     };
 
     private static Action confComponents = (params, req, res) -> res.setStatus(HttpResponseStatus.OK).writeString(

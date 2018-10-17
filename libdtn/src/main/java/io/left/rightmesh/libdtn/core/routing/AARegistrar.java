@@ -87,7 +87,7 @@ public class AARegistrar extends Component {
     private static HashMap<String, RegistrationCallback> registrations;
     private static DeliveryListener listener;
 
-    private static class DeliveryListener extends EventListener<String> {
+    public static class DeliveryListener extends EventListener<String> {
         @Subscribe
         public void onEvent(RegistrationActive active) {
             /* deliver every bundle of interest */

@@ -1,13 +1,8 @@
 package io.left.rightmesh.libdtn.core.routing;
 
 import io.left.rightmesh.libdtn.DTNConfiguration;
-import io.left.rightmesh.libdtn.core.Component;
-import io.left.rightmesh.libdtn.data.EID;
-import io.left.rightmesh.libdtn.utils.Log;
+import io.left.rightmesh.libdtn.data.eid.EID;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -19,41 +14,13 @@ public class LocalEIDTable {
 
     private static final String TAG = "LocalEIDTable";
 
-    // ---- SINGLETON ----
-    private static LocalEIDTable instance;
-    public static LocalEIDTable getInstance() {  return instance; }
-
-    static {
-        instance = new LocalEIDTable();
-        Log.i(TAG, "component up");
-    }
-
-    private static EID localEID;
-    private static Set<EID> aliases;
-
-    private LocalEIDTable() {
-        DTNConfiguration.<EID>get(DTNConfiguration.Entry.LOCAL_EID)
-                .observe()
-                .subscribe(
-                        eid -> {
-                            localEID = eid;
-                        });
-        DTNConfiguration.<Set<EID>>get(DTNConfiguration.Entry.ALIASES)
-                .observe()
-                .subscribe(
-                        s -> {
-                            aliases = s;
-                        });
-    }
-
     public static EID localEID() {
-        return localEID;
+        return DTNConfiguration.<EID>get(DTNConfiguration.Entry.LOCAL_EID)
+                .value();
     }
 
     public static Set<EID> aliases() {
-        Set<EID> ret = new HashSet<>();
-        ret.addAll(aliases);
-        return ret;
+        return DTNConfiguration.<Set<EID>>get(DTNConfiguration.Entry.ALIASES).value();
     }
 
     /**
@@ -73,11 +40,11 @@ public class LocalEIDTable {
      * @return true if the eid is local, false otherwise
      */
     public static EID matchLocal(EID eid) {
-        if (eid.matches(localEID)) {
+        if (eid.matches(localEID())) {
             return localEID();
         }
 
-        for (EID alias : aliases) {
+        for (EID alias : aliases()) {
             if (eid.matches(alias)) {
                 return alias;
             }

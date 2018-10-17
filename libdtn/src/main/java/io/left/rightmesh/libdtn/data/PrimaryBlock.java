@@ -1,6 +1,7 @@
 package io.left.rightmesh.libdtn.data;
 
 
+import io.left.rightmesh.libdtn.data.eid.EID;
 
 /**
  * PrimaryBlock is the first block of a Bundle (RFC5050), there can be only one per Bundle.

@@ -1,8 +1,9 @@
 package io.left.rightmesh.libdtn.core.routing;
 
 import io.left.rightmesh.libdtn.core.Component;
+import io.left.rightmesh.libdtn.data.eid.CLA;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
-import io.left.rightmesh.libdtn.data.EID;
+import io.left.rightmesh.libdtn.data.eid.EID;
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
 
@@ -30,7 +31,7 @@ public class LinkLocalRouting extends Component {
         instance.initComponent(COMPONENT_ENABLE_LINKLOCAL_ROUTING);
     }
 
-    private static Map<EID.CLA, CLAChannel> linkLocalTable;
+    private static Map<CLA, CLAChannel> linkLocalTable;
 
     @Override
     public String getComponentName() {

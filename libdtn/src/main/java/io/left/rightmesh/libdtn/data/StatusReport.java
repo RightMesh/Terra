@@ -1,5 +1,7 @@
 package io.left.rightmesh.libdtn.data;
 
+import io.left.rightmesh.libdtn.data.eid.EID;
+
 /**
  * @author Lucien Loiseau on 28/09/18.
  */

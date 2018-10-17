@@ -39,7 +39,7 @@ dependencies {
     //implementation 'com.github.RightMesh:librxbus:master-SNAPSHOT'
     implementation project(path: ':librxbus')
 
-    // RxTCP for STCP and TCPCLv3/v4 CLAs
+    // RxTCP for CLASTCP and TCPCLv3/v4 CLAs
     //implementation 'com.github.RightMesh:librxtcp:master-SNAPSHOT'
     implementation project(path: ':librxtcp')
 

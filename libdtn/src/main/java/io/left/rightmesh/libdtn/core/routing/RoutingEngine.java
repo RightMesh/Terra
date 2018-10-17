@@ -7,13 +7,12 @@ import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.core.processor.EventListener;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.BundleID;
-import io.left.rightmesh.libdtn.data.EID;
+import io.left.rightmesh.libdtn.data.eid.CLA;
+import io.left.rightmesh.libdtn.data.eid.EID;
 import io.left.rightmesh.libdtn.events.ChannelOpened;
 import io.left.rightmesh.libdtn.network.ConnectionAgent;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
-import io.left.rightmesh.libdtn.network.cla.CLAManager;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
-import io.left.rightmesh.libdtn.utils.Log;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Maybe;
@@ -35,11 +34,11 @@ public class RoutingEngine {
     private static HashMap<String, AARegistrar.RegistrationCallback> registrations;
     private static ForwardingListener listener;
 
-    private static class ForwardingListener extends EventListener<EID> {
+    public static class ForwardingListener extends EventListener<String> {
         @Subscribe
         public void onEvent(ChannelOpened event) {
             /* deliver every bundle of interest */
-            getBundlesOfInterest(event.channel.channelEID()).forEach(
+            getBundlesOfInterest(event.channel.channelEID().getCLASpecificPart()).forEach(
                     bundleID -> {
                         /* retrieve the bundle - should be constant operation */
                         Storage.getMeta(bundleID).subscribe(
@@ -75,19 +74,20 @@ public class RoutingEngine {
          * and pull the bundle from storage if there is a match */
         final BundleID bid = bundle.bid;
         final EID destination = bundle.destination;
-        Observable<EID.CLA> potentialCLAs = RoutingTable.resolveEID(destination);
+        Observable<CLA> potentialCLAs = RoutingTable.resolveEID(destination);
 
         // watch bundle
-        potentialCLAs.map(
-                claeid -> listener.watch(claeid, bid)
-        ).subscribe();
+        potentialCLAs
+                .map(claeid -> listener.watch(claeid.getCLASpecificPart(), bid))
+                .subscribe();
 
         // create opportunity
         try {
-            potentialCLAs.flatMapMaybe(claeid ->
+            CLAChannel channel = potentialCLAs.flatMapMaybe(claeid ->
                     Maybe.fromSingle(ConnectionAgent.createOpportunity(claeid))
                             .onErrorComplete())
                     .blockingFirst();
+            RxBus.post(new ChannelOpened(channel));
         } catch(NoSuchElementException nse) {
             /* ignore */
         }

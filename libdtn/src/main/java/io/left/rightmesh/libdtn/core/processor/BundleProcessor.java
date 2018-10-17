@@ -7,22 +7,14 @@ import io.left.rightmesh.libdtn.core.routing.AARegistrar;
 import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
 import io.left.rightmesh.libdtn.core.routing.RoutingEngine;
 import io.left.rightmesh.libdtn.data.Bundle;
-import io.left.rightmesh.libdtn.data.BundleID;
 import io.left.rightmesh.libdtn.data.CanonicalBlock;
-import io.left.rightmesh.libdtn.data.EID;
+import io.left.rightmesh.libdtn.data.eid.EID;
 import io.left.rightmesh.libdtn.data.StatusReport;
-import io.left.rightmesh.libdtn.events.ChannelOpened;
-import io.left.rightmesh.libdtn.network.ConnectionAgent;
-import io.left.rightmesh.libdtn.network.cla.CLAChannel;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
 import io.left.rightmesh.libdtn.utils.Log;
-import io.left.rightmesh.librxbus.RxBus;
-import io.left.rightmesh.librxbus.Subscribe;
 
-import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_AUTO_CONNECT;
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_FORWARDING;
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_STATUS_REPORTING;
-import static io.left.rightmesh.libdtn.core.DTNCore.TAG;
 import static io.left.rightmesh.libdtn.data.BlockHeader.BlockV7Flags.DELETE_BUNDLE_IF_NOT_PROCESSED;
 import static io.left.rightmesh.libdtn.data.BlockHeader.BlockV7Flags.DISCARD_IF_NOT_PROCESSED;
 import static io.left.rightmesh.libdtn.data.BlockHeader.BlockV7Flags.TRANSMIT_STATUSREPORT_IF_NOT_PROCESSED;
@@ -32,7 +24,6 @@ import static io.left.rightmesh.libdtn.data.PrimaryBlock.BundleV7Flags.RECEPTION
 import static io.left.rightmesh.libdtn.data.StatusReport.ReasonCode.BlockUnintelligible;
 import static io.left.rightmesh.libdtn.data.StatusReport.ReasonCode.LifetimeExpired;
 import static io.left.rightmesh.libdtn.data.StatusReport.ReasonCode.NoKnownRouteForDestination;
-import static io.left.rightmesh.libdtn.data.StatusReport.ReasonCode.TransmissionCancelled;
 
 /**
  * BundleProcessor is the entry point of all Bundle (either from Application Agent or
@@ -47,7 +38,6 @@ public class BundleProcessor {
     public static boolean reporting() {
         return DTNConfiguration.<Boolean>get(ENABLE_STATUS_REPORTING).value();
     }
-
 
     /* 5.2 */
     public static void bundleTransmission(Bundle bundle) {
@@ -221,7 +211,7 @@ public class BundleProcessor {
         /* 5.7 - step 2 */
         EID localMatch = LocalEIDTable.matchLocal(bundle.destination);
         if (localMatch != null) {
-            String sink = bundle.destination.eid.replaceFirst(localMatch.eid, "");
+            String sink = bundle.destination.getEIDString().replaceFirst(localMatch.toString(), "");
             AARegistrar.deliver(sink, bundle).subscribe(
                     () -> bundleLocalDeliverySuccessful(bundle),
                     deliveryFailure -> bundleLocalDeliveryFailure(sink, bundle));

@@ -116,9 +116,9 @@ public abstract class EventListener<T> {
             return false;
         }
 
-        Log.d(TAG, "add bundle to a watchlist: "+bid);
-        return watchList.putIfAbsent(key, new HashSet<>())
-                .add(bid);
+        Log.d(TAG, "add bundle to a watchlist: "+bid+" key="+key.toString());
+        Set<BundleID> bids = watchList.get(key);
+        return watchList.computeIfAbsent(key, k -> new HashSet<>()).add(bid);
     }
 
     public void unwatch(BundleID bid) {

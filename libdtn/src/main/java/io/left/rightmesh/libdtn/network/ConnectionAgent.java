@@ -1,13 +1,15 @@
 package io.left.rightmesh.libdtn.network;
 
 import io.left.rightmesh.libdtn.DTNConfiguration;
-import io.left.rightmesh.libdtn.core.Component;
-import io.left.rightmesh.libdtn.data.EID;
+import io.left.rightmesh.libdtn.data.eid.CLA;
+import io.left.rightmesh.libdtn.data.eid.EID;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
 import io.left.rightmesh.libdtn.network.cla.CLAManager;
 import io.left.rightmesh.libdtn.utils.Log;
-import io.reactivex.Maybe;
+
 import io.reactivex.Single;
+
+import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_CONNECTION_AGENT;
 
 /**
  * The ConnectionAgent takes decision as to how to connect/disconnect and generally affect the
@@ -16,31 +18,20 @@ import io.reactivex.Single;
  *
  * @author Lucien Loiseau on 15/10/18.
  */
-public class ConnectionAgent extends Component {
+public class ConnectionAgent {
+
     private static final String TAG = "ConnectionAgent";
 
-    // ---- SINGLETON ----
-    private static ConnectionAgent instance;
-    public static ConnectionAgent getInstance() {  return instance; }
-    static {
-        instance = new ConnectionAgent();
-        instance.initComponent(DTNConfiguration.Entry.COMPONENT_ENABLE_CONNECTION_AGENT);
+    public static boolean isEnabled() {
+        return DTNConfiguration.<Boolean>get(COMPONENT_ENABLE_CONNECTION_AGENT).value();
     }
-
-
-
-    @Override
-    public String getComponentName() {
-        return TAG;
-    }
-
 
     /**
      * Try to create an opportunity for this destination.
      * @param eid
      */
-    public static Single<CLAChannel> createOpportunity(EID.CLA eid) {
-        if(!instance.isEnabled()) {
+    public static Single<CLAChannel> createOpportunity(CLA eid) {
+        if(!isEnabled()) {
             return Single.error(new Throwable(TAG+" is disabled"));
         }
 
@@ -48,9 +39,9 @@ public class ConnectionAgent extends Component {
             return Single.error(new Throwable("AutoConnect is disabled"));
         }
 
-        Log.i(TAG, "trying to create an opportunity for: " + eid.toString());
+        Log.d(TAG, "trying to create an opportunity for: " + eid.getEIDString());
         return CLAManager.openChannel(eid)
-                .doOnError(e -> Log.i(TAG, "opportunity creation failed: " + eid.toString()))
-                .doOnSuccess((c) -> Log.i(TAG, "opportunity creation success: " + eid.toString()));
+                .doOnError(e -> Log.d(TAG, "opportunity creation failed: " + eid.getEIDString()))
+                .doOnSuccess((c) -> Log.d(TAG, "opportunity creation success: " + eid.getEIDString()));
     }
 }

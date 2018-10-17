@@ -3,7 +3,7 @@ package io.left.rightmesh.libdtn.core.agents.http;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.BundleID;
-import io.left.rightmesh.libdtn.data.EID;
+import io.left.rightmesh.libdtn.data.eid.EID;
 import io.left.rightmesh.libdtn.data.PayloadBlock;
 import io.left.rightmesh.libdtn.storage.blob.ByteBufferBLOB;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
@@ -102,7 +102,7 @@ public class ApplicationAgentAPI {
                     .flatMap((wblob) -> {
                         wblob.close();
                         bundle.addBlock(new PayloadBlock(blob));
-                        final String bundleid = bundle.bid.toString();
+                        final String bundleid = bundle.bid.getBIDString();
                         res.setStatus(HttpResponseStatus.OK);
                         BundleProcessor.bundleDispatching(bundle);
                         return res;

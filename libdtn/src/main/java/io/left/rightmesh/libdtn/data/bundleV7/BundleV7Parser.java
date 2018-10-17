@@ -14,7 +14,8 @@ import io.left.rightmesh.libdtn.data.BlockIntegrityBlock;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.BundleID;
 import io.left.rightmesh.libdtn.data.CRC;
-import io.left.rightmesh.libdtn.data.EID;
+import io.left.rightmesh.libdtn.data.eid.DTN;
+import io.left.rightmesh.libdtn.data.eid.EID;
 import io.left.rightmesh.libdtn.data.FlowLabelBlock;
 import io.left.rightmesh.libdtn.data.ManifestBlock;
 import io.left.rightmesh.libdtn.data.PayloadBlock;
@@ -22,11 +23,13 @@ import io.left.rightmesh.libdtn.data.PreviousNodeBlock;
 import io.left.rightmesh.libdtn.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.data.ScopeControlHopLimitBlock;
 import io.left.rightmesh.libdtn.data.UnknownExtensionBlock;
+import io.left.rightmesh.libdtn.data.eid.IPN;
 import io.left.rightmesh.libdtn.storage.blob.BLOB;
-import io.left.rightmesh.libdtn.storage.bundle.BundleStorage;
 import io.left.rightmesh.libdtn.storage.blob.NullBLOB;
 import io.left.rightmesh.libdtn.storage.blob.WritableBLOB;
 import io.left.rightmesh.libdtn.utils.Log;
+
+import static io.left.rightmesh.libdtn.data.eid.EID.EID_IPN_IANA_VALUE;
 
 /**
  * @author Lucien Loiseau on 10/09/18.
@@ -51,14 +54,14 @@ public class BundleV7Parser  {
         public CborParser getItemParser() {
             return CBOR.parser()
                     .cbor_open_array((__, ___, ____) -> {
-                        Log.d(TAG, "[+] parsing new bundle");
+                        Log.v(TAG, "[+] parsing new bundle");
                     })
                     .cbor_parse_custom_item(PrimaryBlockItem::new, (__, ___, item) -> {
-                        Log.d(TAG, "-> primary block parsed");
+                        Log.v(TAG, "-> primary block parsed");
                         bundle = item.b;
                     })
                     .cbor_parse_array_items(CanonicalBlockItem::new, (__, ___, item) -> {
-                        Log.d(TAG, "-> canonical block parsed");
+                        Log.v(TAG, "-> canonical block parsed");
                         bundle.addBlock(item.block);
                     });
         }
@@ -72,14 +75,14 @@ public class BundleV7Parser  {
         public CborParser getItemParser() {
             return CBOR.parser()
                     .do_here((__) -> {
-                        Log.d(TAG, ". preparing primary block CRC");
+                        Log.v(TAG, ". preparing primary block CRC");
                         crc16 = CRC.init(CRC.CRCType.CRC16); // prepare CRC16 feeding
                         crc32 = CRC.init(CRC.CRCType.CRC32); // prepare CRC32 feeding
                     })
                     .do_for_each("crc-16", (__, buffer) -> crc16.read(buffer)) // feed CRC16 with every parsed buffer from this sequence
                     .do_for_each("crc-32", (__, buffer) -> crc32.read(buffer)) // feed CRC32 with every parsed buffer from this sequence
                     .cbor_open_array((__, ___, i) -> {
-                        Log.d(TAG, ". array size="+i);
+                        Log.v(TAG, ". array size="+i);
                         if ((i < 8) || (i > 11)) {
                             throw new RxParserException("wrong number of element in primary block");
                         } else {
@@ -87,15 +90,15 @@ public class BundleV7Parser  {
                         }
                     })
                     .cbor_parse_int((__, ___, i) -> {
-                        Log.d(TAG, ". version="+i);
+                        Log.v(TAG, ". version="+i);
                         b.version = (int) i;
                     })
                     .cbor_parse_int((__, ___, i) -> {
-                        Log.d(TAG, ". flags="+i);
+                        Log.v(TAG, ". flags="+i);
                         b.procV7Flags = i;
                     })
                     .cbor_parse_int((p, ___, i) -> {
-                        Log.d(TAG, ". crc="+i);
+                        Log.v(TAG, ". crc="+i);
                         switch ((int) i) {
                             case 0:
                                 b.crcType = PrimaryBlock.CRCFieldType.NO_CRC;
@@ -117,34 +120,34 @@ public class BundleV7Parser  {
                         }
                     })
                     .cbor_parse_custom_item(EIDItem::new, (__, ___, item) -> {
-                        Log.d(TAG, ". destination="+item.eid.toString());
+                        Log.v(TAG, ". destination="+item.eid.getEIDString());
                         b.destination = item.eid;
                     })
                     .cbor_parse_custom_item(EIDItem::new, (__, ___, item) -> {
-                        Log.d(TAG, ". source="+item.eid.toString());
+                        Log.v(TAG, ". source="+item.eid.getEIDString());
                         b.source = item.eid;
                     })
                     .cbor_parse_custom_item(EIDItem::new, (__, ___, item) -> {
-                        Log.d(TAG, ". reportto="+item.eid.toString());
+                        Log.v(TAG, ". reportto="+item.eid.getEIDString());
                         b.reportto = item.eid;
                     })
                     .cbor_open_array(2)
                     .cbor_parse_int((__, ___, i) -> {
-                        Log.d(TAG, ". creationTimestamp="+i);
+                        Log.v(TAG, ". creationTimestamp="+i);
                         b.creationTimestamp = i;
                     })
                     .cbor_parse_int((__, ___, i) -> {
-                        Log.d(TAG, ". sequenceNumber="+i);
+                        Log.v(TAG, ". sequenceNumber="+i);
                         b.sequenceNumber = i;
                         b.bid = BundleID.create(b.source, b.creationTimestamp, b.sequenceNumber);
                     })
                     .cbor_parse_int((__, ___, i) -> {
-                        Log.d(TAG, ". lifetime="+i);
+                        Log.v(TAG, ". lifetime="+i);
                         b.lifetime = i;
                     })
                     .do_here(p -> p.insert_now(close_crc)) // validate close_crc
                     .do_here(__ -> {
-                        Log.d(TAG, ". crc_check="+this.crc_ok);
+                        Log.v(TAG, ". crc_check="+this.crc_ok);
                         b.tag("crc_check", this.crc_ok);
                     }); // tag the block
         }
@@ -160,20 +163,20 @@ public class BundleV7Parser  {
         public CborParser getItemParser() {
             return CBOR.parser()
                     .do_here((__) -> {
-                        Log.d(TAG, ". preparing canonical block CRC");
+                        Log.v(TAG, ". preparing canonical block CRC");
                         crc16 = CRC.init(CRC.CRCType.CRC16); // prepare CRC16 feeding
                         crc32 = CRC.init(CRC.CRCType.CRC32); // prepare CRC32 feeding
                     })
                     .do_for_each("crc-16", (__, buffer) -> crc16.read(buffer))
                     .do_for_each("crc-32", (__, buffer) -> crc32.read(buffer))
                     .cbor_open_array((__, ___, i) -> {
-                        Log.d(TAG, ". array size="+i);
+                        Log.v(TAG, ". array size="+i);
                         if ((i != 5) && (i != 6)) {
                             throw new RxParserException("wrong number of element in canonical block");
                         }
                     })
                     .cbor_parse_int((p, __, i) -> { // block type
-                        Log.d(TAG, ". type="+i);
+                        Log.v(TAG, ". type="+i);
                         switch ((int) i) {
                             case PayloadBlock.type:
                                 block = new PayloadBlock();
@@ -210,15 +213,15 @@ public class BundleV7Parser  {
                         }
                     })
                     .cbor_parse_int((__, ___, i) -> {
-                        Log.d(TAG, ". number="+i);
+                        Log.v(TAG, ". number="+i);
                         block.number = (int) i;
                     })
                     .cbor_parse_int((__, ___, i) -> {
-                        Log.d(TAG, ". procV7flags="+i);
+                        Log.v(TAG, ". procV7flags="+i);
                         block.procV7flags = i;
                     })
                     .cbor_parse_int((p, ___, i) -> {
-                        Log.d(TAG, ". crc="+i);
+                        Log.v(TAG, ". crc="+i);
                         switch ((int) i) {
                             case 0:
                                 block.crcType = BlockHeader.CRCFieldType.NO_CRC;
@@ -242,7 +245,7 @@ public class BundleV7Parser  {
                     .do_here(p -> p.insert_now(payload))
                     .do_here(p -> p.insert_now(close_crc))  // validate close_crc
                     .do_here(__ -> {
-                        Log.d(TAG, ". crc_check="+this.crc_ok);
+                        Log.v(TAG, ". crc_check="+this.crc_ok);
                         block.tag("crc_check", this.crc_ok);
                     }); // tag the block
         }
@@ -346,7 +349,7 @@ public class BundleV7Parser  {
             return CBOR.parser()
                     .cbor_open_array(2)
                     .cbor_parse_int((p, __, i) -> {
-                        if (i == EID.IPN.EID_IPN_IANA_VALUE) { // IPN
+                        if (i == EID_IPN_IANA_VALUE) { // IPN
                             p.insert_now(parseIPN);
                         } else { // DTN or UNKNOWN
                             p.insert_now(parseDTN);
@@ -356,8 +359,8 @@ public class BundleV7Parser  {
 
         CborParser parseIPN = CBOR.parser()
                 .cbor_open_array(2)
-                .cbor_parse_int((___, ____, node) -> eid = new EID.IPN((int) node, 0))
-                .cbor_parse_int((___, ____, service) -> ((EID.IPN) eid).service_number = (int) service);
+                .cbor_parse_int((___, ____, node) -> eid = new IPN((int) node, 0))
+                .cbor_parse_int((___, ____, service) -> ((IPN) eid).service_number = (int) service);
 
         CborParser parseDTN = CBOR.parser()
                 .cbor_or(
@@ -371,7 +374,7 @@ public class BundleV7Parser  {
                                     }
                                 },
                                 (__, str) -> {
-                                    eid = new EID.DTN(str);
+                                    eid = new DTN(str);
                                 }));
     }
 }

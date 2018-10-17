@@ -1,6 +1,8 @@
 package io.left.rightmesh.libdtn.network.cla;
 
-import io.left.rightmesh.libdtn.data.EID;
+import io.left.rightmesh.libdtn.data.eid.CLA;
+import io.left.rightmesh.libdtn.data.eid.CLASTCP;
+import io.left.rightmesh.libdtn.data.eid.EID;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
 
@@ -26,9 +28,9 @@ public class CLAManager {
      * Try to open a CLAChannel to a specific {@see EID.CLA}. The way it parses the information in
      * the EID and actually opens the channel is an implementation matter.
      */
-    public static Single<CLAChannel> openChannel(EID.CLA peer) {
-        if(peer.cl_name.equals(STCP.getCLAName())) {
-            return STCP.open(peer);
+    public static Single<CLAChannel> openChannel(CLA peer) {
+        if(peer.getSchemeCode().equals(EID.EIDScheme.CLASTCP)) {
+            return STCP.open((CLASTCP)peer);
         }
         return Single.error(new Throwable("no such CLA"));
     }

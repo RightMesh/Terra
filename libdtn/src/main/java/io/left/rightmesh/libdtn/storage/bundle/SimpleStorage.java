@@ -12,8 +12,6 @@ import java.nio.channels.FileChannel;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Stream;
 
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
@@ -36,7 +34,6 @@ import io.reactivex.Completable;
 import io.reactivex.Single;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
-import io.reactivex.subscribers.DisposableSubscriber;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_SIMPLE_STORAGE;
 
@@ -249,7 +246,7 @@ public class SimpleStorage extends Component implements BundleStorage {
         for (String path : getInstance().storage_paths) {
             if (spaceLeft(path + BUNDLE_FOLDER) > expectedSize) {
                 try {
-                    String safeBID = bid.toString().replaceAll("/", "_");
+                    String safeBID = bid.getBIDString().replaceAll("/", "_");
                     File fbundle = createNewFile("bundle-", ".bundle", path + BUNDLE_FOLDER);
                     if (fbundle != null) {
                         return fbundle;
@@ -405,7 +402,7 @@ public class SimpleStorage extends Component implements BundleStorage {
 
         return Single.<Bundle>create(s -> {
             if(!Storage.containsPersistent(id)) {
-                s.onError(new Throwable("no such bundle in storage: " + id.toString()));
+                s.onError(new Throwable("no such bundle in storage: " + id.getBIDString()));
                 return;
             }
 

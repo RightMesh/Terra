@@ -3,6 +3,7 @@ package io.left.rightmesh.libdtn.data;
 import java.util.LinkedList;
 
 import io.left.rightmesh.libdtn.core.processor.ProcessingException;
+import io.left.rightmesh.libdtn.data.eid.EID;
 
 /**
  * The format of a bundle and its specifications are described in RFC 5050.
@@ -142,7 +143,7 @@ public class Bundle extends PrimaryBlock {
      * print debug information about the current bundle.
      */
     public void printDebug() {
-        System.out.print("bundle to= " + destination.toString() + " content=");
+        System.out.print("bundle to= " + destination.getEIDString() + " content=");
         getPayloadBlock().data.observe().subscribe(
                 b -> {
                     System.out.print(new String(b.array()));

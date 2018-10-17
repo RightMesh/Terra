@@ -104,7 +104,7 @@ public class SimpleStorageTest {
             for (Bundle bundle : pulledBundles) {
                 boolean found = false;
                 for (int j = 0; j < bundles.length; j++) {
-                    if (bundles[j].bid.toString().equals(bundle.bid.toString())) {
+                    if (bundles[j].bid.getBIDString().equals(bundle.bid.getBIDString())) {
                         found = true;
                         assertArrayEquals(
                                 flowableToByteArray(bundles[j].getPayloadBlock().data.observe()),

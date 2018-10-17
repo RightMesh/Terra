@@ -1,7 +1,7 @@
 package io.left.rightmesh.libdtn.network.cla;
 
 import io.left.rightmesh.libdtn.data.Bundle;
-import io.left.rightmesh.libdtn.data.EID;
+import io.left.rightmesh.libdtn.data.eid.CLA;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 
@@ -19,7 +19,7 @@ public interface CLAChannel {
      *
      * @return EID of this channel
      */
-    EID.CLA channelEID();
+    CLA channelEID();
 
     /**
      * Receive the deserialized stream of Bundle from this Convergence Layer.

@@ -14,11 +14,13 @@ import io.left.rightmesh.libdtn.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.data.BlockHeader;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.BundleID;
-import io.left.rightmesh.libdtn.data.EID;
+import io.left.rightmesh.libdtn.data.eid.DTN;
+import io.left.rightmesh.libdtn.data.eid.EID;
 import io.left.rightmesh.libdtn.data.PayloadBlock;
 import io.left.rightmesh.libdtn.data.PreviousNodeBlock;
 import io.left.rightmesh.libdtn.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.data.ScopeControlHopLimitBlock;
+import io.left.rightmesh.libdtn.data.eid.IPN;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -32,8 +34,8 @@ public class BundleV7Test {
 
     public static Bundle testBundle0() {
         Bundle bundle = new Bundle();
-        bundle.destination = new EID.IPN(5, 12);
-        bundle.source = new EID.DTN("source");
+        bundle.destination = new IPN(5, 12);
+        bundle.source = new DTN("source");
         bundle.reportto = EID.NullEID();
         bundle.bid = BundleID.create(bundle);
         return bundle;

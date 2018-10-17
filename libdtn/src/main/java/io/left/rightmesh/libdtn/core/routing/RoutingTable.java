@@ -5,13 +5,12 @@ import java.util.Map;
 import java.util.Set;
 
 import io.left.rightmesh.libdtn.DTNConfiguration;
-import io.left.rightmesh.libdtn.core.Component;
-import io.left.rightmesh.libdtn.data.EID;
+import io.left.rightmesh.libdtn.data.eid.CLA;
+import io.left.rightmesh.libdtn.data.eid.EID;
 import io.reactivex.Observable;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_STATIC_ROUTING;
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.STATIC_ROUTE_CONFIGURATION;
-import static io.left.rightmesh.libdtn.data.EID.EIDScheme.CLA;
 
 /**
  * Static Routing is a routing component that uses the static route table to take
@@ -19,7 +18,7 @@ import static io.left.rightmesh.libdtn.data.EID.EIDScheme.CLA;
  *
  * @author Lucien Loiseau on 24/08/18.
  */
-public class RoutingTable extends Component {
+public class RoutingTable {
 
     private static final String TAG = "RoutingTable";
 
@@ -32,6 +31,7 @@ public class RoutingTable extends Component {
 
 
     // ---- RoutingTable ----
+    private boolean staticIsEnabled;
     private static Set<TableEntry> staticRoutingTable;
     private static Set<TableEntry> routingTable;
 
@@ -39,7 +39,9 @@ public class RoutingTable extends Component {
         instance = new RoutingTable();
         staticRoutingTable = new HashSet<>();
         routingTable = new HashSet<>();
-        instance.initComponent(COMPONENT_ENABLE_STATIC_ROUTING);
+        DTNConfiguration.<Boolean>get(COMPONENT_ENABLE_STATIC_ROUTING).observe().subscribe(
+                b -> instance.staticIsEnabled = b
+        );
         DTNConfiguration.<Map<EID, EID>>get(STATIC_ROUTE_CONFIGURATION).observe().subscribe(
                 m -> {
                     staticRoutingTable.clear();
@@ -70,44 +72,34 @@ public class RoutingTable extends Component {
 
         @Override
         public int hashCode() {
-            return next.toString().concat(to.toString()).hashCode();
+            return next.getEIDString().concat(to.getEIDString()).hashCode();
         }
     }
 
-    @Override
-    public String getComponentName() {
-        return TAG;
-    }
-
     static Observable<TableEntry> compoundTableObservable() {
-        return Observable.fromIterable(staticRoutingTable)
-                .concatWith(Observable.fromIterable(routingTable));
+        if(instance.staticIsEnabled) {
+            return Observable.fromIterable(staticRoutingTable)
+                    .concatWith(Observable.fromIterable(routingTable));
+        } else {
+            return Observable.fromIterable(routingTable);
+        }
     }
-
 
     static Observable<EID> lookupPotentialNextHops(EID destination) {
         return Observable.concat(Observable.just(destination)
-                        .filter(eid -> destination instanceof EID.CLA),
+                        .filter(eid -> destination instanceof CLA),
                 compoundTableObservable()
                         .filter(entry -> destination.matches(entry.to))
                         .map(entry -> entry.next));
     }
 
-    static Observable<EID.CLA> resolveEID(EID destination) {
-        return resolveEID(destination, Observable.empty());
-    }
-
-    private static Observable<EID.CLA> resolveEID(EID destination, Observable<EID> path) {
-        if (!getInstance().isEnabled()) {
-            return Observable.empty();
-        }
-
+    private static Observable<CLA> resolveEID(EID destination, Observable<EID> path) {
         return Observable.concat(
                 lookupPotentialNextHops(destination)
-                        .filter(eid -> eid.getScheme().equals(CLA))
-                        .map(eid -> (EID.CLA) eid),
+                        .filter(eid -> eid instanceof CLA)
+                        .map(eid -> (CLA)eid),
                 lookupPotentialNextHops(destination)
-                        .filter(eid -> !eid.getScheme().equals(CLA))
+                        .filter(eid -> !(eid instanceof CLA))
                         .flatMap(candidate ->
                                 path.contains(candidate)
                                         .toObservable()
@@ -120,4 +112,9 @@ public class RoutingTable extends Component {
                                             return Observable.empty();
                                         })));
     }
+
+    static Observable<CLA> resolveEID(EID destination) {
+        return resolveEID(destination, Observable.empty());
+    }
+
 }

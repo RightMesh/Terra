@@ -35,6 +35,7 @@ public class Log extends Component {
     }
 
     public enum LOGLevel {
+        VERBOSE("VERBOSE"),
         DEBUG("DEBUG"),
         INFO("INFO"),
         WARN("WARN"),
@@ -62,6 +63,10 @@ public class Log extends Component {
     }
 
     public static void set(LOGLevel level) { Log.level = level; }
+
+    public static void v(String tag, String msg) {
+        log(LOGLevel.VERBOSE, tag, msg);
+    }
 
     public static void d(String tag, String msg) {
         log(LOGLevel.DEBUG, tag, msg);

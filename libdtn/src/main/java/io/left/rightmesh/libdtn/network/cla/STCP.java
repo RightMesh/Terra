@@ -7,7 +7,9 @@ import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.data.Bundle;
-import io.left.rightmesh.libdtn.data.EID;
+import io.left.rightmesh.libdtn.data.eid.CLA;
+import io.left.rightmesh.libdtn.data.eid.CLASTCP;
+import io.left.rightmesh.libdtn.data.eid.EID;
 import io.left.rightmesh.libdtn.data.MetaBundle;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Serializer;
@@ -15,13 +17,12 @@ import io.left.rightmesh.libdtn.storage.bundle.Storage;
 import io.left.rightmesh.libdtn.utils.Log;
 import io.left.rightmesh.librxtcp.RxTCP;
 import io.reactivex.Flowable;
-import io.reactivex.Maybe;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.subscribers.DisposableSubscriber;
 
 /**
- * Simple TCP (STCP) is a TCP Convergence Layer Adapter (CLA) for the Bundle Protocol. it was
+ * Simple TCP (CLASTCP) is a TCP Convergence Layer Adapter (CLA) for the Bundle Protocol. it was
  * introduced by Scott Burleigh in 2018 as an alternative to the quite complicated TCPCLv4.
  * As per the author's own words:
  *
@@ -29,7 +30,7 @@ import io.reactivex.subscribers.DisposableSubscriber;
  *    It is less capable than tcpcl but quite a lot simpler.
  * </pre>
  *
- * <p> An STCP session is unidirectional and bundles flow from the peer that initiated the
+ * <p> An CLASTCP session is unidirectional and bundles flow from the peer that initiated the
  * connection towards the one that passively listen for incoming connection. When the connection
  * is open, bundles can be send without signalling needed. Each bundle is represented as a cbor
  * array with only two items, first item being a cbor integer value representing the length of the
@@ -43,7 +44,7 @@ import io.reactivex.subscribers.DisposableSubscriber;
  */
 public class STCP implements CLAInterface {
 
-    private static final String TAG = "STCP";
+    private static final String TAG = "CLASTCP";
     private static final int defaultPort = 4778;
 
     public static class STCPPeer extends TCPPeer {
@@ -53,7 +54,7 @@ public class STCP implements CLAInterface {
 
         @Override
         public EID getEID() {
-            return new EID.CLASTCP(host, port, "");
+            return new CLASTCP(host, port, "");
         }
     }
 
@@ -76,7 +77,7 @@ public class STCP implements CLAInterface {
     @Override
     public Observable<CLAChannel> start() {
         server = new RxTCP.Server(port);
-        Log.i(TAG, "starting a STCP CLA on port "+port);
+        Log.i(TAG, "starting a CLASTCP CLA on port "+port);
         return server.start()
                 .map(tcpcon -> new Channel(tcpcon, false));
     }
@@ -94,35 +95,30 @@ public class STCP implements CLAInterface {
                 .map(con -> new Channel(con, true));
     }
 
-    public static Single<CLAChannel> open(EID.CLA peer) {
-        if (peer instanceof EID.CLASTCP) {
-            return Single.error(new Throwable("wrong stcp specific EID"));
-        } else {
-            EID.CLASTCP stcpPeer = (EID.CLASTCP) peer;
-            return open(stcpPeer.host, stcpPeer.port);
-        }
+    public static Single<CLAChannel> open(CLASTCP peer) {
+        return open(peer.host, peer.port);
     }
 
     public static class Channel implements CLAChannel {
 
         RxTCP.Connection tcpcon;
-        EID.CLA channelEID;
+        CLA channelEID;
         boolean initiator;
 
         /**
          * Constructor.
          *
-         * @param initiator true if current node initiated the STCP connection, false otherwise
+         * @param initiator true if current node initiated the CLASTCP connection, false otherwise
          */
         public Channel(RxTCP.Connection tcpcon, boolean initiator) {
             this.tcpcon = tcpcon;
             this.initiator = initiator;
-            channelEID = new EID.CLASTCP(tcpcon.getRemoteHost(),tcpcon.getRemotePort(),"/");
-            Log.i(TAG, "new STCP CLA channel openned (initiated="+initiator+"): "+channelEID);
+            channelEID = new CLASTCP(tcpcon.getRemoteHost(),tcpcon.getRemotePort(),"");
+            Log.i(TAG, "new CLASTCP CLA channel openned (initiated="+initiator+"): "+channelEID);
         }
 
         @Override
-        public EID.CLA channelEID() {
+        public CLA channelEID() {
             return channelEID;
         }
 

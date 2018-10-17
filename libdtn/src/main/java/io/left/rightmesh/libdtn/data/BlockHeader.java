@@ -1,8 +1,8 @@
 package io.left.rightmesh.libdtn.data;
 
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
+
+import io.left.rightmesh.libdtn.data.eid.EID;
 
 /**
  * Generic block header object. It is the super class of {@see CanonicalBlock}.
