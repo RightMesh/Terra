@@ -1,7 +1,7 @@
 package io.left.rightmesh.libdtn.data;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Lucien Loiseau on 28/09/18.
@@ -12,7 +12,7 @@ public abstract class Block {
     private Map<String, Object> attachement;
 
     Block() {
-        attachement = new ConcurrentHashMap<>();
+        attachement = new HashMap<>();
     }
 
     /**
@@ -21,8 +21,8 @@ public abstract class Block {
      * @param tag to add to this bundle
      * @return true if the tag was added, false if the bundle was already tagged with this tag.
      */
-    public boolean tag(String tag) {
-        return tag(tag, null);
+    public void tag(String tag) {
+        tag(tag, null);
     }
 
     /**
@@ -32,16 +32,16 @@ public abstract class Block {
      * @param o   the attached object
      * @return false if there was already an object attached under this key, true otherwise.
      */
-    public boolean tag(String key, Object o) {
-        if (attachement.containsKey(key)) {
-            return false;
-        }
-        attachement.put(key, o);
-        return true;
+    public void tag(String key, Object o) {
+        System.out.println("put 1: "+Thread.currentThread().getName());
+        attachement.putIfAbsent(key, o);
+        System.out.println("put 2: "+Thread.currentThread().getName());
     }
 
     public void removeTag(String key) {
+        System.out.println("remove 1: "+Thread.currentThread().getName());
         attachement.remove(key);
+        System.out.println("remove 2: "+Thread.currentThread().getName());
     }
 
     /**
@@ -51,6 +51,7 @@ public abstract class Block {
      * @return true if the bundle is tagged with this tag, false otherwise.
      */
     public boolean isTagged(String tag) {
+        System.out.println("contains 1: "+Thread.currentThread().getName());
         return attachement.containsKey(tag);
     }
 
@@ -63,10 +64,8 @@ public abstract class Block {
      * @return the object attaced under this key
      */
     public <T> T getTagAttachment(String key) {
-        if (attachement.containsKey(key)) {
-            return (T) attachement.get(key);
-        }
-        return null;
+        System.out.println("getTagAttachment 1: "+Thread.currentThread().getName());
+        return (T) attachement.get(key);
     }
 
 }

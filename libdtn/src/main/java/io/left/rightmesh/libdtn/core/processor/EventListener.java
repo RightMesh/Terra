@@ -75,9 +75,10 @@ import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_E
 public abstract class EventListener<T> {
 
     private static final String TAG = "EventListener";
-
+    private final Object lock = new Object();
     boolean enabled;
     Map<T, Set<BundleID>> watchList;
+
 
     public EventListener() {
         watchList = new ConcurrentHashMap<>();
@@ -103,13 +104,15 @@ public abstract class EventListener<T> {
 
     private void down() {
         RxBus.unregister(this);
-        for (T key : watchList.keySet()) {
-            Set<BundleID> set = watchList.get(key);
-            if (set != null) {
-                set.clear();
+        synchronized (lock) {
+            for (T key : watchList.keySet()) {
+                Set<BundleID> set = watchList.get(key);
+                if (set != null) {
+                    set.clear();
+                }
             }
+            watchList.clear();
         }
-        watchList.clear();
     }
 
     public boolean watch(T key, BundleID bid) {
@@ -117,9 +120,10 @@ public abstract class EventListener<T> {
             return false;
         }
 
-        Log.d(TAG, "add bundle to a watchlist: "+bid.getBIDString() +" key="+key.toString());
-        Set<BundleID> bids = watchList.get(key);
-        return watchList.computeIfAbsent(key, k -> new HashSet<>()).add(bid);
+        synchronized (lock) {
+            Log.d(TAG, "add bundle to a watchlist: " + bid.getBIDString() + " key=" + key.toString());
+            return watchList.computeIfAbsent(key, k -> new HashSet<>()).add(bid);
+        }
     }
 
     public void unwatch(BundleID bid) {
@@ -127,11 +131,13 @@ public abstract class EventListener<T> {
             return;
         }
 
-        Log.d(TAG, "remove bundle from a watchlist: " + bid.getBIDString());
-        for (T key : watchList.keySet()) {
-            Set<BundleID> set = watchList.get(key);
-            if (set != null) {
-                set.remove(bid);
+        synchronized (lock) {
+            Log.d(TAG, "remove bundle from a watchlist: " + bid.getBIDString());
+            for (T key : watchList.keySet()) {
+                Set<BundleID> set = watchList.get(key);
+                if (set != null) {
+                    set.remove(bid);
+                }
             }
         }
     }
@@ -141,12 +147,14 @@ public abstract class EventListener<T> {
             return false;
         }
 
-        Set<BundleID> set = watchList.get(key);
-        if (set != null) {
-            set.remove(bid);
-            return true;
-        } else {
-            return false;
+        synchronized (lock) {
+            Set<BundleID> set = watchList.get(key);
+            if (set != null) {
+                set.remove(bid);
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
@@ -155,11 +163,13 @@ public abstract class EventListener<T> {
             return Observable.empty();
         }
 
-        Set<BundleID> set = watchList.get(key);
-        if (set == null) {
-            return Observable.empty();
+        synchronized (lock) {
+            Set<BundleID> set = watchList.get(key);
+            if(set == null) {
+                return Observable.empty();
+            }
+            return Observable.fromIterable(new HashSet<>(set));
         }
-        return Observable.fromIterable(set);
     }
 
     @Subscribe

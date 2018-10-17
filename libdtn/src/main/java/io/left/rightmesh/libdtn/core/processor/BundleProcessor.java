@@ -75,7 +75,6 @@ public class BundleProcessor {
         /* 5.4 - step 1 */
         bundle.removeTag("dispatch_pending");
         bundle.tag("forward_pending");
-
         /* 5.4 - step 2 */
         try {
             RoutingEngine.findCLA(bundle.destination)
@@ -84,7 +83,7 @@ public class BundleProcessor {
                             .lastElement()
                             .onErrorComplete())
                     .blockingFirst();
-
+            System.out.println("4");
             /* 5.4 - step 5 */
             bundleForwardingSuccessful(bundle);
         } catch (NoSuchElementException nse) {

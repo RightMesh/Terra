@@ -144,9 +144,8 @@ public class AARegistrar extends Component {
     public static boolean register(String sink, RegistrationCallback cb) {
         if (getInstance().isEnabled()
                 && sink != null
-                && cb != null
-                && !registrations.containsKey(sink)) {
-            registrations.put(sink, cb);
+                && cb != null) {
+            registrations.putIfAbsent(sink, cb);
             return true;
         } else {
             return false;
