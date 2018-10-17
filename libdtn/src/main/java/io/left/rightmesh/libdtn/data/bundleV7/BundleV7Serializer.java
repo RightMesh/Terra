@@ -153,20 +153,12 @@ public class BundleV7Serializer {
     }
 
     private static CborEncoder encode(EID eid) {
-        if (eid.equals(EID.NullEID())) {
+        if (eid.equals(DTN.NullEID())) {
             return CBOR.encoder()
                     .cbor_start_array(2)
                     .cbor_encode_int(eid.IANA())
                     .cbor_encode_int(0);
         }
-
-        if (eid instanceof DTN || eid instanceof CLA) {
-            return CBOR.encoder()
-                    .cbor_start_array(2)
-                    .cbor_encode_int(eid.IANA())
-                    .cbor_encode_text_string(eid.getSsp());
-        }
-
         if (eid instanceof IPN) {
             return CBOR.encoder()
                     .cbor_start_array(2)
@@ -174,9 +166,12 @@ public class BundleV7Serializer {
                     .cbor_start_array(2)
                     .cbor_encode_int(((IPN) eid).node_number)
                     .cbor_encode_int(((IPN) eid).service_number);
+        } else {
+            return CBOR.encoder()
+                    .cbor_start_array(2)
+                    .cbor_encode_int(eid.IANA())
+                    .cbor_encode_text_string(eid.getSsp());
         }
-
-        return CBOR.encoder(); // that should not happen
     }
 
 

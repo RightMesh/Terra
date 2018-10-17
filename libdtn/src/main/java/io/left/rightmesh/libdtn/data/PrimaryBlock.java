@@ -1,6 +1,7 @@
 package io.left.rightmesh.libdtn.data;
 
 
+import io.left.rightmesh.libdtn.data.eid.DTN;
 import io.left.rightmesh.libdtn.data.eid.EID;
 
 /**
@@ -131,10 +132,10 @@ public class PrimaryBlock extends Block {
         this.procV6Flags = 0;
         this.procV7Flags = 0;
         this.crcType = CRCFieldType.NO_CRC;
-        this.destination = EID.NullEID();
-        this.source = EID.NullEID();
-        this.custodian = EID.NullEID();
-        this.reportto = EID.NullEID();
+        this.destination = DTN.NullEID();
+        this.source = DTN.NullEID();
+        this.custodian = DTN.NullEID();
+        this.reportto = DTN.NullEID();
         this.creationTimestamp = System.currentTimeMillis();
         this.sequenceNumber = sequence_counter++;
         bid = BundleID.create(this);

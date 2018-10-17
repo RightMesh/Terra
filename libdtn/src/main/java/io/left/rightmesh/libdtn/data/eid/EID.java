@@ -47,16 +47,6 @@ public interface EID {
         return new DTN(uuid);
     }
 
-    /**
-     * returns a NULL Endpoint ID.
-     *
-     * @return EID
-     */
-    static EID NullEID() {
-        EID ret = new DTN("none");
-        return ret;
-    }
-
     static EID create(String str) throws EIDFormatException {
         String scheme;
         String ssp;

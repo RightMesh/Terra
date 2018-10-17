@@ -2,6 +2,7 @@ package io.left.rightmesh.libdtn.core.routing;
 
 import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.data.eid.CLA;
+import io.left.rightmesh.libdtn.data.eid.DTN;
 import io.left.rightmesh.libdtn.events.ChannelClosed;
 import io.left.rightmesh.libdtn.events.ChannelOpened;
 import io.left.rightmesh.libdtn.events.LinkLocalEntryDown;
@@ -13,9 +14,8 @@ import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_LINKLOCAL_ROUTING;
 
@@ -34,11 +34,11 @@ public class LinkLocalRouting extends Component {
     public static LinkLocalRouting getInstance() {  return instance; }
     static {
         instance = new LinkLocalRouting();
-        linkLocalTable = new ConcurrentHashMap<>();
+        linkLocalTable = new HashSet<>();
         instance.initComponent(COMPONENT_ENABLE_LINKLOCAL_ROUTING);
     }
 
-    private static Map<CLA, CLAChannel> linkLocalTable;
+    private static Set<CLAChannel> linkLocalTable;
 
     @Override
     public String getComponentName() {
@@ -58,29 +58,28 @@ public class LinkLocalRouting extends Component {
     }
 
     public static void channelOpened(CLAChannel channel) {
-        if(!linkLocalTable.containsKey(channel.channelEID())) {
-            linkLocalTable.put(channel.channelEID(), channel);
+        if(linkLocalTable.add(channel)) {
             RxBus.post(new LinkLocalEntryUp(channel));
         }
     }
 
     public static void channelClosed(CLAChannel channel) {
-        if(linkLocalTable.remove(channel.channelEID()) != null) {
+        if(linkLocalTable.remove(channel)) {
             RxBus.post(new LinkLocalEntryDown(channel));
         }
     }
 
-    public static boolean isEIDLinkLocal(EID eid) {
+    public static CLA isEIDLinkLocal(EID eid) {
         if(!getInstance().isEnabled()) {
-            return false;
+            return null;
         }
 
-        for(EID key : linkLocalTable.keySet()) {
-            if(eid.matches(key)) {
-                return true;
+        for(CLAChannel cla : linkLocalTable) {
+            if(eid.matches(cla.localEID())) {
+                return cla.localEID();
             }
         }
-        return false;
+        return null;
     }
 
     public static Maybe<CLAChannel> findCLA(EID destination) {
@@ -88,9 +87,8 @@ public class LinkLocalRouting extends Component {
             Maybe.error(new Throwable(TAG+" is disabled"));
         }
 
-        return Observable.fromIterable(linkLocalTable.keySet())
-                .filter(destination::matches)
-                .map(linkLocalTable::get)
+        return Observable.fromIterable(linkLocalTable)
+                .filter(c -> destination.matches(c.channelEID()))
                 .lastElement();
     }
 

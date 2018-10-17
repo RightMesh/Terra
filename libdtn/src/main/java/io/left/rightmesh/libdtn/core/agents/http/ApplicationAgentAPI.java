@@ -3,6 +3,7 @@ package io.left.rightmesh.libdtn.core.agents.http;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.BundleID;
+import io.left.rightmesh.libdtn.data.eid.DTN;
 import io.left.rightmesh.libdtn.data.eid.EID;
 import io.left.rightmesh.libdtn.data.PayloadBlock;
 import io.left.rightmesh.libdtn.storage.blob.ByteBufferBLOB;
@@ -127,7 +128,7 @@ public class ApplicationAgentAPI {
 
         destination = EID.create(destinationstr);
         if (reporttostr == null) {
-            reportTo = EID.NullEID();
+            reportTo = DTN.NullEID();
         } else {
             reportTo = EID.create(reporttostr);
         }

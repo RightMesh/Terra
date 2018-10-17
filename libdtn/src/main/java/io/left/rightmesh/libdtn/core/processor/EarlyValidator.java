@@ -4,6 +4,7 @@ import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
 import io.left.rightmesh.libdtn.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.data.BlockHeader;
+import io.left.rightmesh.libdtn.data.eid.DTN;
 import io.left.rightmesh.libdtn.data.eid.EID;
 import io.left.rightmesh.libdtn.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.utils.ClockUtil;
@@ -29,7 +30,7 @@ public class EarlyValidator {
         }
 
         if (!DTNConfiguration.<Boolean>get(DTNConfiguration.Entry.ALLOW_RECEIVE_ANONYMOUS_BUNDLE).value()
-                && block.source.equals(EID.NullEID())) {
+                && block.source.equals(DTN.NullEID())) {
             throw new RejectedException("forbidden anonnymous source");
         }
 

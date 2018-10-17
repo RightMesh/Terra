@@ -365,7 +365,7 @@ public class BundleV7Parser  {
         CborParser parseDTN = CBOR.parser()
                 .cbor_or(
                         CBOR.parser().cbor_parse_int((___, ____, i) -> {
-                            eid = EID.NullEID();
+                            eid = DTN.NullEID();
                         }),
                         CBOR.parser().cbor_parse_text_string_full(
                                 (__, ___, size) -> {

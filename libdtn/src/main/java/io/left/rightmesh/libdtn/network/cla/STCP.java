@@ -106,6 +106,7 @@ public class STCP implements CLAInterface {
 
         RxTCP.Connection tcpcon;
         CLA channelEID;
+        CLA localEID;
         boolean initiator;
 
         /**
@@ -117,12 +118,18 @@ public class STCP implements CLAInterface {
             this.tcpcon = tcpcon;
             this.initiator = initiator;
             channelEID = new CLASTCP(tcpcon.getRemoteHost(),tcpcon.getRemotePort(),"");
+            localEID   = new CLASTCP(tcpcon.getLocalHost(), tcpcon.getLocalPort(),"");
             Log.i(TAG, "new CLASTCP CLA channel openned (initiated="+initiator+"): "+channelEID.getEIDString());
         }
 
         @Override
         public CLA channelEID() {
             return channelEID;
+        }
+
+        @Override
+        public CLA localEID() {
+            return localEID;
         }
 
         @Override

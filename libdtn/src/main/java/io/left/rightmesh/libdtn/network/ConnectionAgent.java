@@ -7,7 +7,6 @@ import io.left.rightmesh.libdtn.network.cla.CLAChannel;
 import io.left.rightmesh.libdtn.network.cla.CLAManager;
 import io.left.rightmesh.libdtn.utils.Log;
 
-import io.left.rightmesh.librxbus.RxBus;
 import io.reactivex.Single;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_CONNECTION_AGENT;

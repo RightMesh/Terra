@@ -22,6 +22,13 @@ public interface CLAChannel {
     CLA channelEID();
 
     /**
+     * return the EID that represents the local host for this specific Channel.
+     *
+     * @return EID of this channel
+     */
+    CLA localEID();
+
+    /**
      * Receive the deserialized stream of Bundle from this Convergence Layer.
      *
      * @return Flowable of Bundle

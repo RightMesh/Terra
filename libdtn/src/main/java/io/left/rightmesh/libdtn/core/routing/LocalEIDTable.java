@@ -49,6 +49,7 @@ public class LocalEIDTable {
                 return alias;
             }
         }
-        return null;
+
+        return LinkLocalRouting.isEIDLinkLocal(eid);
     }
 }

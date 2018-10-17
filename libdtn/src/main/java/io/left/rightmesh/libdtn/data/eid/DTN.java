@@ -7,6 +7,16 @@ public class DTN extends BaseEID {
 
     String ssp;
 
+    /**
+     * returns a NULL Endpoint ID.
+     *
+     * @return EID
+     */
+    public static DTN NullEID() {
+        DTN ret = new DTN("none");
+        return ret;
+    }
+
     public static DTN create(String ssp) {
         return new DTN(ssp);
     }

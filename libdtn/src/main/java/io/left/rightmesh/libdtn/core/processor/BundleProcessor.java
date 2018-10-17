@@ -8,6 +8,7 @@ import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
 import io.left.rightmesh.libdtn.core.routing.RoutingEngine;
 import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.CanonicalBlock;
+import io.left.rightmesh.libdtn.data.eid.DTN;
 import io.left.rightmesh.libdtn.data.eid.EID;
 import io.left.rightmesh.libdtn.data.StatusReport;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
@@ -42,7 +43,7 @@ public class BundleProcessor {
     /* 5.2 */
     public static void bundleTransmission(Bundle bundle) {
         /* 5.2 - step 1 */
-        if (!bundle.source.equals(EID.NullEID()) && !LocalEIDTable.isLocal(bundle.source)) {
+        if (!bundle.source.equals(DTN.NullEID()) && !LocalEIDTable.isLocal(bundle.source)) {
             bundle.source = LocalEIDTable.localEID();
         }
         bundle.tag("dispatch_pending");
@@ -95,6 +96,7 @@ public class BundleProcessor {
 
     /* 5.4 - step 5 */
     public static void bundleForwardingSuccessful(Bundle bundle) {
+        Log.i(TAG, "forwarding successful: " + bundle.bid.getBIDString());
         bundle.removeTag("forward_pending");
         bundleDiscarding(bundle);
     }
@@ -225,6 +227,7 @@ public class BundleProcessor {
 
     /* 5.7 - step 3 */
     public static void bundleLocalDeliverySuccessful(Bundle bundle) {
+        Log.i(TAG, "bundle successfully delivered: " + bundle.bid.getBIDString());
         bundle.removeTag("delivery_pending");
         if (bundle.getV7Flag(DELIVERY_REPORT) && reporting()) {
             // todo generate status report
@@ -234,6 +237,7 @@ public class BundleProcessor {
 
     /* 5.7 - step 2 - delivery failure */
     public static void bundleLocalDeliveryFailure(String sink, Bundle bundle) {
+        Log.i(TAG, "bundle could not be delivered sink="+sink+" bundleID=" + bundle.bid.getBIDString());
         if (!bundle.isTagged("in_storage")) {
             Storage.store(bundle).subscribe(
                     b -> {
@@ -255,6 +259,7 @@ public class BundleProcessor {
 
     /* 5.10 */
     public static void bundleDeletion(Bundle bundle) {
+        Log.i(TAG, "deleting bundle ("+bundle.<StatusReport.ReasonCode>getTagAttachment("reason_code")+ "): " + bundle.bid.getBIDString());
         /* 5.10 - step 1 */
         if (bundle.getV7Flag(DELETION_REPORT) && reporting()) {
             // todo generate deletion report

@@ -1,5 +1,6 @@
 package io.left.rightmesh.libdtn.data;
 
+import io.left.rightmesh.libdtn.data.eid.DTN;
 import io.left.rightmesh.libdtn.data.eid.EID;
 
 /**
@@ -13,7 +14,7 @@ public class PreviousNodeBlock extends CanonicalBlock {
 
     public PreviousNodeBlock() {
         super(type);
-        previous = EID.NullEID();
+        previous = DTN.NullEID();
     }
 
     public PreviousNodeBlock(EID previous) {
