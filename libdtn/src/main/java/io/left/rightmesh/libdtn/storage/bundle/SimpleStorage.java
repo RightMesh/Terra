@@ -252,7 +252,7 @@ public class SimpleStorage extends Component implements BundleStorage {
                         return fbundle;
                     }
                 } catch (IOException io) {
-                    System.out.println("IOException createNewFile: " + io.getMessage() + " : " + path + BUNDLE_FOLDER + "bid-" + bid + ".bundle");
+                    System.out.println("IOException createNewFile: " + io.getMessage() + " : " + path + BUNDLE_FOLDER + "bid=" + bid.getBIDString() + ".bundle");
                 }
             }
         }

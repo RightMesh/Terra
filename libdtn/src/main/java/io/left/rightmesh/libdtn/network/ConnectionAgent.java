@@ -2,10 +2,12 @@ package io.left.rightmesh.libdtn.network;
 
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.data.eid.CLA;
+import io.left.rightmesh.libdtn.events.ChannelOpened;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
 import io.left.rightmesh.libdtn.network.cla.CLAManager;
 import io.left.rightmesh.libdtn.utils.Log;
 
+import io.left.rightmesh.librxbus.RxBus;
 import io.reactivex.Single;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_CONNECTION_AGENT;
@@ -38,9 +40,10 @@ public class ConnectionAgent {
             return Single.error(new Throwable("AutoConnect is disabled"));
         }
 
-        Log.d(TAG, "trying to create an opportunity for: " + eid.getEIDString());
+        final String opp = "cla=" + eid.getCLAName() + " peer=" + eid.getCLASpecificPart();
+        Log.d(TAG, "trying to create an opportunity with "+opp);
         return CLAManager.openChannel(eid)
-                .doOnError(e -> Log.d(TAG, "opportunity creation failed: " + eid.getEIDString()))
-                .doOnSuccess((c) -> Log.d(TAG, "opportunity creation success: " + eid.getEIDString()));
+                .doOnError(e -> Log.d(TAG, "opportunity creation failed: " + opp))
+                .doOnSuccess((c) -> Log.d(TAG, "opportunity creation success: " + opp));
     }
 }

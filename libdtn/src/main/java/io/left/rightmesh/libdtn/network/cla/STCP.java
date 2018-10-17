@@ -44,7 +44,7 @@ import io.reactivex.subscribers.DisposableSubscriber;
  */
 public class STCP implements CLAInterface {
 
-    private static final String TAG = "CLASTCP";
+    private static final String TAG = "STCP";
     private static final int defaultPort = 4778;
 
     public static class STCPPeer extends TCPPeer {
@@ -117,7 +117,7 @@ public class STCP implements CLAInterface {
             this.tcpcon = tcpcon;
             this.initiator = initiator;
             channelEID = new CLASTCP(tcpcon.getRemoteHost(),tcpcon.getRemotePort(),"");
-            Log.i(TAG, "new CLASTCP CLA channel openned (initiated="+initiator+"): "+channelEID);
+            Log.i(TAG, "new CLASTCP CLA channel openned (initiated="+initiator+"): "+channelEID.getEIDString());
         }
 
         @Override

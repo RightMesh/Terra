@@ -2,6 +2,8 @@ package io.left.rightmesh.libdtn.utils;
 
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.Component;
+import io.left.rightmesh.librxbus.RxBus;
+import io.left.rightmesh.librxbus.Subscribe;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_LOGGING;
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.LOG_LEVEL;
@@ -32,6 +34,18 @@ public class Log extends Component {
     @Override
     public String getComponentName() {
         return TAG;
+    }
+
+    @Override
+    protected void componentUp() {
+        super.componentUp();
+        RxBus.register(this);
+    }
+
+    @Override
+    protected void componentDown() {
+        super.componentDown();
+        RxBus.unregister(this);
     }
 
     public enum LOGLevel {
@@ -82,6 +96,11 @@ public class Log extends Component {
 
     public static void e(String tag, String msg) {
         log(LOGLevel.ERROR, tag, msg);
+    }
+
+    @Subscribe
+    public void onEvent(Object o) {
+        Log.d(TAG, "EventReceived - "+o.toString());
     }
 
 }

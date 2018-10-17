@@ -9,7 +9,9 @@ import io.left.rightmesh.libdtn.data.Bundle;
 import io.left.rightmesh.libdtn.data.BundleID;
 import io.left.rightmesh.libdtn.data.eid.CLA;
 import io.left.rightmesh.libdtn.data.eid.EID;
+import io.left.rightmesh.libdtn.events.ChannelClosed;
 import io.left.rightmesh.libdtn.events.ChannelOpened;
+import io.left.rightmesh.libdtn.events.LinkLocalEntryUp;
 import io.left.rightmesh.libdtn.network.ConnectionAgent;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
@@ -36,7 +38,7 @@ public class RoutingEngine {
 
     public static class ForwardingListener extends EventListener<String> {
         @Subscribe
-        public void onEvent(ChannelOpened event) {
+        public void onEvent(LinkLocalEntryUp event) {
             /* deliver every bundle of interest */
             getBundlesOfInterest(event.channel.channelEID().getCLASpecificPart()).forEach(
                     bundleID -> {
@@ -76,17 +78,23 @@ public class RoutingEngine {
         final EID destination = bundle.destination;
         Observable<CLA> potentialCLAs = RoutingTable.resolveEID(destination);
 
-        // watch bundle
+        // watch bundle for all potential CLA
         potentialCLAs
                 .map(claeid -> listener.watch(claeid.getCLASpecificPart(), bid))
                 .subscribe();
 
-        // create opportunity
+        // try to create a connection opportunity with one CLA
         try {
-            potentialCLAs.flatMapMaybe(claeid ->
+            CLAChannel channel = potentialCLAs.flatMapMaybe(claeid ->
                     Maybe.fromSingle(ConnectionAgent.createOpportunity(claeid))
                             .onErrorComplete())
                     .blockingFirst();
+
+
+            RxBus.post(new ChannelOpened(channel));
+            channel.recvBundle().ignoreElements().subscribe(
+                    () -> RxBus.post(new ChannelClosed(channel)),
+                    e -> RxBus.post(new ChannelClosed(channel)));
         } catch(NoSuchElementException nse) {
             /* ignore */
         }

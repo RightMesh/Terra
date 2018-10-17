@@ -53,7 +53,7 @@ public class BundleProcessor {
 
     /* 5.3 */
     public static void bundleDispatching(Bundle bundle) {
-        Log.i(TAG, "dispatching bundle: " + bundle.bid);
+        Log.i(TAG, "dispatching bundle: " + bundle.bid.getBIDString());
         /* 5.3 - step 1 */
         if (LocalEIDTable.isLocal(bundle.destination)) {
             bundleLocalDelivery(bundle);
@@ -102,7 +102,7 @@ public class BundleProcessor {
 
     /* 5.4.1 */
     public static void bundleForwardingContraindicated(Bundle bundle) {
-        Log.i(TAG, "forwarding contraindicated ("+bundle.<StatusReport.ReasonCode>getTagAttachment("reason_code")+ "): " + bundle.bid);
+        Log.i(TAG, "forwarding contraindicated ("+bundle.<StatusReport.ReasonCode>getTagAttachment("reason_code")+ "): " + bundle.bid.getBIDString());
 
         /* 5.4.1 - step 1 */
         boolean is_failure;
@@ -269,7 +269,7 @@ public class BundleProcessor {
 
     /* 5.11 */
     public static void bundleDiscarding(Bundle bundle) {
-        Log.i(TAG, "discarding bundle: " + bundle.bid);
+        Log.i(TAG, "discarding bundle: " + bundle.bid.getBIDString());
         Storage.remove(bundle.bid).subscribe(
                 () -> {
                 },

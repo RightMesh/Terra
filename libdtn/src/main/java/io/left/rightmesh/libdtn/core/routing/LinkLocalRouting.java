@@ -2,12 +2,14 @@ package io.left.rightmesh.libdtn.core.routing;
 
 import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.data.eid.CLA;
+import io.left.rightmesh.libdtn.events.ChannelClosed;
 import io.left.rightmesh.libdtn.events.ChannelOpened;
 import io.left.rightmesh.libdtn.events.LinkLocalEntryDown;
 import io.left.rightmesh.libdtn.events.LinkLocalEntryUp;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
 import io.left.rightmesh.libdtn.data.eid.EID;
 import io.left.rightmesh.librxbus.RxBus;
+import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
 
@@ -41,6 +43,18 @@ public class LinkLocalRouting extends Component {
     @Override
     public String getComponentName() {
         return TAG;
+    }
+
+    @Override
+    protected void componentUp() {
+        super.componentUp();
+        RxBus.register(this);
+    }
+
+    @Override
+    protected void componentDown() {
+        super.componentDown();
+        RxBus.unregister(this);
     }
 
     public static void channelOpened(CLAChannel channel) {
@@ -79,4 +93,15 @@ public class LinkLocalRouting extends Component {
                 .map(linkLocalTable::get)
                 .lastElement();
     }
+
+    @Subscribe
+    public void onEvent(ChannelOpened event) {
+        channelOpened(event.channel);
+    }
+
+    @Subscribe
+    public void onEvent(ChannelClosed event) {
+        channelOpened(event.channel);
+    }
+
 }

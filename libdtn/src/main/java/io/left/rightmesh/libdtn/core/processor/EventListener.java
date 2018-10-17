@@ -116,7 +116,7 @@ public abstract class EventListener<T> {
             return false;
         }
 
-        Log.d(TAG, "add bundle to a watchlist: "+bid+" key="+key.toString());
+        Log.d(TAG, "add bundle to a watchlist: "+bid.getBIDString() +" key="+key.toString());
         Set<BundleID> bids = watchList.get(key);
         return watchList.computeIfAbsent(key, k -> new HashSet<>()).add(bid);
     }
@@ -126,7 +126,7 @@ public abstract class EventListener<T> {
             return;
         }
 
-        Log.d(TAG, "remove bundle from a watchlist: "+bid);
+        Log.d(TAG, "remove bundle from a watchlist: " + bid.getBIDString());
         for (T key : watchList.keySet()) {
             Set<BundleID> set = watchList.get(key);
             if (set != null) {

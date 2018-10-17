@@ -58,14 +58,14 @@ public class Storage {
         if (contains(bid)) {
             return index.get(bid);
         } else {
-            Log.i(TAG, "new entry: "+bid);
+            Log.i(TAG, "new entry: "+bid.getBIDString());
             return addEntry(bid, bundle);
         }
     }
 
     static void removeEntry(BundleID bid, IndexEntry entry) {
         if(index.containsKey(bid)) {
-            Log.i(TAG, "deleting from storage: "+bid);
+            Log.i(TAG, "deleting from storage: "+bid.getBIDString());
             index.remove(bid, entry);
         }
     }

@@ -41,7 +41,7 @@ public class ApplicationAgentAPI {
         }
         BundleID bid = BundleID.create(param);
         if (Storage.contains(bid)) {
-            Log.i(TAG, "delivering payload: "+bid);
+            Log.i(TAG, "delivering payload: "+bid.getBIDString());
             return Observable.<Bundle>create(s ->
                     Storage.get(bid).subscribe(
                             bundle -> {
@@ -63,7 +63,7 @@ public class ApplicationAgentAPI {
         String param = params.get("*");
         BundleID bid = BundleID.create(param);
         if (Storage.contains(bid)) {
-            Log.i(TAG, "delivering payload: "+bid);
+            Log.i(TAG, "delivering payload: "+bid.getBIDString());
             return Observable.<Bundle>create(s ->
                     Storage.get(bid).subscribe(
                             bundle -> {
