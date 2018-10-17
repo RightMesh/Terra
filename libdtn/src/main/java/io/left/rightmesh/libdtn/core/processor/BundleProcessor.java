@@ -269,6 +269,7 @@ public class BundleProcessor {
 
     /* 5.11 */
     public static void bundleDiscarding(Bundle bundle) {
+        Log.i(TAG, "discarding bundle: " + bundle.bid);
         Storage.remove(bundle.bid).subscribe(
                 () -> {
                 },

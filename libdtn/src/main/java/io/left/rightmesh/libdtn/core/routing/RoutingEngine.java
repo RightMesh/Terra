@@ -83,11 +83,10 @@ public class RoutingEngine {
 
         // create opportunity
         try {
-            CLAChannel channel = potentialCLAs.flatMapMaybe(claeid ->
+            potentialCLAs.flatMapMaybe(claeid ->
                     Maybe.fromSingle(ConnectionAgent.createOpportunity(claeid))
                             .onErrorComplete())
                     .blockingFirst();
-            RxBus.post(new ChannelOpened(channel));
         } catch(NoSuchElementException nse) {
             /* ignore */
         }

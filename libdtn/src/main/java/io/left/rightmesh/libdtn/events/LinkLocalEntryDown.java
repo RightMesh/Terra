@@ -1,0 +1,14 @@
+package io.left.rightmesh.libdtn.events;
+
+import io.left.rightmesh.libdtn.network.cla.CLAChannel;
+
+/**
+ * @author Lucien Loiseau on 17/10/18.
+ */
+public class LinkLocalEntryDown {
+    public CLAChannel channel;
+
+    public LinkLocalEntryDown(CLAChannel channel) {
+        this.channel = channel;
+    }
+}

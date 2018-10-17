@@ -92,7 +92,10 @@ public class STCP implements CLAInterface {
     public static Single<CLAChannel> open(String host, int port) {
         return new RxTCP.ConnectionRequest<>(host, port)
                 .connect()
-                .map(con -> new Channel(con, true));
+                .map(con -> {
+                    CLAChannel channel = new Channel(con, true);
+                    return channel;
+                });
     }
 
     public static Single<CLAChannel> open(CLASTCP peer) {
