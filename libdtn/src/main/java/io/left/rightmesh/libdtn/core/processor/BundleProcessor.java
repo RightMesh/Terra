@@ -87,10 +87,14 @@ public class BundleProcessor {
         /* 5.4 - step 2 */
         Log.v(TAG, "5.4-2 " + bundle.bid.getBIDString());
         RoutingEngine.findCLA(bundle.destination)
-                .flatMapMaybe(claChannel ->
-                        claChannel.sendBundle(bundle)
+                .distinct()
+                .flatMapMaybe(claChannel -> {
+                        System.out.println(" eid -> "+claChannel.channelEID().getEIDString());
+                        return claChannel.sendBundle(bundle)
                                 .lastElement()
-                                .onErrorComplete())
+                                .doOnError(System.out::println)
+                                .onErrorComplete();
+                })
                 .firstElement()
                 .subscribe(
                         (i) -> {
@@ -99,6 +103,12 @@ public class BundleProcessor {
                             bundleForwardingSuccessful(bundle);
                         },
                         e -> {
+                            /* 5.4 - step 3 */
+                            Log.v(TAG, "5.4-3 " + bundle.bid.getBIDString());
+                            bundle.tag("reason_code", NoKnownRouteForDestination);
+                            bundleForwardingContraindicated(bundle);
+                        },
+                        () -> {
                             /* 5.4 - step 3 */
                             Log.v(TAG, "5.4-3 " + bundle.bid.getBIDString());
                             bundle.tag("reason_code", NoKnownRouteForDestination);

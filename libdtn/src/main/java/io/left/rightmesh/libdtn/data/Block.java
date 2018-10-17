@@ -47,7 +47,6 @@ public abstract class Block {
      * @return true if the bundle is tagged with this tag, false otherwise.
      */
     public boolean isTagged(String tag) {
-        System.out.println("contains 1: "+Thread.currentThread().getName());
         return attachement.containsKey(tag);
     }
 
@@ -60,7 +59,6 @@ public abstract class Block {
      * @return the object attaced under this key
      */
     public <T> T getTagAttachment(String key) {
-        System.out.println("getTagAttachment 1: "+Thread.currentThread().getName());
         return (T) attachement.get(key);
     }
 
