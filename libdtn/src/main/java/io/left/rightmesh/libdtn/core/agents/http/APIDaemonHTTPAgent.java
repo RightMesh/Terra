@@ -46,6 +46,8 @@ public class APIDaemonHTTPAgent extends Component {
                         .ANY("/conf/", ConfigurationAPI.confAction)
                         .ANY("/conf/:*", ConfigurationAPI.confAction)
                         .ANY("/registration/", RegistrationAPI.registerAction)
+                        .ANY("/network/", NetworkAPI.networkAction)
+                        .ANY("/network/:*", NetworkAPI.networkAction)
                         .ANY("/cache/", StorageAPI.cacheAction)
                         .ANY("/cache/:*", StorageAPI.cacheAction)
                         .ANY("/aa/", ApplicationAgentAPI.aaAction)

@@ -193,6 +193,8 @@ public class Storage {
                 .onErrorComplete();
     }
 
+
+    // todo remove this
     public static String print() {
         StringBuilder sb = new StringBuilder("current cache:\n");
         sb.append("--------------\n\n");

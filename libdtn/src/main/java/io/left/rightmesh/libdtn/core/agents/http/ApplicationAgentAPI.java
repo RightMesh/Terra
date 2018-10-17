@@ -73,8 +73,9 @@ public class ApplicationAgentAPI {
                             },
                             s::onError))
                     .flatMap((bundle) -> res.write(
-                            bundle.getPayloadBlock().data.netty().doOnCompleted(
-                                    () -> BundleProcessor.bundleLocalDeliverySuccessful(bundle))));
+                            bundle.getPayloadBlock().data
+                                    .netty()
+                                    .doOnCompleted(() -> BundleProcessor.bundleLocalDeliverySuccessful(bundle))));
         } else {
             return res.writeString(just("no such bundle"));
         }

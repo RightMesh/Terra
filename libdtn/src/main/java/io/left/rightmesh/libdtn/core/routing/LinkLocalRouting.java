@@ -102,4 +102,26 @@ public class LinkLocalRouting extends Component {
         channelOpened(event.channel);
     }
 
+
+
+    // todo remove this
+    public static String print() {
+        StringBuilder sb = new StringBuilder("Link-Local Table:\n");
+        sb.append("--------------\n\n");
+        linkLocalTable.forEach((entry) -> {
+            String remote = entry.channelEID().getEIDString();
+            String local  = entry.localEID().getEIDString();
+            String mode;
+            if(entry.getMode().equals(CLAChannel.ChannelMode.InUnidirectional)) {
+                mode = " <-- ";
+            } else if (entry.getMode().equals(CLAChannel.ChannelMode.OutUnidirectional)) {
+                mode = " --> ";
+            } else {
+                mode = " <-> ";
+            }
+            sb.append(local + mode +remote+"\n");
+        });
+        sb.append("\n");
+        return sb.toString();
+    }
 }

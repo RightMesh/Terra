@@ -16,6 +16,7 @@ import io.left.rightmesh.libdtn.events.LinkLocalEntryUp;
 import io.left.rightmesh.libdtn.network.ConnectionAgent;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
+import io.left.rightmesh.libdtn.utils.Log;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Maybe;
@@ -84,21 +85,27 @@ public class RoutingEngine {
                 .map(claeid -> listener.watch(claeid.getCLASpecificPart(), bid))
                 .subscribe();
 
-        // try to create a connection opportunity with one CLA
-        try {
-            CLAChannel channel = potentialCLAs.flatMapMaybe(
-                    claeid ->
-                            Maybe.fromSingle(ConnectionAgent.createOpportunityForBundle(claeid)).onErrorComplete())
-                    .blockingFirst();
-
-            RxBus.post(new ChannelOpened(channel));
-            channel.recvBundle().ignoreElements().subscribe(
-                    () -> RxBus.post(new ChannelClosed(channel)),
-                    e -> RxBus.post(new ChannelClosed(channel)));
-        } catch(NoSuchElementException nse) {
-            /* ignore */
-        }
+        potentialCLAs
+                .distinct()
+                .flatMapMaybe(claeid -> {
+                    System.out.println(" eid -> "+claeid.getEIDString());
+                    return Maybe.fromSingle(ConnectionAgent.createOpportunityForBundle(claeid))
+                            .onErrorComplete();
+                })
+                .firstElement()
+                .subscribe(
+                        (channel) -> {
+                            RxBus.post(new ChannelOpened(channel));
+                            channel.recvBundle().ignoreElements().subscribe(
+                                    () -> RxBus.post(new ChannelClosed(channel)),
+                                    e -> RxBus.post(new ChannelClosed(channel)));
+                        },
+                        e -> {
+                            /* ignore */
+                        },
+                        () -> {
+                            /* ignore */
+                        }
+                );
     }
-
-
 }

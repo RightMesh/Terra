@@ -257,7 +257,7 @@ public class DTNConfiguration {
         this.createEntry(Entry.COMPONENT_ENABLE_DAEMON_HTTP_API, true);
         this.createEntry(Entry.API_DAEMON_HTTP_API_PORT, 8080);
         this.createEntry(Entry.ENABLE_FORWARDING, true);
-        this.createEntry(Entry.ENABLE_AUTO_CONNECT_FOR_BUNDLE, false);
+        this.createEntry(Entry.ENABLE_AUTO_CONNECT_FOR_BUNDLE, true);
         this.createEntry(Entry.ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT, true);
         this.createEntry(Entry.AUTO_CONNECT_USE_WHITELIST, true);
         this.<String>createEntrySet(Entry.AUTO_CONNECT_WHITELIST);

@@ -117,4 +117,16 @@ public class RoutingTable {
         return resolveEID(destination, Observable.empty());
     }
 
+    // todo remove this
+    public static String print() {
+        final StringBuilder sb = new StringBuilder("Routing Table:\n");
+        sb.append("--------------\n\n");
+        compoundTableObservable().subscribe(
+                tableEntry -> {
+                    sb.append(tableEntry.to.getEIDString() + " --> "+tableEntry.next.getEIDString()+"\n");
+                }
+        );
+        sb.append("\n");
+        return sb.toString();
+    }
 }

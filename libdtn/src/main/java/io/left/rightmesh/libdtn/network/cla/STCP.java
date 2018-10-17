@@ -123,6 +123,15 @@ public class STCP implements CLAInterface {
         }
 
         @Override
+        public ChannelMode getMode() {
+            if(initiator) {
+                return ChannelMode.OutUnidirectional;
+            } else {
+                return ChannelMode.InUnidirectional;
+            }
+        }
+
+        @Override
         public CLA channelEID() {
             return channelEID;
         }

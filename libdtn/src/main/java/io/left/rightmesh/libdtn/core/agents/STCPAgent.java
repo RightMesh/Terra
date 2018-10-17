@@ -53,7 +53,7 @@ public class STCPAgent extends Component {
                                 RxBus.post(new ChannelOpened(dtnChannel));
                                 dtnChannel.recvBundle().subscribe(
                                         b -> {
-                                            Log.i(TAG, dtnChannel.channelEID().getEIDString() + " -> received a new bundle from " + b.source.getEIDString());
+                                            Log.i(TAG, dtnChannel.channelEID().getEIDString() + " -> received a new bundle from: " + b.source.getEIDString()+" to: "+b.destination.getEIDString());
                                             BundleProcessor.bundleReception(b);
                                         },
                                         e -> {

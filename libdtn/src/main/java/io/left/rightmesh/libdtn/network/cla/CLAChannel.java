@@ -13,6 +13,14 @@ import io.reactivex.Observable;
  */
 public interface CLAChannel {
 
+    enum ChannelMode {
+        OutUnidirectional,
+        InUnidirectional,
+        BiDirectional
+    }
+
+    ChannelMode getMode();
+
     /**
      * return the EID specific for this Channel. It must be unique accross all channels.
      * It is used to identify this interface.
