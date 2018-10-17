@@ -9,3 +9,7 @@ include ':librxbus', ':libcbor', ':librxtcp'
 project(":librxbus").projectDir = file("../librxbus")
 project(":libcbor").projectDir = file("../libcbor")
 project(":librxtcp").projectDir = file("../librxtcp")
+
+
+include ':libdetect'
+project(":libdetect").projectDir = file("../libdetect")

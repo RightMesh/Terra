@@ -58,14 +58,14 @@ public class Storage {
         if (contains(bid)) {
             return index.get(bid);
         } else {
-            Log.i(TAG, "new entry: "+bid.getBIDString());
+            Log.i(TAG, "new entry: " + bid.getBIDString());
             return addEntry(bid, bundle);
         }
     }
 
     static void removeEntry(BundleID bid, IndexEntry entry) {
-        if(index.containsKey(bid)) {
-            Log.i(TAG, "deleting from storage: "+bid.getBIDString());
+        if (index.containsKey(bid)) {
+            Log.i(TAG, "deleting from storage: " + bid.getBIDString());
             index.remove(bid, entry);
         }
     }
@@ -112,7 +112,7 @@ public class Storage {
      * Try to store in volatile storage first and then copy in persistent storage whatever happens
      * If Volatile Storage is enabled, it will return the whole Bundle, otherwise it returns
      * a MetaBundle.
-     *
+     * <p>
      * Whenever the Single completes, the caller can expect that no further operations is needed
      * in background to store the bundle.
      *
@@ -200,7 +200,7 @@ public class Storage {
             String dest = entry.bundle.destination.getEIDString();
             String vol = entry.isVolatile ? "V" : "";
             String per = entry.isPersistent ? "P=" + entry.bundle_path : "";
-            sb.append(bid+"  -  "+dest+"  -  "+vol+" "+per+"\n");
+            sb.append(bid.toString() + "  -  " + dest + "  -  " + vol + " " + per + "\n");
         });
         sb.append("\n");
         return sb.toString();
