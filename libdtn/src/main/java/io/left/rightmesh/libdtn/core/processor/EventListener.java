@@ -11,6 +11,7 @@ import io.left.rightmesh.libdtn.events.BundleDeleted;
 import io.left.rightmesh.libdtn.utils.Log;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
+import io.reactivex.Observable;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_EVENT_PROCESSING;
 
@@ -149,17 +150,16 @@ public abstract class EventListener<T> {
         }
     }
 
-    public Set<BundleID> getBundlesOfInterest(T key) {
+    public Observable<BundleID> getBundlesOfInterest(T key) {
         if (!enabled) {
-            return new HashSet<>();
+            return Observable.empty();
         }
 
         Set<BundleID> set = watchList.get(key);
         if (set == null) {
-            return new HashSet<>();
-        } else {
-            return set;
+            return Observable.empty();
         }
+        return Observable.fromIterable(set);
     }
 
     @Subscribe

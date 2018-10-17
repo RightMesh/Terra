@@ -40,7 +40,7 @@ public class RoutingEngine {
         @Subscribe
         public void onEvent(LinkLocalEntryUp event) {
             /* deliver every bundle of interest */
-            getBundlesOfInterest(event.channel.channelEID().getCLASpecificPart()).forEach(
+            getBundlesOfInterest(event.channel.channelEID().getCLASpecificPart()).subscribe(
                     bundleID -> {
                         /* retrieve the bundle - should be constant operation */
                         Storage.getMeta(bundleID).subscribe(
@@ -54,7 +54,7 @@ public class RoutingEngine {
                                             bundle.tag("reason_code", TransmissionCancelled);
                                             BundleProcessor.bundleForwardingContraindicated(bundle);
                                         }),
-                                e -> {});
+                                e -> { /* should we delete it ? */});
                     });
         }
     }

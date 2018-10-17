@@ -212,7 +212,19 @@ public class STCP implements CLAInterface {
 
         public Observable<Bundle> recvBundle() {
             if (initiator) {
-                return Observable.empty();
+                return Observable.create(s ->
+                    tcpcon.recv().subscribe(
+                            buffer -> {
+                                /* ignore, STCP is unidirectional */
+                            },
+                            e -> {
+                                s.onComplete();
+                                close();
+                            },
+                            () -> {
+                                s.onComplete();
+                                close();
+                            }));
             }
 
             return Observable.create(s -> {

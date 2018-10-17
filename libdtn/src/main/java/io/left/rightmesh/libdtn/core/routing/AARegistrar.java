@@ -91,7 +91,7 @@ public class AARegistrar extends Component {
         @Subscribe
         public void onEvent(RegistrationActive active) {
             /* deliver every bundle of interest */
-            getBundlesOfInterest(active.sink).forEach(
+            getBundlesOfInterest(active.sink).subscribe(
                     bundleID -> {
                         /* retrieve the bundle - should be constant operation */
                         Storage.getMeta(bundleID).subscribe(

@@ -38,7 +38,7 @@ public class ConnectionAgent {
 
         final CLASTCP eid = new CLASTCP(host, 4556, "/");
         final String opp = "cla=" + eid.getCLAName() + " peer=" + eid.getCLASpecificPart();
-        Log.d(TAG, "trying to create an opportunity with "+opp);
+        Log.d(TAG, "trying to create an opportunity with "+opp+" "+Thread.currentThread().getName());
         return CLAManager.openChannel(eid)
                 .doOnError(e -> Log.d(TAG, "opportunity creation failed: " + opp))
                 .doOnSuccess((c) -> Log.d(TAG, "opportunity creation success: " + opp));
