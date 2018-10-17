@@ -56,7 +56,7 @@ public class BundleProcessor {
 
     /* 5.3 */
     public static void bundleDispatching(Bundle bundle) {
-        Log.i(TAG, "dispatching bundle: " + bundle.bid.getBIDString());
+        Log.i(TAG, "dispatching bundle: " + bundle.bid.getBIDString()+" to EID: "+bundle.destination.getEIDString());
 
         /* 5.3 - step 1 */
         Log.v(TAG, "5.3-1: " + bundle.bid.getBIDString());

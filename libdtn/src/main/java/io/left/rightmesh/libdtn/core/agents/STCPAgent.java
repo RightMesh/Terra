@@ -22,6 +22,7 @@ public class STCPAgent extends Component {
 
     // ---- SINGLETON ----
     private static STCPAgent instance;
+
     public static STCPAgent getInstance() {
         return instance;
     }
@@ -52,10 +53,10 @@ public class STCPAgent extends Component {
                                 RxBus.post(new ChannelOpened(dtnChannel));
                                 dtnChannel.recvBundle().subscribe(
                                         b -> {
-                                            Log.i(TAG, dtnChannel.channelEID()+" -> received a new bundle from " + b.source.getEIDString());
+                                            Log.i(TAG, dtnChannel.channelEID().getEIDString() + " -> received a new bundle from " + b.source.getEIDString());
                                             BundleProcessor.bundleReception(b);
                                         },
-                                        e ->  {
+                                        e -> {
                                             /* channel has closed */
                                             RxBus.post(new ChannelClosed(dtnChannel));
                                         },
@@ -65,7 +66,7 @@ public class STCPAgent extends Component {
                                         }
                                 );
                             },
-                            e ->  Log.w(TAG, "can't listen on TCP port " + port),
+                            e -> Log.w(TAG, "can't listen on TCP port " + port),
                             () -> Log.w(TAG, "server has stopped"));
                 });
     }
@@ -73,7 +74,7 @@ public class STCPAgent extends Component {
     @Override
     protected void componentDown() {
         super.componentDown();
-        if(cla != null) {
+        if (cla != null) {
             cla.stop();
         }
     }
