@@ -43,19 +43,23 @@ public class BundleProcessor {
     /* 5.2 */
     public static void bundleTransmission(Bundle bundle) {
         /* 5.2 - step 1 */
+        Log.v(TAG, "5.2-1 " + bundle.bid.getBIDString());
         if (!bundle.source.equals(DTN.NullEID()) && !LocalEIDTable.isLocal(bundle.source)) {
             bundle.source = LocalEIDTable.localEID();
         }
         bundle.tag("dispatch_pending");
 
         /* 5.2 - step 2 */
+        Log.v(TAG, "5.2-2 " + bundle.bid.getBIDString());
         bundleForwarding(bundle);
     }
 
     /* 5.3 */
     public static void bundleDispatching(Bundle bundle) {
         Log.i(TAG, "dispatching bundle: " + bundle.bid.getBIDString());
+
         /* 5.3 - step 1 */
+        Log.v(TAG, "5.3-1: " + bundle.bid.getBIDString());
         if (LocalEIDTable.isLocal(bundle.destination)) {
             bundleLocalDelivery(bundle);
             return;
@@ -63,6 +67,7 @@ public class BundleProcessor {
 
         if (DTNConfiguration.<Boolean>get(ENABLE_FORWARDING).value()) {
             /* 5.3 - step 2 */
+            Log.v(TAG, "step 2: " + bundle.bid.getBIDString());
             bundleForwarding(bundle);
         } else {
             bundle.tag("reason_code", NoKnownRouteForDestination);
@@ -72,30 +77,39 @@ public class BundleProcessor {
 
     /* 5.4 */
     public static void bundleForwarding(Bundle bundle) {
+        Log.d(TAG, "forwarding bundle: " + bundle.bid.getBIDString());
+
         /* 5.4 - step 1 */
+        Log.v(TAG, "5.4-1 " + bundle.bid.getBIDString());
         bundle.removeTag("dispatch_pending");
         bundle.tag("forward_pending");
+
         /* 5.4 - step 2 */
-        try {
-            RoutingEngine.findCLA(bundle.destination)
-                    .flatMapMaybe(claChannel ->
-                            claChannel.sendBundle(bundle)
-                            .lastElement()
-                            .onErrorComplete())
-                    .blockingFirst();
-            System.out.println("4");
-            /* 5.4 - step 5 */
-            bundleForwardingSuccessful(bundle);
-        } catch (NoSuchElementException nse) {
-            /* 5.4 - step 3 */
-            bundle.tag("reason_code", NoKnownRouteForDestination);
-            bundleForwardingContraindicated(bundle);
-        }
+        Log.v(TAG, "5.4-2 " + bundle.bid.getBIDString());
+        RoutingEngine.findCLA(bundle.destination)
+                .flatMapMaybe(claChannel ->
+                        claChannel.sendBundle(bundle)
+                                .lastElement()
+                                .onErrorComplete())
+                .firstElement()
+                .subscribe(
+                        (i) -> {
+                            /* 5.4 - step 5 */
+                            Log.v(TAG, "5.4-5 " + bundle.bid.getBIDString());
+                            bundleForwardingSuccessful(bundle);
+                        },
+                        e -> {
+                            /* 5.4 - step 3 */
+                            Log.v(TAG, "5.4-3 " + bundle.bid.getBIDString());
+                            bundle.tag("reason_code", NoKnownRouteForDestination);
+                            bundleForwardingContraindicated(bundle);
+                        }
+                );
     }
 
     /* 5.4 - step 5 */
     public static void bundleForwardingSuccessful(Bundle bundle) {
-        Log.i(TAG, "forwarding successful: " + bundle.bid.getBIDString());
+        Log.d(TAG, "forwarding successful: " + bundle.bid.getBIDString());
         bundle.removeTag("forward_pending");
         bundleDiscarding(bundle);
     }
@@ -103,9 +117,10 @@ public class BundleProcessor {
 
     /* 5.4.1 */
     public static void bundleForwardingContraindicated(Bundle bundle) {
-        Log.i(TAG, "forwarding contraindicated ("+bundle.<StatusReport.ReasonCode>getTagAttachment("reason_code")+ "): " + bundle.bid.getBIDString());
+        Log.d(TAG, "forwarding contraindicated (" + bundle.<StatusReport.ReasonCode>getTagAttachment("reason_code") + "): " + bundle.bid.getBIDString());
 
         /* 5.4.1 - step 1 */
+        Log.v(TAG, "5.4.1-1 " + bundle.bid.getBIDString());
         boolean is_failure;
         switch (bundle.<StatusReport.ReasonCode>getTagAttachment("reason_code")) {
             case DepletedStorage:
@@ -127,6 +142,7 @@ public class BundleProcessor {
         }
 
         /* 5.4.1 - step 2 */
+        Log.v(TAG, "5.4.1-2 " + bundle.bid.getBIDString());
         if (is_failure) {
             bundleForwardingFailed(bundle);
         } else {
@@ -148,9 +164,11 @@ public class BundleProcessor {
     /* 5.4.2 */
     public static void bundleForwardingFailed(Bundle bundle) {
         /* 5.4.2 - step 1 */
+        Log.v(TAG, "5.4.2-1 " + bundle.bid.getBIDString());
         // atm we never send the bundle back to the source
 
         /* 5.4.2 - step 2 */
+        Log.v(TAG, "5.4.2-2 " + bundle.bid.getBIDString());
         if (LocalEIDTable.isLocal(bundle.destination)) {
             bundle.removeTag("forward_pending");
             bundleDiscarding(bundle);
@@ -162,6 +180,7 @@ public class BundleProcessor {
 
     /* 5.5 */
     public static void bundleExpired(Bundle bundle) {
+        Log.v(TAG, "5.5 " + bundle.bid.getBIDString());
         bundle.tag("reason_code", LifetimeExpired);
         bundleDeletion(bundle);
     }
@@ -169,14 +188,17 @@ public class BundleProcessor {
     /* 5.6 */
     public static void bundleReception(Bundle bundle) {
         /* 5.6 - step 1 */
+        Log.v(TAG, "5.6-1 " + bundle.bid.getBIDString());
         bundle.tag("dispatch_pending");
 
         /* 5.6 - step 2 */
+        Log.v(TAG, "5.6-2 " + bundle.bid.getBIDString());
         if (bundle.getV7Flag(RECEPTION_REPORT) && reporting()) {
             // todo generate reception status report
         }
 
         /* 5.6 - step 3 */
+        Log.v(TAG, "5.6-3 " + bundle.bid.getBIDString());
         try {
             for (CanonicalBlock block : bundle.getBlocks()) {
                 try {
@@ -200,6 +222,7 @@ public class BundleProcessor {
         }
 
         /* 5.6 - step 4 */
+        Log.v(TAG, "5.6-4 " + bundle.bid.getBIDString());
         bundleDispatching(bundle);
     }
 
@@ -207,9 +230,11 @@ public class BundleProcessor {
     public static void bundleLocalDelivery(Bundle bundle) {
         bundle.tag("delivery_pending");
         /* 5.7 - step 1 */
+        Log.v(TAG, "5.7-1 " + bundle.bid.getBIDString());
         // atm we don't support fragmentation
 
         /* 5.7 - step 2 */
+        Log.v(TAG, "5.7-2 " + bundle.bid.getBIDString());
         EID localMatch = LocalEIDTable.matchLocal(bundle.destination);
         if (localMatch != null) {
             String sink = bundle.destination.getEIDString().replaceFirst(localMatch.toString(), "");
@@ -236,7 +261,7 @@ public class BundleProcessor {
 
     /* 5.7 - step 2 - delivery failure */
     public static void bundleLocalDeliveryFailure(String sink, Bundle bundle) {
-        Log.i(TAG, "bundle could not be delivered sink="+sink+" bundleID=" + bundle.bid.getBIDString());
+        Log.i(TAG, "bundle could not be delivered sink=" + sink + " bundleID=" + bundle.bid.getBIDString());
         if (!bundle.isTagged("in_storage")) {
             Storage.store(bundle).subscribe(
                     b -> {
@@ -254,17 +279,21 @@ public class BundleProcessor {
     /* 5.8 */
     public static void bundleFragmentation(Bundle bundle) {
         // not supported atm
+        Log.v(TAG, "5.8 " + bundle.bid.getBIDString());
     }
 
     /* 5.10 */
     public static void bundleDeletion(Bundle bundle) {
-        Log.i(TAG, "deleting bundle ("+bundle.<StatusReport.ReasonCode>getTagAttachment("reason_code")+ "): " + bundle.bid.getBIDString());
+        Log.i(TAG, "deleting bundle (" + bundle.<StatusReport.ReasonCode>getTagAttachment("reason_code") + "): " + bundle.bid.getBIDString());
+
         /* 5.10 - step 1 */
+        Log.v(TAG, "5.10-2 " + bundle.bid.getBIDString());
         if (bundle.getV7Flag(DELETION_REPORT) && reporting()) {
             // todo generate deletion report
         }
 
         /* 5.10 - step 2 */
+        Log.v(TAG, "5.10-2 " + bundle.bid.getBIDString());
         bundle.removeTag("dispatch_pending");
         bundle.removeTag("forward_pending");
         bundle.removeTag("delivery_pending");

@@ -33,15 +33,11 @@ public abstract class Block {
      * @return false if there was already an object attached under this key, true otherwise.
      */
     public void tag(String key, Object o) {
-        System.out.println("put 1: "+Thread.currentThread().getName());
         attachement.putIfAbsent(key, o);
-        System.out.println("put 2: "+Thread.currentThread().getName());
     }
 
     public void removeTag(String key) {
-        System.out.println("remove 1: "+Thread.currentThread().getName());
         attachement.remove(key);
-        System.out.println("remove 2: "+Thread.currentThread().getName());
     }
 
     /**
