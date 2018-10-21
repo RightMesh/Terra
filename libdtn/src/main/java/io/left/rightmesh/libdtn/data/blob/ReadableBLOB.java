@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * DTNInterface for a Read-only BLOB.
+ * DTNInterface for a Read-only BaseBLOB.
  *
  * @author Lucien Loiseau on 30/07/18.
  */

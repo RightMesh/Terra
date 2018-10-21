@@ -1,0 +1,31 @@
+plugins {
+    id("java-library")
+}
+
+test {
+    useJUnit()
+    maxHeapSize = '1G'
+
+    filter {
+        //include all integration tests
+        includeTestsMatching "*Test"
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    // libcbor for bundleV7
+    //implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
+    implementation project(path: ':libcbor')
+
+    // RxJava library for reactive programming
+    api 'io.reactivex.rxjava2:rxjava:2.1.1'
+
+
+    // jUnit
+    testImplementation 'junit:junit:4.12'
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
