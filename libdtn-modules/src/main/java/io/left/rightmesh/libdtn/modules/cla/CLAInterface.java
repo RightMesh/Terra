@@ -34,7 +34,6 @@ public interface CLAInterface {
      */
     void stop();
 
-
     /**
      * Try to open a channel to the given EID CLA.
      *

@@ -1,5 +1,8 @@
-include ':libdtn-core', ':libdtn-common', ':libdtn-modules', ':libdtnagent', ':terra', ':dtnping', ':dtnconf'
+include ':libdtn-core', ':libdtn-common', ':libdtn-modules', ':libdtnagent'
+include ':libdtn-module-stcp'
+include ':terra', ':dtnping', ':dtnconf'
 
+project(":libdtn-module-stcp").projectDir = file("modules/cla/libdtn-module-stcp")
 project(":terra").projectDir = file("linux/terra")
 project(":dtnping").projectDir = file("linux/dtnping")
 project(":dtnconf").projectDir = file("linux/dtnconf")
