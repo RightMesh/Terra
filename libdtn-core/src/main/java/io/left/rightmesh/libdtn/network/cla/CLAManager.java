@@ -6,6 +6,8 @@ import java.util.ServiceLoader;
 
 import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
+import io.left.rightmesh.libdtn.modules.cla.CLAChannel;
+import io.left.rightmesh.libdtn.modules.cla.CLAInterface;
 import io.reactivex.Single;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_CLA_LOAD_MODULES;

@@ -24,11 +24,13 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    // libcbor for bundleV7
-    //implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
+    // libdtn-common for data
     implementation project(path: ':libdtn-common')
 
-    // libdtnagent to receive command from tcp socket
+    // libdtn-common for data
+    implementation project(path: ':libdtn-modules')
+
+    // libdtn-common for data
     implementation project(path: ':libdtnagent')
 
     // libcbor for bundleV7
@@ -39,7 +41,7 @@ dependencies {
     //implementation 'com.github.RightMesh:librxbus:master-SNAPSHOT'
     implementation project(path: ':librxbus')
 
-    // libdetect to detect neighbour
+    // libdetect to detect neighbour on the LAN
     implementation project(path: ':libdetect')
 
     // RxTCP for CLASTCP and TCPCLv3/v4 CLAs

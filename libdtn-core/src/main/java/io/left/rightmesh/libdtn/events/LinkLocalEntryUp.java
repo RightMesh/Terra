@@ -1,6 +1,6 @@
 package io.left.rightmesh.libdtn.events;
 
-import io.left.rightmesh.libdtn.network.cla.CLAChannel;
+import io.left.rightmesh.libdtn.modules.cla.CLAChannel;
 
 /**
  * @author Lucien Loiseau on 17/10/18.

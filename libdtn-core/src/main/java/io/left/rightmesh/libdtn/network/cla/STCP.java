@@ -12,6 +12,8 @@ import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
 import io.left.rightmesh.libdtn.common.data.MetaBundle;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Serializer;
+import io.left.rightmesh.libdtn.modules.cla.CLAChannel;
+import io.left.rightmesh.libdtn.modules.cla.CLAInterface;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
 import io.left.rightmesh.libdtn.utils.Log;
 import io.left.rightmesh.librxtcp.RxTCP;

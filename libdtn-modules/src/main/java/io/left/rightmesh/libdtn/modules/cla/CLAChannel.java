@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.network.cla;
+package io.left.rightmesh.libdtn.modules.cla;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;

@@ -6,7 +6,7 @@ import io.left.rightmesh.libdtn.events.ChannelClosed;
 import io.left.rightmesh.libdtn.events.ChannelOpened;
 import io.left.rightmesh.libdtn.events.LinkLocalEntryDown;
 import io.left.rightmesh.libdtn.events.LinkLocalEntryUp;
-import io.left.rightmesh.libdtn.network.cla.CLAChannel;
+import io.left.rightmesh.libdtn.modules.cla.CLAChannel;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;

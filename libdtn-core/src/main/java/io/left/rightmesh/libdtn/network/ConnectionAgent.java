@@ -3,7 +3,7 @@ package io.left.rightmesh.libdtn.network;
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
-import io.left.rightmesh.libdtn.network.cla.CLAChannel;
+import io.left.rightmesh.libdtn.modules.cla.CLAChannel;
 import io.left.rightmesh.libdtn.network.cla.CLAManager;
 import io.left.rightmesh.libdtn.utils.Log;
 
