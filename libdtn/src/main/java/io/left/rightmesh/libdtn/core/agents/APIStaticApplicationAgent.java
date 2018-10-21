@@ -3,8 +3,8 @@ package io.left.rightmesh.libdtn.core.agents;
 import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.core.routing.AARegistrar;
 import io.left.rightmesh.libdtn.core.routing.AARegistrar.RegistrationCallback;
-import io.left.rightmesh.libdtn.data.Bundle;
-import io.left.rightmesh.libdtn.storage.blob.BLOB;
+import io.left.rightmesh.libdtncommon.data.Bundle;
+import io.left.rightmesh.libdtncommon.data.blob.BLOB;
 import io.reactivex.Completable;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_STATIC_API;

@@ -1,7 +1,7 @@
 package io.left.rightmesh.libdtn.network.cla;
 
-import io.left.rightmesh.libdtn.data.Bundle;
-import io.left.rightmesh.libdtn.data.eid.CLA;
+import io.left.rightmesh.libdtncommon.data.Bundle;
+import io.left.rightmesh.libdtncommon.data.eid.CLA;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 

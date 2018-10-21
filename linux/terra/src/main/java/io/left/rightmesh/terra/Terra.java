@@ -4,7 +4,7 @@ import java.util.concurrent.Callable;
 
 import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.agents.APIStaticApplicationAgent;
-import io.left.rightmesh.libdtn.storage.blob.BLOB;
+import io.left.rightmesh.libdtn.storage.blob.Factory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -52,8 +52,8 @@ public class Terra implements Callable<Void> {
         DTNCore.init();
         APIStaticApplicationAgent.register("/netflix/video/", new APIStaticApplicationAgent.StaticAPICallback() {
             @Override
-            public void recv(BLOB payload) {
-                System.out.println("receive a BLOB");
+            public void recv(Factory payload) {
+                System.out.println("receive a Factory");
             }
 
             @Override

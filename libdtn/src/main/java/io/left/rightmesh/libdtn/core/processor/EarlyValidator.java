@@ -2,14 +2,15 @@ package io.left.rightmesh.libdtn.core.processor;
 
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
-import io.left.rightmesh.libdtn.data.CanonicalBlock;
-import io.left.rightmesh.libdtn.data.BlockHeader;
-import io.left.rightmesh.libdtn.data.eid.DTN;
-import io.left.rightmesh.libdtn.data.eid.EID;
-import io.left.rightmesh.libdtn.data.PrimaryBlock;
+import io.left.rightmesh.libdtncommon.data.CanonicalBlock;
+import io.left.rightmesh.libdtncommon.data.BlockHeader;
+import io.left.rightmesh.libdtncommon.data.ProcessingException;
+import io.left.rightmesh.libdtncommon.data.ProcessorNotFoundException;
+import io.left.rightmesh.libdtncommon.data.eid.DTN;
+import io.left.rightmesh.libdtncommon.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.utils.ClockUtil;
 
-import static io.left.rightmesh.libdtn.data.BlockHeader.BlockV7Flags.DELETE_BUNDLE_IF_NOT_PROCESSED;
+import static io.left.rightmesh.libdtncommon.data.BlockHeader.BlockV7Flags.DELETE_BUNDLE_IF_NOT_PROCESSED;
 
 /**
  * EarlyValidator processes a Bundle during the different step of its lifetime.
@@ -78,7 +79,7 @@ public class EarlyValidator {
                 throw new RejectedException("mandatory block cannot be processed");
             }
         } catch (ProcessingException pe) {
-            throw new RejectedException(pe.reason);
+            throw new RejectedException(pe.getMessage());
         }
     }
 }

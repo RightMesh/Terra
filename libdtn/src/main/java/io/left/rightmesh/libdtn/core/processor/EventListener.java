@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.left.rightmesh.libdtn.DTNConfiguration;
-import io.left.rightmesh.libdtn.data.BundleID;
+import io.left.rightmesh.libdtncommon.data.BundleID;
 import io.left.rightmesh.libdtn.events.BundleDeleted;
 import io.left.rightmesh.libdtn.utils.Log;
 import io.left.rightmesh.librxbus.RxBus;

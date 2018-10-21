@@ -1,6 +1,6 @@
 package io.left.rightmesh.libdtn;
 
-import io.left.rightmesh.libdtn.data.eid.EID;
+import io.left.rightmesh.libdtncommon.data.eid.EID;
 import io.left.rightmesh.libdtn.utils.Log;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
@@ -54,6 +54,8 @@ public class DTNConfiguration {
         COMPONENT_ENABLE_DAEMON_HTTP_API("component_enable_daemon_http_api"),
         API_DAEMON_HTTP_API_PORT("api_daemon_http_port"),
         EID_SINGLETON_ONLY("eid_singleton_only"),
+        COMPONENT_ENABLE_CLA_LOAD_MODULES("component_enable_cla_load_modules"),
+        MODULES_CLA_PATH("modules_cla_path"),
         COMPONENT_ENABLE_CLA_STCP("component_enable_cla_stcp"),
         CLA_STCP_LISTENING_PORT("cla_stcp_port"),
         COMPONENT_ENABLE_LINKLOCAL_ROUTING("component_enable_linklocal_routing"),
@@ -262,6 +264,8 @@ public class DTNConfiguration {
         this.createEntry(Entry.AUTO_CONNECT_USE_WHITELIST, true);
         this.<String>createEntrySet(Entry.AUTO_CONNECT_WHITELIST);
         this.createEntry(Entry.EID_SINGLETON_ONLY, false);
+        this.createEntry(Entry.COMPONENT_ENABLE_CLA_LOAD_MODULES, true);
+        this.createEntry(Entry.MODULES_CLA_PATH, "/etc/terra/modules/cla/");
         this.createEntry(Entry.COMPONENT_ENABLE_CLA_STCP, true);
         this.createEntry(Entry.CLA_STCP_LISTENING_PORT, 4556);
         this.createEntry(Entry.COMPONENT_ENABLE_LINKLOCAL_ROUTING, true);

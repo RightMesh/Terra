@@ -1,27 +1,59 @@
 package io.left.rightmesh.libdtn.network.cla;
 
-import io.left.rightmesh.libdtn.data.eid.CLA;
-import io.left.rightmesh.libdtn.data.eid.CLASTCP;
-import io.left.rightmesh.libdtn.data.eid.EID;
+import java.net.URLClassLoader;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ServiceLoader;
+
+import io.left.rightmesh.libdtn.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.Component;
+import io.left.rightmesh.libdtncommon.data.eid.CLA;
+import io.left.rightmesh.libdtncommon.data.eid.CLASTCP;
+import io.left.rightmesh.libdtncommon.data.eid.EID;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
+
+import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_CLA_LOAD_MODULES;
 
 /**
  * @author Lucien Loiseau on 16/10/18.
  */
-public class CLAManager {
+public class CLAManager extends Component {
 
-    /**
-     * CLAInterface Factory.
-     *
-     * @param claName name of the cla to create
-     * @return
-     */
-    public static <T extends CLAInterface> Maybe<T> create(String claName) {
-        if(claName.equals(STCP.getCLAName())) {
-            return Maybe.just((T)new STCP());
+    private static final String TAG = "CLAManager";
+
+    // ---- SINGLETON ----
+    private static CLAManager instance;
+    public static CLAManager getInstance() {
+        return instance;
+    }
+    static {
+        instance = new CLAManager();
+        clas = new LinkedList<>();
+        instance.initComponent(COMPONENT_ENABLE_CLA_LOAD_MODULES);
+    }
+
+    private static List<CLAInterface> clas;
+
+    @Override
+    public String getComponentName() {
+        return TAG;
+    }
+
+    @Override
+    protected void componentUp() {
+        super.componentUp();
+        ServiceLoader<CLAInterface> loader = ServiceLoader.load(CLAInterface.class);
+        for (CLAInterface cla : loader) {
+            System.out.println("Convergence Layer Adapter: "+cla.getCLAName());
+            clas.add(cla);
         }
-        return Maybe.empty();
+    }
+
+    @Override
+    protected void componentDown() {
+        super.componentDown();
+        // unload modules
     }
 
     /**
@@ -29,8 +61,10 @@ public class CLAManager {
      * the EID and actually opens the channel is an implementation matter.
      */
     public static Single<CLAChannel> openChannel(CLA peer) {
-        if(peer.getSchemeCode().equals(EID.EIDScheme.CLASTCP)) {
-            return STCP.open((CLASTCP)peer);
+        for(CLAInterface cla : clas) {
+            if (peer.getCLAName().equals(cla.getCLAName())) {
+                return cla.open(peer);
+            }
         }
         return Single.error(new Throwable("no such CLA"));
     }

@@ -43,6 +43,7 @@ public class STCPAgent extends Component {
     protected void componentUp() {
         super.componentUp();
         int port = (Integer) DTNConfiguration.get(DTNConfiguration.Entry.CLA_STCP_LISTENING_PORT).value();
+        /*
         CLAManager.<STCP>create(STCP.getCLAName())
                 .subscribe(cl -> {
                     this.cla = cl;
@@ -57,11 +58,11 @@ public class STCPAgent extends Component {
                                             BundleProcessor.bundleReception(b);
                                         },
                                         e -> {
-                                            /* channel has closed */
+                                            // channel has closed
                                             RxBus.post(new ChannelClosed(dtnChannel));
                                         },
                                         () -> {
-                                            /* channel has closed */
+                                            // channel has closed
                                             RxBus.post(new ChannelClosed(dtnChannel));
                                         }
                                 );
@@ -69,6 +70,7 @@ public class STCPAgent extends Component {
                             e -> Log.w(TAG, "can't listen on TCP port " + port),
                             () -> Log.w(TAG, "server has stopped"));
                 });
+*/
     }
 
     @Override

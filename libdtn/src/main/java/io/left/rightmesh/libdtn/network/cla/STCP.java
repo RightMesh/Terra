@@ -6,13 +6,12 @@ import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
-import io.left.rightmesh.libdtn.data.Bundle;
-import io.left.rightmesh.libdtn.data.eid.CLA;
-import io.left.rightmesh.libdtn.data.eid.CLASTCP;
-import io.left.rightmesh.libdtn.data.eid.EID;
-import io.left.rightmesh.libdtn.data.MetaBundle;
-import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Parser;
-import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Serializer;
+import io.left.rightmesh.libdtncommon.data.Bundle;
+import io.left.rightmesh.libdtncommon.data.eid.CLA;
+import io.left.rightmesh.libdtncommon.data.eid.CLASTCP;
+import io.left.rightmesh.libdtncommon.data.MetaBundle;
+import io.left.rightmesh.libdtncommon.data.bundleV7.BundleV7Parser;
+import io.left.rightmesh.libdtncommon.data.bundleV7.BundleV7Serializer;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
 import io.left.rightmesh.libdtn.utils.Log;
 import io.left.rightmesh.librxtcp.RxTCP;
@@ -47,21 +46,10 @@ public class STCP implements CLAInterface {
     private static final String TAG = "STCP";
     private static final int defaultPort = 4778;
 
-    public static class STCPPeer extends TCPPeer {
-        public STCPPeer(String host, int port) {
-            super(host, port);
-        }
-
-        @Override
-        public EID getEID() {
-            return new CLASTCP(host, port, "");
-        }
-    }
-
     private RxTCP.Server<RxTCP.Connection> server;
     private int port;
 
-    public static String getCLAName() {
+    public String getCLAName() {
         return "stcp";
     }
 
@@ -76,7 +64,7 @@ public class STCP implements CLAInterface {
 
     @Override
     public Observable<CLAChannel> start() {
-        server = new RxTCP.Server(port);
+        server = new RxTCP.Server<>(port);
         Log.i(TAG, "starting a CLASTCP CLA on port "+port);
         return server.start()
                 .map(tcpcon -> new Channel(tcpcon, false));
@@ -89,7 +77,7 @@ public class STCP implements CLAInterface {
         }
     }
 
-    public static Single<CLAChannel> open(String host, int port) {
+    public Single<CLAChannel> open(String host, int port) {
         return new RxTCP.ConnectionRequest<>(host, port)
                 .connect()
                 .map(con -> {
@@ -98,12 +86,15 @@ public class STCP implements CLAInterface {
                 });
     }
 
-    public static Single<CLAChannel> open(CLASTCP peer) {
-        return open(peer.host, peer.port);
+    public Single<CLAChannel> open(CLA peer) {
+        if(peer instanceof CLASTCP) {
+            return open(((CLASTCP)peer).host, ((CLASTCP)peer).port);
+        } else {
+            return Single.error(new Throwable("peer is not a STCP peer"));
+        }
     }
 
     public static class Channel implements CLAChannel {
-
         RxTCP.Connection tcpcon;
         CLA channelEID;
         CLA localEID;

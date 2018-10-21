@@ -1,30 +1,31 @@
 package io.left.rightmesh.libdtn.core.processor;
 
-import java.util.NoSuchElementException;
-
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.routing.AARegistrar;
 import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
 import io.left.rightmesh.libdtn.core.routing.RoutingEngine;
-import io.left.rightmesh.libdtn.data.Bundle;
-import io.left.rightmesh.libdtn.data.CanonicalBlock;
-import io.left.rightmesh.libdtn.data.eid.DTN;
-import io.left.rightmesh.libdtn.data.eid.EID;
-import io.left.rightmesh.libdtn.data.StatusReport;
+import io.left.rightmesh.libdtncommon.data.Bundle;
+import io.left.rightmesh.libdtncommon.data.CanonicalBlock;
+import io.left.rightmesh.libdtncommon.data.ProcessingException;
+import io.left.rightmesh.libdtncommon.data.ProcessorNotFoundException;
+import io.left.rightmesh.libdtncommon.data.UnknownExtensionBlock;
+import io.left.rightmesh.libdtncommon.data.eid.DTN;
+import io.left.rightmesh.libdtncommon.data.eid.EID;
+import io.left.rightmesh.libdtncommon.data.StatusReport;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
 import io.left.rightmesh.libdtn.utils.Log;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_FORWARDING;
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_STATUS_REPORTING;
-import static io.left.rightmesh.libdtn.data.BlockHeader.BlockV7Flags.DELETE_BUNDLE_IF_NOT_PROCESSED;
-import static io.left.rightmesh.libdtn.data.BlockHeader.BlockV7Flags.DISCARD_IF_NOT_PROCESSED;
-import static io.left.rightmesh.libdtn.data.BlockHeader.BlockV7Flags.TRANSMIT_STATUSREPORT_IF_NOT_PROCESSED;
-import static io.left.rightmesh.libdtn.data.PrimaryBlock.BundleV7Flags.DELETION_REPORT;
-import static io.left.rightmesh.libdtn.data.PrimaryBlock.BundleV7Flags.DELIVERY_REPORT;
-import static io.left.rightmesh.libdtn.data.PrimaryBlock.BundleV7Flags.RECEPTION_REPORT;
-import static io.left.rightmesh.libdtn.data.StatusReport.ReasonCode.BlockUnintelligible;
-import static io.left.rightmesh.libdtn.data.StatusReport.ReasonCode.LifetimeExpired;
-import static io.left.rightmesh.libdtn.data.StatusReport.ReasonCode.NoKnownRouteForDestination;
+import static io.left.rightmesh.libdtncommon.data.BlockHeader.BlockV7Flags.DELETE_BUNDLE_IF_NOT_PROCESSED;
+import static io.left.rightmesh.libdtncommon.data.BlockHeader.BlockV7Flags.DISCARD_IF_NOT_PROCESSED;
+import static io.left.rightmesh.libdtncommon.data.BlockHeader.BlockV7Flags.TRANSMIT_STATUSREPORT_IF_NOT_PROCESSED;
+import static io.left.rightmesh.libdtncommon.data.PrimaryBlock.BundleV7Flags.DELETION_REPORT;
+import static io.left.rightmesh.libdtncommon.data.PrimaryBlock.BundleV7Flags.DELIVERY_REPORT;
+import static io.left.rightmesh.libdtncommon.data.PrimaryBlock.BundleV7Flags.RECEPTION_REPORT;
+import static io.left.rightmesh.libdtncommon.data.StatusReport.ReasonCode.BlockUnintelligible;
+import static io.left.rightmesh.libdtncommon.data.StatusReport.ReasonCode.LifetimeExpired;
+import static io.left.rightmesh.libdtncommon.data.StatusReport.ReasonCode.NoKnownRouteForDestination;
 
 /**
  * BundleProcessor is the entry point of all Bundle (either from Application Agent or

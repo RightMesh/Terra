@@ -19,15 +19,15 @@ import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.Component;
-import io.left.rightmesh.libdtn.data.Bundle;
-import io.left.rightmesh.libdtn.data.BundleID;
-import io.left.rightmesh.libdtn.data.MetaBundle;
-import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Parser;
-import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Serializer;
+import io.left.rightmesh.libdtncommon.data.Bundle;
+import io.left.rightmesh.libdtncommon.data.BundleID;
+import io.left.rightmesh.libdtncommon.data.MetaBundle;
+import io.left.rightmesh.libdtncommon.data.blob.BLOB;
+import io.left.rightmesh.libdtncommon.data.bundleV7.BundleV7Parser;
+import io.left.rightmesh.libdtncommon.data.bundleV7.BundleV7Serializer;
 import io.left.rightmesh.libdtn.events.BundleIndexed;
-import io.left.rightmesh.libdtn.storage.blob.BLOB;
 import io.left.rightmesh.libdtn.storage.blob.FileBLOB;
-import io.left.rightmesh.libdtn.storage.blob.NullBLOB;
+import io.left.rightmesh.libdtncommon.data.blob.NullBLOB;
 import io.left.rightmesh.librxbus.RxBus;
 import io.reactivex.Observable;
 import io.reactivex.Completable;
@@ -356,7 +356,7 @@ public class SimpleStorage extends Component implements BundleStorage {
                             });
 
                     /**
-                     * we put the BLOB back into the data of the bundle. It is technically
+                     * we put the Factory back into the data of the bundle. It is technically
                      * unnecessary as any the reference to this Bundle will use the MetaBundle that
                      * we are returning and so the actual bundle reference shall normally be lost
                      * and garbage collected

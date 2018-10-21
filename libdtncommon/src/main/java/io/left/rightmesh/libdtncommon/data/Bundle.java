@@ -114,25 +114,25 @@ public class Bundle extends PrimaryBlock {
         return null;
     }
 
-    public void onReceptionProcessing(Bundle bundle) throws CanonicalBlock.ProcessingException {
+    public void onReceptionProcessing(Bundle bundle) throws ProcessingException {
         for(CanonicalBlock block : getBlocks()) {
             block.onReceptionProcessing(bundle);
         }
     }
 
-    public void onPrepareForTransmission(Bundle bundle) throws CanonicalBlock.ProcessingException {
+    public void onPrepareForTransmission(Bundle bundle) throws ProcessingException {
         for(CanonicalBlock block : getBlocks()) {
             block.onPrepareForTransmission(bundle);
         }
     }
 
-    public void onPutOnStorage(Bundle bundle) throws CanonicalBlock.ProcessingException {
+    public void onPutOnStorage(Bundle bundle) throws ProcessingException {
         for(CanonicalBlock block : getBlocks()) {
             block.onPutOnStorage(bundle);
         }
     }
 
-    public void onPullFromStorage(Bundle bundle) throws CanonicalBlock.ProcessingException {
+    public void onPullFromStorage(Bundle bundle) throws ProcessingException {
         for(CanonicalBlock block : getBlocks()) {
             block.onPullFromStorage(bundle);
         }

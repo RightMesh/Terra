@@ -1,14 +1,14 @@
 package io.left.rightmesh.libdtn.core.routing;
 
 import io.left.rightmesh.libdtn.core.Component;
-import io.left.rightmesh.libdtn.data.eid.CLA;
-import io.left.rightmesh.libdtn.data.eid.DTN;
+import io.left.rightmesh.libdtncommon.data.eid.CLA;
+import io.left.rightmesh.libdtncommon.data.eid.DTN;
 import io.left.rightmesh.libdtn.events.ChannelClosed;
 import io.left.rightmesh.libdtn.events.ChannelOpened;
 import io.left.rightmesh.libdtn.events.LinkLocalEntryDown;
 import io.left.rightmesh.libdtn.events.LinkLocalEntryUp;
 import io.left.rightmesh.libdtn.network.cla.CLAChannel;
-import io.left.rightmesh.libdtn.data.eid.EID;
+import io.left.rightmesh.libdtncommon.data.eid.EID;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Maybe;

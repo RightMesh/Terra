@@ -3,8 +3,8 @@ package io.left.rightmesh.libdtn.storage.bundle;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.left.rightmesh.libdtn.data.Bundle;
-import io.left.rightmesh.libdtn.data.BundleID;
+import io.left.rightmesh.libdtncommon.data.Bundle;
+import io.left.rightmesh.libdtncommon.data.BundleID;
 import io.left.rightmesh.libdtn.utils.Log;
 import io.reactivex.Completable;
 import io.reactivex.Observable;

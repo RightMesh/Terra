@@ -1,4 +1,4 @@
-include ':libdtn', ':libdtnagent', ':terra', ':dtnping', ':dtnconf'
+include ':libdtn', ':libdtnagent', ':terra', ':dtnping', ':dtnconf', ':libdtncommon'
 
 project(":terra").projectDir = file("linux/terra")
 project(":dtnping").projectDir = file("linux/dtnping")

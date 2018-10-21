@@ -5,14 +5,12 @@ import org.junit.Test;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import io.left.rightmesh.libdtn.data.Bundle;
-import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Test;
+import io.left.rightmesh.libdtn.storage.TestBundle;
+import io.left.rightmesh.libdtncommon.data.Bundle;
 import io.left.rightmesh.libdtn.network.cla.STCP;
-import io.left.rightmesh.librxtcp.RxTCP;
 import io.reactivex.Flowable;
 
 import static junit.framework.TestCase.fail;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Lucien Loiseau on 26/09/18.
@@ -49,16 +47,16 @@ public class STCPTest {
                             lock.countDown();
                         });
 
-        STCP.open("127.0.0.1", 4591)
+        new STCP().open("127.0.0.1", 4591)
                 .subscribe(
                         dtnChannel -> {
                             Bundle[] bundles = {
-                                    BundleV7Test.testBundle1(),
-                                    BundleV7Test.testBundle2(),
-                                    BundleV7Test.testBundle3(),
-                                    BundleV7Test.testBundle4(),
-                                    BundleV7Test.testBundle5(),
-                                    BundleV7Test.testBundle6()
+                                    TestBundle.testBundle1(),
+                                    TestBundle.testBundle2(),
+                                    TestBundle.testBundle3(),
+                                    TestBundle.testBundle4(),
+                                    TestBundle.testBundle5(),
+                                    TestBundle.testBundle6()
                             };
                             dtnChannel
                                     .sendBundles(Flowable.fromArray(bundles))
@@ -84,7 +82,7 @@ public class STCPTest {
 
         // check payload
         for (int j = 0; j < 6; j++) {
-            BundleV7Test.checkBundlePayload(recv[j]);
+            TestBundle.checkBundlePayload(recv[j]);
         }
     }
 
@@ -101,7 +99,7 @@ public class STCPTest {
                 .subscribe(
                         channel -> {
                             channel.recvBundle().subscribe(
-                                    BundleV7Test::checkBundlePayload,
+                                    TestBundle::checkBundlePayload,
                                     e -> {
                                         lock.countDown();
                                     },
@@ -113,16 +111,16 @@ public class STCPTest {
                         });
 
         for (int k = 0; k < 10; k++) {
-            STCP.open("127.0.0.1", 4592)
+            new STCP().open("127.0.0.1", 4592)
                     .subscribe(
                             dtnChannel -> {
                                 Bundle[] bundles = {
-                                        BundleV7Test.testBundle1(),
-                                        BundleV7Test.testBundle2(),
-                                        BundleV7Test.testBundle3(),
-                                        BundleV7Test.testBundle4(),
-                                        BundleV7Test.testBundle5(),
-                                        BundleV7Test.testBundle6()
+                                        TestBundle.testBundle1(),
+                                        TestBundle.testBundle2(),
+                                        TestBundle.testBundle3(),
+                                        TestBundle.testBundle4(),
+                                        TestBundle.testBundle5(),
+                                        TestBundle.testBundle6()
                                 };
                                 dtnChannel
                                         .sendBundles(Flowable.fromArray(bundles))

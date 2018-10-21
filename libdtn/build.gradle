@@ -24,9 +24,9 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    // lib rx netty for http API
-    implementation "io.reactivex:rxnetty-http:${rxnetty_version}"
-    implementation "tv.cntt:jauter:${jauter_version}"
+    // libcbor for bundleV7
+    //implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
+    implementation project(path: ':libdtncommon')
 
     // libdtnagent to receive command from tcp socket
     implementation project(path: ':libdtnagent')
@@ -51,6 +51,11 @@ dependencies {
 
     // jUnit
     testImplementation 'junit:junit:4.12'
+
+    // lib rx netty for http API
+    implementation "io.reactivex:rxnetty-http:${rxnetty_version}"
+    implementation "tv.cntt:jauter:${jauter_version}"
+
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8

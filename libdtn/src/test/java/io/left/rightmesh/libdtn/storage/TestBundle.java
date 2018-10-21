@@ -1,34 +1,24 @@
-package io.left.rightmesh.libdtn.data.bundleV7;
+package io.left.rightmesh.libdtn.storage;
 
-import org.junit.Test;
-
-import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
-import java.util.Formatter;
-
-import io.left.rightmesh.libcbor.CborEncoder;
-import io.left.rightmesh.libcbor.CborParser;
-import io.left.rightmesh.libcbor.rxparser.RxParserException;
-import io.left.rightmesh.libdtn.data.AgeBlock;
-import io.left.rightmesh.libdtn.data.CanonicalBlock;
-import io.left.rightmesh.libdtn.data.BlockHeader;
-import io.left.rightmesh.libdtn.data.Bundle;
-import io.left.rightmesh.libdtn.data.BundleID;
-import io.left.rightmesh.libdtn.data.eid.DTN;
-import io.left.rightmesh.libdtn.data.eid.EID;
-import io.left.rightmesh.libdtn.data.PayloadBlock;
-import io.left.rightmesh.libdtn.data.PreviousNodeBlock;
-import io.left.rightmesh.libdtn.data.PrimaryBlock;
-import io.left.rightmesh.libdtn.data.ScopeControlHopLimitBlock;
-import io.left.rightmesh.libdtn.data.eid.IPN;
+import io.left.rightmesh.libdtncommon.data.AgeBlock;
+import io.left.rightmesh.libdtncommon.data.BlockHeader;
+import io.left.rightmesh.libdtncommon.data.Bundle;
+import io.left.rightmesh.libdtncommon.data.BundleID;
+import io.left.rightmesh.libdtncommon.data.CanonicalBlock;
+import io.left.rightmesh.libdtncommon.data.PayloadBlock;
+import io.left.rightmesh.libdtncommon.data.PreviousNodeBlock;
+import io.left.rightmesh.libdtncommon.data.PrimaryBlock;
+import io.left.rightmesh.libdtncommon.data.ScopeControlHopLimitBlock;
+import io.left.rightmesh.libdtncommon.data.eid.DTN;
+import io.left.rightmesh.libdtncommon.data.eid.EID;
+import io.left.rightmesh.libdtncommon.data.eid.IPN;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 /**
- * @author Lucien Loiseau on 20/09/18.
+ * @author Lucien Loiseau on 21/10/18.
  */
-public class BundleV7Test {
+public class TestBundle {
 
     public static String testPayload = "This is a test for bundle serialization";
 
@@ -99,48 +89,6 @@ public class BundleV7Test {
         return bundle;
     }
 
-    @Test
-    public void testSimpleBundleSerialization() {
-        System.out.println("[+] bundle: testing serialization and parsing with 6 test bundles");
-
-        Bundle[] bundles = {
-                testBundle1(),
-                testBundle2(),
-                testBundle3(),
-                testBundle4(),
-                testBundle5(),
-                testBundle6()
-        };
-
-        for(Bundle bundle : bundles) {
-            Bundle[] res = {null};
-
-            // prepare serializer
-            CborEncoder enc = BundleV7Serializer.encode(bundle);
-
-            // prepare parser
-            CborParser p = BundleV7Parser.create(b -> {
-                res[0] = b;
-            });
-
-            // serialize and parse
-            enc.observe(10).subscribe(buf -> {
-                try {
-                    if (p.read(buf)) {
-                        assertEquals(false, buf.hasRemaining());
-                    }
-                } catch (RxParserException rpe) {
-                    rpe.printStackTrace();
-                    fail();
-                }
-            });
-
-            // check payload
-            checkBundlePayload(res[0]);
-        }
-    }
-
-
 
     public static void checkBundlePayload(Bundle bundle) {
         // assert
@@ -166,35 +114,5 @@ public class BundleV7Test {
         }
     }
 
-
-    // debug
-    private String getEncodedString(CborEncoder enc) {
-        // get all in one buffer
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        enc.observe().subscribe(b -> {
-            while (b.hasRemaining()) {
-                baos.write(b.get());
-            }
-        });
-
-        // return the string
-        Formatter formatter = new Formatter();
-        formatter.format("0x");
-        for (byte b : baos.toByteArray()) {
-            formatter.format("%02x", b);
-        }
-        return (formatter.toString());
-    }
-
-    public static void showRemaining(String prefix, ByteBuffer buf) {
-        buf.mark();
-        Formatter formatter = new Formatter();
-        formatter.format(prefix + " remaining (" + buf.remaining() + "): 0x");
-        while (buf.hasRemaining()) {
-            formatter.format("%02x", buf.get());
-        }
-        System.out.println(formatter.toString());
-        buf.reset();
-    }
 
 }

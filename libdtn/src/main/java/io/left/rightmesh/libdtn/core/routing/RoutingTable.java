@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.Set;
 
 import io.left.rightmesh.libdtn.DTNConfiguration;
-import io.left.rightmesh.libdtn.data.eid.CLA;
-import io.left.rightmesh.libdtn.data.eid.EID;
+import io.left.rightmesh.libdtncommon.data.eid.CLA;
+import io.left.rightmesh.libdtncommon.data.eid.EID;
 import io.reactivex.Observable;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_STATIC_ROUTING;

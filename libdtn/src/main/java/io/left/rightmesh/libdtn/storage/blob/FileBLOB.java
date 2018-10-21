@@ -1,5 +1,8 @@
 package io.left.rightmesh.libdtn.storage.blob;
 
+import io.left.rightmesh.libdtncommon.data.blob.BLOB;
+import io.left.rightmesh.libdtncommon.data.blob.ReadableBLOB;
+import io.left.rightmesh.libdtncommon.data.blob.WritableBLOB;
 import io.reactivex.Flowable;
 
 import java.io.BufferedInputStream;
@@ -11,23 +14,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.NonReadableChannelException;
 
 /**
- * FileBLOB holds a BLOB in a file saved in persistent storage. Useful for large BLOB that can't
+ * FileBLOB holds a Factory in a file saved in persistent storage. Useful for large Factory that can't
  * fit in memory or if persistence over reboot is necessary for long caching strategy.
  *
  * @author Lucien Loiseau on 26/07/18.
  */
-public class FileBLOB extends BLOB {
+public class FileBLOB implements BLOB {
 
     private static final int BUFFER_SIZE = 4096;
     private File file;
 
     /**
-     * Constructor: creates a BLOB from a path. It will open the file and check for existence.
+     * Constructor: creates a Factory from a path. It will open the file and check for existence.
      *
      * @param absolutePath to file
      * @throws IOException if the file cannot be accessed
@@ -40,7 +42,7 @@ public class FileBLOB extends BLOB {
     }
 
     /**
-     * Constructor: creates a BLOB out of an already created file.
+     * Constructor: creates a Factory out of an already created file.
      *
      * @param file to file
      * @throws IOException if the file cannot be accessed
@@ -86,7 +88,7 @@ public class FileBLOB extends BLOB {
                 },
                 (state, emitter) -> {
                     if (state == null) {
-                        emitter.onError(new Throwable("couldn't open File BLOB"));
+                        emitter.onError(new Throwable("couldn't open File Factory"));
                         return state;
                     }
 
@@ -246,7 +248,7 @@ public class FileBLOB extends BLOB {
 
     /**
      * Tries to move the file embedded in this FileBLOB to the destination file. It is useful if
-     * a bundle needs to be put in storage and the payload BLOB is already a FileBLOB, by moving it
+     * a bundle needs to be put in storage and the payload Factory is already a FileBLOB, by moving it
      * we avoid the entire read/write of the file that can be quite large.
      *
      * @param destinationPath path to destination

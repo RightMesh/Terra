@@ -10,9 +10,10 @@ import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.Component;
-import io.left.rightmesh.libdtn.storage.blob.BLOB;
-import io.left.rightmesh.libdtn.storage.blob.NullBLOB;
-import io.left.rightmesh.libdtn.storage.blob.WritableBLOB;
+import io.left.rightmesh.libdtn.storage.blob.Factory;
+import io.left.rightmesh.libdtncommon.data.blob.BLOB;
+import io.left.rightmesh.libdtncommon.data.blob.NullBLOB;
+import io.left.rightmesh.libdtncommon.data.blob.WritableBLOB;
 import io.left.rightmesh.libdtnagent.RequestMessage;
 import io.left.rightmesh.libdtnagent.ResponseMessage;
 import io.left.rightmesh.librxtcp.RxTCP;
@@ -93,12 +94,12 @@ public class APIDaemonCBORAgent extends Component {
                                 RequestMessage req =  p.getReg(0);
                                 try {
                                     if (size >= 0) {
-                                        req.body = BLOB.createBLOB((int) size);
+                                        req.body = Factory.getInstance().createBLOB((int) size);
                                     } else {
-                                        // indefinite length BLOB
-                                        req.body = BLOB.createBLOB(2048); //todo change that
+                                        // indefinite length Factory
+                                        req.body = Factory.getInstance().createBLOB(2048); //todo change that
                                     }
-                                } catch (BLOB.StorageFullException sfe) {
+                                } catch (Factory.BLOBFactoryException sfe) {
                                     req.body = new NullBLOB();
                                 }
                                 p.setReg(1, ((BLOB)req.body).getWritableBLOB());

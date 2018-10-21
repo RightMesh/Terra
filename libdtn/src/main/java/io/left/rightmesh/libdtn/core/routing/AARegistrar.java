@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.core.processor.EventListener;
-import io.left.rightmesh.libdtn.data.Bundle;
+import io.left.rightmesh.libdtncommon.data.Bundle;
 import io.left.rightmesh.libdtn.events.RegistrationActive;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
 import io.left.rightmesh.librxbus.Subscribe;

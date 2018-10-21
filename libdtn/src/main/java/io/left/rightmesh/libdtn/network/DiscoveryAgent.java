@@ -8,7 +8,6 @@ import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.events.ChannelClosed;
 import io.left.rightmesh.libdtn.events.ChannelOpened;
-import io.left.rightmesh.libdtn.network.cla.CLAChannel;
 import io.left.rightmesh.libdtn.utils.Log;
 import io.left.rightmesh.librxbus.RxBus;
 

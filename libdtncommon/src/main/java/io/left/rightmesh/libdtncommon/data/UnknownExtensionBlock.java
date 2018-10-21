@@ -10,12 +10,6 @@ import io.left.rightmesh.libdtncommon.data.blob.BLOB;
  */
 public class UnknownExtensionBlock extends BlockBLOB {
 
-    public class ProcessorNotFoundException extends ProcessingException {
-        public ProcessorNotFoundException() {
-            super("Processor not found");
-        }
-    }
-
     /**
      * Constructor: creates an empty UnknownExtensionBlock.
      *

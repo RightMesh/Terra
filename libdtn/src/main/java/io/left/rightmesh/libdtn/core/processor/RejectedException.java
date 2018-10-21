@@ -1,5 +1,7 @@
 package io.left.rightmesh.libdtn.core.processor;
 
+import io.left.rightmesh.libdtncommon.data.ProcessingException;
+
 /**
  * RejectedException is raised if an error during processing must discard the entire bundle.
  *

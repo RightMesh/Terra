@@ -14,7 +14,9 @@ import io.left.rightmesh.libdtncommon.data.BlockIntegrityBlock;
 import io.left.rightmesh.libdtncommon.data.Bundle;
 import io.left.rightmesh.libdtncommon.data.BundleID;
 import io.left.rightmesh.libdtncommon.data.CRC;
+import io.left.rightmesh.libdtncommon.data.blob.BLOB;
 import io.left.rightmesh.libdtncommon.data.blob.BLOBFactory;
+import io.left.rightmesh.libdtncommon.data.blob.ByteBufferBLOB;
 import io.left.rightmesh.libdtncommon.data.eid.DTN;
 import io.left.rightmesh.libdtncommon.data.eid.EID;
 import io.left.rightmesh.libdtncommon.data.FlowLabelBlock;
@@ -51,7 +53,12 @@ public class BundleV7Parser  {
         public Bundle bundle = null;
         BLOBFactory factory;
 
-        BundleItem(BLOBFactory factory) {
+
+        public BundleItem() {
+            this.factory = ByteBufferBLOB::new;
+        }
+
+        public BundleItem(BLOBFactory factory) {
             this.factory = factory;
         }
 

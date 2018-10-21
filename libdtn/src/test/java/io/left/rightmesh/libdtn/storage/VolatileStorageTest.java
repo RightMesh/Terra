@@ -3,9 +3,7 @@ package io.left.rightmesh.libdtn.storage;
 import org.junit.Test;
 
 import io.left.rightmesh.libdtn.DTNConfiguration;
-import io.left.rightmesh.libdtn.data.Bundle;
-import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Test;
-import io.left.rightmesh.libdtn.storage.bundle.BundleStorage;
+import io.left.rightmesh.libdtncommon.data.Bundle;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
 import io.left.rightmesh.libdtn.storage.bundle.VolatileStorage;
 
@@ -28,12 +26,12 @@ public class VolatileStorageTest {
             DTNConfiguration.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(false);
 
             Bundle[] bundles = {
-                    BundleV7Test.testBundle1(),
-                    BundleV7Test.testBundle2(),
-                    BundleV7Test.testBundle3(),
-                    BundleV7Test.testBundle4(),
-                    BundleV7Test.testBundle5(),
-                    BundleV7Test.testBundle6()
+                    TestBundle.testBundle1(),
+                    TestBundle.testBundle2(),
+                    TestBundle.testBundle3(),
+                    TestBundle.testBundle4(),
+                    TestBundle.testBundle5(),
+                    TestBundle.testBundle6()
             };
 
             System.out.println("[.] clear VolatileStorage");

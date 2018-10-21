@@ -1,16 +1,18 @@
 package io.left.rightmesh.libdtn.core.agents.http;
 
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
-import io.left.rightmesh.libdtn.data.Bundle;
-import io.left.rightmesh.libdtn.data.BundleID;
-import io.left.rightmesh.libdtn.data.eid.DTN;
-import io.left.rightmesh.libdtn.data.eid.EID;
-import io.left.rightmesh.libdtn.data.PayloadBlock;
-import io.left.rightmesh.libdtn.storage.blob.ByteBufferBLOB;
+import io.left.rightmesh.libdtncommon.data.Bundle;
+import io.left.rightmesh.libdtncommon.data.BundleID;
+import io.left.rightmesh.libdtncommon.data.blob.BLOB;
+import io.left.rightmesh.libdtncommon.data.eid.DTN;
+import io.left.rightmesh.libdtncommon.data.eid.EID;
+import io.left.rightmesh.libdtncommon.data.PayloadBlock;
+import io.left.rightmesh.libdtncommon.data.blob.ByteBufferBLOB;
 import io.left.rightmesh.libdtn.storage.bundle.Storage;
 import io.left.rightmesh.libdtn.utils.Log;
 import io.left.rightmesh.libdtn.utils.nettyrouter.Router;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import rx.Observable;
 
@@ -50,11 +52,28 @@ public class ApplicationAgentAPI {
                                 s.onCompleted();
                             },
                             s::onError))
-                    .flatMap((bundle) -> res.write(bundle.getPayloadBlock().data.netty()));
+                    .flatMap((bundle) -> res.write(nettyBLOB(bundle.getPayloadBlock().data)));
         } else {
             return res.writeString(just("no such bundle"));
         }
     };
+
+
+    /**
+     * - UGLY -
+     * unfortunately, RxNetty uses RxJava 1.x so we have to make the conversion :(
+     *
+     * @return Flowable of ByteBuffer
+     */
+    public static Observable<ByteBuf> nettyBLOB(BLOB blob) {
+        return Observable.create(s -> {
+            blob.observe().toObservable().subscribe(
+                    byteBuffer -> s.onNext(Unpooled.wrappedBuffer(byteBuffer)),
+                    s::onError,
+                    s::onCompleted
+            );
+        });
+    }
 
     /**
      * Fetch a bundle and deliver it to the client then mark the bundle as delivered
@@ -72,9 +91,7 @@ public class ApplicationAgentAPI {
                                 s.onCompleted();
                             },
                             s::onError))
-                    .flatMap((bundle) -> res.write(
-                            bundle.getPayloadBlock().data
-                                    .netty()
+                    .flatMap((bundle) -> res.write(nettyBLOB(bundle.getPayloadBlock().data)
                                     .doOnCompleted(() -> BundleProcessor.bundleLocalDeliverySuccessful(bundle))));
         } else {
             return res.writeString(just("no such bundle"));

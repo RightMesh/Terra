@@ -1,6 +1,6 @@
 package io.left.rightmesh.libdtn.events;
 
-import io.left.rightmesh.libdtn.data.Bundle;
+import io.left.rightmesh.libdtncommon.data.Bundle;
 
 /**
  * @author Lucien Loiseau on 10/10/18.

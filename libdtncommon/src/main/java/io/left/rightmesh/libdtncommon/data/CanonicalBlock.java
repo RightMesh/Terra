@@ -30,16 +30,6 @@ public abstract class CanonicalBlock extends BlockHeader {
         }
     }
 
-    public class ProcessingException extends Exception {
-        public ProcessingException() {
-        }
-
-        public ProcessingException(String reason) {
-            super(reason);
-        }
-    }
-
-
     /**
      * This is called during deserialization.
      *

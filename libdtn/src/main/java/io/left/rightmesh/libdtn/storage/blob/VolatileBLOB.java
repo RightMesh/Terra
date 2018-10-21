@@ -6,19 +6,22 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import io.left.rightmesh.libdtn.DTNConfiguration;
+import io.left.rightmesh.libdtncommon.data.blob.BLOB;
+import io.left.rightmesh.libdtncommon.data.blob.ReadableBLOB;
+import io.left.rightmesh.libdtncommon.data.blob.WritableBLOB;
 import io.left.rightmesh.libdtn.storage.bundle.BundleStorage;
 import io.reactivex.Flowable;
 
 import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.VOLATILE_BLOB_STORAGE_MAX_CAPACITY;
 
 /**
- * VolatileBLOB holds a {@see BLOB} in volatile memory. It is implemented with a Byte array.
- * Useful if the BLOB is small or if performance are required. Data holds by VolatileBLOB are
+ * VolatileBLOB holds a {@see Factory} in volatile memory. It is implemented with a Byte array.
+ * Useful if the Factory is small or if performance are required. Data holds by VolatileBLOB are
  * lost in case of reboot.
  *
  * @author Lucien Loiseau on 26/07/18.
  */
-public class VolatileBLOB extends BLOB {
+public class VolatileBLOB implements BLOB {
 
     private static final String TAG = "VolatileBLOB";
 
@@ -33,14 +36,14 @@ public class VolatileBLOB extends BLOB {
     /**
      * Create a new {@see VolatileBLOB}.
      *
-     * @param expectedSize of the BLOB
+     * @param expectedSize of the Factory
      * @return a new VolatileBLOB with capacity of expectedSize
      * @throws BundleStorage.StorageFullException if there isn't enough space in Volatile Memory
      */
     public static VolatileBLOB createBLOB(int expectedSize)
-            throws BLOB.StorageFullException {
+            throws Factory.BLOBFactoryException {
         if (expectedSize > (BLOBMemoryMaxUsage - CurrentBLOBMemoryUsage)) {
-            throw new BLOB.StorageFullException();
+            throw new Factory.BLOBFactoryException();
         }
 
         return new VolatileBLOB(expectedSize);
@@ -106,7 +109,7 @@ public class VolatileBLOB extends BLOB {
                 () -> new State(0, ByteBuffer.allocate(2048)),
                 (state, emitter) -> {
                     if (state == null) {
-                        emitter.onError(new Throwable("couldn't lock the BLOB"));
+                        emitter.onError(new Throwable("couldn't lock the Factory"));
                         return state;
                     }
 

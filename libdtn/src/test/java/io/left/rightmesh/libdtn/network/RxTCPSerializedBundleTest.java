@@ -8,10 +8,11 @@ import java.util.concurrent.TimeUnit;
 
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
-import io.left.rightmesh.libdtn.data.Bundle;
-import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Parser;
-import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Serializer;
-import io.left.rightmesh.libdtn.data.bundleV7.BundleV7Test;
+import io.left.rightmesh.libdtn.storage.TestBundle;
+import io.left.rightmesh.libdtn.storage.blob.Factory;
+import io.left.rightmesh.libdtncommon.data.Bundle;
+import io.left.rightmesh.libdtncommon.data.bundleV7.BundleV7Parser;
+import io.left.rightmesh.libdtncommon.data.bundleV7.BundleV7Serializer;
 import io.left.rightmesh.librxtcp.RxTCP;
 
 import static junit.framework.TestCase.fail;
@@ -36,7 +37,7 @@ public class RxTCPSerializedBundleTest {
                     // prepare parser
                     CborParser p = BundleV7Parser.create(b -> {
                         recv[i[0]++] = b;
-                    });
+                    }, Factory.getInstance());
 
                     connection.recv().subscribe(
                             buffer -> {
@@ -59,12 +60,12 @@ public class RxTCPSerializedBundleTest {
         new RxTCP.SimpleConnectionRequest("127.0.0.1", 4561).connect().subscribe(
                 connection -> {
                     Bundle[] bundles = {
-                            BundleV7Test.testBundle1(),
-                            BundleV7Test.testBundle2(),
-                            BundleV7Test.testBundle3(),
-                            BundleV7Test.testBundle4(),
-                            BundleV7Test.testBundle5(),
-                            BundleV7Test.testBundle6()
+                            TestBundle.testBundle1(),
+                            TestBundle.testBundle2(),
+                            TestBundle.testBundle3(),
+                            TestBundle.testBundle4(),
+                            TestBundle.testBundle5(),
+                            TestBundle.testBundle6()
                     };
 
                     for(Bundle bundle : bundles) {
@@ -83,7 +84,7 @@ public class RxTCPSerializedBundleTest {
 
         // check payload
         for(int j = 0; j < 6; j++) {
-            BundleV7Test.checkBundlePayload(recv[j]);
+            TestBundle.checkBundlePayload(recv[j]);
         }
     }
 

@@ -1,9 +1,9 @@
 package io.left.rightmesh.libdtn.storage.bundle;
 
 import io.left.rightmesh.libdtn.core.Component;
-import io.left.rightmesh.libdtn.data.Bundle;
-import io.left.rightmesh.libdtn.data.BundleID;
-import io.left.rightmesh.libdtn.data.MetaBundle;
+import io.left.rightmesh.libdtncommon.data.Bundle;
+import io.left.rightmesh.libdtncommon.data.BundleID;
+import io.left.rightmesh.libdtncommon.data.MetaBundle;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;

@@ -5,7 +5,7 @@ import java.util.Set;
 import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
-import io.left.rightmesh.libdtn.data.eid.EID;
+import io.left.rightmesh.libdtncommon.data.eid.EID;
 import io.left.rightmesh.libdtn.utils.nettyrouter.Router;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
