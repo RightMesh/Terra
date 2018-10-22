@@ -7,7 +7,7 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import io.reactivex.Completable;
 
-import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_STATIC_API;
+import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_STATIC_API;
 
 /**
  * @author Lucien Loiseau on 28/09/18.

@@ -1,17 +1,17 @@
 package io.left.rightmesh.libdtn.core.agents.http;
 
-import io.left.rightmesh.libdtn.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.routing.LinkLocalRouting;
 import io.left.rightmesh.libdtn.core.routing.RoutingTable;
-import io.left.rightmesh.libdtn.utils.nettyrouter.Router;
+import io.left.rightmesh.libdtn.core.utils.nettyrouter.Router;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
-import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_AUTO_CONNECT_FOR_BUNDLE;
-import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT;
-import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_COMPONENT_DETECT_PEER_ON_LAN;
-import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_FORWARDING;
-import static io.left.rightmesh.libdtn.utils.nettyrouter.Dispatch.using;
+import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.ENABLE_AUTO_CONNECT_FOR_BUNDLE;
+import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT;
+import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.ENABLE_COMPONENT_DETECT_PEER_ON_LAN;
+import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.ENABLE_FORWARDING;
+import static io.left.rightmesh.libdtn.core.utils.nettyrouter.Dispatch.using;
 import static rx.Observable.just;
 
 /**

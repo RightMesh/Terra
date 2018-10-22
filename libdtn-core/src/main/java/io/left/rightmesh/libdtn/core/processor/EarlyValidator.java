@@ -1,6 +1,6 @@
 package io.left.rightmesh.libdtn.core.processor;
 
-import io.left.rightmesh.libdtn.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.data.BlockHeader;
@@ -8,7 +8,7 @@ import io.left.rightmesh.libdtn.common.data.ProcessingException;
 import io.left.rightmesh.libdtn.common.data.ProcessorNotFoundException;
 import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
-import io.left.rightmesh.libdtn.utils.ClockUtil;
+import io.left.rightmesh.libdtn.core.utils.ClockUtil;
 
 import static io.left.rightmesh.libdtn.common.data.BlockHeader.BlockV7Flags.DELETE_BUNDLE_IF_NOT_PROCESSED;
 

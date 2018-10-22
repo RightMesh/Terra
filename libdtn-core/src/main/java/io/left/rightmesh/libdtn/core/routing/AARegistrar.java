@@ -7,12 +7,12 @@ import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.core.processor.EventListener;
 import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.events.RegistrationActive;
-import io.left.rightmesh.libdtn.storage.bundle.Storage;
+import io.left.rightmesh.libdtn.core.events.RegistrationActive;
+import io.left.rightmesh.libdtn.core.storage.bundle.Storage;
 import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Completable;
 
-import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_AA_REGISTRATION;
+import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_AA_REGISTRATION;
 
 
 /**

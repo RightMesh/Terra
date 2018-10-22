@@ -8,15 +8,15 @@ import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.blob.ByteBufferBLOB;
-import io.left.rightmesh.libdtn.storage.bundle.Storage;
-import io.left.rightmesh.libdtn.utils.Log;
-import io.left.rightmesh.libdtn.utils.nettyrouter.Router;
+import io.left.rightmesh.libdtn.core.storage.bundle.Storage;
+import io.left.rightmesh.libdtn.core.utils.Log;
+import io.left.rightmesh.libdtn.core.utils.nettyrouter.Router;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import rx.Observable;
 
-import static io.left.rightmesh.libdtn.utils.nettyrouter.Dispatch.using;
+import static io.left.rightmesh.libdtn.core.utils.nettyrouter.Dispatch.using;
 import static rx.Observable.just;
 
 /**

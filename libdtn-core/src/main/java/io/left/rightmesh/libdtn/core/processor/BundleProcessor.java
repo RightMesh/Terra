@@ -1,6 +1,6 @@
 package io.left.rightmesh.libdtn.core.processor;
 
-import io.left.rightmesh.libdtn.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.routing.AARegistrar;
 import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
 import io.left.rightmesh.libdtn.core.routing.RoutingEngine;
@@ -11,11 +11,11 @@ import io.left.rightmesh.libdtn.common.data.ProcessorNotFoundException;
 import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.common.data.StatusReport;
-import io.left.rightmesh.libdtn.storage.bundle.Storage;
-import io.left.rightmesh.libdtn.utils.Log;
+import io.left.rightmesh.libdtn.core.storage.bundle.Storage;
+import io.left.rightmesh.libdtn.core.utils.Log;
 
-import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_FORWARDING;
-import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.ENABLE_STATUS_REPORTING;
+import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.ENABLE_FORWARDING;
+import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.ENABLE_STATUS_REPORTING;
 import static io.left.rightmesh.libdtn.common.data.BlockHeader.BlockV7Flags.DELETE_BUNDLE_IF_NOT_PROCESSED;
 import static io.left.rightmesh.libdtn.common.data.BlockHeader.BlockV7Flags.DISCARD_IF_NOT_PROCESSED;
 import static io.left.rightmesh.libdtn.common.data.BlockHeader.BlockV7Flags.TRANSMIT_STATUSREPORT_IF_NOT_PROCESSED;

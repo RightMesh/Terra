@@ -1,6 +1,6 @@
 package io.left.rightmesh.libdtn.core.agents.http;
 
-import io.left.rightmesh.libdtn.utils.nettyrouter.Route;
+import io.left.rightmesh.libdtn.core.utils.nettyrouter.Route;
 import io.netty.buffer.ByteBuf;
 
 /**

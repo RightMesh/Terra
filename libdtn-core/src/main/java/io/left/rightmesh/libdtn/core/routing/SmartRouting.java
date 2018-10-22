@@ -2,7 +2,7 @@ package io.left.rightmesh.libdtn.core.routing;
 
 import io.left.rightmesh.libdtn.core.Component;
 
-import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_SMART_ROUTING;
+import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_SMART_ROUTING;
 
 /**
  * SmartRouting is a routing component that uses a byte-code block to take forwarding decisions.

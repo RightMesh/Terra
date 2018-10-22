@@ -5,9 +5,9 @@ import java.nio.charset.Charset;
 import io.left.rightmesh.libdtn.core.routing.AARegistrar;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.left.rightmesh.libdtn.utils.nettyrouter.Router;
+import io.left.rightmesh.libdtn.core.utils.nettyrouter.Router;
 
-import static io.left.rightmesh.libdtn.utils.nettyrouter.Dispatch.using;
+import static io.left.rightmesh.libdtn.core.utils.nettyrouter.Dispatch.using;
 import static rx.Observable.just;
 
 /**

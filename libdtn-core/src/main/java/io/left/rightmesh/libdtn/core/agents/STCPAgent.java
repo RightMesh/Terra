@@ -1,23 +1,13 @@
 package io.left.rightmesh.libdtn.core.agents;
 
-import io.left.rightmesh.libdtn.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.Component;
-import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
-import io.left.rightmesh.libdtn.events.ChannelClosed;
-import io.left.rightmesh.libdtn.events.ChannelOpened;
-import io.left.rightmesh.libdtn.network.cla.CLAManager;
-import io.left.rightmesh.libdtn.network.cla.STCP;
-import io.left.rightmesh.libdtn.utils.Log;
-import io.left.rightmesh.librxbus.RxBus;
-import io.left.rightmesh.librxtcp.RxTCP;
 
-import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_CLA_STCP;
 
 /**
  * @author Lucien Loiseau on 27/09/18.
  */
-public class STCPAgent extends Component {
-
+public abstract class STCPAgent extends Component {
+/*
     private static final String TAG = "STCPAgent";
 
     // ---- SINGLETON ----
@@ -43,7 +33,7 @@ public class STCPAgent extends Component {
     protected void componentUp() {
         super.componentUp();
         int port = (Integer) DTNConfiguration.get(DTNConfiguration.Entry.CLA_STCP_LISTENING_PORT).value();
-        /*
+
         CLAManager.<STCP>create(STCP.getCLAName())
                 .subscribe(cl -> {
                     this.cla = cl;
@@ -70,7 +60,7 @@ public class STCPAgent extends Component {
                             e -> Log.w(TAG, "can't listen on TCP port " + port),
                             () -> Log.w(TAG, "server has stopped"));
                 });
-*/
+
     }
 
     @Override
@@ -80,4 +70,5 @@ public class STCPAgent extends Component {
             cla.stop();
         }
     }
+    */
 }

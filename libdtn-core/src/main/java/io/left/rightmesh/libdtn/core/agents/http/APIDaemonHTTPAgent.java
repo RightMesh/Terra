@@ -1,15 +1,15 @@
 package io.left.rightmesh.libdtn.core.agents.http;
 
-import io.left.rightmesh.libdtn.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.Component;
-import io.left.rightmesh.libdtn.utils.nettyrouter.Router;
+import io.left.rightmesh.libdtn.core.utils.nettyrouter.Router;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.netty.protocol.http.server.HttpServer;
 import rx.Observable;
 
-import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_DAEMON_HTTP_API;
-import static io.left.rightmesh.libdtn.utils.nettyrouter.Dispatch.using;
+import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_DAEMON_HTTP_API;
+import static io.left.rightmesh.libdtn.core.utils.nettyrouter.Dispatch.using;
 
 /**
  * @author Lucien Loiseau on 13/10/18.

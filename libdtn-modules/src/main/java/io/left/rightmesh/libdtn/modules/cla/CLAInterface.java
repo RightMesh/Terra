@@ -28,16 +28,16 @@ public interface CLAInterface {
     Observable<CLAChannel> start();
 
     /**
-     * When a CLA is stopped, it should stop returning any new CLAChannel. It is an implementation
-     * specific decision wether or not to close all the underlying CLAChannels that were previously
-     * openned.
+     * When a CLA is stopped, it should stop creating any new CLAChannel and terminate the
+     * observable. It is an implementation specific decision wether or not to close all the
+     * underlying CLAChannels that were previously openned.
      */
     void stop();
 
     /**
-     * Try to open a channel to the given EID CLA.
+     * Tries to open a channel to the given CLA-specific EID.
      *
-     * @param eid of the peer to open a channel too
+     * @param eid of the peer to open a channel too, must be CLA-specific
      * @return Single of CLAChannel if successful, error otherwise
      */
     Single<CLAChannel> open(CLA eid);

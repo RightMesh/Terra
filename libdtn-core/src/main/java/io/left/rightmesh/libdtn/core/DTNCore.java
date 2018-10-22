@@ -2,18 +2,14 @@ package io.left.rightmesh.libdtn.core;
 
 import io.left.rightmesh.libdtn.core.agents.http.APIDaemonHTTPAgent;
 import io.left.rightmesh.libdtn.core.agents.APIStaticApplicationAgent;
-import io.left.rightmesh.libdtn.core.agents.STCPAgent;
-import io.left.rightmesh.libdtn.core.processor.EventListener;
 import io.left.rightmesh.libdtn.core.routing.AARegistrar;
 import io.left.rightmesh.libdtn.core.routing.LinkLocalRouting;
-import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
 import io.left.rightmesh.libdtn.core.routing.RoutingTable;
 import io.left.rightmesh.libdtn.core.routing.SmartRouting;
-import io.left.rightmesh.libdtn.network.ConnectionAgent;
-import io.left.rightmesh.libdtn.network.DiscoveryAgent;
-import io.left.rightmesh.libdtn.network.cla.CLAManager;
-import io.left.rightmesh.libdtn.storage.bundle.Storage;
-import io.left.rightmesh.libdtn.utils.Log;
+import io.left.rightmesh.libdtn.core.network.DiscoveryAgent;
+import io.left.rightmesh.libdtn.core.network.CLAManager;
+import io.left.rightmesh.libdtn.core.storage.bundle.Storage;
+import io.left.rightmesh.libdtn.core.utils.Log;
 
 /**
  * DTNCore registers all the DTN Core Component.

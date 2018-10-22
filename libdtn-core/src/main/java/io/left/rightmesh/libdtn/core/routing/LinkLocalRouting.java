@@ -2,10 +2,10 @@ package io.left.rightmesh.libdtn.core.routing;
 
 import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
-import io.left.rightmesh.libdtn.events.ChannelClosed;
-import io.left.rightmesh.libdtn.events.ChannelOpened;
-import io.left.rightmesh.libdtn.events.LinkLocalEntryDown;
-import io.left.rightmesh.libdtn.events.LinkLocalEntryUp;
+import io.left.rightmesh.libdtn.core.events.ChannelClosed;
+import io.left.rightmesh.libdtn.core.events.ChannelOpened;
+import io.left.rightmesh.libdtn.core.events.LinkLocalEntryDown;
+import io.left.rightmesh.libdtn.core.events.LinkLocalEntryUp;
 import io.left.rightmesh.libdtn.modules.cla.CLAChannel;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.librxbus.RxBus;
@@ -16,7 +16,7 @@ import io.reactivex.Observable;
 import java.util.HashSet;
 import java.util.Set;
 
-import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_LINKLOCAL_ROUTING;
+import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_LINKLOCAL_ROUTING;
 
 /**
  * LinkLocalRouting is the link-local routing linkLocalTable. It contains all the linklocal EID

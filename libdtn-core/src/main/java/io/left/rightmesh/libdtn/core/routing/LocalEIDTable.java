@@ -1,6 +1,6 @@
 package io.left.rightmesh.libdtn.core.routing;
 
-import io.left.rightmesh.libdtn.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 
 import java.util.Set;

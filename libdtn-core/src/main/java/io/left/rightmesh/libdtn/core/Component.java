@@ -5,8 +5,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import io.left.rightmesh.libdtn.DTNConfiguration;
-import io.left.rightmesh.libdtn.utils.Log;
+import io.left.rightmesh.libdtn.core.utils.Log;
 
 /**
  * @author Lucien Loiseau on 27/09/18.

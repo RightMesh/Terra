@@ -10,7 +10,6 @@ import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
-import io.left.rightmesh.libdtn.common.data.MetaBundle;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Serializer;
 import io.left.rightmesh.libdtn.modules.cla.CLAChannel;

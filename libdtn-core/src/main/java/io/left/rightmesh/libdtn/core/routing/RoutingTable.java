@@ -4,13 +4,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import io.left.rightmesh.libdtn.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.reactivex.Observable;
 
-import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_STATIC_ROUTING;
-import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.STATIC_ROUTE_CONFIGURATION;
+import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_STATIC_ROUTING;
+import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.STATIC_ROUTE_CONFIGURATION;
 
 /**
  * Static Routing is a routing component that uses the static route table to take

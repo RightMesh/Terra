@@ -8,9 +8,9 @@ import java.util.Map;
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
-import io.left.rightmesh.libdtn.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.Component;
-import io.left.rightmesh.libdtn.storage.blob.Factory;
+import io.left.rightmesh.libdtn.core.storage.blob.Factory;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import io.left.rightmesh.libdtn.common.data.blob.NullBLOB;
 import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
@@ -18,7 +18,7 @@ import io.left.rightmesh.libdtnagent.RequestMessage;
 import io.left.rightmesh.libdtnagent.ResponseMessage;
 import io.left.rightmesh.librxtcp.RxTCP;
 
-import static io.left.rightmesh.libdtn.DTNConfiguration.Entry.COMPONENT_ENABLE_CBOR_DAEMON_API;
+import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_CBOR_DAEMON_API;
 
 /**
  * @author Lucien Loiseau on 28/09/18.

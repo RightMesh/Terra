@@ -2,16 +2,16 @@ package io.left.rightmesh.libdtn.core.agents.http;
 
 import java.util.Set;
 
-import io.left.rightmesh.libdtn.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
-import io.left.rightmesh.libdtn.utils.nettyrouter.Router;
+import io.left.rightmesh.libdtn.core.utils.nettyrouter.Router;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import rx.Observable;
 
-import static io.left.rightmesh.libdtn.utils.nettyrouter.Dispatch.using;
+import static io.left.rightmesh.libdtn.core.utils.nettyrouter.Dispatch.using;
 import static rx.Observable.just;
 
 /**
