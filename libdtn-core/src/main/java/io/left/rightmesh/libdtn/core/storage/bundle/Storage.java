@@ -8,7 +8,7 @@ import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.storage.blob.CoreBLOBFactory;
-import io.left.rightmesh.libdtn.core.utils.Log;
+import io.left.rightmesh.libdtn.core.utils.Logger;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -24,7 +24,7 @@ public class Storage {
     private VolatileStorage volatileStorage;
     private SimpleStorage simpleStorage;
     private BLOBFactory blobFactory;
-    private Log log;
+    private Logger logger;
 
     class IndexEntry {
         Bundle bundle;      /* either a bundle or a metabundle */
@@ -41,10 +41,10 @@ public class Storage {
     }
     Map<BundleID, IndexEntry> index = new ConcurrentHashMap<>();
 
-    public Storage(DTNConfiguration conf, Log log) {
-        this.log = log;
-        volatileStorage = new VolatileStorage(this, conf);
-        simpleStorage = new SimpleStorage(this, conf);
+    public Storage(DTNConfiguration conf, Logger logger) {
+        this.logger = logger;
+        volatileStorage = new VolatileStorage(this, conf, logger);
+        simpleStorage = new SimpleStorage(this, conf, logger);
         blobFactory = new CoreBLOBFactory(conf, simpleStorage);
     }
 
@@ -71,14 +71,14 @@ public class Storage {
         if (contains(bid)) {
             return index.get(bid);
         } else {
-            log.i(TAG, "new entry: " + bid.getBIDString());
+            logger.i(TAG, "new entry: " + bid.getBIDString());
             return addEntry(bid, bundle);
         }
     }
 
     void removeEntry(BundleID bid, IndexEntry entry) {
         if (index.containsKey(bid)) {
-            log.i(TAG, "deleting from storage: " + bid.getBIDString());
+            logger.i(TAG, "deleting from storage: " + bid.getBIDString());
             index.remove(bid, entry);
         }
     }

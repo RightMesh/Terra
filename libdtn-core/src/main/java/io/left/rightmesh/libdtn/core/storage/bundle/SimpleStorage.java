@@ -17,6 +17,7 @@ import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.Bundle;
@@ -25,10 +26,10 @@ import io.left.rightmesh.libdtn.common.data.MetaBundle;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Serializer;
-import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.events.BundleIndexed;
 import io.left.rightmesh.libdtn.core.storage.blob.FileBLOB;
 import io.left.rightmesh.libdtn.common.data.blob.NullBLOB;
+import io.left.rightmesh.libdtn.core.utils.Logger;
 import io.left.rightmesh.librxbus.RxBus;
 import io.reactivex.Observable;
 import io.reactivex.Completable;
@@ -65,10 +66,12 @@ public class SimpleStorage extends BaseComponent implements BundleStorage {
     private static final String BUNDLE_FOLDER = File.separator + "bundle" + File.separator;
 
     private Storage metaStorage;
+    private Log logger;
 
-    public SimpleStorage(Storage metaStorage, DTNConfiguration conf) {
+    public SimpleStorage(Storage metaStorage, DTNConfiguration conf, Log logger) {
         this.metaStorage = metaStorage;
-        initComponent(conf, COMPONENT_ENABLE_SIMPLE_STORAGE);
+        this.logger = logger;
+        initComponent(conf, COMPONENT_ENABLE_SIMPLE_STORAGE, logger);
         conf.<Set<String>>get(DTNConfiguration.Entry.SIMPLE_STORAGE_PATH).observe()
                 .subscribe(
                         updated_paths -> {
@@ -158,6 +161,7 @@ public class SimpleStorage extends BaseComponent implements BundleStorage {
              * preparing the parser. We just parse the file header and the primary block of
              * the bundle and then build a MetaBundle that will be use for processing
              */
+            BundleV7Parser bundleParser = new BundleV7Parser(logger);
             CborParser parser = CBOR.parser()
                     .cbor_open_array(2)
                     .cbor_parse_custom_item(
@@ -168,7 +172,7 @@ public class SimpleStorage extends BaseComponent implements BundleStorage {
                     .cbor_open_array((__, ___, ____) -> {
                     }) /* we are just parsing te primary block */
                     .cbor_parse_custom_item(
-                            BundleV7Parser.PrimaryBlockItem::new,
+                            bundleParser::createPrimaryBlockItem,
                             (p, ___, item) -> {
                                 MetaBundle meta = new MetaBundle(item.b);
                                 Storage.IndexEntry entry = metaStorage.getEntryOrCreate(meta.bid, meta);
@@ -419,13 +423,14 @@ public class SimpleStorage extends BaseComponent implements BundleStorage {
             }
 
             /* preparing file and parser */
+            BundleV7Parser bundleParser = new BundleV7Parser(logger);
             CborParser parser = CBOR.parser()
                     .cbor_open_array(2)
                     .cbor_parse_custom_item(
                             FileHeaderItem::new,
                             (p, ___, item) -> p.setReg(0, item))
                     .cbor_parse_custom_item(
-                            BundleV7Parser.BundleItem::new,
+                            bundleParser::createBundleItem,
                             (p, ___, item) -> {
                                 if (p.<FileHeaderItem>getReg(0).has_blob) {
                                     String path = p.<FileHeaderItem>getReg(0).blob_path;

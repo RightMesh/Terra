@@ -8,14 +8,14 @@ import java.util.concurrent.TimeUnit;
 
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libdtn.common.utils.NullLogger;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.storage.TestBundle;
-import io.left.rightmesh.libdtn.core.storage.blob.CoreBLOBFactory;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Serializer;
 import io.left.rightmesh.libdtn.core.storage.bundle.Storage;
-import io.left.rightmesh.libdtn.core.utils.Log;
+import io.left.rightmesh.libdtn.core.utils.Logger;
 import io.left.rightmesh.librxtcp.RxTCP;
 
 import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_SIMPLE_STORAGE;
@@ -34,18 +34,18 @@ public class RxTCPSerializedBundleTest {
         DTNConfiguration conf = new DTNConfiguration();
         conf.<Boolean>get(COMPONENT_ENABLE_VOLATILE_STORAGE).update(true);
         conf.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(false);
-        Storage storage = new Storage(conf, new Log(conf));
+        Storage storage = new Storage(conf, new Logger(conf));
 
         CountDownLatch lock = new CountDownLatch(6);
         Bundle[] recv = {null, null, null, null, null, null};
         int[] i = {0};
 
-
         new RxTCP.SimpleServer(4561)
                 .start().subscribe(
                 connection -> {
                     // prepare parser
-                    CborParser p = BundleV7Parser.create(b -> {
+                    BundleV7Parser bundleParser = new BundleV7Parser(new NullLogger());
+                    CborParser p = bundleParser.createBundleParser(b -> {
                         recv[i[0]++] = b;
                     }, storage.getBlobFactory());
 

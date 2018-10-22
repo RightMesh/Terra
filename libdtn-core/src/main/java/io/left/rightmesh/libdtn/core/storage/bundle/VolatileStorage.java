@@ -5,6 +5,7 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.MetaBundle;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.utils.Logger;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -22,9 +23,9 @@ public class VolatileStorage extends BaseComponent implements BundleStorage {
 
     private Storage metaStorage;
 
-    public VolatileStorage(Storage metaStorage, DTNConfiguration conf) {
+    public VolatileStorage(Storage metaStorage, DTNConfiguration conf, Logger logger) {
         this.metaStorage = metaStorage;
-        initComponent(conf, COMPONENT_ENABLE_VOLATILE_STORAGE);
+        initComponent(conf, COMPONENT_ENABLE_VOLATILE_STORAGE, logger);
     }
 
     @Override

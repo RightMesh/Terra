@@ -9,10 +9,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.core.storage.bundle.SimpleStorage;
 import io.left.rightmesh.libdtn.core.storage.bundle.Storage;
-import io.left.rightmesh.libdtn.core.storage.bundle.VolatileStorage;
-import io.left.rightmesh.libdtn.core.utils.Log;
+import io.left.rightmesh.libdtn.core.utils.Logger;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 
@@ -40,7 +38,7 @@ public class StorageTest {
             paths.add(System.getProperty("path"));
             File dir = new File(System.getProperty("path") + "/bundle/");
             conf.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
-            storage = new Storage(conf, new Log(conf));
+            storage = new Storage(conf, new Logger(conf));
 
             Bundle[] bundles = {
                     TestBundle.testBundle1(),

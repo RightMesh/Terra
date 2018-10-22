@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.core.agents.http;
+package io.left.rightmesh.libdtn.core.api.http;
 
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.BaseComponent;
@@ -36,7 +36,7 @@ public class APIDaemonHTTPAgent extends BaseComponent {
         networkAPI = new NetworkAPI(core);
         storageAPI = new StorageAPI(core);
         applicationAgentAPI = new ApplicationAgentAPI(core);
-        initComponent(core.getConf(), COMPONENT_ENABLE_DAEMON_HTTP_API);
+        initComponent(core.getConf(), COMPONENT_ENABLE_DAEMON_HTTP_API, core.getLogger());
     }
 
     @Override
@@ -46,7 +46,6 @@ public class APIDaemonHTTPAgent extends BaseComponent {
 
     @Override
     protected void componentUp() {
-        core.getLogger().d(TAG, "Enabled");
         int serverPort = (Integer) core.getConf().get(DTNConfiguration.Entry.API_DAEMON_HTTP_API_PORT).value();
         server = HttpServer.newServer(serverPort)
                 .start(using(new Router<ByteBuf, ByteBuf>()
@@ -66,7 +65,6 @@ public class APIDaemonHTTPAgent extends BaseComponent {
 
     @Override
     protected void componentDown() {
-        core.getLogger().d(TAG, "Disabled");
         if (server != null) {
             server.shutdown();
         }

@@ -5,8 +5,7 @@ import org.junit.Test;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.core.storage.bundle.Storage;
-import io.left.rightmesh.libdtn.core.storage.bundle.VolatileStorage;
-import io.left.rightmesh.libdtn.core.utils.Log;
+import io.left.rightmesh.libdtn.core.utils.Logger;
 
 import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_SIMPLE_STORAGE;
 import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_VOLATILE_STORAGE;
@@ -26,7 +25,7 @@ public class VolatileStorageTest {
             DTNConfiguration conf = new DTNConfiguration();
             conf.<Boolean>get(COMPONENT_ENABLE_VOLATILE_STORAGE).update(true);
             conf.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(false);
-            Storage storage = new Storage(conf, new Log(conf));
+            Storage storage = new Storage(conf, new Logger(conf));
 
             Bundle[] bundles = {
                     TestBundle.testBundle1(),

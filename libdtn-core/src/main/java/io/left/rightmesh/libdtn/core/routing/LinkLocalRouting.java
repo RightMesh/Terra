@@ -2,7 +2,6 @@ package io.left.rightmesh.libdtn.core.routing;
 
 import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
-import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.events.ChannelClosed;
 import io.left.rightmesh.libdtn.core.events.ChannelOpened;
@@ -32,7 +31,7 @@ public class LinkLocalRouting extends BaseComponent {
 
     public LinkLocalRouting(DTNCore core) {
         linkLocalTable = new HashSet<>();
-        initComponent(core.getConf(), COMPONENT_ENABLE_LINKLOCAL_ROUTING);
+        initComponent(core.getConf(), COMPONENT_ENABLE_LINKLOCAL_ROUTING, core.getLogger());
     }
 
     private Set<CLAChannel> linkLocalTable;
@@ -94,7 +93,7 @@ public class LinkLocalRouting extends BaseComponent {
 
     @Subscribe
     public void onEvent(ChannelClosed event) {
-        channelOpened(event.channel);
+        channelClosed(event.channel);
     }
 
 

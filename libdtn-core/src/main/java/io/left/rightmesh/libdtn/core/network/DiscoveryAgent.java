@@ -6,10 +6,8 @@ import io.left.rightmesh.libdetect.PeerReachable;
 import io.left.rightmesh.libdetect.PeerUnreachable;
 import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.libdtn.core.DTNCore;
-import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.core.events.ChannelClosed;
 import io.left.rightmesh.libdtn.core.events.ChannelOpened;
-import io.left.rightmesh.libdtn.core.utils.Log;
 import io.left.rightmesh.librxbus.RxBus;
 
 import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.ENABLE_COMPONENT_DETECT_PEER_ON_LAN;
@@ -32,7 +30,7 @@ public class DiscoveryAgent extends BaseComponent {
 
     public DiscoveryAgent(DTNCore core) {
         this.core = core;
-        initComponent(core.getConf(), ENABLE_COMPONENT_DETECT_PEER_ON_LAN);
+        initComponent(core.getConf(), ENABLE_COMPONENT_DETECT_PEER_ON_LAN, core.getLogger());
     }
 
     @Override

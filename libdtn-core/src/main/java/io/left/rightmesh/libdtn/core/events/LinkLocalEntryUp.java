@@ -10,4 +10,9 @@ public class LinkLocalEntryUp {
     public LinkLocalEntryUp(CLAChannel cla) {
         this.channel = cla;
     }
+
+    @Override
+    public String toString() {
+        return "New link-local entry: local="+channel.localEID().getEIDString()+" peer="+channel.channelEID().getEIDString();
+    }
 }

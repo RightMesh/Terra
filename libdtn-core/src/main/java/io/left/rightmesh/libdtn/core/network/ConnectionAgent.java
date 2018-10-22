@@ -6,7 +6,6 @@ import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
 import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.modules.cla.CLAChannel;
-import io.left.rightmesh.libdtn.core.utils.Log;
 
 import io.reactivex.Single;
 
@@ -27,7 +26,7 @@ public class ConnectionAgent extends BaseComponent {
 
     public ConnectionAgent(DTNCore core) {
         this.core = core;
-        initComponent(core.getConf(), COMPONENT_ENABLE_CONNECTION_AGENT);
+        initComponent(core.getConf(), COMPONENT_ENABLE_CONNECTION_AGENT, core.getLogger());
     }
 
     @Override
@@ -51,7 +50,7 @@ public class ConnectionAgent extends BaseComponent {
         final CLASTCP eid = new CLASTCP(host, 4556, "/");
         final String opp = "cla=" + eid.getCLAName() + " peer=" + eid.getCLASpecificPart();
         core.getLogger().d(TAG, "trying to create an opportunity with "+opp+" "+Thread.currentThread().getName());
-        return CLAManager.openChannel(eid)
+        return core.getClaManager().openChannel(eid)
                 .doOnError(e -> core.getLogger().d(TAG, "opportunity creation failed: " + opp))
                 .doOnSuccess((c) -> core.getLogger().d(TAG, "opportunity creation success: " + opp));
     }
@@ -71,7 +70,7 @@ public class ConnectionAgent extends BaseComponent {
 
         final String opp = "cla=" + eid.getCLAName() + " peer=" + eid.getCLASpecificPart();
         core.getLogger().d(TAG, "trying to create an opportunity with "+opp);
-        return CLAManager.openChannel(eid)
+        return core.getClaManager().openChannel(eid)
                 .doOnError(e -> core.getLogger().d(TAG, "opportunity creation failed: " + opp))
                 .doOnSuccess((c) -> core.getLogger().d(TAG, "opportunity creation success: " + opp));
     }

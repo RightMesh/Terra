@@ -1,9 +1,8 @@
-package io.left.rightmesh.libdtn.core.agents.http;
+package io.left.rightmesh.libdtn.core.api.http;
 
 import java.nio.charset.Charset;
 
 import io.left.rightmesh.libdtn.core.DTNCore;
-import io.left.rightmesh.libdtn.core.routing.AARegistrar;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.left.rightmesh.libdtn.core.utils.nettyrouter.Router;

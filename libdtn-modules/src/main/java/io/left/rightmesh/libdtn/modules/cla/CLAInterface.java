@@ -1,6 +1,7 @@
 package io.left.rightmesh.libdtn.modules.cla;
 
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
+import io.left.rightmesh.libdtn.common.utils.Log;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 
@@ -10,6 +11,13 @@ import io.reactivex.Single;
  * @author Lucien Loiseau on 16/10/18.
  */
 public interface CLAInterface {
+
+    /**
+     * Set the logger
+     *
+     * @param logger
+     */
+    void setLogger(Log logger);
 
     /**
      * The name for this CLA must be the exact same one that is used in a EIDCLA to identify

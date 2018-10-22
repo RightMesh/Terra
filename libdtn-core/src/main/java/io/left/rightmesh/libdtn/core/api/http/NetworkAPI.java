@@ -1,9 +1,6 @@
-package io.left.rightmesh.libdtn.core.agents.http;
+package io.left.rightmesh.libdtn.core.api.http;
 
-import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.DTNCore;
-import io.left.rightmesh.libdtn.core.routing.LinkLocalRouting;
-import io.left.rightmesh.libdtn.core.routing.RoutingTable;
 import io.left.rightmesh.libdtn.core.utils.nettyrouter.Router;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;

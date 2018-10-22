@@ -1,7 +1,7 @@
 package io.left.rightmesh.libdtn.core;
 
-import io.left.rightmesh.libdtn.core.agents.http.APIDaemonHTTPAgent;
-import io.left.rightmesh.libdtn.core.agents.APIStaticApplicationAgent;
+import io.left.rightmesh.libdtn.core.api.http.APIDaemonHTTPAgent;
+import io.left.rightmesh.libdtn.core.api.APIStaticApplicationAgent;
 import io.left.rightmesh.libdtn.core.network.ConnectionAgent;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.core.routing.AARegistrar;
@@ -13,7 +13,7 @@ import io.left.rightmesh.libdtn.core.routing.SmartRouting;
 import io.left.rightmesh.libdtn.core.network.DiscoveryAgent;
 import io.left.rightmesh.libdtn.core.network.CLAManager;
 import io.left.rightmesh.libdtn.core.storage.bundle.Storage;
-import io.left.rightmesh.libdtn.core.utils.Log;
+import io.left.rightmesh.libdtn.core.utils.Logger;
 
 /**
  * DTNCore registers all the DTN Core BaseComponent.
@@ -25,7 +25,7 @@ public class DTNCore {
     public static final String TAG = "DTNCore";
 
     private DTNConfiguration conf;
-    private Log log;
+    private Logger logger;
     private LocalEIDTable localEIDTable;
     private LinkLocalRouting linkLocalRouting;
     private RoutingTable routingTable;
@@ -43,21 +43,31 @@ public class DTNCore {
     public static DTNCore init(DTNConfiguration conf) {
         DTNCore core = new DTNCore();
         core.conf = conf;
-        core.log = new Log(conf);
+
+        /* core */
+        core.logger = new Logger(conf);
         core.localEIDTable = new LocalEIDTable(core);
+
+        /* routing */
         core.linkLocalRouting = new LinkLocalRouting(core);
         core.routingTable = new RoutingTable(core);
-        core.routingEngine = new RoutingEngine(core);
         core.smartRouting = new SmartRouting(core);
+        core.routingEngine = new RoutingEngine(core);
         core.aaRegistrar = new AARegistrar(core);
-        core.storage = new Storage(core.conf, core.log);
+
+        /*  core */
+        core.storage = new Storage(core.conf, core.logger);
         core.bundleProcessor = new BundleProcessor(core);
+
+        /* network */
         core.connectionAgent = new ConnectionAgent(core);
         core.discoveryAgent = new DiscoveryAgent(core);
+        core.claManager = new CLAManager(core);
+
+        /* api */
         core.staticApi = new APIStaticApplicationAgent(core);
         core.httpApi = new APIDaemonHTTPAgent(core);
-        core.discoveryAgent = new DiscoveryAgent(core);
-        core.claManager = new CLAManager(core);
+
         return core;
     }
 
@@ -65,8 +75,8 @@ public class DTNCore {
         return conf;
     }
 
-    public Log getLogger() {
-        return log;
+    public Logger getLogger() {
+        return logger;
     }
 
     public LocalEIDTable getLocalEIDTable() {
@@ -109,4 +119,7 @@ public class DTNCore {
         return bundleProcessor;
     }
 
+    public CLAManager getClaManager() {
+        return claManager;
+    }
 }

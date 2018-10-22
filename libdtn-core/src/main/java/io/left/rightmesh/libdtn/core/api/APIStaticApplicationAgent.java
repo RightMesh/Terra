@@ -1,8 +1,7 @@
-package io.left.rightmesh.libdtn.core.agents;
+package io.left.rightmesh.libdtn.core.api;
 
 import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.libdtn.core.DTNCore;
-import io.left.rightmesh.libdtn.core.routing.AARegistrar;
 import io.left.rightmesh.libdtn.core.routing.AARegistrar.RegistrationCallback;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
@@ -26,7 +25,7 @@ public class APIStaticApplicationAgent extends BaseComponent {
 
     public APIStaticApplicationAgent(DTNCore core) {
         this.core = core;
-        initComponent(core.getConf(), COMPONENT_ENABLE_STATIC_API);
+        initComponent(core.getConf(), COMPONENT_ENABLE_STATIC_API, core.getLogger());
     }
 
     @Override

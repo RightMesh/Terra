@@ -11,4 +11,9 @@ public class LinkLocalEntryDown {
     public LinkLocalEntryDown(CLAChannel channel) {
         this.channel = channel;
     }
+
+    @Override
+    public String toString() {
+        return "Delete link-local entry: local="+channel.localEID().getEIDString()+" peer="+channel.channelEID().getEIDString();
+    }
 }

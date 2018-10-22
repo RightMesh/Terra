@@ -13,4 +13,10 @@ public class BundleAvailable implements DTNEvent {
         this.bundle = b;
         this.sink = sink;
     }
+
+
+    @Override
+    public String toString() {
+        return "New bundle: bid="+bundle.bid.getBIDString()+" to: "+bundle.destination.getEIDString();
+    }
 }

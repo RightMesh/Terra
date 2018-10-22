@@ -12,4 +12,9 @@ public class BundleDeleted {
     public BundleDeleted(BundleID bid) {
         this.bid = bid;
     }
+
+    @Override
+    public String toString() {
+        return "Bundle deleted: bid="+bid.getBIDString();
+    }
 }

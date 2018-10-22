@@ -1,11 +1,10 @@
-package io.left.rightmesh.libdtn.core.agents.http;
+package io.left.rightmesh.libdtn.core.api.http;
 
 import java.util.Set;
 
 import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.DTNCore;
-import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.core.utils.nettyrouter.Router;
 import io.netty.buffer.ByteBuf;

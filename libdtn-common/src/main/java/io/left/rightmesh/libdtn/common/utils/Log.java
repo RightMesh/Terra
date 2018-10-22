@@ -5,23 +5,9 @@ package io.left.rightmesh.libdtn.common.utils;
  *
  * @author Lucien Loiseau on 15/09/18.
  */
-public class Log {
+public interface Log {
 
-    private static final String TAG = "Log";
-
-    // ---- SINGLETON ----
-    private static Log instance;
-
-    public static Log getInstance() {
-        return instance;
-    }
-
-    static {
-        instance = new Log();
-        level = LOGLevel.INFO;
-    }
-
-    public enum LOGLevel {
+    enum LOGLevel {
         VERBOSE("VERBOSE"),
         DEBUG("DEBUG"),
         INFO("INFO"),
@@ -40,36 +26,13 @@ public class Log {
         }
     }
 
-    private static LOGLevel level;
+    void v(String tag, String msg);
 
-    private static void log(LOGLevel l, String tag, String msg) {
-        if (l.ordinal() >= level.ordinal()) {
-            System.out.println(l + " - " + tag + ": " + msg);
-        }
-    }
+    void d(String tag, String msg);
 
-    public static void set(LOGLevel level) {
-        Log.level = level;
-    }
+    void i(String tag, String msg);
 
-    public static void v(String tag, String msg) {
-        log(LOGLevel.VERBOSE, tag, msg);
-    }
+    void w(String tag, String msg);
 
-    public static void d(String tag, String msg) {
-        log(LOGLevel.DEBUG, tag, msg);
-    }
-
-    public static void i(String tag, String msg) {
-        log(LOGLevel.INFO, tag, msg);
-    }
-
-    public static void w(String tag, String msg) {
-        log(LOGLevel.WARN, tag, msg);
-    }
-
-    public static void e(String tag, String msg) {
-        log(LOGLevel.ERROR, tag, msg);
-    }
-
+    void e(String tag, String msg);
 }

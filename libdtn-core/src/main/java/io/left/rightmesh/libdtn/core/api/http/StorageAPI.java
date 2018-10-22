@@ -1,7 +1,6 @@
-package io.left.rightmesh.libdtn.core.agents.http;
+package io.left.rightmesh.libdtn.core.api.http;
 
 import io.left.rightmesh.libdtn.core.DTNCore;
-import io.left.rightmesh.libdtn.core.storage.bundle.Storage;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
 import static rx.Observable.just;

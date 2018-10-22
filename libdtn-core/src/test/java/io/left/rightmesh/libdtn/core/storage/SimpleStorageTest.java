@@ -15,9 +15,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 
-import io.left.rightmesh.libdtn.core.storage.bundle.SimpleStorage;
 import io.left.rightmesh.libdtn.core.storage.bundle.Storage;
-import io.left.rightmesh.libdtn.core.utils.Log;
+import io.left.rightmesh.libdtn.core.utils.Logger;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
@@ -50,7 +49,7 @@ public class SimpleStorageTest {
             conf.<Boolean>get(COMPONENT_ENABLE_VOLATILE_STORAGE).update(false);
             conf.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(true);
             conf.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
-            storage = new Storage(conf, new Log(conf));
+            storage = new Storage(conf, new Logger(conf));
 
             Bundle[] bundles = {
                     TestBundle.testBundle1(),

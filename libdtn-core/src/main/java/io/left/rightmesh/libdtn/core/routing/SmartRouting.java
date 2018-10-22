@@ -15,7 +15,7 @@ public class SmartRouting extends BaseComponent {
     private static final String TAG = "SmartRouting";
 
     public SmartRouting(DTNCore core) {
-        initComponent(core.getConf(), COMPONENT_ENABLE_SMART_ROUTING);
+        initComponent(core.getConf(), COMPONENT_ENABLE_SMART_ROUTING, core.getLogger());
     }
 
     @Override

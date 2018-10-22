@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.core.agents;
+package io.left.rightmesh.libdtn.core.api;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -33,7 +33,7 @@ public class APIDaemonCBORAgent extends BaseComponent {
     private final Map<RequestMessage.RequestCode, Action> ACTIONS;
 
     public APIDaemonCBORAgent(DTNCore core) {
-        initComponent(core.getConf(), COMPONENT_ENABLE_CBOR_DAEMON_API);
+        initComponent(core.getConf(), COMPONENT_ENABLE_CBOR_DAEMON_API, core.getLogger());
         final HashMap<RequestMessage.RequestCode, Action> actionMap = new HashMap<>();
         actionMap.put(RequestMessage.RequestCode.REGISTER, new RegisterAction());
         actionMap.put(RequestMessage.RequestCode.UNREGISTER, new UnregisterAction());

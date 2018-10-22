@@ -22,6 +22,7 @@ import io.left.rightmesh.libdtn.common.data.PreviousNodeBlock;
 import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.common.data.ScopeControlHopLimitBlock;
 import io.left.rightmesh.libdtn.common.data.eid.IPN;
+import io.left.rightmesh.libdtn.common.utils.NullLogger;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -120,7 +121,8 @@ public class BundleV7Test {
             CborEncoder enc = BundleV7Serializer.encode(bundle);
 
             // prepare parser
-            CborParser p = BundleV7Parser.create(b -> {
+            BundleV7Parser bundleParser = new BundleV7Parser(new NullLogger());
+            CborParser p = bundleParser.createBundleParser(b -> {
                 res[0] = b;
             }, ByteBufferBLOB::new);
 

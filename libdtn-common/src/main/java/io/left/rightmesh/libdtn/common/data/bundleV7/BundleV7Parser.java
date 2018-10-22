@@ -41,11 +41,33 @@ public class BundleV7Parser  {
         void onBundleParsed(Bundle b);
     }
 
-    public static CborParser create(BundleParsedCallback cb, BLOBFactory factory) {
+    private Log logger;
+
+    public BundleV7Parser(Log logger) {
+        this.logger = logger;
+    }
+
+    public CborParser createBundleParser(BundleParsedCallback cb, BLOBFactory factory) {
         return CBOR.parser().cbor_parse_custom_item(() -> new BundleItem(factory), (__, ___, item) -> cb.onBundleParsed(item.bundle));
     }
 
-    public static class BundleItem implements CborParser.ParseableItem {
+    public BundleItem createBundleItem() {
+        return new BundleItem();
+    }
+
+    public PrimaryBlockItem createPrimaryBlockItem() {
+        return new PrimaryBlockItem();
+    }
+
+    public CanonicalBlockItem createCanonicalBlockItem() {
+        return new CanonicalBlockItem();
+    }
+
+    public EIDItem createEIDItem() {
+        return new EIDItem();
+    }
+
+    public class BundleItem implements CborParser.ParseableItem {
 
         public Bundle bundle = null;
         BLOBFactory factory;
@@ -63,20 +85,20 @@ public class BundleV7Parser  {
         public CborParser getItemParser() {
             return CBOR.parser()
                     .cbor_open_array((__, ___, ____) -> {
-                        Log.v(TAG, "[+] parsing new bundle");
+                        logger.v(TAG, "[+] parsing new bundle");
                     })
                     .cbor_parse_custom_item(PrimaryBlockItem::new, (__, ___, item) -> {
-                        Log.v(TAG, "-> primary block parsed");
+                        logger.v(TAG, "-> primary block parsed");
                         bundle = item.b;
                     })
                     .cbor_parse_array_items(() -> new CanonicalBlockItem(factory), (__, ___, item) -> {
-                        Log.v(TAG, "-> canonical block parsed");
+                        logger.v(TAG, "-> canonical block parsed");
                         bundle.addBlock(item.block);
                     });
         }
     }
 
-    public static class PrimaryBlockItem extends BlockWithCRC {
+    public class PrimaryBlockItem extends BlockWithCRC {
 
         public Bundle b;
 
@@ -84,14 +106,14 @@ public class BundleV7Parser  {
         public CborParser getItemParser() {
             return CBOR.parser()
                     .do_here((__) -> {
-                        Log.v(TAG, ". preparing primary block CRC");
+                        logger.v(TAG, ". preparing primary block CRC");
                         crc16 = CRC.init(CRC.CRCType.CRC16); // prepare CRC16 feeding
                         crc32 = CRC.init(CRC.CRCType.CRC32); // prepare CRC32 feeding
                     })
                     .do_for_each("crc-16", (__, buffer) -> crc16.read(buffer)) // feed CRC16 with every parsed buffer from this sequence
                     .do_for_each("crc-32", (__, buffer) -> crc32.read(buffer)) // feed CRC32 with every parsed buffer from this sequence
                     .cbor_open_array((__, ___, i) -> {
-                        Log.v(TAG, ". array size="+i);
+                        logger.v(TAG, ". array size="+i);
                         if ((i < 8) || (i > 11)) {
                             throw new RxParserException("wrong number of element in primary block");
                         } else {
@@ -99,15 +121,15 @@ public class BundleV7Parser  {
                         }
                     })
                     .cbor_parse_int((__, ___, i) -> {
-                        Log.v(TAG, ". version="+i);
+                        logger.v(TAG, ". version="+i);
                         b.version = (int) i;
                     })
                     .cbor_parse_int((__, ___, i) -> {
-                        Log.v(TAG, ". flags="+i);
+                        logger.v(TAG, ". flags="+i);
                         b.procV7Flags = i;
                     })
                     .cbor_parse_int((p, ___, i) -> {
-                        Log.v(TAG, ". crc="+i);
+                        logger.v(TAG, ". crc="+i);
                         switch ((int) i) {
                             case 0:
                                 b.crcType = PrimaryBlock.CRCFieldType.NO_CRC;
@@ -129,44 +151,49 @@ public class BundleV7Parser  {
                         }
                     })
                     .cbor_parse_custom_item(EIDItem::new, (__, ___, item) -> {
-                        Log.v(TAG, ". destination="+item.eid.getEIDString());
+                        logger.v(TAG, ". destination="+item.eid.getEIDString());
                         b.destination = item.eid;
                     })
                     .cbor_parse_custom_item(EIDItem::new, (__, ___, item) -> {
-                        Log.v(TAG, ". source="+item.eid.getEIDString());
+                        logger.v(TAG, ". source="+item.eid.getEIDString());
                         b.source = item.eid;
                     })
                     .cbor_parse_custom_item(EIDItem::new, (__, ___, item) -> {
-                        Log.v(TAG, ". reportto="+item.eid.getEIDString());
+                        logger.v(TAG, ". reportto="+item.eid.getEIDString());
                         b.reportto = item.eid;
                     })
                     .cbor_open_array(2)
                     .cbor_parse_int((__, ___, i) -> {
-                        Log.v(TAG, ". creationTimestamp="+i);
+                        logger.v(TAG, ". creationTimestamp="+i);
                         b.creationTimestamp = i;
                     })
                     .cbor_parse_int((__, ___, i) -> {
-                        Log.v(TAG, ". sequenceNumber="+i);
+                        logger.v(TAG, ". sequenceNumber="+i);
                         b.sequenceNumber = i;
                         b.bid = BundleID.create(b.source, b.creationTimestamp, b.sequenceNumber);
                     })
                     .cbor_parse_int((__, ___, i) -> {
-                        Log.v(TAG, ". lifetime="+i);
+                        logger.v(TAG, ". lifetime="+i);
                         b.lifetime = i;
                     })
                     .do_here(p -> p.insert_now(close_crc)) // validate close_crc
                     .do_here(__ -> {
-                        Log.v(TAG, ". crc_check="+this.crc_ok);
+                        logger.v(TAG, ". crc_check="+this.crc_ok);
                         b.tag("crc_check", this.crc_ok);
                     }); // tag the block
         }
     }
 
-    public static class CanonicalBlockItem extends BlockWithCRC {
+    public class CanonicalBlockItem extends BlockWithCRC {
 
         public CanonicalBlock block;
         CborParser payload;
         BLOBFactory factory;
+
+        CanonicalBlockItem() {
+            this.factory = ByteBufferBLOB::new;
+        }
+
         CanonicalBlockItem(BLOBFactory factory) {
             this.factory = factory;
         }
@@ -175,20 +202,20 @@ public class BundleV7Parser  {
         public CborParser getItemParser() {
             return CBOR.parser()
                     .do_here((__) -> {
-                        Log.v(TAG, ". preparing canonical block CRC");
+                        logger.v(TAG, ". preparing canonical block CRC");
                         crc16 = CRC.init(CRC.CRCType.CRC16); // prepare CRC16 feeding
                         crc32 = CRC.init(CRC.CRCType.CRC32); // prepare CRC32 feeding
                     })
                     .do_for_each("crc-16", (__, buffer) -> crc16.read(buffer))
                     .do_for_each("crc-32", (__, buffer) -> crc32.read(buffer))
                     .cbor_open_array((__, ___, i) -> {
-                        Log.v(TAG, ". array size="+i);
+                        logger.v(TAG, ". array size="+i);
                         if ((i != 5) && (i != 6)) {
                             throw new RxParserException("wrong number of element in canonical block");
                         }
                     })
                     .cbor_parse_int((p, __, i) -> { // block type
-                        Log.v(TAG, ". type="+i);
+                        logger.v(TAG, ". type="+i);
                         switch ((int) i) {
                             case PayloadBlock.type:
                                 block = new PayloadBlock();
@@ -225,15 +252,15 @@ public class BundleV7Parser  {
                         }
                     })
                     .cbor_parse_int((__, ___, i) -> {
-                        Log.v(TAG, ". number="+i);
+                        logger.v(TAG, ". number="+i);
                         block.number = (int) i;
                     })
                     .cbor_parse_int((__, ___, i) -> {
-                        Log.v(TAG, ". procV7flags="+i);
+                        logger.v(TAG, ". procV7flags="+i);
                         block.procV7flags = i;
                     })
                     .cbor_parse_int((p, ___, i) -> {
-                        Log.v(TAG, ". crc="+i);
+                        logger.v(TAG, ". crc="+i);
                         switch ((int) i) {
                             case 0:
                                 block.crcType = BlockHeader.CRCFieldType.NO_CRC;
@@ -257,7 +284,7 @@ public class BundleV7Parser  {
                     .do_here(p -> p.insert_now(payload))
                     .do_here(p -> p.insert_now(close_crc))  // validate close_crc
                     .do_here(__ -> {
-                        Log.v(TAG, ". crc_check="+this.crc_ok);
+                        logger.v(TAG, ". crc_check="+this.crc_ok);
                         block.tag("crc_check", this.crc_ok);
                     }); // tag the block
         }
@@ -313,7 +340,7 @@ public class BundleV7Parser  {
                 .cbor_parse_int((p, __, i) -> ((ScopeControlHopLimitBlock) block).limit = i);
     }
 
-    abstract static class BlockWithCRC implements CborParser.ParseableItem {
+    abstract class BlockWithCRC implements CborParser.ParseableItem {
 
         CborParser close_crc = CBOR.parser();
 
@@ -352,7 +379,7 @@ public class BundleV7Parser  {
                         });
     }
 
-    public static class EIDItem implements CborParser.ParseableItem {
+    public class EIDItem implements CborParser.ParseableItem {
 
         public EID eid;
 

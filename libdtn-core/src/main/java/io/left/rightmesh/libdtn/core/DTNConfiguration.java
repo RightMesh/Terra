@@ -1,7 +1,7 @@
 package io.left.rightmesh.libdtn.core;
 
 import io.left.rightmesh.libdtn.common.data.eid.EID;
-import io.left.rightmesh.libdtn.core.utils.Log;
+import io.left.rightmesh.libdtn.core.utils.Logger;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 
@@ -252,7 +252,7 @@ public class DTNConfiguration {
         this.createEntry(Entry.AUTO_CONNECT_USE_WHITELIST, true);
         this.<String>createEntrySet(Entry.AUTO_CONNECT_WHITELIST);
         this.createEntry(Entry.EID_SINGLETON_ONLY, false);
-        this.createEntry(Entry.COMPONENT_ENABLE_CLA_LOAD_MODULES, true);
+        this.createEntry(Entry.COMPONENT_ENABLE_CLA_LOAD_MODULES, false);
         this.createEntry(Entry.MODULES_CLA_PATH, "/etc/terra/modules/cla/");
         this.createEntry(Entry.COMPONENT_ENABLE_CLA_STCP, true);
         this.createEntry(Entry.CLA_STCP_LISTENING_PORT, 4556);
@@ -266,7 +266,7 @@ public class DTNConfiguration {
         this.<String>createEntrySet(Entry.SIMPLE_STORAGE_PATH);
         this.createEntry(Entry.LIMIT_BLOCKSIZE, (long) 1000000000);
         this.createEntry(Entry.COMPONENT_ENABLE_LOGGING, true);
-        this.<Log.LOGLevel>createEntry(Entry.LOG_LEVEL, Log.LOGLevel.VERBOSE);
+        this.<Logger.LOGLevel>createEntry(Entry.LOG_LEVEL, Logger.LOGLevel.VERBOSE);
         this.createEntry(Entry.ENABLE_LOG_FILE, false);
         this.createEntry(Entry.LOG_FILE_PATH, "");
     }

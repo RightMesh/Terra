@@ -4,11 +4,14 @@ import java.util.concurrent.Callable;
 
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.DTNCore;
-import io.left.rightmesh.libdtn.core.agents.APIStaticApplicationAgent;
+import io.left.rightmesh.libdtn.core.api.APIStaticApplicationAgent;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
+
+import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_CLA_LOAD_MODULES;
+import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.MODULES_CLA_PATH;
 
 @Command(
         name = "terra", mixinStandardHelpOptions = true, version = "terra 1.0",
@@ -51,6 +54,8 @@ public class Terra implements Callable<Void> {
     @Override
     public Void call() throws Exception {
         DTNConfiguration conf = new DTNConfiguration();
+        conf.get(COMPONENT_ENABLE_CLA_LOAD_MODULES).update(true);
+        conf.get(MODULES_CLA_PATH).update("/home/lucien/work/rightmesh/code/rightmeshdtn/modules/cla/libdtn-module-stcp/build/libs/");
         DTNCore core = DTNCore.init(conf);
         core.staticAPI().register("/netflix/video/", new APIStaticApplicationAgent.StaticAPICallback() {
             @Override

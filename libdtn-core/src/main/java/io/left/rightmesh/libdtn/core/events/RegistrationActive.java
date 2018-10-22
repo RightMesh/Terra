@@ -14,4 +14,9 @@ public class RegistrationActive implements DTNEvent {
         this.sink = sink;
         this.cb = cb;
     }
+
+    @Override
+    public String toString() {
+        return "Registration active: sink="+sink;
+    }
 }

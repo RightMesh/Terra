@@ -44,7 +44,7 @@ public class AARegistrar extends BaseComponent {
         this.core = core;
         registrations = new ConcurrentHashMap<>();
         listener = new DeliveryListener(core);
-        initComponent(core.getConf(), COMPONENT_ENABLE_AA_REGISTRATION);
+        initComponent(core.getConf(), COMPONENT_ENABLE_AA_REGISTRATION, core.getLogger());
     }
 
     @Override

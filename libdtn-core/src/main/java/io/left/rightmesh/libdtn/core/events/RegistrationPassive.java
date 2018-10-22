@@ -9,4 +9,10 @@ public class RegistrationPassive implements DTNEvent {
     RegistrationPassive(String sink) {
         this.sink = sink;
     }
+
+
+    @Override
+    public String toString() {
+        return "Registration passive: sink="+sink;
+    }
 }

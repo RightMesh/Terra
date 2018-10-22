@@ -5,23 +5,31 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import io.left.rightmesh.libdtn.common.utils.Log;
+
 /**
  * @author Lucien Loiseau on 27/09/18.
  */
-public abstract class BaseComponent implements DTNComponent {
+public abstract class BaseComponent {
 
     private boolean enabled = false;
     private static final Set<BaseComponent> registeredComponents = new HashSet<>();
 
-    public void initComponent(DTNConfiguration conf, DTNConfiguration.Entry entry) {
+    public void initComponent(DTNConfiguration conf, DTNConfiguration.Entry entry, Log logger) {
         registeredComponents.add(this);
         conf.<Boolean>get(entry).observe()
                 .subscribe(
                         enabled -> {
                             this.enabled = enabled;
                             if (enabled) {
+                                if(logger != null) {
+                                    logger.i(getComponentName(), "UP");
+                                }
                                 componentUp();
                             } else {
+                                if(logger != null) {
+                                    logger.i(getComponentName(), "DOWN");
+                                }
                                 componentDown();
                             }
                         },

@@ -1,5 +1,6 @@
 package io.left.rightmesh.libdtn.core.utils;
 
+import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.librxbus.RxBus;
@@ -13,14 +14,14 @@ import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.LOG_LEVEL;
  *
  * @author Lucien Loiseau on 15/09/18.
  */
-public class Log extends BaseComponent {
+public class Logger extends BaseComponent implements Log {
 
-    private static final String TAG = "Log";
+    private static final String TAG = "Logger";
 
-    public Log(DTNConfiguration conf) {
+    public Logger(DTNConfiguration conf) {
         level = LOGLevel.INFO;
-        initComponent(conf, COMPONENT_ENABLE_LOGGING);
         conf.<LOGLevel>get(LOG_LEVEL).observe().subscribe(l -> level = l);
+        initComponent(conf, COMPONENT_ENABLE_LOGGING, null);
     }
 
     @Override
@@ -66,7 +67,7 @@ public class Log extends BaseComponent {
         }
     }
 
-    public void set(LOGLevel level) { Log.level = level; }
+    public void set(LOGLevel level) { Logger.level = level; }
 
     public void v(String tag, String msg) {
         log(LOGLevel.VERBOSE, tag, msg);

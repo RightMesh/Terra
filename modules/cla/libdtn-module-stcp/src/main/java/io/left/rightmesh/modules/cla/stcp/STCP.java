@@ -1,4 +1,4 @@
-package io.left.rightmesh.modules.stcp;
+package io.left.rightmesh.modules.cla.stcp;
 
 
 import java.nio.ByteBuffer;
@@ -12,6 +12,7 @@ import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Serializer;
+import io.left.rightmesh.libdtn.common.utils.NullLogger;
 import io.left.rightmesh.libdtn.modules.cla.CLAChannel;
 import io.left.rightmesh.libdtn.modules.cla.CLAInterface;
 import io.left.rightmesh.libdtn.common.utils.Log;
@@ -49,6 +50,7 @@ public class STCP implements CLAInterface {
 
     private RxTCP.Server<RxTCP.Connection> server;
     private int port;
+    private Log logger = new NullLogger();
 
     public String getCLAName() {
         return "stcp";
@@ -64,9 +66,14 @@ public class STCP implements CLAInterface {
     }
 
     @Override
+    public void setLogger(Log logger) {
+        this.logger = logger;
+    }
+
+    @Override
     public Observable<CLAChannel> start() {
         server = new RxTCP.Server<>(port);
-        Log.i(TAG, "starting a CLASTCP CLA on port " + port);
+        logger.i(TAG, "starting a stcp server on port " + port);
         return server.start()
                 .map(tcpcon -> new Channel(tcpcon, false));
     }
@@ -78,7 +85,7 @@ public class STCP implements CLAInterface {
         }
     }
 
-    public Single<CLAChannel> open(String host, int port) {
+    private Single<CLAChannel> open(String host, int port) {
         return new RxTCP.ConnectionRequest<>(host, port)
                 .connect()
                 .map(con -> {
@@ -95,11 +102,12 @@ public class STCP implements CLAInterface {
         }
     }
 
-    public static class Channel implements CLAChannel {
+    public class Channel implements CLAChannel {
         RxTCP.Connection tcpcon;
         CLA channelEID;
         CLA localEID;
         boolean initiator;
+        BundleV7Parser parser;
 
         /**
          * Constructor.
@@ -111,7 +119,7 @@ public class STCP implements CLAInterface {
             this.initiator = initiator;
             channelEID = new CLASTCP(tcpcon.getRemoteHost(), tcpcon.getRemotePort(), "");
             localEID = new CLASTCP(tcpcon.getLocalHost(), tcpcon.getLocalPort(), "");
-            Log.i(TAG, "new CLASTCP CLA channel openned (initiated=" + initiator + "): " + channelEID.getEIDString());
+            logger.i(TAG, "new CLASTCP CLA channel openned (initiated=" + initiator + "): " + channelEID.getEIDString());
         }
 
         @Override
@@ -229,13 +237,14 @@ public class STCP implements CLAInterface {
                                 }));
             }
 
+            BundleV7Parser parser = new BundleV7Parser(logger);
             return Observable.create(s -> {
                 CborParser pdu = CBOR.parser()
                         .cbor_open_array(2)
                         .cbor_parse_int((__, ___, i) -> {
                             // we might want check the length and refuse large bundle
                         })
-                        .cbor_parse_custom_item(BundleV7Parser.BundleItem::new, (__, ___, item) -> {
+                        .cbor_parse_custom_item(parser::createBundleItem, (__, ___, item) -> {
                             s.onNext(item.bundle);
                         });
 
