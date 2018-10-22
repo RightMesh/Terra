@@ -1,5 +1,6 @@
 package io.left.rightmesh.libdtn.core.agents.http;
 
+import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
@@ -25,6 +26,11 @@ import static rx.Observable.just;
 public class ApplicationAgentAPI {
 
     private static final String TAG = "ApplicationAgentHTTP";
+    private DTNCore core;
+
+    ApplicationAgentAPI(DTNCore core) {
+        this.core = core;
+    }
 
     private static class BadRequestException extends Exception {
         BadRequestException(String msg) {
@@ -35,7 +41,7 @@ public class ApplicationAgentAPI {
     /**
      * Fetch a bundle and deliver it to the client but don't mark the bundle as delivered
      */
-    private static Action aaActionGet = (params, req, res) -> {
+    private Action aaActionGet = (params, req, res) -> {
         System.out.println("coucou");
         String param = params.get("*");
         if(param == null) {
@@ -43,10 +49,10 @@ public class ApplicationAgentAPI {
                     .writeStringAndFlushOnEach(just("incorrect BundleID"));
         }
         BundleID bid = BundleID.create(param);
-        if (Storage.contains(bid)) {
-            Log.i(TAG, "delivering payload: "+bid.getBIDString());
+        if (core.getStorage().contains(bid)) {
+            core.getLogger().i(TAG, "delivering payload: "+bid.getBIDString());
             return Observable.<Bundle>create(s ->
-                    Storage.get(bid).subscribe(
+                    core.getStorage().get(bid).subscribe(
                             bundle -> {
                                 s.onNext(bundle);
                                 s.onCompleted();
@@ -65,7 +71,7 @@ public class ApplicationAgentAPI {
      *
      * @return Flowable of ByteBuffer
      */
-    public static Observable<ByteBuf> nettyBLOB(BLOB blob) {
+    public Observable<ByteBuf> nettyBLOB(BLOB blob) {
         return Observable.create(s -> {
             blob.observe().toObservable().subscribe(
                     byteBuffer -> s.onNext(Unpooled.wrappedBuffer(byteBuffer)),
@@ -79,20 +85,20 @@ public class ApplicationAgentAPI {
      * Fetch a bundle and deliver it to the client then mark the bundle as delivered
      * (remove from storage, send report
      */
-    private static Action aaActionFetch = (params, req, res) -> {
+    private Action aaActionFetch = (params, req, res) -> {
         String param = params.get("*");
         BundleID bid = BundleID.create(param);
-        if (Storage.contains(bid)) {
-            Log.i(TAG, "delivering payload: "+bid.getBIDString());
+        if (core.getStorage().contains(bid)) {
+            core.getLogger().i(TAG, "delivering payload: "+bid.getBIDString());
             return Observable.<Bundle>create(s ->
-                    Storage.get(bid).subscribe(
+                    core.getStorage().get(bid).subscribe(
                             bundle -> {
                                 s.onNext(bundle);
                                 s.onCompleted();
                             },
                             s::onError))
                     .flatMap((bundle) -> res.write(nettyBLOB(bundle.getPayloadBlock().data)
-                                    .doOnCompleted(() -> BundleProcessor.bundleLocalDeliverySuccessful(bundle))));
+                                    .doOnCompleted(() -> core.getBundleProcessor().bundleLocalDeliverySuccessful(bundle))));
         } else {
             return res.writeString(just("no such bundle"));
         }
@@ -101,7 +107,7 @@ public class ApplicationAgentAPI {
     /**
      * Create a new bundle and dispatch it immediatly
      */
-    private static Action aaActionPost = (params, req, res) -> {
+    private Action aaActionPost = (params, req, res) -> {
         final String destEID = req.getHeader("BundleDestinationEID");
         final String reportToEID = req.getHeader("BundleReportToEID");
         final String lifetime = req.getHeader("BundleLifetime");
@@ -123,16 +129,16 @@ public class ApplicationAgentAPI {
                         bundle.addBlock(new PayloadBlock(blob));
                         final String bundleid = bundle.bid.getBIDString();
                         res.setStatus(HttpResponseStatus.OK);
-                        BundleProcessor.bundleDispatching(bundle);
+                        core.getBundleProcessor().bundleDispatching(bundle);
                         return res;
                     });
         } catch (BadRequestException | EID.EIDFormatException | NumberFormatException bre) {
-            Log.i(TAG, req.getDecodedPath() + " - bad request: " + bre.getMessage());
+            core.getLogger().i(TAG, req.getDecodedPath() + " - bad request: " + bre.getMessage());
             return res.setStatus(HttpResponseStatus.BAD_REQUEST);
         }
     };
 
-    private static Bundle createBundleSkeletonFromHTTPHeaders(String destinationstr,
+    private Bundle createBundleSkeletonFromHTTPHeaders(String destinationstr,
                                                       String reporttostr,
                                                       String lifetimestr)
             throws BadRequestException, EID.EIDFormatException, NumberFormatException {
@@ -162,7 +168,7 @@ public class ApplicationAgentAPI {
         return bundle;
     }
 
-    static Action aaAction = (params, req, res) -> using(new Router<ByteBuf, ByteBuf>()
+    Action aaAction = (params, req, res) -> using(new Router<ByteBuf, ByteBuf>()
             .GET("/aa/bundle/:*", aaActionGet)
             .DELETE("/aa/bundle/:*", aaActionFetch)
             .POST("/aa/bundle/", aaActionPost))

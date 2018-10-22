@@ -5,19 +5,17 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import io.left.rightmesh.libdtn.core.utils.Log;
-
 /**
  * @author Lucien Loiseau on 27/09/18.
  */
-public abstract class Component {
+public abstract class BaseComponent implements DTNComponent {
 
     private boolean enabled = false;
-    private static final Set<Component> registeredComponents = new HashSet<>();
+    private static final Set<BaseComponent> registeredComponents = new HashSet<>();
 
-    public void initComponent(DTNConfiguration.Entry entry) {
+    public void initComponent(DTNConfiguration conf, DTNConfiguration.Entry entry) {
         registeredComponents.add(this);
-        DTNConfiguration.<Boolean>get(entry).observe()
+        conf.<Boolean>get(entry).observe()
                 .subscribe(
                         enabled -> {
                             this.enabled = enabled;
@@ -32,7 +30,7 @@ public abstract class Component {
                         });
     }
 
-    public static Collection<Component> getAllComponents() {
+    public static Collection<BaseComponent> getAllComponents() {
         return Collections.unmodifiableCollection(registeredComponents);
     }
 
@@ -40,13 +38,9 @@ public abstract class Component {
         return enabled;
     }
 
-    protected void componentUp() {
-        Log.i(getComponentName(), "component up");
-    }
+    protected abstract void componentUp();
 
-    protected void componentDown() {
-        Log.i(getComponentName(), "component down");
-    }
+    protected abstract void componentDown();
 
     public abstract String getComponentName();
 
@@ -60,8 +54,8 @@ public abstract class Component {
         if(o == null) {
             return false;
         }
-        if(o instanceof Component) {
-            return this.getComponentName().equals(((Component)o).getComponentName());
+        if(o instanceof BaseComponent) {
+            return this.getComponentName().equals(((BaseComponent)o).getComponentName());
         } else {
             return false;
         }

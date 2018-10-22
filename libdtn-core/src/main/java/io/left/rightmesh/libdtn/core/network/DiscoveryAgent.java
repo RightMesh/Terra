@@ -4,7 +4,8 @@ import io.left.rightmesh.libdetect.ActionListener;
 import io.left.rightmesh.libdetect.LibDetect;
 import io.left.rightmesh.libdetect.PeerReachable;
 import io.left.rightmesh.libdetect.PeerUnreachable;
-import io.left.rightmesh.libdtn.core.Component;
+import io.left.rightmesh.libdtn.core.BaseComponent;
+import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.core.events.ChannelClosed;
 import io.left.rightmesh.libdtn.core.events.ChannelOpened;
@@ -23,21 +24,15 @@ import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.ENABLE_COMPON
  *
  * @author Lucien Loiseau on 16/07/18.
  */
-public class DiscoveryAgent extends Component {
-
+public class DiscoveryAgent extends BaseComponent {
 
     private static final String TAG = "DiscoveryAgent";
 
-    // ---- SINGLETON ----
-    private static DiscoveryAgent instance;
+    private DTNCore core;
 
-    public static DiscoveryAgent getInstance() {
-        return instance;
-    }
-
-    static {
-        instance = new DiscoveryAgent();
-        instance.initComponent(ENABLE_COMPONENT_DETECT_PEER_ON_LAN);
+    public DiscoveryAgent(DTNCore core) {
+        this.core = core;
+        initComponent(core.getConf(), ENABLE_COMPONENT_DETECT_PEER_ON_LAN);
     }
 
     @Override
@@ -47,19 +42,18 @@ public class DiscoveryAgent extends Component {
 
     @Override
     protected void componentUp() {
-        super.componentUp();
         LibDetect.start(4000, new ActionListener() {
             @Override
             public void onPeerReachable(PeerReachable peer) {
-                Log.i(TAG, "peer detected :" + peer.address.getHostAddress());
-                ConnectionAgent.createOpportunityLibDetect(peer.address.getHostAddress()).subscribe(
+                core.getLogger().i(TAG, "peer detected :" + peer.address.getHostAddress());
+                core.getConnectionAgent().createOpportunityLibDetect(peer.address.getHostAddress()).subscribe(
                         channel -> {
                             RxBus.post(new ChannelOpened(channel));
                             channel.recvBundle().subscribe(
                                     b -> {
                                         /* ignore for the moment */
-                                        Log.i(TAG, channel.channelEID()+" -> received a new bundle from " + b.source.getEIDString());
-                                        BundleProcessor.bundleReception(b);
+                                        core.getLogger().i(TAG, channel.channelEID()+" -> received a new bundle from " + b.source.getEIDString());
+                                        core.getBundleProcessor().bundleReception(b);
                                     },
                                     e -> RxBus.post(new ChannelClosed(channel)),
                                     () -> RxBus.post(new ChannelClosed(channel)));
@@ -72,13 +66,12 @@ public class DiscoveryAgent extends Component {
 
             @Override
             public void onPeerUnreachable(PeerUnreachable peer) {
-                Log.i(TAG, "peer unreachable");
+                core.getLogger().i(TAG, "peer unreachable");
             }
         }, true);
     }
 
     @Override
     protected void componentDown() {
-        super.componentDown();
     }
 }

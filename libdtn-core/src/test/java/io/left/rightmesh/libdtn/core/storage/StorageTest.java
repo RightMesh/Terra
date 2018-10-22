@@ -12,6 +12,7 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.core.storage.bundle.SimpleStorage;
 import io.left.rightmesh.libdtn.core.storage.bundle.Storage;
 import io.left.rightmesh.libdtn.core.storage.bundle.VolatileStorage;
+import io.left.rightmesh.libdtn.core.utils.Log;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 
@@ -27,18 +28,19 @@ public class StorageTest {
 
     public static final Object lock = new Object();
     public static final AtomicReference<CountDownLatch> waitLock = new AtomicReference<>(new CountDownLatch(1));
-
+    private Storage storage;
 
     public void testStoreBundleBothStorage() {
         synchronized (lock) {
             System.out.println("[+] Meta Storage ");
-            Storage.getInstance();
-            DTNConfiguration.<Boolean>get(COMPONENT_ENABLE_VOLATILE_STORAGE).update(true);
-            DTNConfiguration.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(true);
+            DTNConfiguration conf = new DTNConfiguration();
+            conf.<Boolean>get(COMPONENT_ENABLE_VOLATILE_STORAGE).update(true);
+            conf.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(true);
             Set<String> paths = new HashSet<>();
             paths.add(System.getProperty("path"));
             File dir = new File(System.getProperty("path") + "/bundle/");
-            DTNConfiguration.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
+            conf.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
+            storage = new Storage(conf, new Log(conf));
 
             Bundle[] bundles = {
                     TestBundle.testBundle1(),
@@ -51,44 +53,44 @@ public class StorageTest {
 
             System.out.println("[.] clear Storage");
             cockLock();
-            Storage.clear().subscribe(
+            storage.clear().subscribe(
                     () -> waitLock.get().countDown(),
                     e -> waitLock.get().countDown()
             );
             waitFinish();
 
-            assertEquals(0, Storage.count());
-            assertEquals(0, VolatileStorage.count());
-            assertEquals(0, SimpleStorage.count());
-            SimpleStorageTest.assertFileStorageSize(0, dir);
+            assertEquals(0, storage.count());
+            assertEquals(0, storage.getVolatileStorage().count());
+            assertEquals(0, storage.getSimpleStorage().count());
+            assertFileStorageSize(0, dir);
 
             System.out.println("[.] store bundle in Storage");
 
             cockLock();
             Observable.fromArray(bundles).flatMapCompletable(
-                    b -> Completable.fromSingle(Storage.store(b)))
+                    b -> Completable.fromSingle(storage.store(b)))
                     .subscribe(
                             () -> waitLock.get().countDown(),
                             e -> waitLock.get().countDown());
             waitFinish();
 
-            assertEquals(bundles.length, Storage.count());
-            assertEquals(bundles.length, VolatileStorage.count());
-            assertEquals(bundles.length, SimpleStorage.count());
-            SimpleStorageTest.assertFileStorageSize(bundles.length, dir);
+            assertEquals(bundles.length, storage.count());
+            assertEquals(bundles.length, storage.getVolatileStorage().count());
+            assertEquals(bundles.length, storage.getSimpleStorage().count());
+            assertFileStorageSize(bundles.length, dir);
 
             System.out.println("[.] clear Storage");
             cockLock();
-            Storage.clear().subscribe(
+            storage.clear().subscribe(
                     () -> waitLock.get().countDown(),
                     e -> waitLock.get().countDown()
             );
             waitFinish();
 
-            assertEquals(0, Storage.count());
-            assertEquals(0, VolatileStorage.count());
-            assertEquals(0, SimpleStorage.count());
-            SimpleStorageTest.assertFileStorageSize(0, dir);
+            assertEquals(0, storage.count());
+            assertEquals(0, storage.getVolatileStorage().count());
+            assertEquals(0, storage.getSimpleStorage().count());
+            assertFileStorageSize(0, dir);
         }
     }
 
@@ -103,5 +105,15 @@ public class StorageTest {
             // ignore
         }
     }
+
+
+    void assertStorageSize(int expectedSize) {
+        assertEquals(expectedSize, storage.getSimpleStorage().count());
+    }
+
+    void assertFileStorageSize(int expectedSize, File dir) {
+        assertEquals(expectedSize, dir.listFiles().length);
+    }
+
 
 }

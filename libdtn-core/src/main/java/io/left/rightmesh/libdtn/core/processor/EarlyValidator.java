@@ -1,6 +1,7 @@
 package io.left.rightmesh.libdtn.core.processor;
 
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.data.BlockHeader;
@@ -19,33 +20,39 @@ import static io.left.rightmesh.libdtn.common.data.BlockHeader.BlockV7Flags.DELE
  */
 public class EarlyValidator {
 
+    private DTNCore core;
+
+    public EarlyValidator(DTNCore core) {
+        this.core = core;
+    }
+
     /**
      * Deserializer MAY call this method to ensure validity of the received PrimaryBlock early on.
      *
      * @param block to test validity
      * @throws RejectedException if the bundle is to be rejected
      */
-    public static void onDeserialized(PrimaryBlock block) throws RejectedException {
+    public void onDeserialized(PrimaryBlock block) throws RejectedException {
         if (ClockUtil.isExpired(block.creationTimestamp, block.lifetime)) {
             throw new RejectedException("bundle is expired");
         }
 
-        if (!DTNConfiguration.<Boolean>get(DTNConfiguration.Entry.ALLOW_RECEIVE_ANONYMOUS_BUNDLE).value()
+        if (!core.getConf().<Boolean>get(DTNConfiguration.Entry.ALLOW_RECEIVE_ANONYMOUS_BUNDLE).value()
                 && block.source.equals(DTN.NullEID())) {
             throw new RejectedException("forbidden anonnymous source");
         }
 
-        if (!LocalEIDTable.isLocal(block.destination)
-                && !DTNConfiguration.<Boolean>get(DTNConfiguration.Entry.ENABLE_FORWARDING).value()) {
+        if (!core.getLocalEIDTable().isLocal(block.destination)
+                && !core.getConf().<Boolean>get(DTNConfiguration.Entry.ENABLE_FORWARDING).value()) {
             throw new RejectedException("forward isn't enabled and bundle is not local");
         }
 
-        long max_lifetime = DTNConfiguration.<Integer>get(DTNConfiguration.Entry.MAX_LIFETIME).value();
+        long max_lifetime = core.getConf().<Integer>get(DTNConfiguration.Entry.MAX_LIFETIME).value();
         if (block.lifetime > max_lifetime) {
             throw new RejectedException("lifetime="+block.lifetime+" max="+max_lifetime);
         }
 
-        long max_timestamp_futur = DTNConfiguration.<Integer>get(DTNConfiguration.Entry.MAX_TIMESTAMP_FUTURE).value();
+        long max_timestamp_futur = core.getConf().<Integer>get(DTNConfiguration.Entry.MAX_TIMESTAMP_FUTURE).value();
         if (max_timestamp_futur > 0
                 && (block.creationTimestamp > ClockUtil.getCurrentTime() + max_timestamp_futur)) {
             throw new RejectedException("timestamp too far in the future");
@@ -58,9 +65,9 @@ public class EarlyValidator {
      * @param block to test validity
      * @throws RejectedException if the bundle is to be rejected
      */
-    public static void onDeserialized(BlockHeader block) throws RejectedException {
+    public void onDeserialized(BlockHeader block) throws RejectedException {
         if (block.dataSize
-                > DTNConfiguration.<Long>get(DTNConfiguration.Entry.LIMIT_BLOCKSIZE).value()) {
+                > core.getConf().<Long>get(DTNConfiguration.Entry.LIMIT_BLOCKSIZE).value()) {
             throw new RejectedException("block size exceed limit");
         }
     }
@@ -71,7 +78,7 @@ public class EarlyValidator {
      * @param block to test validity
      * @throws RejectedException if the bundle is to be rejected
      */
-    public static void onDeserialized(CanonicalBlock block) throws RejectedException {
+    public void onDeserialized(CanonicalBlock block) throws RejectedException {
         try {
             block.onBlockDataDeserialized();
         } catch (ProcessorNotFoundException pne) {

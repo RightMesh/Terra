@@ -17,14 +17,15 @@ import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
-import io.left.rightmesh.libdtn.core.Component;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.MetaBundle;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Serializer;
+import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.events.BundleIndexed;
 import io.left.rightmesh.libdtn.core.storage.blob.FileBLOB;
 import io.left.rightmesh.libdtn.common.data.blob.NullBLOB;
@@ -56,42 +57,46 @@ import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENA
  *
  * @author Lucien Loiseau on 20/09/18.
  */
-public class SimpleStorage extends Component implements BundleStorage {
+public class SimpleStorage extends BaseComponent implements BundleStorage {
 
     private static final String TAG = "SimpleStorage";
 
-    public static final String BLOB_FOLDER = File.separator + "blob" + File.separator;
-    public static final String BUNDLE_FOLDER = File.separator + "bundle" + File.separator;
+    private static final String BLOB_FOLDER = File.separator + "blob" + File.separator;
+    private static final String BUNDLE_FOLDER = File.separator + "bundle" + File.separator;
 
-    // ---- SINGLETON ----
-    private static SimpleStorage instance;
-    public static SimpleStorage getInstance() {
-        return instance;
-    }
+    private Storage metaStorage;
 
-    static {
-        instance = new SimpleStorage();
-        instance.initComponent(COMPONENT_ENABLE_SIMPLE_STORAGE);
-        DTNConfiguration.<Set<String>>get(DTNConfiguration.Entry.SIMPLE_STORAGE_PATH).observe()
+    public SimpleStorage(Storage metaStorage, DTNConfiguration conf) {
+        this.metaStorage = metaStorage;
+        initComponent(conf, COMPONENT_ENABLE_SIMPLE_STORAGE);
+        conf.<Set<String>>get(DTNConfiguration.Entry.SIMPLE_STORAGE_PATH).observe()
                 .subscribe(
                         updated_paths -> {
                             /* remove obsolete path */
                             LinkedList<String> pathsToRemove = new LinkedList<>();
-                            getInstance().storage_paths.stream()
+                            storage_paths.stream()
                                     .filter(p -> !updated_paths.contains(p))
                                     .map(pathsToRemove::add)
                                     .count();
-                            pathsToRemove.stream().map(instance::removePath).count();
+                            pathsToRemove.stream().map(this::removePath).count();
 
                             /* add new path */
                             LinkedList<String> pathsToAdd = new LinkedList<>();
                             updated_paths.stream()
-                                    .filter(p -> !getInstance().storage_paths.contains(p))
+                                    .filter(p -> !storage_paths.contains(p))
                                     .map(pathsToAdd::add)
                                     .count();
-                            pathsToAdd.stream().map(instance::addPath).count();
+                            pathsToAdd.stream().map(this::addPath).count();
                         }
                 );
+    }
+
+    @Override
+    protected void componentUp() {
+    }
+
+    @Override
+    protected void componentDown() {
     }
 
     @Override
@@ -101,24 +106,23 @@ public class SimpleStorage extends Component implements BundleStorage {
 
     private LinkedList<String> storage_paths = new LinkedList<>();
 
-
     /**
-     * Count the number of Persistent Bundlel in Storage. This method iterates over the entire index.
+     * Count the number of Persistent Bundle in Storage. This method iterates over the entire index.
      *
      * @return number of Persistent bundle in storage
      */
-    public static int count() {
-        return (int)Storage.index.values().stream().filter(e -> e.isPersistent).count();
+    public int count() {
+        return (int)metaStorage.index.values().stream().filter(e -> e.isPersistent).count();
     }
 
     private boolean removePath(String path) {
         if (storage_paths.contains(path)) {
-            Storage.index.forEach(
+            metaStorage.index.forEach(
                     (bid, entry) -> {
                         if(entry.isPersistent && entry.bundle_path.startsWith(path)) {
                             entry.isPersistent = false;
                             if(!entry.isVolatile) {
-                                Storage.removeEntry(bid, entry);
+                                metaStorage.removeEntry(bid, entry);
                             }
                         }
                     });
@@ -167,7 +171,7 @@ public class SimpleStorage extends Component implements BundleStorage {
                             BundleV7Parser.PrimaryBlockItem::new,
                             (p, ___, item) -> {
                                 MetaBundle meta = new MetaBundle(item.b);
-                                Storage.IndexEntry entry = Storage.getEntryOrCreate(meta.bid, meta);
+                                Storage.IndexEntry entry = metaStorage.getEntryOrCreate(meta.bid, meta);
                                 entry.bundle_path = file.getAbsolutePath();
                                 entry.has_blob = p.<FileHeaderItem>getReg(0).has_blob;
                                 entry.blob_path = p.<FileHeaderItem>getReg(0).blob_path;
@@ -222,12 +226,12 @@ public class SimpleStorage extends Component implements BundleStorage {
      * @return a new FileBLOB with capacity of expectedSize
      * @throws StorageFullException if there isn't enough space in SimpleStorage
      */
-    public static FileBLOB createBLOB(long expectedSize) throws StorageUnavailableException, StorageFullException {
-        if (!getInstance().isEnabled()) {
+    public FileBLOB createBLOB(long expectedSize) throws StorageUnavailableException, StorageFullException {
+        if (!isEnabled()) {
             throw new StorageUnavailableException();
         }
 
-        for (String path : getInstance().storage_paths) {
+        for (String path : storage_paths) {
             if (spaceLeft(path + BLOB_FOLDER) > expectedSize) {
                 try {
                     File fblob = createNewFile("blob-", ".blob", path + BLOB_FOLDER);
@@ -242,8 +246,8 @@ public class SimpleStorage extends Component implements BundleStorage {
         throw new StorageFullException();
     }
 
-    private static File createBundleEntry(BundleID bid, long expectedSize) throws StorageFullException {
-        for (String path : getInstance().storage_paths) {
+    private File createBundleEntry(BundleID bid, long expectedSize) throws StorageFullException {
+        for (String path : storage_paths) {
             if (spaceLeft(path + BUNDLE_FOLDER) > expectedSize) {
                 try {
                     String safeBID = bid.getBIDString().replaceAll("/", "_");
@@ -266,12 +270,12 @@ public class SimpleStorage extends Component implements BundleStorage {
      * @param bundle to store
      * @return Single of the MetaBundle
      */
-    public static Single<Bundle> store(Bundle bundle) {
-        if (!getInstance().isEnabled()) {
+    public Single<Bundle> store(Bundle bundle) {
+        if (!isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
-        if (Storage.containsPersistent(bundle.bid)) {
+        if (metaStorage.containsPersistent(bundle.bid)) {
             return Single.error(new BundleAlreadyExistsException());
         }
 
@@ -356,7 +360,7 @@ public class SimpleStorage extends Component implements BundleStorage {
                             });
 
                     /**
-                     * we put the Factory back into the data of the bundle. It is technically
+                     * we put the CoreBLOBFactory back into the data of the bundle. It is technically
                      * unnecessary as any the reference to this Bundle will use the MetaBundle that
                      * we are returning and so the actual bundle reference shall normally be lost
                      * and garbage collected
@@ -366,7 +370,7 @@ public class SimpleStorage extends Component implements BundleStorage {
                     }
 
                     if(!meta.isTagged("serialization_failed")) {
-                        final Storage.IndexEntry entry = Storage.getEntryOrCreate(meta.bid, meta);
+                        final Storage.IndexEntry entry = metaStorage.getEntryOrCreate(meta.bid, meta);
                         entry.isPersistent = true;
                         entry.bundle_path = fbundle.getAbsolutePath();
                         entry.has_blob = has_blob;
@@ -395,19 +399,19 @@ public class SimpleStorage extends Component implements BundleStorage {
      * @param id of the bundle
      * @return Single completes with the bundle on success, throw an error otherwise
      */
-    public static Single<Bundle> get(BundleID id) {
-        if (!getInstance().isEnabled()) {
+    public Single<Bundle> get(BundleID id) {
+        if (!isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
         return Single.<Bundle>create(s -> {
-            if(!Storage.containsPersistent(id)) {
+            if(!metaStorage.containsPersistent(id)) {
                 s.onError(new Throwable("no such bundle in storage: " + id.getBIDString()));
                 return;
             }
 
             /* pulling entry from index */
-            Storage.IndexEntry entry = Storage.index.get(id);
+            Storage.IndexEntry entry = metaStorage.index.get(id);
             File fbundle = new File(entry.bundle_path);
             if (!fbundle.exists() || !fbundle.canRead()) {
                 s.onError(new Throwable("can't read bundle file in storage: " + entry.bundle_path));
@@ -470,19 +474,19 @@ public class SimpleStorage extends Component implements BundleStorage {
      * @param id of the bundle to delete
      * @return Completable
      */
-    public static Completable remove(BundleID id) {
-        if (!getInstance().isEnabled()) {
+    public Completable remove(BundleID id) {
+        if (!isEnabled()) {
             return Completable.error(StorageUnavailableException::new);
         }
 
         return Completable.create(s -> {
-            if (!Storage.containsPersistent(id)) {
+            if (!metaStorage.containsPersistent(id)) {
                 s.onError(new BundleNotFoundException());
                 return;
             }
 
             String error = "";
-            Storage.IndexEntry entry = Storage.index.get(id);
+            Storage.IndexEntry entry = metaStorage.index.get(id);
 
             File fbundle = new File(entry.bundle_path);
             if (fbundle.exists() && !fbundle.canWrite()) {
@@ -505,7 +509,7 @@ public class SimpleStorage extends Component implements BundleStorage {
             entry.isPersistent = false;
 
             if(!entry.isVolatile) {
-                Storage.removeEntry(id, entry);
+                metaStorage.removeEntry(id, entry);
             }
 
             if (error.length() > 0) {
@@ -522,13 +526,13 @@ public class SimpleStorage extends Component implements BundleStorage {
      *
      * @return
      */
-    public static Completable clear() {
-        if (!getInstance().isEnabled()) {
+    public Completable clear() {
+        if (!isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
-        return Observable.fromIterable(Storage.index.keySet())
-                .flatMapCompletable(SimpleStorage::remove)
+        return Observable.fromIterable(metaStorage.index.keySet())
+                .flatMapCompletable(metaStorage::remove)
                 .onErrorComplete();
     }
 

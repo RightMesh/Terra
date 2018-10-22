@@ -8,13 +8,18 @@ import java.util.concurrent.TimeUnit;
 
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.storage.TestBundle;
-import io.left.rightmesh.libdtn.core.storage.blob.Factory;
+import io.left.rightmesh.libdtn.core.storage.blob.CoreBLOBFactory;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Serializer;
+import io.left.rightmesh.libdtn.core.storage.bundle.Storage;
+import io.left.rightmesh.libdtn.core.utils.Log;
 import io.left.rightmesh.librxtcp.RxTCP;
 
+import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_SIMPLE_STORAGE;
+import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_VOLATILE_STORAGE;
 import static junit.framework.TestCase.fail;
 
 /**
@@ -25,6 +30,11 @@ public class RxTCPSerializedBundleTest {
     @Test
     public void testServerOneClient() {
         System.out.println("[+] rxtcp: testing bundle serialization / parsing over RxTCP");
+
+        DTNConfiguration conf = new DTNConfiguration();
+        conf.<Boolean>get(COMPONENT_ENABLE_VOLATILE_STORAGE).update(true);
+        conf.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(false);
+        Storage storage = new Storage(conf, new Log(conf));
 
         CountDownLatch lock = new CountDownLatch(6);
         Bundle[] recv = {null, null, null, null, null, null};
@@ -37,7 +47,7 @@ public class RxTCPSerializedBundleTest {
                     // prepare parser
                     CborParser p = BundleV7Parser.create(b -> {
                         recv[i[0]++] = b;
-                    }, Factory.getInstance());
+                    }, storage.getBlobFactory());
 
                     connection.recv().subscribe(
                             buffer -> {

@@ -17,18 +17,6 @@ import java.util.Set;
  */
 public class DTNConfiguration {
 
-    // ---- SINGLETON ----
-    private static final Object lock = new Object();
-    private static DTNConfiguration instance;
-    private static DTNConfiguration getInstance() {
-        synchronized (lock) {
-            if (instance == null) {
-                instance = new DTNConfiguration();
-            }
-            return instance;
-        }
-    }
-
     private HashMap<String, ConfigurationEntry> entries = new HashMap<>();
 
     // ---- CONFIGURATION ENTRIES ----
@@ -241,7 +229,7 @@ public class DTNConfiguration {
         return entry;
     }
 
-    private DTNConfiguration() {
+    public DTNConfiguration() {
         // default configuration
         this.createEntry(Entry.LOCAL_EID, EID.generate());
         this.<EID>createEntrySet(Entry.ALIASES);
@@ -284,7 +272,7 @@ public class DTNConfiguration {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> ConfigurationEntry<T> get(Entry key) {
-        return getInstance().entries.get(key.toString());
+    public <T> ConfigurationEntry<T> get(Entry key) {
+        return entries.get(key.toString());
     }
 }

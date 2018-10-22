@@ -5,8 +5,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.BundleID;
+import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.events.BundleDeleted;
 import io.left.rightmesh.libdtn.core.utils.Log;
 import io.left.rightmesh.librxbus.RxBus;
@@ -72,37 +74,27 @@ import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENA
  *
  * @author Lucien Loiseau on 14/10/18.
  */
-public abstract class EventListener<T> {
+public abstract class EventListener<T> extends BaseComponent  {
 
     private static final String TAG = "EventListener";
+
     private final Object lock = new Object();
-    boolean enabled;
-    Map<T, Set<BundleID>> watchList;
+    private Map<T, Set<BundleID>> watchList;
+    private DTNCore core;
 
-
-    public EventListener() {
+    public EventListener(DTNCore core) {
+        this.core = core;
         watchList = new ConcurrentHashMap<>();
-        DTNConfiguration.<Boolean>get(COMPONENT_ENABLE_EVENT_PROCESSING).observe()
-                .subscribe(
-                        enabled -> {
-                            this.enabled = enabled;
-                            if (enabled) {
-                                up();
-                            } else {
-                                down();
-                            }
-                        },
-                        e -> {
-                            /* ignore */
-                        });
+        initComponent(core.getConf(), COMPONENT_ENABLE_EVENT_PROCESSING);
     }
 
-    private boolean up() {
+    @Override
+    protected void componentUp() {
         RxBus.register(this);
-        return true;
     }
 
-    private void down() {
+    @Override
+    protected void componentDown() {
         RxBus.unregister(this);
         synchronized (lock) {
             for (T key : watchList.keySet()) {
@@ -116,23 +108,23 @@ public abstract class EventListener<T> {
     }
 
     public boolean watch(T key, BundleID bid) {
-        if (!enabled) {
+        if (!isEnabled()) {
             return false;
         }
 
         synchronized (lock) {
-            Log.d(TAG, "add bundle to a watchlist: " + bid.getBIDString() + " key=" + key.toString());
+            core.getLogger().d(getComponentName(), "add bundle to a watchlist: " + bid.getBIDString() + " key=" + key.toString());
             return watchList.computeIfAbsent(key, k -> new HashSet<>()).add(bid);
         }
     }
 
     public void unwatch(BundleID bid) {
-        if (!enabled) {
+        if (!isEnabled()) {
             return;
         }
 
         synchronized (lock) {
-            Log.d(TAG, "remove bundle from a watchlist: " + bid.getBIDString());
+            core.getLogger().d(getComponentName(), "remove bundle from a watchlist: " + bid.getBIDString());
             for (T key : watchList.keySet()) {
                 Set<BundleID> set = watchList.get(key);
                 if (set != null) {
@@ -143,7 +135,7 @@ public abstract class EventListener<T> {
     }
 
     public boolean unwatch(T key, BundleID bid) {
-        if (!enabled) {
+        if (!isEnabled()) {
             return false;
         }
 
@@ -159,7 +151,7 @@ public abstract class EventListener<T> {
     }
 
     public Observable<BundleID> getBundlesOfInterest(T key) {
-        if (!enabled) {
+        if (!isEnabled()) {
             return Observable.empty();
         }
 

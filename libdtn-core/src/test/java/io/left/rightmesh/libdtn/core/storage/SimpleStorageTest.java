@@ -17,6 +17,7 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 
 import io.left.rightmesh.libdtn.core.storage.bundle.SimpleStorage;
 import io.left.rightmesh.libdtn.core.storage.bundle.Storage;
+import io.left.rightmesh.libdtn.core.utils.Log;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
@@ -34,18 +35,22 @@ import static org.junit.Assert.assertTrue;
 public class SimpleStorageTest {
 
     public static final AtomicReference<CountDownLatch> waitLock = new AtomicReference<>(new CountDownLatch(1));
+    private Storage storage;
 
     @Test
     public void testSimpleStoreBundle() {
         synchronized (StorageTest.lock) {
             System.out.println("[+] SimpleStorage");
+
             Set<String> paths = new HashSet<>();
-            DTNConfiguration.<Boolean>get(COMPONENT_ENABLE_VOLATILE_STORAGE).update(false);
-            DTNConfiguration.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(true);
             paths.add(System.getProperty("path"));
             File dir = new File(System.getProperty("path") + "/bundle/");
-            DTNConfiguration.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
-            SimpleStorage.getInstance();
+
+            DTNConfiguration conf = new DTNConfiguration();
+            conf.<Boolean>get(COMPONENT_ENABLE_VOLATILE_STORAGE).update(false);
+            conf.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(true);
+            conf.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
+            storage = new Storage(conf, new Log(conf));
 
             Bundle[] bundles = {
                     TestBundle.testBundle1(),
@@ -66,7 +71,7 @@ public class SimpleStorageTest {
             System.out.println("[.] store in SimpleStorage");
             cockLock();
             Observable.fromArray(bundles).flatMapCompletable(
-                    b -> Completable.fromSingle(SimpleStorage.store(b)))
+                    b -> Completable.fromSingle(storage.getSimpleStorage().store(b)))
                     .subscribe(
                             () -> {
                                 waitLock.get().countDown();
@@ -84,7 +89,7 @@ public class SimpleStorageTest {
             cockLock();
             Observable.fromArray(bundles).flatMapCompletable(
                     b -> Completable.create(s ->
-                            SimpleStorage.get(b.bid).subscribe(
+                            storage.getSimpleStorage().get(b.bid).subscribe(
                                     pb -> {
                                         pulledBundles.add(pb);
                                         s.onComplete();
@@ -117,7 +122,7 @@ public class SimpleStorageTest {
             /* check remove path */
             System.out.println("[.] remove path from SimpleStorage configuration");
             paths.clear();
-            DTNConfiguration.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
+            conf.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
             try {
                 // give it time to unindex
                 Thread.sleep(200);
@@ -130,7 +135,7 @@ public class SimpleStorageTest {
             /* check indexing new path */
             System.out.println("[.] add path to SimpleStorage configuration for indexing");
             paths.add(System.getProperty("path"));
-            DTNConfiguration.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
+            conf.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
             try {
                 // give it time to index
                 Thread.sleep(200);
@@ -149,11 +154,11 @@ public class SimpleStorageTest {
     }
 
 
-    public static void cockLock() {
+    public void cockLock() {
         waitLock.set(new CountDownLatch(1));
     }
 
-    public static void waitFinish() {
+    public void waitFinish() {
         try {
             waitLock.get().await(2000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException ie) {
@@ -171,18 +176,18 @@ public class SimpleStorageTest {
 
     private void clearStorage() {
         cockLock();
-        Storage.clear().subscribe(
+        storage.clear().subscribe(
                 () -> waitLock.get().countDown(),
                 e -> waitLock.get().countDown()
         );
         waitFinish();
     }
 
-    static void assertStorageSize(int expectedSize) {
-        assertEquals(expectedSize, SimpleStorage.count());
+    void assertStorageSize(int expectedSize) {
+        assertEquals(expectedSize, storage.getSimpleStorage().count());
     }
 
-    static void assertFileStorageSize(int expectedSize, File dir) {
+    void assertFileStorageSize(int expectedSize, File dir) {
         assertEquals(expectedSize, dir.listFiles().length);
     }
 

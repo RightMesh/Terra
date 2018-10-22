@@ -9,8 +9,9 @@ import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
-import io.left.rightmesh.libdtn.core.Component;
-import io.left.rightmesh.libdtn.core.storage.blob.Factory;
+import io.left.rightmesh.libdtn.core.BaseComponent;
+import io.left.rightmesh.libdtn.core.DTNCore;
+import io.left.rightmesh.libdtn.core.storage.blob.CoreBLOBFactory;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import io.left.rightmesh.libdtn.common.data.blob.NullBLOB;
 import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
@@ -23,20 +24,23 @@ import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENA
 /**
  * @author Lucien Loiseau on 28/09/18.
  */
-public class APIDaemonCBORAgent extends Component {
+public class APIDaemonCBORAgent extends BaseComponent {
 
     private static final String TAG = "APIDaemonCBORAgent";
 
-    // ---- SINGLETON ----
-    private static APIDaemonCBORAgent instance;
-    public static APIDaemonCBORAgent getInstance() { return instance; }
+    private DTNCore core;
+    private RxTCP.Server<RequestChannel> server;
+    private final Map<RequestMessage.RequestCode, Action> ACTIONS;
 
-    static {
-        instance = new APIDaemonCBORAgent();
-        getInstance().initComponent(COMPONENT_ENABLE_CBOR_DAEMON_API);
+    public APIDaemonCBORAgent(DTNCore core) {
+        initComponent(core.getConf(), COMPONENT_ENABLE_CBOR_DAEMON_API);
+        final HashMap<RequestMessage.RequestCode, Action> actionMap = new HashMap<>();
+        actionMap.put(RequestMessage.RequestCode.REGISTER, new RegisterAction());
+        actionMap.put(RequestMessage.RequestCode.UNREGISTER, new UnregisterAction());
+        actionMap.put(RequestMessage.RequestCode.GET, new GETAction());
+        actionMap.put(RequestMessage.RequestCode.POST, new POSTAction());
+        ACTIONS = Collections.unmodifiableMap(actionMap);
     }
-
-    RxTCP.Server<RequestChannel> server;
 
     @Override
     public String getComponentName() {
@@ -45,9 +49,8 @@ public class APIDaemonCBORAgent extends Component {
 
     @Override
     protected void componentUp() {
-        super.componentUp();
         //int signalPort = (Integer) DTNConfiguration.get(DTNConfiguration.Entry.API_DAEMON_SIGNAL_PORT).value();
-        int serverPort = (Integer) DTNConfiguration.get(DTNConfiguration.Entry.API_CBOR_DAEMON_CHANNEL_PORT).value();
+        int serverPort = (Integer) core.getConf().get(DTNConfiguration.Entry.API_CBOR_DAEMON_CHANNEL_PORT).value();
 
         server = new RxTCP.Server<>(serverPort, RequestChannel::new);
         server.start().subscribe(
@@ -61,7 +64,6 @@ public class APIDaemonCBORAgent extends Component {
 
     @Override
     protected void componentDown() {
-        super.componentDown();
         if (server != null) {
             server.stop();
         }
@@ -94,12 +96,12 @@ public class APIDaemonCBORAgent extends Component {
                                 RequestMessage req =  p.getReg(0);
                                 try {
                                     if (size >= 0) {
-                                        req.body = Factory.getInstance().createBLOB((int) size);
+                                        req.body = core.getStorage().getBlobFactory().createBLOB((int) size);
                                     } else {
-                                        // indefinite length Factory
-                                        req.body = Factory.getInstance().createBLOB(2048); //todo change that
+                                        // indefinite length CoreBLOBFactory
+                                        req.body = core.getStorage().getBlobFactory().createBLOB(2048); //todo change that
                                     }
-                                } catch (Factory.BLOBFactoryException sfe) {
+                                } catch (CoreBLOBFactory.BLOBFactoryException sfe) {
                                     req.body = new NullBLOB();
                                 }
                                 p.setReg(1, ((BLOB)req.body).getWritableBLOB());
@@ -136,40 +138,29 @@ public class APIDaemonCBORAgent extends Component {
         }
     }
 
-    static final Map<RequestMessage.RequestCode, Action> ACTIONS;
-
-    static {
-        final HashMap<RequestMessage.RequestCode, Action> actionMap = new HashMap<>();
-        actionMap.put(RequestMessage.RequestCode.REGISTER, new RegisterAction());
-        actionMap.put(RequestMessage.RequestCode.UNREGISTER, new UnregisterAction());
-        actionMap.put(RequestMessage.RequestCode.GET, new GETAction());
-        actionMap.put(RequestMessage.RequestCode.POST, new POSTAction());
-        ACTIONS = Collections.unmodifiableMap(actionMap);
-    }
-
     interface Action {
         void process(RequestMessage message, RequestChannel channel);
     }
 
-    static class RegisterAction implements Action {
+    private class RegisterAction implements Action {
         public void process(RequestMessage message, RequestChannel channel) {
             System.out.println("register");
         }
     }
 
-    static class UnregisterAction implements Action {
+    private class UnregisterAction implements Action {
         public void process(RequestMessage message, RequestChannel channel) {
             System.out.println("unregister");
         }
     }
 
-    static class GETAction implements Action {
+    private class GETAction implements Action {
         public void process(RequestMessage message, RequestChannel channel) {
             System.out.println("get");
         }
     }
 
-    static class POSTAction implements Action {
+    private class POSTAction implements Action {
         public void process(RequestMessage message, RequestChannel channel) {
             System.out.println("post");
         }

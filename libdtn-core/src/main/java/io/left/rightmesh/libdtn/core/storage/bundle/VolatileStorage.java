@@ -1,9 +1,10 @@
 package io.left.rightmesh.libdtn.core.storage.bundle;
 
-import io.left.rightmesh.libdtn.core.Component;
+import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.MetaBundle;
+import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -15,17 +16,15 @@ import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENA
  *
  * @author Lucien Loiseau on 26/07/18.
  */
-public class VolatileStorage extends Component implements BundleStorage {
+public class VolatileStorage extends BaseComponent implements BundleStorage {
 
     private static final String TAG = "VolatileStorage";
 
-    // ---- SINGLETON ----
-    private static VolatileStorage instance;
-    public static VolatileStorage getInstance() { return instance; }
+    private Storage metaStorage;
 
-    static {
-        instance = new VolatileStorage();
-        instance.initComponent(COMPONENT_ENABLE_VOLATILE_STORAGE);
+    public VolatileStorage(Storage metaStorage, DTNConfiguration conf) {
+        this.metaStorage = metaStorage;
+        initComponent(conf, COMPONENT_ENABLE_VOLATILE_STORAGE);
     }
 
     @Override
@@ -34,9 +33,12 @@ public class VolatileStorage extends Component implements BundleStorage {
     }
 
     @Override
+    protected void componentUp() {
+    }
+
+    @Override
     protected void componentDown() {
-        super.componentDown();
-        VolatileStorage.clear();
+        clear();
     }
 
     /**
@@ -44,8 +46,8 @@ public class VolatileStorage extends Component implements BundleStorage {
      *
      * @return number of volatile bundle in storage
      */
-    public static int count() {
-        return (int)Storage.index.values().stream().filter(e -> e.isVolatile).count();
+    public int count() {
+        return (int)metaStorage.index.values().stream().filter(e -> e.isVolatile).count();
     }
 
     /**
@@ -54,15 +56,15 @@ public class VolatileStorage extends Component implements BundleStorage {
      * @param bundle to store
      * @return Completable that completes once it is done
      */
-    public static Single<Bundle> store(Bundle bundle) {
-        if (!getInstance().isEnabled()) {
+    public Single<Bundle> store(Bundle bundle) {
+        if (!isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
-        if (Storage.containsVolatile(bundle.bid)) {
+        if (metaStorage.containsVolatile(bundle.bid)) {
             return Single.error(new BundleAlreadyExistsException());
         } else {
-            Storage.IndexEntry entry = Storage.getEntryOrCreate(bundle.bid, bundle);
+            Storage.IndexEntry entry = metaStorage.getEntryOrCreate(bundle.bid, bundle);
             entry.isVolatile = true;
             return Single.just(bundle);
         }
@@ -72,10 +74,10 @@ public class VolatileStorage extends Component implements BundleStorage {
      * Remove a volatile bundle. If the bundle has a persistent copy, replace the bundle with
      * the MetaBundle, otherwise delete from index.
      */
-    public static Completable remove(BundleID bid, Storage.IndexEntry entry) {
+    public Completable remove(BundleID bid, Storage.IndexEntry entry) {
         return Completable.create(s -> {
             if(!entry.isPersistent) {
-                Storage.removeEntry(bid, entry);
+                metaStorage.removeEntry(bid, entry);
             } else {
                 entry.bundle = new MetaBundle(entry.bundle);
             }
@@ -87,8 +89,8 @@ public class VolatileStorage extends Component implements BundleStorage {
      * Remove a volatile bundle. If the bundle has a persistent copy, replace the bundle with
      * the MetaBundle, otherwise delete from index.
      */
-    public static Completable remove(BundleID bid) {
-        Storage.IndexEntry entry = Storage.index.get(bid);
+    public Completable remove(BundleID bid) {
+        Storage.IndexEntry entry = metaStorage.index.get(bid);
         return remove(bid, entry);
     }
 
@@ -96,12 +98,12 @@ public class VolatileStorage extends Component implements BundleStorage {
      * Remove all volatile bundle. If the bundle has a persistent copy, replace the bundle with
      * the MetaBundle, otherwise delete from index.
      */
-    public static Completable clear() {
-        if (!getInstance().isEnabled()) {
+    public Completable clear() {
+        if (!isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
-        return Observable.fromIterable(Storage.index.entrySet())
+        return Observable.fromIterable(metaStorage.index.entrySet())
                 .flatMapCompletable(e -> remove(e.getKey(), e.getValue()))
                 .onErrorComplete();
     }

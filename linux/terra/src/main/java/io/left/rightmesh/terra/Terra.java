@@ -2,6 +2,7 @@ package io.left.rightmesh.terra;
 
 import java.util.concurrent.Callable;
 
+import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.agents.APIStaticApplicationAgent;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
@@ -49,11 +50,12 @@ public class Terra implements Callable<Void> {
 
     @Override
     public Void call() throws Exception {
-        DTNCore.init();
-        APIStaticApplicationAgent.register("/netflix/video/", new APIStaticApplicationAgent.StaticAPICallback() {
+        DTNConfiguration conf = new DTNConfiguration();
+        DTNCore core = DTNCore.init(conf);
+        core.staticAPI().register("/netflix/video/", new APIStaticApplicationAgent.StaticAPICallback() {
             @Override
             public void recv(BLOB payload) {
-                System.out.println("receive a Factory");
+                System.out.println("receive a BLOB");
             }
 
             @Override

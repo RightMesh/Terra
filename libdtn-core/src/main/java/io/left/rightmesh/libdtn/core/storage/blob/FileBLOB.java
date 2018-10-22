@@ -18,7 +18,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.NonReadableChannelException;
 
 /**
- * FileBLOB holds a Factory in a file saved in persistent storage. Useful for large Factory that can't
+ * FileBLOB holds a CoreBLOBFactory in a file saved in persistent storage. Useful for large CoreBLOBFactory that can't
  * fit in memory or if persistence over reboot is necessary for long caching strategy.
  *
  * @author Lucien Loiseau on 26/07/18.
@@ -29,7 +29,7 @@ public class FileBLOB implements BLOB {
     private File file;
 
     /**
-     * Constructor: creates a Factory from a path. It will open the file and check for existence.
+     * Constructor: creates a CoreBLOBFactory from a path. It will open the file and check for existence.
      *
      * @param absolutePath to file
      * @throws IOException if the file cannot be accessed
@@ -42,7 +42,7 @@ public class FileBLOB implements BLOB {
     }
 
     /**
-     * Constructor: creates a Factory out of an already created file.
+     * Constructor: creates a CoreBLOBFactory out of an already created file.
      *
      * @param file to file
      * @throws IOException if the file cannot be accessed
@@ -88,7 +88,7 @@ public class FileBLOB implements BLOB {
                 },
                 (state, emitter) -> {
                     if (state == null) {
-                        emitter.onError(new Throwable("couldn't open File Factory"));
+                        emitter.onError(new Throwable("couldn't open File CoreBLOBFactory"));
                         return state;
                     }
 
@@ -248,7 +248,7 @@ public class FileBLOB implements BLOB {
 
     /**
      * Tries to move the file embedded in this FileBLOB to the destination file. It is useful if
-     * a bundle needs to be put in storage and the payload Factory is already a FileBLOB, by moving it
+     * a bundle needs to be put in storage and the payload CoreBLOBFactory is already a FileBLOB, by moving it
      * we avoid the entire read/write of the file that can be quite large.
      *
      * @param destinationPath path to destination

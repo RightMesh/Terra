@@ -1,6 +1,7 @@
 package io.left.rightmesh.libdtn.core.agents.http;
 
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.routing.LinkLocalRouting;
 import io.left.rightmesh.libdtn.core.routing.RoutingTable;
 import io.left.rightmesh.libdtn.core.utils.nettyrouter.Router;
@@ -19,35 +20,42 @@ import static rx.Observable.just;
  */
 public class NetworkAPI {
 
-    private static String dumpNetworkParameters() {
+
+    private DTNCore core;
+
+    NetworkAPI(DTNCore core) {
+        this.core = core;
+    }
+
+    private String dumpNetworkParameters() {
         StringBuilder sb = new StringBuilder("Routing Engine parameters:\n");
         sb.append("--------------------------\n\n");
         sb.append("forwarding: "+
-                (DTNConfiguration.<Boolean>get(ENABLE_FORWARDING).value() ? "enabled" : "disabled") + "\n");
+                (core.getConf().<Boolean>get(ENABLE_FORWARDING).value() ? "enabled" : "disabled") + "\n");
         sb.append("libdetect: "+
-                (DTNConfiguration.<Boolean>get(ENABLE_COMPONENT_DETECT_PEER_ON_LAN).value() ? "enabled" : "disabled") + "\n");
+                (core.getConf().<Boolean>get(ENABLE_COMPONENT_DETECT_PEER_ON_LAN).value() ? "enabled" : "disabled") + "\n");
         sb.append("libdetect auto-connect: "+
-                (DTNConfiguration.<Boolean>get(ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT).value() ? "enabled" : "disabled") + "\n");
+                (core.getConf().<Boolean>get(ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT).value() ? "enabled" : "disabled") + "\n");
         sb.append("bundle auto-connect: "+
-                (DTNConfiguration.<Boolean>get(ENABLE_AUTO_CONNECT_FOR_BUNDLE).value() ? "enabled" : "disabled") + "\n");
+                (core.getConf().<Boolean>get(ENABLE_AUTO_CONNECT_FOR_BUNDLE).value() ? "enabled" : "disabled") + "\n");
         sb.append("\n");
         return sb.toString();
     }
 
-    private static Action dumpNetworkTables = (params, req, res) -> {
-        final String linkLocal = LinkLocalRouting.print();
-        final String routingTable = RoutingTable.print();
+    private Action dumpNetworkTables = (params, req, res) -> {
+        final String linkLocal = core.getLinkLocalRouting().print();
+        final String routingTable = core.getRoutingTable().print();
         final String netparams = dumpNetworkParameters();
         return res.setStatus(HttpResponseStatus.OK).writeString(just(linkLocal, routingTable, netparams));
     };
 
-    private static Action dumpLinkLayerTable = (params, req, res) ->
-        res.setStatus(HttpResponseStatus.OK).writeString(just(LinkLocalRouting.print()));
+    private Action dumpLinkLayerTable = (params, req, res) ->
+        res.setStatus(HttpResponseStatus.OK).writeString(just(core.getLinkLocalRouting().print()));
 
-    private static Action dumpRoutingTable = (params, req, res) ->
-            res.setStatus(HttpResponseStatus.OK).writeString(just(RoutingTable.print()));
+    private Action dumpRoutingTable = (params, req, res) ->
+            res.setStatus(HttpResponseStatus.OK).writeString(just(core.getRoutingTable().print()));
 
-    static Action networkAction = (params, req, res) -> using(new Router<ByteBuf, ByteBuf>()
+    Action networkAction = (params, req, res) -> using(new Router<ByteBuf, ByteBuf>()
             .GET("/network/", dumpNetworkTables)
             .GET("/network/linklayer/", dumpLinkLayerTable)
             .GET("/network/routing/", dumpRoutingTable))

@@ -2,6 +2,7 @@ package io.left.rightmesh.libdtn.core.agents.http;
 
 import java.nio.charset.Charset;
 
+import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.routing.AARegistrar;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -15,47 +16,53 @@ import static rx.Observable.just;
  */
 public class RegistrationAPI {
 
-    private static Action registerActionGet = (params, req, res) ->
-            res.setStatus(HttpResponseStatus.BAD_REQUEST)
-                    .writeString(just(AARegistrar.printTable()));
+    private DTNCore core;
 
-    private static Action registerActionAdd = (params, req, res) ->
+    RegistrationAPI(DTNCore core) {
+        this.core = core;
+    }
+
+    private Action registerActionGet = (params, req, res) ->
+            res.setStatus(HttpResponseStatus.BAD_REQUEST)
+                    .writeString(just(core.getRegistrar().printTable()));
+
+    private Action registerActionAdd = (params, req, res) ->
             req.getContent()
                 .reduce("", (content, buff) ->
                         content+buff.toString(Charset.defaultCharset()))
                 .flatMap((sink) -> {
-                    if(AARegistrar.isRegistered(sink)) {
+                    if(core.getRegistrar().isRegistered(sink)) {
                         return res.setStatus(HttpResponseStatus.CONFLICT)
                                 .writeString(just("sink is already registered: " + sink))
-                                .writeString(just(AARegistrar.printTable()));
+                                .writeString(just(core.getRegistrar().printTable()));
 
-                    }else if(AARegistrar.register(sink)) {
+                    }else if(core.getRegistrar().register(sink)) {
                         return res.setStatus(HttpResponseStatus.OK)
                                 .writeString(just("sink registered: " + sink))
-                                .writeString(just(AARegistrar.printTable()));
+                                .writeString(just(core.getRegistrar().printTable()));
                     } else {
                         return res.setStatus(HttpResponseStatus.BAD_REQUEST)
                                 .writeString(just("sink is not valid"));
                     }
                 });
 
-    private static Action registerActionDelete = (params, req, res) ->
+    private Action registerActionDelete = (params, req, res) ->
         req.getContent()
                 .reduce("", (content, buff) ->
                         content+buff.toString(Charset.defaultCharset()))
                 .flatMap((sink) -> {
-                    if(AARegistrar.unregister(sink)) {
+                    if(core.getRegistrar().unregister(sink)) {
                         return res.setStatus(HttpResponseStatus.OK)
                                 .writeString(just("sink unregistered: " + sink))
-                                .writeString(just(AARegistrar.printTable()));
+                                .writeString(just(core.getRegistrar().printTable()));
                     } else {
                         return res.setStatus(HttpResponseStatus.BAD_REQUEST)
                                 .writeString(just("no such sink registered"))
-                                .writeString(just(AARegistrar.printTable()));
+                                .writeString(just(core.getRegistrar().printTable()));
                     }
                 });
 
-    static Action registerAction = (params, req, res) -> using(new Router<ByteBuf, ByteBuf>()
+    Action registerAction = (params, req, res) -> using(new Router<ByteBuf, ByteBuf>()
             .GET("/registration/", registerActionGet)
             .POST("/registration/", registerActionAdd)
             .DELETE("/registration/", registerActionDelete))

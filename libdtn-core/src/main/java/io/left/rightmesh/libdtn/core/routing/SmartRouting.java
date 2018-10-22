@@ -1,6 +1,7 @@
 package io.left.rightmesh.libdtn.core.routing;
 
-import io.left.rightmesh.libdtn.core.Component;
+import io.left.rightmesh.libdtn.core.BaseComponent;
+import io.left.rightmesh.libdtn.core.DTNCore;
 
 import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_SMART_ROUTING;
 
@@ -9,21 +10,26 @@ import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENA
  *
  * @author Lucien Loiseau on 24/08/18.
  */
-public class SmartRouting extends Component {
+public class SmartRouting extends BaseComponent {
 
     private static final String TAG = "SmartRouting";
 
-    // ---- SINGLETON ----
-    private static SmartRouting instance;
-    public static SmartRouting getInstance() {  return instance; }
-
-    static {
-        instance = new SmartRouting();
-        getInstance().initComponent(COMPONENT_ENABLE_SMART_ROUTING);
+    public SmartRouting(DTNCore core) {
+        initComponent(core.getConf(), COMPONENT_ENABLE_SMART_ROUTING);
     }
 
     @Override
     public String getComponentName() {
         return TAG;
+    }
+
+    @Override
+    protected void componentUp() {
+
+    }
+
+    @Override
+    protected void componentDown() {
+
     }
 }

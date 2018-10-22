@@ -13,8 +13,9 @@ public class DTNConfigurationTest {
     @Test
     public void testLocalEIDConfiguration() {
         String testEID = "dtn:test";
-        DTNConfiguration.<String>get(DTNConfiguration.Entry.LOCAL_EID).update(testEID);
-        String localEID = DTNConfiguration.<String>get(DTNConfiguration.Entry.LOCAL_EID).value();
+        DTNConfiguration conf = new DTNConfiguration();
+        conf.<String>get(DTNConfiguration.Entry.LOCAL_EID).update(testEID);
+        String localEID = conf.<String>get(DTNConfiguration.Entry.LOCAL_EID).value();
         assertEquals(testEID, localEID);
     }
 

@@ -3,6 +3,7 @@ package io.left.rightmesh.libdtn.core.routing;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.core.processor.EventListener;
 import io.left.rightmesh.libdtn.common.data.Bundle;
@@ -28,55 +29,67 @@ import static io.left.rightmesh.libdtn.common.data.StatusReport.ReasonCode.Trans
  */
 public class RoutingEngine {
 
-    static {
+    private DTNCore core;
+
+    public RoutingEngine(DTNCore core) {
+        this.core = core;
         registrations = new ConcurrentHashMap<>();
-        listener = new ForwardingListener();
+        listener = new ForwardingListener(core);
     }
 
-    private static Map<String, AARegistrar.RegistrationCallback> registrations;
-    private static ForwardingListener listener;
+    private Map<String, AARegistrar.RegistrationCallback> registrations;
+    private ForwardingListener listener;
 
-    public static class ForwardingListener extends EventListener<String> {
+    public class ForwardingListener extends EventListener<String> {
+        ForwardingListener(DTNCore core) {
+            super(core);
+        }
+
+        @Override
+        public String getComponentName() {
+            return "ForwardingListener";
+        }
+
         @Subscribe
         public void onEvent(LinkLocalEntryUp event) {
             /* deliver every bundle of interest */
             getBundlesOfInterest(event.channel.channelEID().getCLASpecificPart()).subscribe(
                     bundleID -> {
                         /* retrieve the bundle - should be constant operation */
-                        Storage.getMeta(bundleID).subscribe(
+                        core.getStorage().getMeta(bundleID).subscribe(
                                 /* deliver it */
                                 bundle -> event.channel.sendBundle(bundle).ignoreElements().subscribe(
                                         () -> {
                                             listener.unwatch(bundle.bid);
-                                            BundleProcessor.bundleForwardingSuccessful(bundle);
+                                            core.getBundleProcessor().bundleForwardingSuccessful(bundle);
                                         },
                                         e -> {
                                             bundle.tag("reason_code", TransmissionCancelled);
-                                            BundleProcessor.bundleForwardingContraindicated(bundle);
+                                            core.getBundleProcessor().bundleForwardingContraindicated(bundle);
                                         }),
                                 e -> { /* should we delete it ? */});
                     });
         }
     }
 
-    public static Observable<CLAChannel> findCLA(EID destination) {
+    public Observable<CLAChannel> findCLA(EID destination) {
         return Observable.concat(
-                LinkLocalRouting.findCLA(destination)
+                core.getLinkLocalRouting().findCLA(destination)
                         .toObservable(),
-                RoutingTable.resolveEID(destination)
-                        .map(LinkLocalRouting::findCLA)
+                core.getRoutingTable().resolveEID(destination)
+                        .map(core.getLinkLocalRouting()::findCLA)
                         .flatMap(m -> m.toObservable()));
     }
 
 
     /* not in RFC - store bundle and wait for opportunity */
     //todo remove this part and use EventListener in Routing instead
-    public static void forwardLater(final Bundle bundle) {
+    public void forwardLater(final Bundle bundle) {
         /* register a listener that will listen for ChannelOpened event
          * and pull the bundle from storage if there is a match */
         final BundleID bid = bundle.bid;
         final EID destination = bundle.destination;
-        Observable<CLA> potentialCLAs = RoutingTable.resolveEID(destination);
+        Observable<CLA> potentialCLAs = core.getRoutingTable().resolveEID(destination);
 
         // watch bundle for all potential CLA
         potentialCLAs
@@ -87,7 +100,7 @@ public class RoutingEngine {
                 .distinct()
                 .flatMapMaybe(claeid -> {
                     System.out.println(" eid -> "+claeid.getEIDString());
-                    return Maybe.fromSingle(ConnectionAgent.createOpportunityForBundle(claeid))
+                    return Maybe.fromSingle(core.getConnectionAgent().createOpportunityForBundle(claeid))
                             .onErrorComplete();
                 })
                 .firstElement()

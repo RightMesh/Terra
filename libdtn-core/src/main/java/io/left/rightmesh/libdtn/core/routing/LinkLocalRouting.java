@@ -1,7 +1,9 @@
 package io.left.rightmesh.libdtn.core.routing;
 
-import io.left.rightmesh.libdtn.core.Component;
+import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
+import io.left.rightmesh.libdtn.core.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.events.ChannelClosed;
 import io.left.rightmesh.libdtn.core.events.ChannelOpened;
 import io.left.rightmesh.libdtn.core.events.LinkLocalEntryDown;
@@ -24,20 +26,16 @@ import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENA
  *
  * @author Lucien Loiseau on 24/08/18.
  */
-public class LinkLocalRouting extends Component {
+public class LinkLocalRouting extends BaseComponent {
 
     private static final String TAG = "LinkLocalRouting";
 
-    // ---- SINGLETON ----
-    private static LinkLocalRouting instance;
-    public static LinkLocalRouting getInstance() {  return instance; }
-    static {
-        instance = new LinkLocalRouting();
+    public LinkLocalRouting(DTNCore core) {
         linkLocalTable = new HashSet<>();
-        instance.initComponent(COMPONENT_ENABLE_LINKLOCAL_ROUTING);
+        initComponent(core.getConf(), COMPONENT_ENABLE_LINKLOCAL_ROUTING);
     }
 
-    private static Set<CLAChannel> linkLocalTable;
+    private Set<CLAChannel> linkLocalTable;
 
     @Override
     public String getComponentName() {
@@ -46,30 +44,28 @@ public class LinkLocalRouting extends Component {
 
     @Override
     protected void componentUp() {
-        super.componentUp();
         RxBus.register(this);
     }
 
     @Override
     protected void componentDown() {
-        super.componentDown();
         RxBus.unregister(this);
     }
 
-    public static void channelOpened(CLAChannel channel) {
+    public void channelOpened(CLAChannel channel) {
         if(linkLocalTable.add(channel)) {
             RxBus.post(new LinkLocalEntryUp(channel));
         }
     }
 
-    public static void channelClosed(CLAChannel channel) {
+    public void channelClosed(CLAChannel channel) {
         if(linkLocalTable.remove(channel)) {
             RxBus.post(new LinkLocalEntryDown(channel));
         }
     }
 
-    public static CLA isEIDLinkLocal(EID eid) {
-        if(!getInstance().isEnabled()) {
+    public CLA isEIDLinkLocal(EID eid) {
+        if(!isEnabled()) {
             return null;
         }
 
@@ -81,8 +77,8 @@ public class LinkLocalRouting extends Component {
         return null;
     }
 
-    public static Maybe<CLAChannel> findCLA(EID destination) {
-        if(!getInstance().isEnabled()) {
+    public Maybe<CLAChannel> findCLA(EID destination) {
+        if(!isEnabled()) {
             Maybe.error(new Throwable(TAG+" is disabled"));
         }
 
@@ -102,9 +98,8 @@ public class LinkLocalRouting extends Component {
     }
 
 
-
     // todo remove this
-    public static String print() {
+    public String print() {
         StringBuilder sb = new StringBuilder("Link-Local Table:\n");
         sb.append("--------------\n\n");
         linkLocalTable.forEach((entry) -> {

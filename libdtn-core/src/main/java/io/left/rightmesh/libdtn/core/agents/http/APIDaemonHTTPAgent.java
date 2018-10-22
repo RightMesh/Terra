@@ -1,7 +1,8 @@
 package io.left.rightmesh.libdtn.core.agents.http;
 
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
-import io.left.rightmesh.libdtn.core.Component;
+import io.left.rightmesh.libdtn.core.BaseComponent;
+import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.utils.nettyrouter.Router;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -14,21 +15,29 @@ import static io.left.rightmesh.libdtn.core.utils.nettyrouter.Dispatch.using;
 /**
  * @author Lucien Loiseau on 13/10/18.
  */
-public class APIDaemonHTTPAgent extends Component {
+public class APIDaemonHTTPAgent extends BaseComponent {
 
 
     private static final String TAG = "APIDaemonHTTPAgent";
 
-    // ---- SINGLETON ----
-    private static APIDaemonHTTPAgent instance;
-    public static APIDaemonHTTPAgent getInstance() { return instance; }
+    private DTNCore core;
+    private HttpServer<ByteBuf, ByteBuf> server;
+    private ConfigurationAPI configurationAPI;
+    private RegistrationAPI registrationAPI;
+    private NetworkAPI networkAPI;
+    private StorageAPI storageAPI;
+    private ApplicationAgentAPI applicationAgentAPI;
 
-    static {
-        instance = new APIDaemonHTTPAgent();
-        getInstance().initComponent(COMPONENT_ENABLE_DAEMON_HTTP_API);
+
+    public APIDaemonHTTPAgent(DTNCore core) {
+        this.core = core;
+        configurationAPI = new ConfigurationAPI(core);
+        registrationAPI = new RegistrationAPI(core);
+        networkAPI = new NetworkAPI(core);
+        storageAPI = new StorageAPI(core);
+        applicationAgentAPI = new ApplicationAgentAPI(core);
+        initComponent(core.getConf(), COMPONENT_ENABLE_DAEMON_HTTP_API);
     }
-
-    HttpServer<ByteBuf, ByteBuf> server;
 
     @Override
     public String getComponentName() {
@@ -37,27 +46,27 @@ public class APIDaemonHTTPAgent extends Component {
 
     @Override
     protected void componentUp() {
-        super.componentUp();
-        int serverPort = (Integer) DTNConfiguration.get(DTNConfiguration.Entry.API_DAEMON_HTTP_API_PORT).value();
+        core.getLogger().d(TAG, "Enabled");
+        int serverPort = (Integer) core.getConf().get(DTNConfiguration.Entry.API_DAEMON_HTTP_API_PORT).value();
         server = HttpServer.newServer(serverPort)
                 .start(using(new Router<ByteBuf, ByteBuf>()
                         .GET("/", rootAction)
                         .GET("/help", rootAction)
-                        .ANY("/conf/", ConfigurationAPI.confAction)
-                        .ANY("/conf/:*", ConfigurationAPI.confAction)
-                        .ANY("/registration/", RegistrationAPI.registerAction)
-                        .ANY("/network/", NetworkAPI.networkAction)
-                        .ANY("/network/:*", NetworkAPI.networkAction)
-                        .ANY("/cache/", StorageAPI.cacheAction)
-                        .ANY("/cache/:*", StorageAPI.cacheAction)
-                        .ANY("/aa/", ApplicationAgentAPI.aaAction)
-                        .ANY("/aa/:*", ApplicationAgentAPI.aaAction)
+                        .ANY("/conf/", configurationAPI.confAction)
+                        .ANY("/conf/:*", configurationAPI.confAction)
+                        .ANY("/registration/", registrationAPI.registerAction)
+                        .ANY("/network/", networkAPI.networkAction)
+                        .ANY("/network/:*", networkAPI.networkAction)
+                        .ANY("/cache/", storageAPI.cacheAction)
+                        .ANY("/cache/:*", storageAPI.cacheAction)
+                        .ANY("/aa/", applicationAgentAPI.aaAction)
+                        .ANY("/aa/:*", applicationAgentAPI.aaAction)
                         .notFound(handler404)));
     }
 
     @Override
     protected void componentDown() {
-        super.componentDown();
+        core.getLogger().d(TAG, "Disabled");
         if (server != null) {
             server.shutdown();
         }

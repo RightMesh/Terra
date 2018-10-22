@@ -2,6 +2,7 @@ package io.left.rightmesh.libdtn.core.routing;
 
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.core.DTNCore;
 
 import java.util.Set;
 
@@ -14,13 +15,19 @@ public class LocalEIDTable {
 
     private static final String TAG = "LocalEIDTable";
 
-    public static EID localEID() {
-        return DTNConfiguration.<EID>get(DTNConfiguration.Entry.LOCAL_EID)
+    DTNCore core;
+
+    public LocalEIDTable(DTNCore core) {
+        this.core = core;
+    }
+
+    public EID localEID() {
+        return core.getConf().<EID>get(DTNConfiguration.Entry.LOCAL_EID)
                 .value();
     }
 
-    public static Set<EID> aliases() {
-        return DTNConfiguration.<Set<EID>>get(DTNConfiguration.Entry.ALIASES).value();
+    public Set<EID> aliases() {
+        return core.getConf().<Set<EID>>get(DTNConfiguration.Entry.ALIASES).value();
     }
 
     /**
@@ -29,7 +36,7 @@ public class LocalEIDTable {
      * @param eid
      * @return true if EID match a local EID or an alias, false otherwise
      */
-    public static boolean isLocal(EID eid) {
+    public boolean isLocal(EID eid) {
         return matchLocal(eid) != null;
     }
 
@@ -39,7 +46,7 @@ public class LocalEIDTable {
      * @param eid to check
      * @return true if the eid is local, false otherwise
      */
-    public static EID matchLocal(EID eid) {
+    public EID matchLocal(EID eid) {
         if (eid.matches(localEID())) {
             return localEID();
         }
@@ -50,6 +57,6 @@ public class LocalEIDTable {
             }
         }
 
-        return LinkLocalRouting.isEIDLinkLocal(eid);
+        return core.getLinkLocalRouting().isEIDLinkLocal(eid);
     }
 }

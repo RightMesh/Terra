@@ -15,8 +15,8 @@ import io.reactivex.Flowable;
 import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.VOLATILE_BLOB_STORAGE_MAX_CAPACITY;
 
 /**
- * VolatileBLOB holds a {@see Factory} in volatile memory. It is implemented with a Byte array.
- * Useful if the Factory is small or if performance are required. Data holds by VolatileBLOB are
+ * VolatileBLOB holds a {@see CoreBLOBFactory} in volatile memory. It is implemented with a Byte array.
+ * Useful if the CoreBLOBFactory is small or if performance are required. Data holds by VolatileBLOB are
  * lost in case of reboot.
  *
  * @author Lucien Loiseau on 26/07/18.
@@ -28,22 +28,23 @@ public class VolatileBLOB implements BLOB {
     //todo makes it configurable
     private static int BLOBMemoryMaxUsage = 0;
     private static int CurrentBLOBMemoryUsage = 0;
-    static {
-        BLOBMemoryMaxUsage = DTNConfiguration.<Integer>get(VOLATILE_BLOB_STORAGE_MAX_CAPACITY)
-                .value();
+
+    static void setLimitConf(DTNConfiguration conf) {
+        conf.<Integer>get(VOLATILE_BLOB_STORAGE_MAX_CAPACITY)
+                .observe().subscribe(i -> BLOBMemoryMaxUsage = i);
     }
 
     /**
      * Create a new {@see VolatileBLOB}.
      *
-     * @param expectedSize of the Factory
+     * @param expectedSize of the CoreBLOBFactory
      * @return a new VolatileBLOB with capacity of expectedSize
      * @throws BundleStorage.StorageFullException if there isn't enough space in Volatile Memory
      */
     public static VolatileBLOB createBLOB(int expectedSize)
-            throws Factory.BLOBFactoryException {
+            throws CoreBLOBFactory.BLOBFactoryException {
         if (expectedSize > (BLOBMemoryMaxUsage - CurrentBLOBMemoryUsage)) {
-            throw new Factory.BLOBFactoryException();
+            throw new CoreBLOBFactory.BLOBFactoryException();
         }
 
         return new VolatileBLOB(expectedSize);
@@ -64,7 +65,7 @@ public class VolatileBLOB implements BLOB {
      *
      * @param expectedSize of the byte array
      */
-    public VolatileBLOB(int expectedSize) {
+    VolatileBLOB(int expectedSize) {
         this.data = new byte[expectedSize];
         position = 0;
         CurrentBLOBMemoryUsage += expectedSize;
@@ -109,7 +110,7 @@ public class VolatileBLOB implements BLOB {
                 () -> new State(0, ByteBuffer.allocate(2048)),
                 (state, emitter) -> {
                     if (state == null) {
-                        emitter.onError(new Throwable("couldn't lock the Factory"));
+                        emitter.onError(new Throwable("couldn't lock the CoreBLOBFactory"));
                         return state;
                     }
 

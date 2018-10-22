@@ -1,12 +1,12 @@
 package io.left.rightmesh.libdtn.core.agents;
 
-import io.left.rightmesh.libdtn.core.Component;
+import io.left.rightmesh.libdtn.core.BaseComponent;
 
 
 /**
  * @author Lucien Loiseau on 27/09/18.
  */
-public abstract class STCPAgent extends Component {
+public abstract class STCPAgent extends BaseComponent {
 /*
     private static final String TAG = "STCPAgent";
 
