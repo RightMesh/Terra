@@ -7,7 +7,7 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
-import io.left.rightmesh.libdtn.modules.StorageAPI;
+import io.left.rightmesh.libdtn.core.api.StorageAPI;
 import io.left.rightmesh.libdtn.core.storage.blob.CoreBLOBFactory;
 import io.left.rightmesh.libdtn.core.utils.Logger;
 import io.reactivex.Completable;

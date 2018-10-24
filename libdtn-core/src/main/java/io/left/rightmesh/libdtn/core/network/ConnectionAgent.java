@@ -1,12 +1,12 @@
 package io.left.rightmesh.libdtn.core.network;
 
 import io.left.rightmesh.libdtn.core.BaseComponent;
-import io.left.rightmesh.libdtn.modules.ConnectionAgentAPI;
+import io.left.rightmesh.libdtn.core.api.ConnectionAgentAPI;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
 import io.left.rightmesh.libdtn.core.DTNCore;
-import io.left.rightmesh.libdtn.modules.cla.CLAChannelSPI;
+import io.left.rightmesh.libdtn.core.api.cla.CLAChannelSPI;
 
 import io.reactivex.Single;
 

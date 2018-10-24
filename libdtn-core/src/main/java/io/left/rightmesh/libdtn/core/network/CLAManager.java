@@ -13,8 +13,8 @@ import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.events.ChannelClosed;
 import io.left.rightmesh.libdtn.core.events.ChannelOpened;
-import io.left.rightmesh.libdtn.modules.cla.CLAChannelSPI;
-import io.left.rightmesh.libdtn.modules.cla.ConvergenceLayerSPI;
+import io.left.rightmesh.libdtn.core.api.cla.CLAChannelSPI;
+import io.left.rightmesh.libdtn.core.api.cla.ConvergenceLayerSPI;
 import io.left.rightmesh.librxbus.RxBus;
 import io.reactivex.Single;
 

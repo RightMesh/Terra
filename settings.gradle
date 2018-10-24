@@ -1,4 +1,4 @@
-include ':libdtn-core', ':libdtn-common', ':libdtn-modules', ':libdtnagent'
+include ':libdtn-core', ':libdtn-common', ':libdtn-core-api', ':libdtn-client'
 include ':libdtn-module-stcp'
 include ':terra', ':dtnping', ':dtnconf'
 

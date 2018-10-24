@@ -1,7 +1,7 @@
 package io.left.rightmesh.libdtn.core.routing;
 
 import io.left.rightmesh.libdtn.core.DTNCore;
-import io.left.rightmesh.libdtn.modules.RoutingAPI;
+import io.left.rightmesh.libdtn.core.api.RoutingAPI;
 import io.left.rightmesh.libdtn.core.processor.EventListener;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
@@ -10,7 +10,7 @@ import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.core.events.ChannelClosed;
 import io.left.rightmesh.libdtn.core.events.ChannelOpened;
 import io.left.rightmesh.libdtn.core.events.LinkLocalEntryUp;
-import io.left.rightmesh.libdtn.modules.cla.CLAChannelSPI;
+import io.left.rightmesh.libdtn.core.api.cla.CLAChannelSPI;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Maybe;

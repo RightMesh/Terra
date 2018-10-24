@@ -4,7 +4,7 @@ import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import io.left.rightmesh.libdtn.core.storage.bundle.SimpleStorage;
-import io.left.rightmesh.libdtn.modules.StorageAPI;
+import io.left.rightmesh.libdtn.core.api.StorageAPI;
 
 /**
  * The Binary Large Object (CoreBLOBFactory) handles large amounts of data in a common way,

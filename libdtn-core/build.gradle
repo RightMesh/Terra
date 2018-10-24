@@ -24,14 +24,11 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    // libdtn-common for data
+    implementation project(path: ':libdtn-core-api')
+
     implementation project(path: ':libdtn-common')
 
-    // libdtn-common for data
-    implementation project(path: ':libdtn-modules')
-
-    // libdtn-common for data
-    implementation project(path: ':libdtnagent')
+    implementation project(path: ':libdtn-client')
 
     // libcbor for bundleV7
     //implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'

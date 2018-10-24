@@ -4,7 +4,7 @@ import java.util.concurrent.Callable;
 
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.DTNCore;
-import io.left.rightmesh.libdtn.modules.CoreAPI;
+import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.reactivex.Completable;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -63,7 +63,6 @@ public class Terra implements Callable<Void> {
             });
         return null;
     }
-
 
     public static void main(String[] args) throws Exception {
         CommandLine.call(new Terra(), args);

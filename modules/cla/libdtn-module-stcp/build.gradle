@@ -7,10 +7,10 @@ plugins {
 }
 
 serviceLoader {
-    serviceInterface 'io.left.rightmesh.libdtn.modules.cla.ConvergenceLayerSPI'
-    serviceInterface 'io.left.rightmesh.modules.cla.stcp.STCP'
-    serviceInterface 'io.left.rightmesh.libdtn.modules.cla.CLAChannelSPI'
-    serviceInterface 'io.left.rightmesh.modules.cla.stcp.STCP$Channel'
+    serviceInterface 'io.left.rightmesh.libdtn.core.api.cla.ConvergenceLayerSPI'
+    serviceInterface 'io.left.rightmesh.core.module.cla.stcp.STCP'
+    serviceInterface 'io.left.rightmesh.libdtn.core.api.cla.CLAChannelSPI'
+    serviceInterface 'io.left.rightmesh.core.module.cla.stcp.STCP$Channel'
 }
 
 dependencies {
@@ -26,7 +26,7 @@ dependencies {
     implementation project(path: ':libdtn-common')
 
     // libdtn-common for data
-    implementation project(path: ':libdtn-modules')
+    implementation project(path: ':libdtn-core-api')
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8
