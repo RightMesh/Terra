@@ -3,6 +3,7 @@ package io.left.rightmesh.libdtn.core.api.http;
 import java.nio.charset.Charset;
 
 import io.left.rightmesh.libdtn.core.DTNCore;
+import io.left.rightmesh.libdtn.modules.RegistrarAPI;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.left.rightmesh.libdtn.core.utils.nettyrouter.Router;
@@ -30,16 +31,20 @@ public class RegistrationAPI {
                 .reduce("", (content, buff) ->
                         content+buff.toString(Charset.defaultCharset()))
                 .flatMap((sink) -> {
-                    if(core.getRegistrar().isRegistered(sink)) {
-                        return res.setStatus(HttpResponseStatus.CONFLICT)
-                                .writeString(just("sink is already registered: " + sink))
-                                .writeString(just(core.getRegistrar().printTable()));
+                    try {
+                        if (core.getRegistrar().isRegistered(sink)) {
+                            return res.setStatus(HttpResponseStatus.CONFLICT)
+                                    .writeString(just("sink is already registered: " + sink))
+                                    .writeString(just(core.getRegistrar().printTable()));
 
-                    }else if(core.getRegistrar().register(sink)) {
-                        return res.setStatus(HttpResponseStatus.OK)
-                                .writeString(just("sink registered: " + sink))
-                                .writeString(just(core.getRegistrar().printTable()));
-                    } else {
+                        } else {
+                            String cookie = core.getRegistrar().register(sink);
+                            return res.setStatus(HttpResponseStatus.OK)
+                                    .writeString(just("sink registered: " + sink))
+                                    .writeString(just("registration cookie: " + cookie))
+                                    .writeString(just(core.getRegistrar().printTable()));
+                        }
+                    } catch(RegistrarAPI.RegistrarException re) {
                         return res.setStatus(HttpResponseStatus.BAD_REQUEST)
                                 .writeString(just("sink is not valid"));
                     }
@@ -50,14 +55,14 @@ public class RegistrationAPI {
                 .reduce("", (content, buff) ->
                         content+buff.toString(Charset.defaultCharset()))
                 .flatMap((sink) -> {
-                    if(core.getRegistrar().unregister(sink)) {
+                    try {
+                        core.getRegistrar().unregister(sink, sink);
                         return res.setStatus(HttpResponseStatus.OK)
                                 .writeString(just("sink unregistered: " + sink))
                                 .writeString(just(core.getRegistrar().printTable()));
-                    } else {
+                    } catch(RegistrarAPI.RegistrarException re) {
                         return res.setStatus(HttpResponseStatus.BAD_REQUEST)
-                                .writeString(just("no such sink registered"))
-                                .writeString(just(core.getRegistrar().printTable()));
+                                .writeString(just("request not valid"));
                     }
                 });
 

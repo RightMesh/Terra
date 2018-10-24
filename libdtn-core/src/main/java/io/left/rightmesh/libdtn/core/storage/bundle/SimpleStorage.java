@@ -18,18 +18,21 @@ import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.common.utils.Log;
-import io.left.rightmesh.libdtn.core.BaseComponent;
-import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.MetaBundle;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Serializer;
+import io.left.rightmesh.libdtn.common.data.blob.NullBLOB;
+import io.left.rightmesh.libdtn.core.BaseComponent;
+import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.events.BundleIndexed;
 import io.left.rightmesh.libdtn.core.storage.blob.FileBLOB;
-import io.left.rightmesh.libdtn.common.data.blob.NullBLOB;
-import io.left.rightmesh.libdtn.core.utils.Logger;
+import io.left.rightmesh.libdtn.modules.StorageAPI.BundleAlreadyExistsException;
+import io.left.rightmesh.libdtn.modules.StorageAPI.BundleNotFoundException;
+import io.left.rightmesh.libdtn.modules.StorageAPI.StorageFullException;
+import io.left.rightmesh.libdtn.modules.StorageAPI.StorageUnavailableException;
 import io.left.rightmesh.librxbus.RxBus;
 import io.reactivex.Observable;
 import io.reactivex.Completable;
@@ -58,7 +61,7 @@ import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENA
  *
  * @author Lucien Loiseau on 20/09/18.
  */
-public class SimpleStorage extends BaseComponent implements BundleStorage {
+public class SimpleStorage extends BaseComponent {
 
     private static final String TAG = "SimpleStorage";
 

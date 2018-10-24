@@ -1,11 +1,9 @@
 package io.left.rightmesh.libdtn.core.network;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -15,10 +13,8 @@ import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.events.ChannelClosed;
 import io.left.rightmesh.libdtn.core.events.ChannelOpened;
-import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
-import io.left.rightmesh.libdtn.core.utils.ReflectionUtil;
-import io.left.rightmesh.libdtn.modules.cla.CLAChannel;
-import io.left.rightmesh.libdtn.modules.cla.CLAInterface;
+import io.left.rightmesh.libdtn.modules.cla.CLAChannelSPI;
+import io.left.rightmesh.libdtn.modules.cla.ConvergenceLayerSPI;
 import io.left.rightmesh.librxbus.RxBus;
 import io.reactivex.Single;
 
@@ -33,7 +29,7 @@ public class CLAManager extends BaseComponent {
     private static final String TAG = "CLAManager";
 
     private DTNCore core;
-    private List<CLAInterface> clas;
+    private List<ConvergenceLayerSPI> clas;
 
     public CLAManager(DTNCore core) {
         this.core = core;
@@ -49,7 +45,7 @@ public class CLAManager extends BaseComponent {
     @Override
     protected void componentUp() {
         loadCLAModules();
-        for (CLAInterface cla : clas) {
+        for (ConvergenceLayerSPI cla : clas) {
             cla.start().subscribe(
                     dtnChannel -> {
                         RxBus.post(new ChannelOpened(dtnChannel));
@@ -83,13 +79,16 @@ public class CLAManager extends BaseComponent {
         try {
             File loc = new File(path);
             File[] flist = loc.listFiles(f -> f.getPath().toLowerCase().endsWith(".jar"));
+            if(flist == null) {
+                return;
+            }
             URL[] urls = new URL[flist.length];
             for (int i = 0; i < flist.length; i++) {
                 urls[i] = flist[i].toURI().toURL();
             }
             URLClassLoader ucl = new URLClassLoader(urls);
-            ServiceLoader<CLAInterface> sl = ServiceLoader.load(CLAInterface.class, ucl);
-            for (CLAInterface cla : sl) {
+            ServiceLoader<ConvergenceLayerSPI> sl = ServiceLoader.load(ConvergenceLayerSPI.class, ucl);
+            for (ConvergenceLayerSPI cla : sl) {
                 core.getLogger().i(TAG, "CLA module added: " + cla.getCLAName());
                 cla.setLogger(core.getLogger());
                 clas.add(cla);
@@ -100,11 +99,11 @@ public class CLAManager extends BaseComponent {
     }
 
     /**
-     * Try to open a CLAChannel to a specific {@see EID.CLA}. The way it parses the information in
+     * Try to open a CLAChannelSPI to a specific {@see EID.CLA}. The way it parses the information in
      * the EID and actually opens the channel is an implementation matter.
      */
-    public Single<CLAChannel> openChannel(CLA peer) {
-        for (CLAInterface cla : clas) {
+    public Single<CLAChannelSPI> openChannel(CLA peer) {
+        for (ConvergenceLayerSPI cla : clas) {
             if (peer.getCLAName().equals(cla.getCLAName())) {
                 return cla.open(peer);
             }

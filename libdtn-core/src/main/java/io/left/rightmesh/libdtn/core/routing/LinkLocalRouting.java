@@ -7,7 +7,7 @@ import io.left.rightmesh.libdtn.core.events.ChannelClosed;
 import io.left.rightmesh.libdtn.core.events.ChannelOpened;
 import io.left.rightmesh.libdtn.core.events.LinkLocalEntryDown;
 import io.left.rightmesh.libdtn.core.events.LinkLocalEntryUp;
-import io.left.rightmesh.libdtn.modules.cla.CLAChannel;
+import io.left.rightmesh.libdtn.modules.cla.CLAChannelSPI;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
@@ -21,7 +21,7 @@ import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENA
 
 /**
  * LinkLocalRouting is the link-local routing linkLocalTable. It contains all the linklocal EID
- * associated with their CLAChannel.
+ * associated with their CLAChannelSPI.
  *
  * @author Lucien Loiseau on 24/08/18.
  */
@@ -34,7 +34,7 @@ public class LinkLocalRouting extends BaseComponent {
         initComponent(core.getConf(), COMPONENT_ENABLE_LINKLOCAL_ROUTING, core.getLogger());
     }
 
-    private Set<CLAChannel> linkLocalTable;
+    private Set<CLAChannelSPI> linkLocalTable;
 
     @Override
     public String getComponentName() {
@@ -51,13 +51,13 @@ public class LinkLocalRouting extends BaseComponent {
         RxBus.unregister(this);
     }
 
-    public void channelOpened(CLAChannel channel) {
+    public void channelOpened(CLAChannelSPI channel) {
         if(linkLocalTable.add(channel)) {
             RxBus.post(new LinkLocalEntryUp(channel));
         }
     }
 
-    public void channelClosed(CLAChannel channel) {
+    public void channelClosed(CLAChannelSPI channel) {
         if(linkLocalTable.remove(channel)) {
             RxBus.post(new LinkLocalEntryDown(channel));
         }
@@ -68,7 +68,7 @@ public class LinkLocalRouting extends BaseComponent {
             return null;
         }
 
-        for(CLAChannel cla : linkLocalTable) {
+        for(CLAChannelSPI cla : linkLocalTable) {
             if(eid.matches(cla.localEID())) {
                 return cla.localEID();
             }
@@ -76,9 +76,9 @@ public class LinkLocalRouting extends BaseComponent {
         return null;
     }
 
-    public Maybe<CLAChannel> findCLA(EID destination) {
+    public Maybe<CLAChannelSPI> findCLA(EID destination) {
         if(!isEnabled()) {
-            Maybe.error(new Throwable(TAG+" is disabled"));
+            return Maybe.error(new Throwable(TAG+" is disabled"));
         }
 
         return Observable.fromIterable(linkLocalTable)
@@ -105,9 +105,9 @@ public class LinkLocalRouting extends BaseComponent {
             String remote = entry.channelEID().getEIDString();
             String local  = entry.localEID().getEIDString();
             String mode;
-            if(entry.getMode().equals(CLAChannel.ChannelMode.InUnidirectional)) {
+            if(entry.getMode().equals(CLAChannelSPI.ChannelMode.InUnidirectional)) {
                 mode = " <-- ";
-            } else if (entry.getMode().equals(CLAChannel.ChannelMode.OutUnidirectional)) {
+            } else if (entry.getMode().equals(CLAChannelSPI.ChannelMode.OutUnidirectional)) {
                 mode = " --> ";
             } else {
                 mode = " <-> ";

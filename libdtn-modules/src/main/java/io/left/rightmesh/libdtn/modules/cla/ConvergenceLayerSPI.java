@@ -6,11 +6,11 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 
 /**
- * A CLAInterface is an abstraction of the underlying protocol used as a CLA.
+ * A ConvergenceLayerSPI is an abstraction of the underlying protocol used as a CLA.
  *
  * @author Lucien Loiseau on 16/10/18.
  */
-public interface CLAInterface {
+public interface ConvergenceLayerSPI {
 
     /**
      * Set the logger
@@ -28,15 +28,15 @@ public interface CLAInterface {
     String getCLAName();
 
     /**
-     * When a CLA is started it should return an Observable of CLAChannel used to actually send
+     * When a CLA is started it should return an Observable of CLAChannelSPI used to actually send
      * and receive bundles.
      *
      * @return Flowable of Bundle
      */
-    Observable<CLAChannel> start();
+    Observable<CLAChannelSPI> start();
 
     /**
-     * When a CLA is stopped, it should stop creating any new CLAChannel and terminate the
+     * When a CLA is stopped, it should stop creating any new CLAChannelSPI and terminate the
      * observable. It is an implementation specific decision wether or not to close all the
      * underlying CLAChannels that were previously openned.
      */
@@ -46,8 +46,8 @@ public interface CLAInterface {
      * Tries to open a channel to the given CLA-specific EID.
      *
      * @param eid of the peer to open a channel too, must be CLA-specific
-     * @return Single of CLAChannel if successful, error otherwise
+     * @return Single of CLAChannelSPI if successful, error otherwise
      */
-    Single<CLAChannel> open(CLA eid);
+    Single<CLAChannelSPI> open(CLA eid);
 
 }

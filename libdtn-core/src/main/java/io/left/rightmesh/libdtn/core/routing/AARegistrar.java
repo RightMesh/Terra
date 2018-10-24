@@ -1,17 +1,22 @@
 package io.left.rightmesh.libdtn.core.routing;
 
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.libdtn.core.DTNCore;
-import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
+import io.left.rightmesh.libdtn.modules.DeliveryAPI;
 import io.left.rightmesh.libdtn.core.processor.EventListener;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.core.events.RegistrationActive;
-import io.left.rightmesh.libdtn.core.storage.bundle.Storage;
+import io.left.rightmesh.libdtn.modules.aa.ActiveRegistrationCallback;
+import io.left.rightmesh.libdtn.modules.RegistrarAPI;
 import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Completable;
+import io.reactivex.Flowable;
 
 import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_AA_REGISTRATION;
 
@@ -21,23 +26,28 @@ import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENA
  *
  * @author Lucien Loiseau on 24/08/18.
  */
-public class AARegistrar extends BaseComponent {
+public class AARegistrar extends BaseComponent implements RegistrarAPI, DeliveryAPI {
 
     private static final String TAG = "AARegistrar";
 
-    public static class RegistrationIsPassive extends Exception {
-    }
+    public class Registration {
+        String registeredSink;
+        String cookie;
+        ActiveRegistrationCallback cb;
 
-    public interface RegistrationCallback {
-        boolean isActive();
+        boolean isActive() {
+            return cb != passiveRegistration;
+        }
 
-        Completable send(Bundle bundle);
-
-        void close();
+        Registration(String sink, ActiveRegistrationCallback cb) {
+            this.registeredSink = sink;
+            this.cb = cb;
+            this.cookie = UUID.randomUUID().toString();
+        }
     }
 
     private DTNCore core;
-    private Map<String, RegistrationCallback> registrations;
+    private Map<String, Registration> registrations;
     private DeliveryListener listener;
 
     public AARegistrar(DTNCore core) {
@@ -58,11 +68,156 @@ public class AARegistrar extends BaseComponent {
 
     @Override
     protected void componentDown() {
-        for (String sink : registrations.keySet()) {
-            registrations.get(sink).close();
-        }
-        registrations.clear();
     }
+
+
+    /* ---- helper method ---- */
+
+    private void checkEnable() throws RegistrarDisabled {
+        if(!isEnabled()) {
+            throw new RegistrarDisabled();
+        }
+    }
+
+    private void checkArgumentNotNull(Object obj) throws NullArgument {
+        if(obj == null) {
+            throw new NullArgument();
+        }
+    }
+
+    private Registration checkRegisteredSink(String sink, String cookie) throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument {
+        checkEnable();
+        checkArgumentNotNull(sink);
+        checkArgumentNotNull(cookie);
+        Registration registration = registrations.get(sink);
+        if(registration == null) {
+            throw new SinkNotRegistered();
+        }
+        if(!registration.cookie.equals(cookie)) {
+            throw new BadCookie();
+        }
+        return registration;
+    }
+
+
+
+    /* ------  RegistrarAPI  ------- */
+
+    @Override
+    public boolean isRegistered(String sink) throws RegistrarDisabled, NullArgument {
+        checkEnable();
+        checkArgumentNotNull(sink);
+        return registrations.containsKey(sink);
+    }
+
+    @Override
+    public String register(String sink)
+            throws RegistrarDisabled, SinkAlreadyRegistered, NullArgument {
+        return register(sink, passiveRegistration);
+    }
+
+    @Override
+    public String register(String sink, ActiveRegistrationCallback cb)
+            throws RegistrarDisabled, SinkAlreadyRegistered, NullArgument{
+        checkEnable();
+        checkArgumentNotNull(sink);
+        checkArgumentNotNull(cb);
+
+        Registration registration = new Registration(sink, cb);
+        if (registrations.putIfAbsent(sink, registration) == null) {
+            return registration.cookie;
+        }
+
+        throw new SinkAlreadyRegistered();
+    }
+
+    @Override
+    public boolean unregister(String sink, String cookie) throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument {
+        checkRegisteredSink(sink, cookie);
+        if(registrations.remove(sink) == null) {
+            throw new SinkNotRegistered();
+        }
+        return true;
+    }
+
+    @Override
+    public boolean send(String sink, String cookie, Bundle bundle)  throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
+        checkRegisteredSink(sink, cookie);
+        checkArgumentNotNull(bundle);
+        core.getBundleProcessor().bundleDispatching(bundle);
+        return true;
+    }
+
+    @Override
+    public Set<BundleID> checkInbox(String sink, String cookie) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
+        checkRegisteredSink(sink, cookie);
+        // call storage service
+        return null;
+    }
+
+    @Override
+    public Bundle get(String sink, String cookie, BundleID bundleID) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
+        checkRegisteredSink(sink, cookie);
+        checkArgumentNotNull(bundleID);
+        // call storage service
+        return null;
+    }
+
+    @Override
+    public Bundle fetch(String sink, String cookie, BundleID bundleID) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
+        checkRegisteredSink(sink, cookie);
+        checkArgumentNotNull(bundleID);
+        return null;
+    }
+
+    @Override
+    public Flowable<Bundle> fetch(String sink, String cookie) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
+        checkRegisteredSink(sink, cookie);
+        return null;
+    }
+
+    @Override
+    public boolean setActive(String sink, String cookie, ActiveRegistrationCallback cb) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
+        checkArgumentNotNull(cb);
+        Registration registration = checkRegisteredSink(sink, cookie);
+        registration.cb = cb;
+        return true;
+    }
+
+    @Override
+    public boolean setPassive(String sink, String cookie) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
+        Registration registration = checkRegisteredSink(sink, cookie);
+        registration.cb = passiveRegistration;
+        return true;
+    }
+
+    /**
+     * print the state of the registration table
+     *
+     * @return String
+     */
+    public String printTable() {
+        StringBuilder sb = new StringBuilder("\n\ncurrent registration table:\n");
+        sb.append("---------------------------\n\n");
+        if (isEnabled()) {
+            registrations.forEach(
+                    (sink, reg) -> {
+                        sb.append(sink).append(" ");
+                        if(reg.cb == passiveRegistration){
+                            sb.append("PASSIVE\n");
+                        } else {
+                            sb.append("ACTIVE\n");
+                        }
+                    }
+            );
+        } else {
+            sb.append("disabled");
+        }
+        sb.append("\n");
+        return sb.toString();
+    }
+
+    /* ------  DeliveryAPI  ------- */
 
     public class DeliveryListener extends EventListener<String> {
         DeliveryListener(DTNCore core) {
@@ -75,97 +230,21 @@ public class AARegistrar extends BaseComponent {
         }
 
         @Subscribe
-        public void onEvent(RegistrationActive active) {
+        public void onEvent(RegistrationActive event) {
             /* deliver every bundle of interest */
-            getBundlesOfInterest(active.sink).subscribe(
+            getBundlesOfInterest(event.sink).subscribe(
                     bundleID -> {
                         /* retrieve the bundle - should be constant operation */
                         core.getStorage().getMeta(bundleID).subscribe(
                                 /* deliver it */
-                                bundle -> active.cb.send(bundle).subscribe(
+                                bundle -> event.cb.recv(bundle).subscribe(
                                         () -> {
-                                            listener.unwatch(active.sink, bundle.bid);
+                                            listener.unwatch(event.sink, bundle.bid);
                                             core.getBundleProcessor().bundleLocalDeliverySuccessful(bundle);
                                         },
-                                        e -> core.getBundleProcessor().bundleLocalDeliveryFailure(active.sink, bundle)),
+                                        e -> core.getBundleProcessor().bundleLocalDeliveryFailure(event.sink, bundle)),
                                 e -> {});
                     });
-        }
-    }
-
-
-    /**
-     * Check wether a sink is registered or not
-     *
-     * @param sink identifying this AA
-     * @return true if the AA is registered, false otherwise
-     */
-    public boolean isRegistered(String sink) {
-        if (isEnabled() && sink != null) {
-            return registrations.containsKey(sink);
-        } else {
-            return false;
-        }
-    }
-
-
-    /**
-     * Register an application agent
-     *
-     * @param sink identifying this AA
-     * @return true if the AA was successfully registered, false otherwise
-     */
-    public boolean register(String sink) {
-        return register(sink, passiveRegistration);
-    }
-
-    /**
-     * Register an application agent
-     *
-     * @param sink identifying this AA
-     * @param cb   callback to receive payload
-     * @return true if the AA was registered, false otherwise
-     */
-    public boolean register(String sink, RegistrationCallback cb) {
-        if (isEnabled()
-                && sink != null
-                && cb != null) {
-            registrations.putIfAbsent(sink, cb);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Unregister an application agent
-     *
-     * @param sink identifying the AA to be unregistered
-     * @return true if the AA was unregister, false otherwise
-     */
-    public boolean unregister(String sink) {
-        if (isEnabled() && sink != null
-                && registrations.containsKey(sink)) {
-            registrations.get(sink).close();
-            registrations.remove(sink);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Return the active registration for a given sink, null otherwise
-     *
-     * @param sink the registered sink
-     * @return RegistrationCallback
-     */
-    public RegistrationCallback getRegistration(String sink) {
-        if (isEnabled() && sink != null
-                && registrations.containsKey(sink)) {
-            return registrations.get(sink);
-        } else {
-            return passiveRegistration;
         }
     }
 
@@ -178,60 +257,25 @@ public class AARegistrar extends BaseComponent {
      */
     public Completable deliver(String sink, Bundle bundle) {
         if (!isEnabled()) {
-            return Completable.error(new Throwable("disabled component"));
+            return Completable.error(new DeliveryDisabled());
         }
 
-        RegistrationCallback cb = getRegistration(sink);
-        if (cb.isActive()) {
-            return cb.send(bundle);
-        } else {
-            return Completable.error(new RegistrationIsPassive());
+        Registration registration = registrations.get(sink);
+        if(registration == null) {
+            return Completable.error(new UnregisteredSink());
         }
+
+        if(registration.cb == passiveRegistration) {
+            return Completable.error(new PassiveRegistration());
+        }
+
+        return registration.cb.recv(bundle);
     }
-
 
     public void deliverLater(String sink, final Bundle bundle) {
         listener.watch(sink, bundle.bid);
     }
 
-    /**
-     * print the state of the registration table
-     *
-     * @return String
-     */
-    public String printTable() {
-        StringBuilder sb = new StringBuilder("\n\ncurrent registration table:\n");
-        sb.append("---------------------------\n\n");
-        if (isEnabled()) {
-            for (String sink : registrations.keySet()) {
-                sb.append(sink).append(" ");
-                if(getRegistration(sink) == passiveRegistration){
-                    sb.append("PASSIVE\n");
-                } else {
-                    sb.append("ACTIVE\n");
-                }
-            }
-        } else {
-            sb.append("disabled");
-        }
-        sb.append("\n");
-        return sb.toString();
-    }
-
     /* passive registration */
-    private static RegistrationCallback passiveRegistration = new RegistrationCallback() {
-        @Override
-        public boolean isActive() {
-            return false;
-        }
-
-        @Override
-        public Completable send(Bundle bundle) {
-            return Completable.error(new RegistrationIsPassive());
-        }
-
-        @Override
-        public void close() {
-        }
-    };
+    private static ActiveRegistrationCallback passiveRegistration = (payload) -> Completable.error(new PassiveRegistration());
 }

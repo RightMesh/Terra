@@ -1,14 +1,14 @@
 package io.left.rightmesh.libdtn.core.events;
 
-import io.left.rightmesh.libdtn.modules.cla.CLAChannel;
+import io.left.rightmesh.libdtn.modules.cla.CLAChannelSPI;
 
 /**
  * @author Lucien Loiseau on 17/10/18.
  */
 public class LinkLocalEntryDown {
-    public CLAChannel channel;
+    public CLAChannelSPI channel;
 
-    public LinkLocalEntryDown(CLAChannel channel) {
+    public LinkLocalEntryDown(CLAChannelSPI channel) {
         this.channel = channel;
     }
 

@@ -87,8 +87,7 @@ public class BundleProcessor {
 
         /* 5.4 - step 2 */
         core.getLogger().v(TAG, "5.4-2 " + bundle.bid.getBIDString());
-        core.getRoutingEngine().findCLA(bundle.destination)
-                .distinct()
+        core.getRoutingEngine().findOpenedChannelTowards(bundle.destination)
                 .flatMapMaybe(claChannel -> {
                         System.out.println(" eid -> "+claChannel.channelEID().getEIDString());
                         return claChannel.sendBundle(bundle)
@@ -249,7 +248,7 @@ public class BundleProcessor {
         EID localMatch = core.getLocalEIDTable().matchLocal(bundle.destination);
         if (localMatch != null) {
             String sink = bundle.destination.getEIDString().replaceFirst(localMatch.toString(), "");
-            core.getRegistrar().deliver(sink, bundle).subscribe(
+            core.getDelivery().deliver(sink, bundle).subscribe(
                     () -> bundleLocalDeliverySuccessful(bundle),
                     deliveryFailure -> bundleLocalDeliveryFailure(sink, bundle));
         } else {
@@ -277,7 +276,7 @@ public class BundleProcessor {
             core.getStorage().store(bundle).subscribe(
                     b -> {
                         /* register for event and deliver later */
-                        core.getRegistrar().deliverLater(sink, bundle);
+                        core.getDelivery().deliverLater(sink, bundle);
                     },
                     storageFailure -> {
                         /* abandon delivery */

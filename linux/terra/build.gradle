@@ -16,6 +16,8 @@ dependencies {
 
     compile project(path: ':libdtn-common')
 
+    compile project(path: ':libdtn-modules')
+
     // picocli framework for RequestMessage Line Interface
     compile 'info.picocli:picocli:3.6.1'
 }

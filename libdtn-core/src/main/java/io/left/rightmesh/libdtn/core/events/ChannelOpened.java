@@ -1,14 +1,14 @@
 package io.left.rightmesh.libdtn.core.events;
 
-import io.left.rightmesh.libdtn.modules.cla.CLAChannel;
+import io.left.rightmesh.libdtn.modules.cla.CLAChannelSPI;
 
 /**
  * @author Lucien Loiseau on 10/10/18.
  */
 public class ChannelOpened implements DTNEvent {
-    public CLAChannel channel;
+    public CLAChannelSPI channel;
 
-    public ChannelOpened(CLAChannel channel) {
+    public ChannelOpened(CLAChannelSPI channel) {
         this.channel = channel;
     }
 

@@ -7,9 +7,9 @@ plugins {
 }
 
 serviceLoader {
-    serviceInterface 'io.left.rightmesh.libdtn.modules.cla.CLAInterface'
+    serviceInterface 'io.left.rightmesh.libdtn.modules.cla.ConvergenceLayerSPI'
     serviceInterface 'io.left.rightmesh.modules.cla.stcp.STCP'
-    serviceInterface 'io.left.rightmesh.libdtn.modules.cla.CLAChannel'
+    serviceInterface 'io.left.rightmesh.libdtn.modules.cla.CLAChannelSPI'
     serviceInterface 'io.left.rightmesh.modules.cla.stcp.STCP$Channel'
 }
 

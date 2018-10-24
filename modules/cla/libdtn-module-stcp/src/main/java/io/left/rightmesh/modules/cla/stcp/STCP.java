@@ -13,8 +13,8 @@ import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Serializer;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
-import io.left.rightmesh.libdtn.modules.cla.CLAChannel;
-import io.left.rightmesh.libdtn.modules.cla.CLAInterface;
+import io.left.rightmesh.libdtn.modules.cla.CLAChannelSPI;
+import io.left.rightmesh.libdtn.modules.cla.ConvergenceLayerSPI;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.librxtcp.RxTCP;
 import io.reactivex.Flowable;
@@ -43,7 +43,7 @@ import io.reactivex.subscribers.DisposableSubscriber;
  *
  * @author Lucien Loiseau on 17/08/18.
  */
-public class STCP implements CLAInterface {
+public class STCP implements ConvergenceLayerSPI {
 
     private static final String TAG = "STCP";
     private static final int defaultPort = 4778;
@@ -71,7 +71,7 @@ public class STCP implements CLAInterface {
     }
 
     @Override
-    public Observable<CLAChannel> start() {
+    public Observable<CLAChannelSPI> start() {
         server = new RxTCP.Server<>(port);
         logger.i(TAG, "starting a stcp server on port " + port);
         return server.start()
@@ -85,16 +85,16 @@ public class STCP implements CLAInterface {
         }
     }
 
-    private Single<CLAChannel> open(String host, int port) {
+    private Single<CLAChannelSPI> open(String host, int port) {
         return new RxTCP.ConnectionRequest<>(host, port)
                 .connect()
                 .map(con -> {
-                    CLAChannel channel = new Channel(con, true);
+                    CLAChannelSPI channel = new Channel(con, true);
                     return channel;
                 });
     }
 
-    public Single<CLAChannel> open(CLA peer) {
+    public Single<CLAChannelSPI> open(CLA peer) {
         if (peer instanceof CLASTCP) {
             return open(((CLASTCP) peer).host, ((CLASTCP) peer).port);
         } else {
@@ -102,7 +102,7 @@ public class STCP implements CLAInterface {
         }
     }
 
-    public class Channel implements CLAChannel {
+    public class Channel implements CLAChannelSPI {
         RxTCP.Connection tcpcon;
         CLA channelEID;
         CLA localEID;

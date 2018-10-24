@@ -1,11 +1,12 @@
 package io.left.rightmesh.libdtn.core.network;
 
 import io.left.rightmesh.libdtn.core.BaseComponent;
+import io.left.rightmesh.libdtn.modules.ConnectionAgentAPI;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
 import io.left.rightmesh.libdtn.core.DTNCore;
-import io.left.rightmesh.libdtn.modules.cla.CLAChannel;
+import io.left.rightmesh.libdtn.modules.cla.CLAChannelSPI;
 
 import io.reactivex.Single;
 
@@ -18,7 +19,7 @@ import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENA
  *
  * @author Lucien Loiseau on 15/10/18.
  */
-public class ConnectionAgent extends BaseComponent {
+public class ConnectionAgent extends BaseComponent implements ConnectionAgentAPI {
 
     private static final String TAG = "ConnectionAgent";
 
@@ -42,7 +43,7 @@ public class ConnectionAgent extends BaseComponent {
     protected void componentDown() {
     }
 
-    public Single<CLAChannel> createOpportunityLibDetect(String host) {
+    public Single<CLAChannelSPI> createOpportunityLibDetect(String host) {
         if(!core.getConf().<Boolean>get(DTNConfiguration.Entry.ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT).value()) {
             return Single.error(new Throwable("AutoConnect is disabled"));
         }
@@ -57,9 +58,10 @@ public class ConnectionAgent extends BaseComponent {
 
     /**
      * Try to create an opportunity for this destination.
+     *
      * @param eid
      */
-    public Single<CLAChannel> createOpportunityForBundle(CLA eid) {
+    public Single<CLAChannelSPI> createOpportunityForBundle(CLA eid) {
         if(!isEnabled()) {
             return Single.error(new Throwable(TAG+" is disabled"));
         }

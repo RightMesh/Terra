@@ -9,7 +9,6 @@ import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import io.left.rightmesh.libdtn.common.data.blob.ReadableBLOB;
 import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
-import io.left.rightmesh.libdtn.core.storage.bundle.BundleStorage;
 import io.reactivex.Flowable;
 
 import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.VOLATILE_BLOB_STORAGE_MAX_CAPACITY;

@@ -4,8 +4,8 @@ import java.util.concurrent.Callable;
 
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.DTNCore;
-import io.left.rightmesh.libdtn.core.api.APIStaticApplicationAgent;
-import io.left.rightmesh.libdtn.common.data.blob.BLOB;
+import io.left.rightmesh.libdtn.modules.CoreAPI;
+import io.reactivex.Completable;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -55,19 +55,12 @@ public class Terra implements Callable<Void> {
     public Void call() throws Exception {
         DTNConfiguration conf = new DTNConfiguration();
         conf.get(COMPONENT_ENABLE_CLA_LOAD_MODULES).update(true);
-        conf.get(MODULES_CLA_PATH).update("/home/lucien/work/rightmesh/code/rightmeshdtn/modules/cla/libdtn-module-stcp/build/libs/");
-        DTNCore core = DTNCore.init(conf);
-        core.staticAPI().register("/netflix/video/", new APIStaticApplicationAgent.StaticAPICallback() {
-            @Override
-            public void recv(BLOB payload) {
-                System.out.println("receive a BLOB");
-            }
-
-            @Override
-            public void close() {
-
-            }
-        });
+        conf.get(MODULES_CLA_PATH).update("./");
+        CoreAPI core = DTNCore.init(conf);
+        core.getRegistrar().register("/netflix/video/", (bundle) -> {
+                System.out.println("receive a Bundle");
+                return Completable.complete();
+            });
         return null;
     }
 

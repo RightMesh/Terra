@@ -6,6 +6,8 @@ import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.MetaBundle;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.utils.Logger;
+import io.left.rightmesh.libdtn.modules.StorageAPI.BundleAlreadyExistsException;
+import io.left.rightmesh.libdtn.modules.StorageAPI.StorageUnavailableException;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -17,7 +19,7 @@ import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENA
  *
  * @author Lucien Loiseau on 26/07/18.
  */
-public class VolatileStorage extends BaseComponent implements BundleStorage {
+public class VolatileStorage extends BaseComponent {
 
     private static final String TAG = "VolatileStorage";
 

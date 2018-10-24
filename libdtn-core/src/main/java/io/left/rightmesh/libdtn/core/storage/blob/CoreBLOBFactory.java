@@ -2,9 +2,9 @@ package io.left.rightmesh.libdtn.core.storage.blob;
 
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
-import io.left.rightmesh.libdtn.core.storage.bundle.BundleStorage;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import io.left.rightmesh.libdtn.core.storage.bundle.SimpleStorage;
+import io.left.rightmesh.libdtn.modules.StorageAPI;
 
 /**
  * The Binary Large Object (CoreBLOBFactory) handles large amounts of data in a common way,
@@ -33,7 +33,7 @@ public class CoreBLOBFactory implements BLOBFactory {
 
         try {
             return simpleStorage.createBLOB(expectedSize);
-        } catch(BundleStorage.StorageException se) {
+        } catch(StorageAPI.StorageException se) {
             throw new BLOBFactoryException();
         }
     }

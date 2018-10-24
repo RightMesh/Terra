@@ -1,10 +1,7 @@
 package io.left.rightmesh.libdtn.core.routing;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import io.left.rightmesh.libdtn.core.DTNCore;
-import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
+import io.left.rightmesh.libdtn.modules.RoutingAPI;
 import io.left.rightmesh.libdtn.core.processor.EventListener;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
@@ -13,9 +10,7 @@ import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.core.events.ChannelClosed;
 import io.left.rightmesh.libdtn.core.events.ChannelOpened;
 import io.left.rightmesh.libdtn.core.events.LinkLocalEntryUp;
-import io.left.rightmesh.libdtn.core.network.ConnectionAgent;
-import io.left.rightmesh.libdtn.modules.cla.CLAChannel;
-import io.left.rightmesh.libdtn.core.storage.bundle.Storage;
+import io.left.rightmesh.libdtn.modules.cla.CLAChannelSPI;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Maybe;
@@ -23,21 +18,18 @@ import io.reactivex.Observable;
 
 import static io.left.rightmesh.libdtn.common.data.StatusReport.ReasonCode.TransmissionCancelled;
 
-
 /**
  * @author Lucien Loiseau on 28/09/18.
  */
-public class RoutingEngine {
+public class RoutingEngine implements RoutingAPI {
 
     private DTNCore core;
 
     public RoutingEngine(DTNCore core) {
         this.core = core;
-        registrations = new ConcurrentHashMap<>();
         listener = new ForwardingListener(core);
     }
 
-    private Map<String, AARegistrar.RegistrationCallback> registrations;
     private ForwardingListener listener;
 
     public class ForwardingListener extends EventListener<String> {
@@ -72,18 +64,18 @@ public class RoutingEngine {
         }
     }
 
-    public Observable<CLAChannel> findCLA(EID destination) {
+    public Observable<CLAChannelSPI> findOpenedChannelTowards(EID destination) {
         return Observable.concat(
                 core.getLinkLocalRouting().findCLA(destination)
                         .toObservable(),
                 core.getRoutingTable().resolveEID(destination)
                         .map(core.getLinkLocalRouting()::findCLA)
-                        .flatMap(m -> m.toObservable()));
+                        .flatMap(m -> m.toObservable()))
+                .distinct();
     }
 
 
-    /* not in RFC - store bundle and wait for opportunity */
-    //todo remove this part and use EventListener in Routing instead
+    /* not in RFC - store bundle and wait for an opportunity */
     public void forwardLater(final Bundle bundle) {
         /* register a listener that will listen for ChannelOpened event
          * and pull the bundle from storage if there is a match */

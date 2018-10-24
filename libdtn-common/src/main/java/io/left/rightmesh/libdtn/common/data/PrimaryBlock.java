@@ -109,7 +109,6 @@ public class PrimaryBlock extends Block {
 
     /** BPv6 and BPv7 fields */
     public int version;
-    public long procV6Flags;
     public long procV7Flags;
     public CRCFieldType crcType;
     public EID destination;
@@ -129,7 +128,6 @@ public class PrimaryBlock extends Block {
      * Constructor: creates an empty PrimaryBlock, should probably not be used.
      */
     public PrimaryBlock() {
-        this.procV6Flags = 0;
         this.procV7Flags = 0;
         this.crcType = CRCFieldType.NO_CRC;
         this.destination = DTN.NullEID();
@@ -160,7 +158,6 @@ public class PrimaryBlock extends Block {
      * @param other other primary block to copy
      */
     public PrimaryBlock(PrimaryBlock other) {
-        this.procV6Flags = other.procV6Flags;
         this.procV7Flags = other.procV7Flags;
         this.source = other.source;
         this.destination = other.destination;
@@ -175,16 +172,6 @@ public class PrimaryBlock extends Block {
     }
 
     /**
-     * returns the sdnv_value of a specific {@see PrimaryBlock.BundleV6Flags} for this Bundle.
-     *
-     * @param flag to query
-     * @return true if the flag is set, false otherwise
-     */
-    public boolean getV6Flag(BundleV6Flags flag) {
-        return (flag.getOffset() & this.procV6Flags) > 0;
-    }
-
-    /**
      * returns the sdnv_value of a specific {@see PrimaryBlock.BundleV7Flags} for this Bundle.
      *
      * @param flag to query
@@ -192,35 +179,6 @@ public class PrimaryBlock extends Block {
      */
     public boolean getV7Flag(BundleV7Flags flag) {
         return (flag.getOffset() & this.procV7Flags) > 0;
-    }
-
-    /**
-     * getPriority returns the {@see PrimaryBlock.Priority} of this Bundle.
-     *
-     * @return Priority of the Bundle
-     */
-    public Priority getV6Priority() {
-        if (getV6Flag(BundleV6Flags.PRIORITY_BIT1)) {
-            return Priority.NORMAL;
-        }
-        if (getV6Flag(BundleV6Flags.PRIORITY_BIT2)) {
-            return Priority.EXPEDITED;
-        }
-        return Priority.BULK;
-    }
-
-    /**
-     * setFlag set (or unset) a given {@see PrimaryBlock.BundleFlags}.
-     *
-     * @param flag  to be set
-     * @param value of the flag: true to set, false to unset
-     */
-    public void setV6Flag(BundleV6Flags flag, boolean value) {
-        if (value) {
-            procV6Flags |= 0b1L << flag.getOffset();
-        } else {
-            procV6Flags &= ~(0b1L << flag.getOffset());
-        }
     }
 
     /**
@@ -234,32 +192,6 @@ public class PrimaryBlock extends Block {
             procV7Flags |= 0b1L << flag.getOffset();
         } else {
             procV7Flags &= ~(0b1L << flag.getOffset());
-        }
-    }
-
-    /**
-     * set the {@see PrimaryBlock.Priority} for the given Bundle.
-     *
-     * @param p the priority of the Bundle
-     */
-    public void setV6Priority(Priority p) {
-        switch (p) {
-            case BULK:
-                setV6Flag(BundleV6Flags.PRIORITY_BIT1, false);
-                setV6Flag(BundleV6Flags.PRIORITY_BIT2, false);
-                break;
-
-            case EXPEDITED:
-                setV6Flag(BundleV6Flags.PRIORITY_BIT1, false);
-                setV6Flag(BundleV6Flags.PRIORITY_BIT2, true);
-                break;
-
-            case NORMAL:
-                setV6Flag(BundleV6Flags.PRIORITY_BIT1, true);
-                setV6Flag(BundleV6Flags.PRIORITY_BIT2, false);
-                break;
-            default:
-                break;
         }
     }
 
