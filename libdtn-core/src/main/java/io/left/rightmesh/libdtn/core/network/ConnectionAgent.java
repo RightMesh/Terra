@@ -6,7 +6,7 @@ import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
 import io.left.rightmesh.libdtn.core.DTNCore;
-import io.left.rightmesh.libdtn.core.api.cla.CLAChannelSPI;
+import io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI;
 
 import io.reactivex.Single;
 

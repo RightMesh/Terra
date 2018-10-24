@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.core.api.aa;
+package io.left.rightmesh.libdtn.core.spi.aa;
 
 import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
 

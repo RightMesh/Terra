@@ -1,6 +1,6 @@
 package io.left.rightmesh.libdtn.core.events;
 
-import io.left.rightmesh.libdtn.core.api.aa.ActiveRegistrationCallback;
+import io.left.rightmesh.libdtn.core.spi.aa.ActiveRegistrationCallback;
 
 /**
  * @author Lucien Loiseau on 10/10/18.

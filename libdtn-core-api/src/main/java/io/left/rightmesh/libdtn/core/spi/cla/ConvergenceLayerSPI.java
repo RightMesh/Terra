@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.core.api.cla;
+package io.left.rightmesh.libdtn.core.spi.cla;
 
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.utils.Log;

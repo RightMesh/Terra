@@ -4,7 +4,7 @@ import java.util.Set;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
-import io.left.rightmesh.libdtn.core.api.aa.ActiveRegistrationCallback;
+import io.left.rightmesh.libdtn.core.spi.aa.ActiveRegistrationCallback;
 import io.reactivex.Flowable;
 
 /**

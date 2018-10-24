@@ -2,7 +2,7 @@ package io.left.rightmesh.libdtn.core.api;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
-import io.left.rightmesh.libdtn.core.api.cla.CLAChannelSPI;
+import io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI;
 import io.reactivex.Observable;
 
 /**

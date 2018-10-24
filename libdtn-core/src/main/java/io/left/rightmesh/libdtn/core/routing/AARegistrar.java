@@ -12,7 +12,7 @@ import io.left.rightmesh.libdtn.core.api.DeliveryAPI;
 import io.left.rightmesh.libdtn.core.processor.EventListener;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.core.events.RegistrationActive;
-import io.left.rightmesh.libdtn.core.api.aa.ActiveRegistrationCallback;
+import io.left.rightmesh.libdtn.core.spi.aa.ActiveRegistrationCallback;
 import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
 import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Completable;
