@@ -51,11 +51,17 @@ public class Terra implements Callable<Void> {
     @Option(names = {"-d", "--daemon"}, description = "Start Terra as a daemon.")
     private boolean daemon;
 
+    @Option(names = {"-c", "--module-cla-path"}, description = "set the path to the Convergence Layer Adapters modules.")
+    private String claModuleDirectory;
+
+    @Option(names = {"-a", "--module-aa-path"}, description = "set the path to the Application Agent Adapters modules.")
+    private String aaModuleDirectory;
+
     @Override
     public Void call() throws Exception {
         DTNConfiguration conf = new DTNConfiguration();
         conf.get(COMPONENT_ENABLE_CLA_LOAD_MODULES).update(true);
-        conf.get(MODULES_CLA_PATH).update("./");
+        conf.get(MODULES_CLA_PATH).update(claModuleDirectory);
         CoreAPI core = DTNCore.init(conf);
         core.getRegistrar().register("/netflix/video/", (bundle) -> {
                 System.out.println("receive a Bundle");
