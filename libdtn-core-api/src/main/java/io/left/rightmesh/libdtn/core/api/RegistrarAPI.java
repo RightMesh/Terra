@@ -15,7 +15,6 @@ import io.reactivex.Flowable;
 public interface RegistrarAPI {
 
     class RegistrarException extends Exception {
-
     }
 
     class RegistrarDisabled extends RegistrarException {

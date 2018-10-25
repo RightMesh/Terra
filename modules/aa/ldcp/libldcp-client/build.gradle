@@ -1,0 +1,23 @@
+plugins {
+    id("java-library")
+}
+repositories {
+    google()
+    jcenter()
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    
+    compile project(path: ':libldcp-common')
+
+    // CBOR for communication with daemon
+    implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
+
+    // RxTCP for communication with daemon
+    implementation 'com.github.RightMesh:librxtcp:master-SNAPSHOT'
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8

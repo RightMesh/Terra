@@ -1,18 +1,29 @@
-include ':libdtn-core', ':libdtn-common', ':libdtn-core-api', ':libdtn-client'
-include ':libdtn-module-stcp'
-include ':terra', ':dtnping', ':dtnconf'
+// core
+include ':libdtn-core', ':libdtn-common', ':libdtn-core-api'
 
+// modules STCP
+include ':libdtn-module-stcp' // convergence layer adapter module
 project(":libdtn-module-stcp").projectDir = file("modules/cla/libdtn-module-stcp")
+
+// module LDCP
+include ':libldcp-common' // ldcp common
+include ':libldcp-client' // ldcp client-side library
+include ':libdtn-module-ldcp' // ldcp server-side is a libdtn core module
+project(":libldcp-common").projectDir = file("modules/aa/ldcp/libldcp-common")
+project(":libldcp-client").projectDir = file("modules/aa/ldcp/libldcp-client")
+project(":libdtn-module-ldcp").projectDir = file("modules/aa/ldcp/libdtn-module-ldcp")
+
+// binaries
+include ':terra', ':dtnping', ':dtnconf'
 project(":terra").projectDir = file("linux/terra")
 project(":dtnping").projectDir = file("linux/dtnping")
 project(":dtnconf").projectDir = file("linux/dtnconf")
 
-include ':librxbus', ':libcbor', ':librxtcp'
-
+// dependencies
+/*
+include ':librxbus', ':libcbor', ':librxtcp', ':libdetect'
 project(":librxbus").projectDir = file("../librxbus")
 project(":libcbor").projectDir = file("../libcbor")
 project(":librxtcp").projectDir = file("../librxtcp")
-
-
-include ':libdetect'
 project(":libdetect").projectDir = file("../libdetect")
+*/

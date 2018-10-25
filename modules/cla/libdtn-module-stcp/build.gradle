@@ -13,20 +13,38 @@ serviceLoader {
     serviceInterface 'io.left.rightmesh.core.module.cla.stcp.STCP$Channel'
 }
 
+test {
+    systemProperty 'path', '/tmp'
+    useJUnit()
+    maxHeapSize = '1G'
+
+    filter {
+        //include all integration tests
+        includeTestsMatching "*Test"
+    }
+}
+
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     // libdtn-common for data
-    implementation project(path: ':libcbor')
-
-    // libdtn-common for data
-    implementation project(path: ':librxtcp')
-
-    // libdtn-common for data
     implementation project(path: ':libdtn-common')
 
-    // libdtn-common for data
+    // libdtn-core-api for module
     implementation project(path: ':libdtn-core-api')
+
+    // libcbor for encoding/parsing
+    implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
+
+    // librxtcp for tcp socket
+    implementation 'com.github.RightMesh:librxtcp:master-SNAPSHOT'
+
+    // jUnit
+    testImplementation 'junit:junit:4.12'
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8

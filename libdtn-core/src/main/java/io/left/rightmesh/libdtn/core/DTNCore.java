@@ -1,9 +1,9 @@
 package io.left.rightmesh.libdtn.core;
 
-import io.left.rightmesh.libdtn.core.http.APIDaemonHTTPAgent;
+import io.left.rightmesh.libdtn.core.daemon.http.APIDaemonHTTPAgent;
 import io.left.rightmesh.libdtn.core.network.ConnectionAgent;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
-import io.left.rightmesh.libdtn.core.routing.AARegistrar;
+import io.left.rightmesh.libdtn.core.routing.Registrar;
 import io.left.rightmesh.libdtn.core.routing.LinkLocalRouting;
 import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
 import io.left.rightmesh.libdtn.core.routing.RoutingEngine;
@@ -34,7 +34,7 @@ public class DTNCore implements CoreAPI {
     private LinkLocalRouting linkLocalRouting;
     private RoutingTable routingTable;
     private RoutingAPI routingEngine;
-    private AARegistrar aaRegistrar;
+    private Registrar registrar;
     private StorageAPI storage;
     private BundleProcessor bundleProcessor;
     private ConnectionAgentAPI connectionAgent;
@@ -54,7 +54,7 @@ public class DTNCore implements CoreAPI {
         core.linkLocalRouting = new LinkLocalRouting(core);
         core.routingTable = new RoutingTable(core);
         core.routingEngine = new RoutingEngine(core);
-        core.aaRegistrar = new AARegistrar(core);
+        core.registrar = new Registrar(core);
 
         /*  core */
         core.storage = new Storage(core.conf, core.logger);
@@ -96,11 +96,11 @@ public class DTNCore implements CoreAPI {
     }
 
     public RegistrarAPI getRegistrar() {
-        return aaRegistrar;
+        return registrar;
     }
 
     public DeliveryAPI getDelivery() {
-        return aaRegistrar;
+        return registrar;
     }
 
     public StorageAPI getStorage() {
