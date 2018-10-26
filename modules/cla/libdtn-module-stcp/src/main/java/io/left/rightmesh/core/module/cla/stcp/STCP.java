@@ -13,6 +13,7 @@ import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Serializer;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
+import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI;
 import io.left.rightmesh.libdtn.core.spi.cla.ConvergenceLayerSPI;
 import io.left.rightmesh.libdtn.common.utils.Log;
@@ -21,6 +22,9 @@ import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.subscribers.DisposableSubscriber;
+
+import static io.left.rightmesh.core.module.cla.stcp.Configuration.CLA_STCP_LISTENING_PORT_DEFAULT;
+import static io.left.rightmesh.core.module.cla.stcp.Configuration.STCPEntry.CLA_STCP_LISTENING_PORT;
 
 /**
  * Simple TCP (CLASTCP) is a TCP Convergence Layer Adapter (CLA) for the Bundle Protocol. it was
@@ -46,10 +50,9 @@ import io.reactivex.subscribers.DisposableSubscriber;
 public class STCP implements ConvergenceLayerSPI {
 
     private static final String TAG = "STCP";
-    private static final int defaultPort = 4778;
 
     private RxTCP.Server<RxTCP.Connection> server;
-    private int port;
+    private int port = 0;
     private Log logger = new NullLogger();
 
     public String getModuleName() {
@@ -57,7 +60,6 @@ public class STCP implements ConvergenceLayerSPI {
     }
 
     public STCP() {
-        this.port = defaultPort;
     }
 
     public STCP setPort(int port) {
@@ -71,7 +73,11 @@ public class STCP implements ConvergenceLayerSPI {
     }
 
     @Override
-    public Observable<CLAChannelSPI> start() {
+    public Observable<CLAChannelSPI> start(ConfigurationAPI conf) {
+        if(port == 0) {
+            port = conf.getModuleConf(this,
+                    CLA_STCP_LISTENING_PORT, CLA_STCP_LISTENING_PORT_DEFAULT).value();
+        }
         server = new RxTCP.Server<>(port);
         logger.i(TAG, "starting a stcp server on port " + port);
         return server.start()
@@ -152,6 +158,7 @@ public class STCP implements ConvergenceLayerSPI {
                 return Observable.error(new RecvOnlyPeerException());
             }
 
+            // todo move this in caller
             /* pull the bundle from storage if necessary
             if (bundle instanceof MetaBundle) {
                 return Observable.create(s -> Storage.get(bundle.bid).subscribe(

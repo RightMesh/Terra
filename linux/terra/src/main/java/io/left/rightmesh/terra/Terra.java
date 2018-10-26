@@ -75,6 +75,9 @@ public class Terra implements Callable<Void> {
         conf.get(ENABLE_CORE_MODULES).update(true);
         conf.get(MODULES_CORE_PATH).update(coreModuleDirectory);
 
+        conf.getModuleEnabled("stcp", true).update(true);
+        conf.getModuleEnabled("http-daemon", true).update(true);
+
         CoreAPI core = DTNCore.init(conf);
         core.getRegistrar().register("/netflix/video/", (bundle) -> {
                 System.out.println("receive a Bundle");

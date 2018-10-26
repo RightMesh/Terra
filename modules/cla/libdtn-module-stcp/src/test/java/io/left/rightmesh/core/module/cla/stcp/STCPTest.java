@@ -4,11 +4,15 @@ import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
+import io.left.rightmesh.libdtn.core.spi.ModuleSPI;
 import io.reactivex.Flowable;
+import io.reactivex.Observable;
 
 import static junit.framework.TestCase.fail;
 
@@ -16,6 +20,37 @@ import static junit.framework.TestCase.fail;
  * @author Lucien Loiseau on 26/09/18.
  */
 public class STCPTest {
+
+    ConfigurationAPI stcpConf = new ConfigurationAPI() {
+        @Override
+        public <T> EntryInterface<T> get(CoreEntry key) {
+            return null;
+        }
+
+        @Override
+        public EntryInterface<Boolean> getModuleEnabled(String name, boolean default_value) {
+            return null;
+        }
+
+        @Override
+        public <T> EntryInterface<T> getModuleConf(ModuleSPI module, ModuleEntry entry, T default_value) {
+            return new EntryInterface<T>() {
+                @Override
+                public T value() {
+                    return default_value;
+                }
+
+                @Override
+                public Observable<T> observe() {
+                    return Observable.just(default_value);
+                }
+
+                @Override
+                public void update(T value) {
+                }
+            };
+        }
+    };
 
     @Test
     public void testServerOneClient() {
@@ -29,12 +64,12 @@ public class STCPTest {
         CLA eid = null;
         try {
             eid = CLASTCP.create("127.0.0.1:4591", "/test");
-        } catch(EID.EIDFormatException efe) {
+        } catch (EID.EIDFormatException efe) {
             fail();
         }
         new STCP()
                 .setPort(4591)
-                .start()
+                .start(stcpConf)
                 .subscribe(
                         channel -> {
                             channel.recvBundle().subscribe(
@@ -102,12 +137,12 @@ public class STCPTest {
         CLA eid = null;
         try {
             eid = CLASTCP.create("127.0.0.1:4592", "/test");
-        } catch(EID.EIDFormatException efe) {
+        } catch (EID.EIDFormatException efe) {
             fail();
         }
         new STCP()
                 .setPort(4592)
-                .start()
+                .start(stcpConf)
                 .subscribe(
                         channel -> {
                             channel.recvBundle().subscribe(

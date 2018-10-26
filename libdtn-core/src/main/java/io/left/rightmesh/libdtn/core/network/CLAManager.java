@@ -30,7 +30,7 @@ public class CLAManager {
 
     public void addCLA(ConvergenceLayerSPI cla) {
         clas.add(cla);
-        cla.start().subscribe(
+        cla.start(core.getConf()).subscribe(
                 dtnChannel -> {
                     RxBus.post(new ChannelOpened(dtnChannel));
                     dtnChannel.recvBundle().subscribe(

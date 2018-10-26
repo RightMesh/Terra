@@ -1,12 +1,13 @@
 package io.left.rightmesh.core.module.cla.stcp;
 
+import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
+
 /**
  * @author Lucien Loiseau on 26/10/18.
  */
 public interface Configuration {
 
-    enum STCPEntry {
-        COMPONENT_ENABLE_CLA_STCP("component_enable_cla_stcp"),
+    enum STCPEntry implements ConfigurationAPI.ModuleEntry  {
         CLA_STCP_LISTENING_PORT("cla_stcp_port");
 
         private final String key;
@@ -21,7 +22,6 @@ public interface Configuration {
         }
     }
 
-    boolean COMPONENT_ENABLE_CLA_STCP_DEFAULT = true;
     int CLA_STCP_LISTENING_PORT_DEFAULT =  4556;
 
 }

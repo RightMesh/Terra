@@ -2,6 +2,7 @@ package io.left.rightmesh.libdtn.core.spi.cla;
 
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.utils.Log;
+import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.spi.ModuleSPI;
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -25,7 +26,7 @@ public interface ConvergenceLayerSPI  extends ModuleSPI {
      *
      * @return Flowable of Bundle
      */
-    Observable<CLAChannelSPI> start();
+    Observable<CLAChannelSPI> start(ConfigurationAPI api);
 
     /**
      * When a CLA is stopped, it should stop creating any new CLAChannelSPI and terminate the

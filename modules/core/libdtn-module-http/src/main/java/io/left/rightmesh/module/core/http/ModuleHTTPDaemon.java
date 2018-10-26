@@ -8,6 +8,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.netty.protocol.http.server.HttpServer;
 import rx.Observable;
 
+import static io.left.rightmesh.module.core.http.Configuration.API_DAEMON_HTTP_API_PORT_DEFAULT;
 import static io.left.rightmesh.module.core.http.Configuration.HTTPEntry.API_DAEMON_HTTP_API_PORT;
 import static io.left.rightmesh.module.core.http.nettyrouter.Dispatch.using;
 
@@ -16,24 +17,12 @@ import static io.left.rightmesh.module.core.http.nettyrouter.Dispatch.using;
  */
 public class ModuleHTTPDaemon implements CoreModuleSPI {
 
-    private static final String TAG = "module-http-daemon";
+    private static final String TAG = "http-daemon";
 
     private CoreAPI core;
     private HttpServer<ByteBuf, ByteBuf> server;
-    private RequestConfiguration configurationAPI;
-    private RequestRegistration registrationAPI;
-    private RequestNetwork networkAPI;
-    private RequestStorage storageAPI;
-    private RequestBundle applicationAgentAPI;
 
-    @Override
-    public void init(CoreAPI api) {
-        this.core = api;
-        configurationAPI = new RequestConfiguration(core);
-        registrationAPI = new RequestRegistration(core);
-        networkAPI = new RequestNetwork(core);
-        storageAPI = new RequestStorage(core);
-        applicationAgentAPI = new RequestBundle(core);
+    public ModuleHTTPDaemon() {
     }
 
     @Override
@@ -41,8 +30,16 @@ public class ModuleHTTPDaemon implements CoreModuleSPI {
         return TAG;
     }
 
-    protected void componentUp() {
-        int serverPort = (Integer) core.getConf().getModuleConf(this, API_DAEMON_HTTP_API_PORT).value();
+    @Override
+    public void init(CoreAPI api) {
+        this.core = api;
+        RequestConfiguration configurationAPI = new RequestConfiguration(core);
+        RequestRegistration registrationAPI = new RequestRegistration(core);
+        RequestNetwork networkAPI = new RequestNetwork(core);
+        RequestStorage storageAPI = new RequestStorage(core);
+        RequestBundle applicationAgentAPI = new RequestBundle(core);
+        int serverPort = core.getConf().getModuleConf(this,
+                API_DAEMON_HTTP_API_PORT, API_DAEMON_HTTP_API_PORT_DEFAULT).value();
         server = HttpServer.newServer(serverPort)
                 .start(using(new Router<ByteBuf, ByteBuf>()
                         .GET("/", rootAction)
@@ -59,7 +56,7 @@ public class ModuleHTTPDaemon implements CoreModuleSPI {
                         .notFound(handler404)));
     }
 
-    protected void componentDown() {
+    protected void close() {
         if (server != null) {
             server.shutdown();
         }

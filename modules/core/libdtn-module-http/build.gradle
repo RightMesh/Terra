@@ -1,6 +1,24 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.1'
+    }
+}
+
 plugins {
     id("java-library")
+    id "com.github.harbby.gradle.serviceloader" version "1.1.5"
+    id 'com.github.johnrengelman.shadow' version '4.0.1'
 }
+
+
+serviceLoader {
+    serviceInterface 'io.left.rightmesh.libdtn.core.spi.core.CoreModuleSPI'
+    serviceInterface 'io.left.rightmesh.module.core.http.ModuleHTTPDaemon'
+}
+
 repositories {
     google()
     jcenter()
@@ -10,13 +28,14 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    compile project(path: ':libdtn-common')
-
-    compile project(path: ':libdtn-core-api')
+    // lib common and api for the module
+    implementation project(path: ':libdtn-common')
+    implementation project(path: ':libdtn-core-api')
 
     // lib rx netty for http API
     implementation "io.reactivex:rxnetty-http:${rxnetty_version}"
     implementation "tv.cntt:jauter:${jauter_version}"
+
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8

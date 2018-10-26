@@ -5,6 +5,7 @@ import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.LocalEIDAPI;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**

@@ -46,12 +46,12 @@ public class EarlyValidator {
             throw new RejectedException("forward isn't enabled and bundle is not local");
         }
 
-        long max_lifetime = core.getConf().<Integer>get(ConfigurationAPI.CoreEntry.MAX_LIFETIME).value();
+        long max_lifetime = core.getConf().<Long>get(ConfigurationAPI.CoreEntry.MAX_LIFETIME).value();
         if (block.lifetime > max_lifetime) {
             throw new RejectedException("lifetime="+block.lifetime+" max="+max_lifetime);
         }
 
-        long max_timestamp_futur = core.getConf().<Integer>get(ConfigurationAPI.CoreEntry.MAX_TIMESTAMP_FUTURE).value();
+        long max_timestamp_futur = core.getConf().<Long>get(ConfigurationAPI.CoreEntry.MAX_TIMESTAMP_FUTURE).value();
         if (max_timestamp_futur > 0
                 && (block.creationTimestamp > ClockUtil.getCurrentTime() + max_timestamp_futur)) {
             throw new RejectedException("timestamp too far in the future");

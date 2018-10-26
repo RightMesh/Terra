@@ -40,9 +40,13 @@ public class ModuleLoader {
                 URLClassLoader ucl = new URLClassLoader(pathToListOfJarURL(path));
                 ServiceLoader<ApplicationAgentAdapterSPI> sl = ServiceLoader.load(ApplicationAgentAdapterSPI.class, ucl);
                 for (ApplicationAgentAdapterSPI aa : sl) {
-                    core.getLogger().i(TAG, "AA module added: " + aa.getModuleName());
-                    aa.setLogger(core.getLogger());
-                    aa.init(core.getRegistrar());
+                    if(core.getConf().<Boolean>getModuleEnabled(aa.getModuleName(), false).value()) {
+                        core.getLogger().i(TAG, "AA module loaded: " + aa.getModuleName()+" - UP");
+                        aa.setLogger(core.getLogger());
+                        aa.init(core.getRegistrar());
+                    } else {
+                        core.getLogger().i(TAG, "AA module loaded: " + aa.getModuleName()+" - DOWN");
+                    }
                 }
             } catch (Exception e) {
                 core.getLogger().w(TAG, "error loading AA module: " + e.getMessage());
@@ -56,10 +60,14 @@ public class ModuleLoader {
             try {
                 URLClassLoader ucl = new URLClassLoader(pathToListOfJarURL(path));
                 ServiceLoader<ConvergenceLayerSPI> sl = ServiceLoader.load(ConvergenceLayerSPI.class, ucl);
-                for (ConvergenceLayerSPI cla : sl) {
-                    core.getLogger().i(TAG, "CLA module added: " + cla.getModuleName());
-                    cla.setLogger(core.getLogger());
-                    core.getClaManager().addCLA(cla);
+                for (ConvergenceLayerSPI cla : sl) { ;
+                    if(core.getConf().getModuleEnabled(cla.getModuleName(), false).value()) {
+                        core.getLogger().i(TAG, "CLA module loaded: " + cla.getModuleName()+" - UP");
+                        cla.setLogger(core.getLogger());
+                        core.getClaManager().addCLA(cla);
+                    } else {
+                        core.getLogger().i(TAG, "CLA module loaded: " + cla.getModuleName()+" - DOWN");
+                    }
                 }
             } catch (Exception e) {
                 core.getLogger().w(TAG, "error loading CLA module: " + e.getMessage());
@@ -74,8 +82,12 @@ public class ModuleLoader {
                 URLClassLoader ucl = new URLClassLoader(pathToListOfJarURL(path));
                 ServiceLoader<CoreModuleSPI> sl = ServiceLoader.load(CoreModuleSPI.class, ucl);
                 for (CoreModuleSPI cm : sl) {
-                    core.getLogger().i(TAG, "Core module added: " + cm.getModuleName());
-                    cm.init(core);
+                    if(core.getConf().getModuleEnabled(cm.getModuleName(), false).value()) {
+                        core.getLogger().i(TAG, "Core module loaded: " + cm.getModuleName()+" - UP");
+                        cm.init(core);
+                    } else {
+                        core.getLogger().i(TAG, "Core module loaded: " + cm.getModuleName()+" - DOWN");
+                    }
                 }
             } catch (Exception e) {
                 core.getLogger().w(TAG, "error loading Core module: " + e.getMessage());

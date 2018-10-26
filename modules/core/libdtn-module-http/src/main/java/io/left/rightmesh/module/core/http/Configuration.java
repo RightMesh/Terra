@@ -8,7 +8,6 @@ import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 public interface Configuration {
 
     enum HTTPEntry implements ConfigurationAPI.ModuleEntry {
-        COMPONENT_ENABLE_DAEMON_HTTP_API("module_enable_http_daemon"),
         API_DAEMON_HTTP_API_PORT("module_http_port");
 
         private final String key;
@@ -23,7 +22,5 @@ public interface Configuration {
         }
     }
 
-
-    boolean COMPONENT_ENABLE_DAEMON_HTTP_API_DEFAUT = true;
     int API_DAEMON_HTTP_API_PORT_DEFAULT = 8080;
 }

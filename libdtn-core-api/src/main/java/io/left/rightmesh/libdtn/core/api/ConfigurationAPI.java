@@ -133,5 +133,8 @@ public interface ConfigurationAPI {
 
     <T> EntryInterface<T> get(CoreEntry key);
 
-    <T> EntryInterface<T> getModuleConf(ModuleSPI module, ModuleEntry entry);
+    EntryInterface<Boolean> getModuleEnabled(String name, boolean default_value);
+
+    <T> EntryInterface<T> getModuleConf(ModuleSPI module, ModuleEntry entry, T default_value);
+
 }
