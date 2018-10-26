@@ -4,7 +4,7 @@ import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.MetaBundle;
-import io.left.rightmesh.libdtn.core.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.utils.Logger;
 import io.left.rightmesh.libdtn.core.api.StorageAPI.BundleAlreadyExistsException;
 import io.left.rightmesh.libdtn.core.api.StorageAPI.StorageUnavailableException;
@@ -12,7 +12,7 @@ import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 
-import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_VOLATILE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
 
 /**
  * VolatileStorage holds all the Bundle in memory.
@@ -25,7 +25,7 @@ public class VolatileStorage extends BaseComponent {
 
     private Storage metaStorage;
 
-    public VolatileStorage(Storage metaStorage, DTNConfiguration conf, Logger logger) {
+    public VolatileStorage(Storage metaStorage, ConfigurationAPI conf, Logger logger) {
         this.metaStorage = metaStorage;
         initComponent(conf, COMPONENT_ENABLE_VOLATILE_STORAGE, logger);
     }

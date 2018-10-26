@@ -8,8 +8,9 @@ import io.left.rightmesh.libdtn.common.data.ProcessorNotFoundException;
 import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.common.data.StatusReport;
+import io.left.rightmesh.libdtn.core.api.BundleProcessorAPI;
 
-import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.ENABLE_FORWARDING;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_FORWARDING;
 import static io.left.rightmesh.libdtn.common.data.BlockHeader.BlockV7Flags.DELETE_BUNDLE_IF_NOT_PROCESSED;
 import static io.left.rightmesh.libdtn.common.data.BlockHeader.BlockV7Flags.DISCARD_IF_NOT_PROCESSED;
 import static io.left.rightmesh.libdtn.common.data.BlockHeader.BlockV7Flags.TRANSMIT_STATUSREPORT_IF_NOT_PROCESSED;
@@ -19,7 +20,7 @@ import static io.left.rightmesh.libdtn.common.data.PrimaryBlock.BundleV7Flags.RE
 import static io.left.rightmesh.libdtn.common.data.StatusReport.ReasonCode.BlockUnintelligible;
 import static io.left.rightmesh.libdtn.common.data.StatusReport.ReasonCode.LifetimeExpired;
 import static io.left.rightmesh.libdtn.common.data.StatusReport.ReasonCode.NoKnownRouteForDestination;
-import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.ENABLE_STATUS_REPORTING;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_STATUS_REPORTING;
 
 /**
  * BundleProcessor is the entry point of all Bundle (either from Application Agent or
@@ -27,7 +28,7 @@ import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.ENABLE_STATUS
  *
  * @author Lucien Loiseau on 28/09/18.
  */
-public class BundleProcessor {
+public class BundleProcessor implements BundleProcessorAPI {
 
     private static final String TAG = "BundleProcessor";
 
@@ -45,8 +46,8 @@ public class BundleProcessor {
     public void bundleTransmission(Bundle bundle) {
         /* 5.2 - step 1 */
         core.getLogger().v(TAG, "5.2-1 " + bundle.bid.getBIDString());
-        if (!bundle.source.equals(DTN.NullEID()) && !core.getLocalEIDTable().isLocal(bundle.source)) {
-            bundle.source = core.getLocalEIDTable().localEID();
+        if (!bundle.source.equals(DTN.NullEID()) && !core.getLocalEID().isLocal(bundle.source)) {
+            bundle.source = core.getLocalEID().localEID();
         }
         bundle.tag("dispatch_pending");
 
@@ -61,7 +62,7 @@ public class BundleProcessor {
 
         /* 5.3 - step 1 */
         core.getLogger().v(TAG, "5.3-1: " + bundle.bid.getBIDString());
-        if (core.getLocalEIDTable().isLocal(bundle.destination)) {
+        if (core.getLocalEID().isLocal(bundle.destination)) {
             bundleLocalDelivery(bundle);
             return;
         }
@@ -179,7 +180,7 @@ public class BundleProcessor {
 
         /* 5.4.2 - step 2 */
         core.getLogger().v(TAG, "5.4.2-2 " + bundle.bid.getBIDString());
-        if (core.getLocalEIDTable().isLocal(bundle.destination)) {
+        if (core.getLocalEID().isLocal(bundle.destination)) {
             bundle.removeTag("forward_pending");
             bundleDiscarding(bundle);
         } else {
@@ -245,7 +246,7 @@ public class BundleProcessor {
 
         /* 5.7 - step 2 */
         core.getLogger().v(TAG, "5.7-2 " + bundle.bid.getBIDString());
-        EID localMatch = core.getLocalEIDTable().matchLocal(bundle.destination);
+        EID localMatch = core.getLocalEID().matchLocal(bundle.destination);
         if (localMatch != null) {
             String sink = bundle.destination.getEIDString().replaceFirst(localMatch.toString(), "");
             core.getDelivery().deliver(sink, bundle).subscribe(

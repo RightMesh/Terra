@@ -36,10 +36,6 @@ dependencies {
     // libdetect to detect neighbour on the LAN
     implementation 'com.github.RightMesh:libdetect:master-SNAPSHOT'
 
-    // lib rx netty for http API
-    implementation "io.reactivex:rxnetty-http:${rxnetty_version}"
-    implementation "tv.cntt:jauter:${jauter_version}"
-
     // RxJava library for reactive programming
     api 'io.reactivex.rxjava2:rxjava:2.1.1'
 

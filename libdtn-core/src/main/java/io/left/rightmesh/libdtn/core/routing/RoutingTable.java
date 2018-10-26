@@ -1,17 +1,17 @@
 package io.left.rightmesh.libdtn.core.routing;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.core.DTNCore;
 import io.reactivex.Observable;
 
-import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_STATIC_ROUTING;
-import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.STATIC_ROUTE_CONFIGURATION;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_STATIC_ROUTING;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.STATIC_ROUTE_CONFIGURATION;
 
 /**
  * Static Routing is a routing component that uses the static route table to take
@@ -42,7 +42,7 @@ public class RoutingTable {
     }
 
 
-    private static class TableEntry {
+    static class TableEntry {
         EID to;
         EID next;
 
@@ -60,6 +60,14 @@ public class RoutingTable {
                 return next.equals(o) && to.equals(o);
             }
             return false;
+        }
+
+        public EID getTo() {
+            return to;
+        }
+
+        public EID getNext() {
+            return next;
         }
 
         @Override
@@ -109,16 +117,10 @@ public class RoutingTable {
         return resolveEID(destination, Observable.empty());
     }
 
-    // todo remove this
-    public String print() {
-        final StringBuilder sb = new StringBuilder("Routing Table:\n");
-        sb.append("--------------\n\n");
-        compoundTableObservable().subscribe(
-                tableEntry -> {
-                    sb.append(tableEntry.to.getEIDString() + " --> "+tableEntry.next.getEIDString()+"\n");
-                }
-        );
-        sb.append("\n");
-        return sb.toString();
+    Set<TableEntry> dumpTable() {
+        Set<TableEntry> ret = new HashSet<>();
+        ret.addAll(staticRoutingTable);
+        ret.addAll(routingTable);
+        return Collections.unmodifiableSet(ret);
     }
 }

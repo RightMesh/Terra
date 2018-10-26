@@ -9,8 +9,12 @@ repositories {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    
-    compile project(path: ':libldcp-common')
+
+    compile project(path: ':libdtn-common')
+
+    compile project(path: ':libdtn-core-api')
+
+    compile project(path: ':libldcp')
 
     // CBOR for communication with daemon
     implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'

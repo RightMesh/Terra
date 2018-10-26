@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
-import io.left.rightmesh.libdtn.core.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.StorageAPI;
 import io.left.rightmesh.libdtn.core.storage.blob.CoreBLOBFactory;
 import io.left.rightmesh.libdtn.core.utils.Logger;
@@ -42,7 +42,7 @@ public class Storage implements StorageAPI {
     }
     Map<BundleID, IndexEntry> index = new ConcurrentHashMap<>();
 
-    public Storage(DTNConfiguration conf, Logger logger) {
+    public Storage(ConfigurationAPI conf, Logger logger) {
         this.logger = logger;
         volatileStorage = new VolatileStorage(this, conf, logger);
         simpleStorage = new SimpleStorage(this, conf, logger);

@@ -2,6 +2,7 @@ package io.left.rightmesh.libdtn.core.spi.cla;
 
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.utils.Log;
+import io.left.rightmesh.libdtn.core.spi.ModuleSPI;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 
@@ -10,22 +11,13 @@ import io.reactivex.Single;
  *
  * @author Lucien Loiseau on 16/10/18.
  */
-public interface ConvergenceLayerSPI {
+public interface ConvergenceLayerSPI  extends ModuleSPI {
 
     /**
      * Set the logger
-     *
-     * @param logger
      */
     void setLogger(Log logger);
 
-    /**
-     * The name for this CLA must be the exact same one that is used in a EIDCLA to identify
-     * this Convergence Layer Adapter.
-     *
-     * @return a String with the name of this CLA.
-     */
-    String getCLAName();
 
     /**
      * When a CLA is started it should return an Observable of CLAChannelSPI used to actually send

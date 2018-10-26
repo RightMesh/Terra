@@ -14,10 +14,11 @@ import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_LINKLOCAL_ROUTING;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_LINKLOCAL_ROUTING;
 
 /**
  * LinkLocalRouting is the link-local routing linkLocalTable. It contains all the linklocal EID
@@ -51,19 +52,19 @@ public class LinkLocalRouting extends BaseComponent {
         RxBus.unregister(this);
     }
 
-    public void channelOpened(CLAChannelSPI channel) {
+    void channelOpened(CLAChannelSPI channel) {
         if(linkLocalTable.add(channel)) {
             RxBus.post(new LinkLocalEntryUp(channel));
         }
     }
 
-    public void channelClosed(CLAChannelSPI channel) {
+    void channelClosed(CLAChannelSPI channel) {
         if(linkLocalTable.remove(channel)) {
             RxBus.post(new LinkLocalEntryDown(channel));
         }
     }
 
-    public CLA isEIDLinkLocal(EID eid) {
+    CLA isEIDLinkLocal(EID eid) {
         if(!isEnabled()) {
             return null;
         }
@@ -76,7 +77,7 @@ public class LinkLocalRouting extends BaseComponent {
         return null;
     }
 
-    public Maybe<CLAChannelSPI> findCLA(EID destination) {
+    Maybe<CLAChannelSPI> findCLA(EID destination) {
         if(!isEnabled()) {
             return Maybe.error(new Throwable(TAG+" is disabled"));
         }
@@ -96,25 +97,8 @@ public class LinkLocalRouting extends BaseComponent {
         channelClosed(event.channel);
     }
 
-
-    // todo remove this
-    public String print() {
-        StringBuilder sb = new StringBuilder("Link-Local Table:\n");
-        sb.append("--------------\n\n");
-        linkLocalTable.forEach((entry) -> {
-            String remote = entry.channelEID().getEIDString();
-            String local  = entry.localEID().getEIDString();
-            String mode;
-            if(entry.getMode().equals(CLAChannelSPI.ChannelMode.InUnidirectional)) {
-                mode = " <-- ";
-            } else if (entry.getMode().equals(CLAChannelSPI.ChannelMode.OutUnidirectional)) {
-                mode = " --> ";
-            } else {
-                mode = " <-> ";
-            }
-            sb.append(local + mode +remote+"\n");
-        });
-        sb.append("\n");
-        return sb.toString();
+    Set<CLAChannelSPI> dumpTable() {
+        return Collections.unmodifiableSet(linkLocalTable);
     }
+
 }

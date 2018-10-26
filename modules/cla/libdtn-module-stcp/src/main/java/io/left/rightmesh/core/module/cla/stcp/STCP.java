@@ -52,7 +52,7 @@ public class STCP implements ConvergenceLayerSPI {
     private int port;
     private Log logger = new NullLogger();
 
-    public String getCLAName() {
+    public String getModuleName() {
         return "stcp";
     }
 

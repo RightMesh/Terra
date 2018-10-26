@@ -1,8 +1,8 @@
 package io.left.rightmesh.libdtn.core.storage.blob;
 
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
-import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
+import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.storage.bundle.SimpleStorage;
 import io.left.rightmesh.libdtn.core.api.StorageAPI;
 
@@ -18,7 +18,7 @@ public class CoreBLOBFactory implements BLOBFactory {
 
     private SimpleStorage simpleStorage;
 
-    public CoreBLOBFactory(DTNConfiguration conf, SimpleStorage simpleStorage) {
+    public CoreBLOBFactory(ConfigurationAPI conf, SimpleStorage simpleStorage) {
         this.simpleStorage = simpleStorage;
         VolatileBLOB.setLimitConf(conf);
     }

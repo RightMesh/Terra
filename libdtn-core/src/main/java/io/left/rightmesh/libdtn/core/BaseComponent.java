@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import io.left.rightmesh.libdtn.common.utils.Log;
+import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 
 /**
  * @author Lucien Loiseau on 27/09/18.
@@ -15,7 +16,7 @@ public abstract class BaseComponent {
     private boolean enabled = false;
     private static final Set<BaseComponent> registeredComponents = new HashSet<>();
 
-    public void initComponent(DTNConfiguration conf, DTNConfiguration.Entry entry, Log logger) {
+    public void initComponent(ConfigurationAPI conf, ConfigurationAPI.CoreEntry entry, Log logger) {
         registeredComponents.add(this);
         conf.<Boolean>get(entry).observe()
                 .subscribe(

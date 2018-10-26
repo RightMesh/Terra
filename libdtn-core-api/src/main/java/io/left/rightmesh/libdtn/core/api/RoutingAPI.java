@@ -27,4 +27,11 @@ public interface RoutingAPI {
      */
     void forwardLater(final Bundle bundle);
 
+
+    // todo: delete
+    String printLinkLocalTable();
+
+    // todo: delete
+    String printRoutingTable();
+
 }

@@ -1,8 +1,8 @@
 package io.left.rightmesh.libdtn.core.network;
 
 import io.left.rightmesh.libdtn.core.BaseComponent;
+import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.ConnectionAgentAPI;
-import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
 import io.left.rightmesh.libdtn.core.DTNCore;
@@ -10,7 +10,7 @@ import io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI;
 
 import io.reactivex.Single;
 
-import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_CONNECTION_AGENT;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_CONNECTION_AGENT;
 
 /**
  * The ConnectionAgent takes decision as to how to connect/disconnect and generally affect the
@@ -44,7 +44,7 @@ public class ConnectionAgent extends BaseComponent implements ConnectionAgentAPI
     }
 
     public Single<CLAChannelSPI> createOpportunityLibDetect(String host) {
-        if(!core.getConf().<Boolean>get(DTNConfiguration.Entry.ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT).value()) {
+        if(!core.getConf().<Boolean>get(ConfigurationAPI.CoreEntry.ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT).value()) {
             return Single.error(new Throwable("AutoConnect is disabled"));
         }
 
@@ -66,7 +66,7 @@ public class ConnectionAgent extends BaseComponent implements ConnectionAgentAPI
             return Single.error(new Throwable(TAG+" is disabled"));
         }
 
-        if(!core.getConf().<Boolean>get(DTNConfiguration.Entry.ENABLE_AUTO_CONNECT_FOR_BUNDLE).value()) {
+        if(!core.getConf().<Boolean>get(ConfigurationAPI.CoreEntry.ENABLE_AUTO_CONNECT_FOR_BUNDLE).value()) {
             return Single.error(new Throwable("AutoConnect is disabled"));
         }
 

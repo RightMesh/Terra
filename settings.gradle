@@ -6,12 +6,14 @@ include ':libdtn-module-stcp' // convergence layer adapter module
 project(":libdtn-module-stcp").projectDir = file("modules/cla/libdtn-module-stcp")
 
 // module LDCP
-include ':libldcp-common' // ldcp common
-include ':libldcp-client' // ldcp client-side library
-include ':libdtn-module-ldcp' // ldcp server-side is a libdtn core module
-project(":libldcp-common").projectDir = file("modules/aa/ldcp/libldcp-common")
-project(":libldcp-client").projectDir = file("modules/aa/ldcp/libldcp-client")
+include ':libldcp' // LibDtn Cbor Protocol (LDCP)
+include ':libdtn-module-ldcp' // libdtn core module for ldcp
+project(":libldcp").projectDir = file("modules/aa/ldcp/libldcp")
 project(":libdtn-module-ldcp").projectDir = file("modules/aa/ldcp/libdtn-module-ldcp")
+
+// module http
+include ':libdtn-module-http'
+project(":libdtn-module-http").projectDir = file("modules/core/libdtn-module-http")
 
 // binaries
 include ':terra', ':dtnping', ':dtnconf'

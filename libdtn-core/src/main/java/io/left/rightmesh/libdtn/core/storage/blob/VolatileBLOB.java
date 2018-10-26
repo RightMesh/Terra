@@ -5,13 +5,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
-import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import io.left.rightmesh.libdtn.common.data.blob.ReadableBLOB;
 import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
+import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.reactivex.Flowable;
 
-import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.VOLATILE_BLOB_STORAGE_MAX_CAPACITY;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.VOLATILE_BLOB_STORAGE_MAX_CAPACITY;
 
 /**
  * VolatileBLOB holds a {@see CoreBLOBFactory} in volatile memory. It is implemented with a Byte array.
@@ -28,7 +28,7 @@ public class VolatileBLOB implements BLOB {
     private static int BLOBMemoryMaxUsage = 0;
     private static int CurrentBLOBMemoryUsage = 0;
 
-    static void setLimitConf(DTNConfiguration conf) {
+    static void setLimitConf(ConfigurationAPI conf) {
         conf.<Integer>get(VOLATILE_BLOB_STORAGE_MAX_CAPACITY)
                 .observe().subscribe(i -> BLOBMemoryMaxUsage = i);
     }
@@ -38,7 +38,7 @@ public class VolatileBLOB implements BLOB {
      *
      * @param expectedSize of the CoreBLOBFactory
      * @return a new VolatileBLOB with capacity of expectedSize
-     * @throws BundleStorage.StorageFullException if there isn't enough space in Volatile Memory
+     * @throws CoreBLOBFactory.BLOBFactoryException if there isn't enough space in Volatile Memory
      */
     public static VolatileBLOB createBLOB(int expectedSize)
             throws CoreBLOBFactory.BLOBFactoryException {

@@ -21,9 +21,9 @@ import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 
-import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_SIMPLE_STORAGE;
-import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_VOLATILE_STORAGE;
-import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.SIMPLE_STORAGE_PATH;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.SIMPLE_STORAGE_PATH;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

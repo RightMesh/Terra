@@ -13,7 +13,7 @@ import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Observable;
 
-import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_EVENT_PROCESSING;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_EVENT_PROCESSING;
 
 /**
  * When an Event is fired, it may trigger some operation to a bundle. For instance, a new

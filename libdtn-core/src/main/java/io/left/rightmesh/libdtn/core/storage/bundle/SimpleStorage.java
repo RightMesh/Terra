@@ -26,7 +26,7 @@ import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Serializer;
 import io.left.rightmesh.libdtn.common.data.blob.NullBLOB;
 import io.left.rightmesh.libdtn.core.BaseComponent;
-import io.left.rightmesh.libdtn.core.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.events.BundleIndexed;
 import io.left.rightmesh.libdtn.core.storage.blob.FileBLOB;
 import io.left.rightmesh.libdtn.core.api.StorageAPI.BundleAlreadyExistsException;
@@ -40,7 +40,7 @@ import io.reactivex.Single;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
-import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_SIMPLE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
 
 /**
  * SimpleStorage stores bundle in files but keep an index in memory of all the bundles in storage.
@@ -71,11 +71,11 @@ public class SimpleStorage extends BaseComponent {
     private Storage metaStorage;
     private Log logger;
 
-    public SimpleStorage(Storage metaStorage, DTNConfiguration conf, Log logger) {
+    public SimpleStorage(Storage metaStorage, ConfigurationAPI conf, Log logger) {
         this.metaStorage = metaStorage;
         this.logger = logger;
         initComponent(conf, COMPONENT_ENABLE_SIMPLE_STORAGE, logger);
-        conf.<Set<String>>get(DTNConfiguration.Entry.SIMPLE_STORAGE_PATH).observe()
+        conf.<Set<String>>get(ConfigurationAPI.CoreEntry.SIMPLE_STORAGE_PATH).observe()
                 .subscribe(
                         updated_paths -> {
                             /* remove obsolete path */

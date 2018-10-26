@@ -10,7 +10,7 @@ import io.left.rightmesh.libdtn.core.events.ChannelClosed;
 import io.left.rightmesh.libdtn.core.events.ChannelOpened;
 import io.left.rightmesh.librxbus.RxBus;
 
-import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.ENABLE_COMPONENT_DETECT_PEER_ON_LAN;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_COMPONENT_DETECT_PEER_ON_LAN;
 
 /**
  * The role of the discovery agent is to discover the local peers on all the interface  available

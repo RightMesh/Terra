@@ -18,7 +18,7 @@ import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 
-import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_AA_REGISTRATION;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_AA_REGISTRATION;
 
 
 /**

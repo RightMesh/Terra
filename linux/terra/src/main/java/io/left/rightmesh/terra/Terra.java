@@ -10,8 +10,13 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_CLA_LOAD_MODULES;
-import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.MODULES_CLA_PATH;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_AA_MODULES;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_CLA_MODULES;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_CORE_MODULES;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_AA_PATH;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_CLA_PATH;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_CORE_PATH;
+
 
 @Command(
         name = "terra", mixinStandardHelpOptions = true, version = "terra 1.0",
@@ -51,17 +56,25 @@ public class Terra implements Callable<Void> {
     @Option(names = {"-d", "--daemon"}, description = "Start Terra as a daemon.")
     private boolean daemon;
 
-    @Option(names = {"-c", "--module-cla-path"}, description = "set the path to the Convergence Layer Adapters modules.")
+    @Option(names = {"-n", "--module-cla-path"}, description = "set the path to the network Convergence Layer Adapters modules.")
     private String claModuleDirectory;
 
     @Option(names = {"-a", "--module-aa-path"}, description = "set the path to the Application Agent Adapters modules.")
     private String aaModuleDirectory;
 
+    @Option(names = {"-c", "--module-core-path"}, description = "set the path to the Core modules.")
+    private String coreModuleDirectory;
+
     @Override
     public Void call() throws Exception {
         DTNConfiguration conf = new DTNConfiguration();
-        conf.get(COMPONENT_ENABLE_CLA_LOAD_MODULES).update(true);
+        conf.get(ENABLE_CLA_MODULES).update(true);
         conf.get(MODULES_CLA_PATH).update(claModuleDirectory);
+        conf.get(ENABLE_AA_MODULES).update(true);
+        conf.get(MODULES_AA_PATH).update(aaModuleDirectory);
+        conf.get(ENABLE_CORE_MODULES).update(true);
+        conf.get(MODULES_CORE_PATH).update(coreModuleDirectory);
+
         CoreAPI core = DTNCore.init(conf);
         core.getRegistrar().register("/netflix/video/", (bundle) -> {
                 System.out.println("receive a Bundle");

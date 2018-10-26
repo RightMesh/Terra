@@ -1,6 +1,8 @@
 package io.left.rightmesh.libdtn.core;
 
-import io.left.rightmesh.libdtn.core.daemon.http.APIDaemonHTTPAgent;
+import io.left.rightmesh.libdtn.core.api.BundleProcessorAPI;
+import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
+import io.left.rightmesh.libdtn.core.api.LocalEIDAPI;
 import io.left.rightmesh.libdtn.core.network.ConnectionAgent;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.core.routing.Registrar;
@@ -28,19 +30,19 @@ public class DTNCore implements CoreAPI {
 
     public static final String TAG = "DTNCore";
 
-    private DTNConfiguration conf;
+    private ConfigurationAPI conf;
     private Logger logger;
-    private LocalEIDTable localEIDTable;
+    private LocalEIDAPI localEIDTable;
     private LinkLocalRouting linkLocalRouting;
     private RoutingTable routingTable;
     private RoutingAPI routingEngine;
     private Registrar registrar;
     private StorageAPI storage;
-    private BundleProcessor bundleProcessor;
+    private BundleProcessorAPI bundleProcessor;
     private ConnectionAgentAPI connectionAgent;
-    private APIDaemonHTTPAgent httpApi;
     private DiscoveryAgent discoveryAgent;
     private CLAManager claManager;
+    private ModuleLoader moduleLoader;
 
     public static CoreAPI init(DTNConfiguration conf) {
         DTNCore core = new DTNCore();
@@ -65,21 +67,24 @@ public class DTNCore implements CoreAPI {
         core.discoveryAgent = new DiscoveryAgent(core);
         core.claManager = new CLAManager(core);
 
-        /* api */
-        core.httpApi = new APIDaemonHTTPAgent(core);
+        /* modules */
+        core.moduleLoader = new ModuleLoader(core);
 
         return core;
     }
 
-    public DTNConfiguration getConf() {
+    @Override
+    public ConfigurationAPI getConf() {
         return conf;
     }
 
+    @Override
     public Logger getLogger() {
         return logger;
     }
 
-    public LocalEIDTable getLocalEIDTable() {
+    @Override
+    public LocalEIDAPI getLocalEID() {
         return localEIDTable;
     }
 
@@ -91,32 +96,38 @@ public class DTNCore implements CoreAPI {
         return routingTable;
     }
 
+    @Override
     public RoutingAPI getRoutingEngine() {
         return routingEngine;
     }
 
+    @Override
     public RegistrarAPI getRegistrar() {
         return registrar;
     }
 
+    @Override
     public DeliveryAPI getDelivery() {
         return registrar;
     }
 
+    @Override
+    public BundleProcessorAPI getBundleProcessor() {
+        return bundleProcessor;
+    }
+
+    @Override
     public StorageAPI getStorage() {
         return storage;
     }
 
+    @Override
     public ConnectionAgentAPI getConnectionAgent() {
         return connectionAgent;
     }
 
     public DiscoveryAgent getDiscoveryAgent() {
         return discoveryAgent;
-    }
-
-    public BundleProcessor getBundleProcessor() {
-        return bundleProcessor;
     }
 
     public CLAManager getClaManager() {

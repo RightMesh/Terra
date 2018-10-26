@@ -111,4 +111,40 @@ public class RoutingEngine implements RoutingAPI {
                         }
                 );
     }
+
+
+    // todo remove this
+    public String printLinkLocalTable() {
+        StringBuilder sb = new StringBuilder("Link-Local Table:\n");
+        sb.append("--------------\n\n");
+        core.getLinkLocalRouting().dumpTable().forEach((entry) -> {
+            String remote = entry.channelEID().getEIDString();
+            String local  = entry.localEID().getEIDString();
+            String mode;
+            if(entry.getMode().equals(CLAChannelSPI.ChannelMode.InUnidirectional)) {
+                mode = " <-- ";
+            } else if (entry.getMode().equals(CLAChannelSPI.ChannelMode.OutUnidirectional)) {
+                mode = " --> ";
+            } else {
+                mode = " <-> ";
+            }
+            sb.append(local + mode +remote+"\n");
+        });
+        sb.append("\n");
+        return sb.toString();
+    }
+
+
+    // todo remove this
+    public String printRoutingTable() {
+        final StringBuilder sb = new StringBuilder("Routing Table:\n");
+        sb.append("--------------\n\n");
+        core.getRoutingTable().dumpTable().forEach(
+                tableEntry -> {
+                    sb.append(tableEntry.getTo().getEIDString() + " --> "+tableEntry.getNext().getEIDString()+"\n");
+                }
+        );
+        sb.append("\n");
+        return sb.toString();
+    }
 }

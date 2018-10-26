@@ -6,8 +6,8 @@ import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 
-import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.COMPONENT_ENABLE_LOGGING;
-import static io.left.rightmesh.libdtn.core.DTNConfiguration.Entry.LOG_LEVEL;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_LOGGING;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.LOG_LEVEL;
 
 /**
  * Simple Logger
