@@ -9,6 +9,7 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.utils.NullLogger;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.spi.ModuleSPI;
 import io.reactivex.Flowable;
@@ -69,7 +70,7 @@ public class STCPTest {
         }
         new STCP()
                 .setPort(4591)
-                .start(stcpConf)
+                .start(stcpConf, new NullLogger())
                 .subscribe(
                         channel -> {
                             channel.recvBundle().subscribe(
@@ -142,7 +143,7 @@ public class STCPTest {
         }
         new STCP()
                 .setPort(4592)
-                .start(stcpConf)
+                .start(stcpConf, new NullLogger())
                 .subscribe(
                         channel -> {
                             channel.recvBundle().subscribe(

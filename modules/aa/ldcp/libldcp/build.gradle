@@ -11,13 +11,17 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    // CBOR for communication with daemon
-    implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
-    //compile project(path: ':libcbor')
+    // libdtn-common for bundle
+    implementation project(path: ':libdtn-common')
 
-    // RxTCP for communication with daemon
-    implementation 'com.github.RightMesh:librxtcp:master-SNAPSHOT'
-    //compile project(path: ':librxtcp')
+    // CBOR for encoding/parsing
+    implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
+
+    // RxTCP for communication between daemon/client
+    implementation 'com.github.RightMesh:librxtcp:edff66e533'
+
+    // RxJava library for reactive programming
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.1'
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8

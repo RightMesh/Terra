@@ -15,12 +15,6 @@ dependencies {
     compile project(path: ':libdtn-core-api')
 
     compile project(path: ':libldcp')
-
-    // CBOR for communication with daemon
-    implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
-
-    // RxTCP for communication with daemon
-    implementation 'com.github.RightMesh:librxtcp:master-SNAPSHOT'
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8

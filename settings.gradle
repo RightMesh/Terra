@@ -22,10 +22,10 @@ project(":dtnping").projectDir = file("linux/dtnping")
 project(":dtnconf").projectDir = file("linux/dtnconf")
 
 // dependencies
-/*
-include ':librxbus', ':libcbor', ':librxtcp', ':libdetect'
-project(":librxbus").projectDir = file("../librxbus")
-project(":libcbor").projectDir = file("../libcbor")
-project(":librxtcp").projectDir = file("../librxtcp")
-project(":libdetect").projectDir = file("../libdetect")
-*/
+
+//include ':librxbus', ':libcbor', ':librxtcp', ':libdetect'
+//project(":librxbus").projectDir = file("../librxbus")
+//project(":libcbor").projectDir = file("../libcbor")
+//include ':librxtcp'
+//project(":librxtcp").projectDir = file("../librxtcp")
+//project(":libdetect").projectDir = file("../libdetect")

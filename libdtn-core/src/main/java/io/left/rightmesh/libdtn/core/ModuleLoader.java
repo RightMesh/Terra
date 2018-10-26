@@ -42,8 +42,7 @@ public class ModuleLoader {
                 for (ApplicationAgentAdapterSPI aa : sl) {
                     if(core.getConf().<Boolean>getModuleEnabled(aa.getModuleName(), false).value()) {
                         core.getLogger().i(TAG, "AA module loaded: " + aa.getModuleName()+" - UP");
-                        aa.setLogger(core.getLogger());
-                        aa.init(core.getRegistrar());
+                        aa.init(core.getRegistrar(), core.getConf(), core.getLogger());
                     } else {
                         core.getLogger().i(TAG, "AA module loaded: " + aa.getModuleName()+" - DOWN");
                     }
@@ -63,7 +62,6 @@ public class ModuleLoader {
                 for (ConvergenceLayerSPI cla : sl) { ;
                     if(core.getConf().getModuleEnabled(cla.getModuleName(), false).value()) {
                         core.getLogger().i(TAG, "CLA module loaded: " + cla.getModuleName()+" - UP");
-                        cla.setLogger(core.getLogger());
                         core.getClaManager().addCLA(cla);
                     } else {
                         core.getLogger().i(TAG, "CLA module loaded: " + cla.getModuleName()+" - DOWN");

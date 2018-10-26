@@ -17,6 +17,7 @@ import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI;
 import io.left.rightmesh.libdtn.core.spi.cla.ConvergenceLayerSPI;
 import io.left.rightmesh.libdtn.common.utils.Log;
+import io.left.rightmesh.librxtcp.ConnectionAPI;
 import io.left.rightmesh.librxtcp.RxTCP;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
@@ -68,12 +69,8 @@ public class STCP implements ConvergenceLayerSPI {
     }
 
     @Override
-    public void setLogger(Log logger) {
+    public Observable<CLAChannelSPI> start(ConfigurationAPI conf, Log logger) {
         this.logger = logger;
-    }
-
-    @Override
-    public Observable<CLAChannelSPI> start(ConfigurationAPI conf) {
         if(port == 0) {
             port = conf.getModuleConf(this,
                     CLA_STCP_LISTENING_PORT, CLA_STCP_LISTENING_PORT_DEFAULT).value();
@@ -179,7 +176,7 @@ public class STCP implements ConvergenceLayerSPI {
                 return Observable.error(new Throwable("Cannot serialize the bundle"));
             }
 
-            RxTCP.Connection.JobHandle handle = tcpcon.order(job);
+            ConnectionAPI.TrackOrder handle = tcpcon.order(job);
             return handle.observe();
             //}
         }

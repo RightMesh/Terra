@@ -9,7 +9,6 @@ public interface Configuration extends ConfigurationAPI.ModuleEntry {
 
     enum LDCPEntry implements ConfigurationAPI.ModuleEntry {
 
-        MODULE_ENABLE_LDCP_DAEMON("module_enable_ldcp_daemon"),
         LDCP_TCP_PORT("ldcp_tcp_port");
 
         private final String key;
@@ -24,7 +23,6 @@ public interface Configuration extends ConfigurationAPI.ModuleEntry {
         }
     }
 
-    boolean MODULE_ENABLE_LDCP_DAEMON_DEFAULT = false;
-    int LDCP_TCP_PORT = 4557;
+    int LDCP_TCP_PORT_DEFAULT = 4557;
 
 }

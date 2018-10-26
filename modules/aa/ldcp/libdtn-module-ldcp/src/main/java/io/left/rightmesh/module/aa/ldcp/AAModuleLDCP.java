@@ -1,19 +1,23 @@
 package io.left.rightmesh.module.aa.ldcp;
 
 import io.left.rightmesh.libdtn.common.utils.Log;
+import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
 import io.left.rightmesh.libdtn.core.spi.aa.ApplicationAgentAdapterSPI;
+
+import static io.left.rightmesh.module.aa.ldcp.Configuration.LDCPEntry.LDCP_TCP_PORT;
+import static io.left.rightmesh.module.aa.ldcp.Configuration.LDCP_TCP_PORT_DEFAULT;
 
 /**
  * @author Lucien Loiseau on 25/10/18.
  */
 public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
 
-    private static final String TAG = "AAModuleLDCP";
+    private static final String TAG = "ldcp";
 
-    @Override
-    public void setLogger(Log logger) {
+    Log logger;
 
+    public AAModuleLDCP() {
     }
 
     @Override
@@ -22,9 +26,12 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
     }
 
     @Override
-    public void init(RegistrarAPI api) {
-
+    public void init(RegistrarAPI api, ConfigurationAPI conf, Log logger) {
+        int port = conf.getModuleConf(this, LDCP_TCP_PORT, LDCP_TCP_PORT_DEFAULT).value();
+        logger.i(TAG, "starting a ldcp server on port " + port);
+        new LdcpServer().start(port, null, null);
     }
+
 
     /*
     private static final String TAG = "APIDaemonLDCPAgent";
@@ -42,82 +49,6 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
         actionMap.put(RequestMessage.RequestCode.POST, new POSTAction());
         ACTIONS = Collections.unmodifiableMap(actionMap);
     }
-
-    @Override
-    public String getComponentName() {
-        return TAG;
-    }
-
-    @Override
-    protected void componentUp() {
-        //int signalPort = (Integer) DTNConfiguration.get(DTNConfiguration.CoreEntry.API_DAEMON_SIGNAL_PORT).value();
-        int serverPort = (Integer) core.getConf().get(DTNConfiguration.CoreEntry.API_CBOR_DAEMON_CHANNEL_PORT).value();
-
-        server = new RxTCP.Server<>(serverPort, RequestChannel::new);
-        server.start().subscribe(
-                c -> {
-                },
-                e -> {
-                },
-                () -> {
-                });
-    }
-
-    @Override
-    protected void componentDown() {
-        if (server != null) {
-            server.stop();
-        }
-    }
-
-    class RequestChannel extends RxTCP.Connection {
-        RequestChannel() {
-
-            CborParser parser = CBOR.parser()
-                    .cbor_parse_int((__, ___, i) -> { })
-                    .cbor_parse_int((p, ___, i) -> {
-                        RequestMessage.RequestCode code = RequestMessage.RequestCode.fromId((int) i);
-                        if(code == null) {
-                            throw new RxParserException("wrong request code");
-                        }
-                        final RequestMessage message = new RequestMessage(code);
-                        p.setReg(0, message);
-                    })
-                    .cbor_parse_linear_map(
-                            CBOR.TextStringItem::new,
-                            CBOR.TextStringItem::new,
-                            (p, ___, map) -> {
-                                RequestMessage req = p.getReg(0);
-                                for (CBOR.TextStringItem str : map.keySet()) {
-                                    req.fields.put(str.value(), map.get(str).value());
-                                }
-                            })
-                    .cbor_parse_byte_string(
-                            (p, ___, size) -> {
-                                RequestMessage req =  p.getReg(0);
-                                try {
-                                    if (size >= 0) {
-                                        req.body = core.getStorage().getBlobFactory().createBLOB((int) size);
-                                    } else {
-                                        // indefinite length CoreBLOBFactory
-                                        req.body = core.getStorage().getBlobFactory().createBLOB(2048); //todo change that
-                                    }
-                                } catch (CoreBLOBFactory.BLOBFactoryException sfe) {
-                                    req.body = new NullBLOB();
-                                }
-                                p.setReg(1, ((BLOB)req.body).getWritableBLOB());
-                            },
-                            (p, chunk) -> {
-                                WritableBLOB blob =  p.getReg(1);
-                                try {
-                                    blob.write(chunk);
-                                } catch (WritableBLOB.BLOBOverflowException | IOException io) {
-                                    blob.close();
-                                    p.setReg(1, null);
-                                    throw new RxParserException("can't save the body blob");
-                                }
-                            },
-                            (p) -> p.<WritableBLOB>getReg(1).close());
 
 
             recv().subscribe(

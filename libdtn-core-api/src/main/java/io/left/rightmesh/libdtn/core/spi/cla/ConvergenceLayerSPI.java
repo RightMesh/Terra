@@ -15,18 +15,12 @@ import io.reactivex.Single;
 public interface ConvergenceLayerSPI  extends ModuleSPI {
 
     /**
-     * Set the logger
-     */
-    void setLogger(Log logger);
-
-
-    /**
      * When a CLA is started it should return an Observable of CLAChannelSPI used to actually send
      * and receive bundles.
      *
      * @return Flowable of Bundle
      */
-    Observable<CLAChannelSPI> start(ConfigurationAPI api);
+    Observable<CLAChannelSPI> start(ConfigurationAPI api, Log logger);
 
     /**
      * When a CLA is stopped, it should stop creating any new CLAChannelSPI and terminate the
