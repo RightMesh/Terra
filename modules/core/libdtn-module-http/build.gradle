@@ -4,16 +4,16 @@ plugins {
 }
 
 jar {
+    // META-INF/services to load module with ServiceLoader
     serviceLoader {
         serviceInterface 'io.left.rightmesh.libdtn.core.spi.core.CoreModuleSPI'
         serviceInterface 'io.left.rightmesh.module.core.http.ModuleHTTPDaemon'
     }
+
+    // fat jar dependency to include rxnetty
     from {
         configurations.compile
-                .collect {
-            println ">>>  " + it.name
-            it.isDirectory() ? it : zipTree(it)
-        }
+                .collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
 
@@ -29,7 +29,11 @@ dependencies {
     // lib common and api for the module
     implementation project(path: ':libdtn-common')
 
+    // interface spi
     compile project(path: ':libdtn-core-api')
+
+    // RxJava library for reactive programming
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.1'
 
     // lib rx netty for http API
     compile "io.reactivex:rxnetty-http:${rxnetty_version}"

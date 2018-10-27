@@ -4,10 +4,13 @@ plugins {
 }
 
 jar {
+    // META-INF/services to load module with ServiceLoader
     serviceLoader {
         serviceInterface 'io.left.rightmesh.libdtn.core.spi.aa.ApplicationAgentAdapterSPI'
         serviceInterface 'io.left.rightmesh.module.aa.ldcp.AAModuleLDCP'
     }
+
+    // fat jar dependency, exclude those already in libdtn-core
     from {
         configurations.compile
                 .filter({! it.name.matches("rxjava.*")})
@@ -28,12 +31,17 @@ dependencies {
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
+    // Bundle data
     implementation project(path: ':libdtn-common')
 
+    // interface spi
     compile project(path: ':libdtn-core-api')
 
+    // protocol library
     compile project(path: ':libldcp')
 
+    // RxJava library for reactive programming
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.1'
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8
