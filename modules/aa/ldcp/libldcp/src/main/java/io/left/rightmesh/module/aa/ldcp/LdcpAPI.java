@@ -4,13 +4,14 @@ import java.util.Set;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
-import io.reactivex.Flowable;
 import io.reactivex.Single;
 
 /**
  * @author Lucien Loiseau on 26/10/18.
  */
 public interface LdcpAPI {
+
+    int LDCP_VERSION = 1;
 
     class RegistrarException extends Exception {
     }
@@ -52,16 +53,6 @@ public interface LdcpAPI {
      * @return a RegistrationHandler if registered, nu
      */
     Single<String> register(String sink) throws RegistrarDisabled, SinkAlreadyRegistered, NullArgument;
-
-    /**
-     * Register an active registration. It fails If the sink is already registered.
-     *
-     * @param sink to register
-     * @param cb callback to receive data for this registration
-     * @return a cookie for this registration upon success, null otherwise.
-     */
-    Single<String> register(String sink, ActiveLdcpRegistrationCallback cb) throws RegistrarDisabled, SinkAlreadyRegistered, NullArgument;
-
 
     /**
      * Unregister an application agent

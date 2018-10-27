@@ -40,6 +40,7 @@ public class ModuleHTTPDaemon implements CoreModuleSPI {
         RequestBundle applicationAgentAPI = new RequestBundle(core);
         int serverPort = core.getConf().getModuleConf(this,
                 API_DAEMON_HTTP_API_PORT, API_DAEMON_HTTP_API_PORT_DEFAULT).value();
+        api.getLogger().i(TAG, "starting a http server on port "+serverPort);
         server = HttpServer.newServer(serverPort)
                 .start(using(new Router<ByteBuf, ByteBuf>()
                         .GET("/", rootAction)

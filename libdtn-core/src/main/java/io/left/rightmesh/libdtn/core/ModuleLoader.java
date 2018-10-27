@@ -25,7 +25,6 @@ public class ModuleLoader {
 
     private DTNCore core;
 
-
     ModuleLoader(DTNCore core) {
         this.core = core;
         loadAAModules();
@@ -40,6 +39,7 @@ public class ModuleLoader {
                 URLClassLoader ucl = new URLClassLoader(pathToListOfJarURL(path));
                 ServiceLoader<ApplicationAgentAdapterSPI> sl = ServiceLoader.load(ApplicationAgentAdapterSPI.class, ucl);
                 for (ApplicationAgentAdapterSPI aa : sl) {
+                    System.out.println(">>> "+aa.getModuleName());
                     if(core.getConf().<Boolean>getModuleEnabled(aa.getModuleName(), false).value()) {
                         core.getLogger().i(TAG, "AA module loaded: " + aa.getModuleName()+" - UP");
                         aa.init(core.getRegistrar(), core.getConf(), core.getLogger());

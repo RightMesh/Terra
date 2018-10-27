@@ -2,13 +2,13 @@ package io.left.rightmesh.module.aa.ldcp;
 
 import io.left.rightmesh.module.aa.ldcp.messages.RequestMessage;
 import io.left.rightmesh.module.aa.ldcp.messages.ResponseMessage;
-import io.reactivex.Observable;
+import io.reactivex.Completable;
 
 /**
  * @author Lucien Loiseau on 26/10/18.
  */
-public interface Action {
+public interface RequestHandler {
 
-    Observable<Void> handle(RequestMessage req, ResponseMessage res);
+    Completable handle(RequestMessage req, ResponseMessage res);
 
 }

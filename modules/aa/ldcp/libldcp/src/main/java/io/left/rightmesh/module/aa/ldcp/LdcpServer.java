@@ -21,38 +21,11 @@ public class LdcpServer {
         return server.getPort();
     }
 
-    public void start(int port, BLOBFactory factory, Action action) {
+    public void start(int port, BLOBFactory factory, RequestHandler action) {
         server = new RxTCP.Server<>(port);
         server.start().subscribe(
                 con -> {
-                    BundleV7Parser bundleParser = new BundleV7Parser(new NullLogger());
-                    CborParser parser = CBOR.parser()
-                            .cbor_parse_int((__, ___, i) -> {
-                            })
-                            .cbor_parse_int((p, ___, i) -> {
-                                RequestMessage.RequestCode code = RequestMessage.RequestCode.fromId((int) i);
-                                if (code == null) {
-                                    throw new RxParserException("wrong request code");
-                                }
-                                final RequestMessage message = new RequestMessage(code);
-                                p.setReg(0, message);
-                            })
-                            .cbor_parse_linear_map(
-                                    CBOR.TextStringItem::new,
-                                    CBOR.TextStringItem::new,
-                                    (p, ___, map) -> {
-                                        RequestMessage req = p.getReg(0);
-                                        for (CBOR.TextStringItem str : map.keySet()) {
-                                            req.fields.put(str.value(), map.get(str).value());
-                                        }
-                                    })
-                            .cbor_parse_custom_item(
-                                    bundleParser::createBundleItem,
-                                    (p, ___, item) -> {
-                                        RequestMessage req = p.getReg(0);
-                                        req.bundle = item.bundle;
-                                    });
-
+                    CborParser parser = RequestMessage.getParser();
                     con.recv().subscribe(
                             buf -> {
                                 try {
@@ -61,11 +34,14 @@ public class LdcpServer {
                                     }
                                     RequestMessage req = parser.getReg(0);
                                     ResponseMessage res = new ResponseMessage();
-                                    action.handle(req, res).subscribe();
-                                    con.send(res.encode());
+                                    action.handle(req, res).subscribe(
+                                            () -> con.send(res.encode()),
+                                            e -> con.send(new ResponseMessage(ResponseMessage.ResponseCode.ERROR).encode())
+                                    );
                                 } catch (RxParserException rpe) {
                                     con.closeNow();
                                 }
+                                con.closeJobsDone();
                             },
                             e -> con.closeNow(),
                             con::closeNow

@@ -1,6 +1,23 @@
 plugins {
     id("java-library")
+    id "com.github.harbby.gradle.serviceloader" version "1.1.5"
 }
+
+jar {
+    serviceLoader {
+        serviceInterface 'io.left.rightmesh.libdtn.core.spi.aa.ApplicationAgentAdapterSPI'
+        serviceInterface 'io.left.rightmesh.module.aa.ldcp.AAModuleLDCP'
+    }
+    from {
+        configurations.compile
+                .filter({! it.name.matches("rxjava.*")})
+                .filter({! it.name.matches("reactive-streams.*")})
+                .filter({! it.name.matches("libcbor.*")})
+                .filter({! it.name.matches("libdtn-common.*")})
+                .collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
 repositories {
     google()
     jcenter()
@@ -8,13 +25,15 @@ repositories {
 }
 
 dependencies {
+
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    compile project(path: ':libdtn-common')
+    implementation project(path: ':libdtn-common')
 
     compile project(path: ':libdtn-core-api')
 
     compile project(path: ':libldcp')
+
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8

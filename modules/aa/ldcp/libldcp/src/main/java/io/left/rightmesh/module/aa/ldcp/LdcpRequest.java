@@ -51,36 +51,9 @@ public class LdcpRequest {
                         c -> {
                             c.send(requestMessage.encode());
 
-                            BundleV7Parser bundleParser = new BundleV7Parser(new NullLogger());
-                            CborParser parser = CBOR.parser()
-                                    .cbor_parse_int((__, ___, i) -> {
-                                    })
-                                    .cbor_parse_int((p, ___, i) -> {
-                                        ResponseMessage.ResponseCode code = ResponseMessage.ResponseCode.fromId((int) i);
-                                        if (code == null) {
-                                            throw new RxParserException("wrong request code");
-                                        }
-                                        final ResponseMessage message = new ResponseMessage(code);
-                                        p.setReg(0, message);
-                                    })
-                                    .cbor_parse_linear_map(
-                                            CBOR.TextStringItem::new,
-                                            CBOR.TextStringItem::new,
-                                            (p, ___, map) -> {
-                                                ResponseMessage res = p.getReg(0);
-                                                for (CBOR.TextStringItem str : map.keySet()) {
-                                                    res.fields.put(str.value(), map.get(str).value());
-                                                }
-                                            })
-                                    .cbor_parse_custom_item(
-                                            bundleParser::createBundleItem,
-                                            (p, ___, item) -> {
-                                                ResponseMessage res = p.getReg(0);
-                                                res.bundle = item.bundle;
-                                            });
-
                             c.recv().subscribe(
                                     buf -> {
+                                        CborParser parser = ResponseMessage.getParser();
                                         try {
                                             while (buf.hasRemaining() && !parser.isDone()) {
                                                 parser.read(buf);

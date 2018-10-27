@@ -24,8 +24,11 @@ project(":dtnconf").projectDir = file("linux/dtnconf")
 // dependencies
 
 //include ':librxbus', ':libcbor', ':librxtcp', ':libdetect'
+//include ':librxbus'
 //project(":librxbus").projectDir = file("../librxbus")
+//include ':libcbor'
 //project(":libcbor").projectDir = file("../libcbor")
 //include ':librxtcp'
 //project(":librxtcp").projectDir = file("../librxtcp")
-//project(":libdetect").projectDir = file("../libdetect")
+include ':libdetect'
+project(":libdetect").projectDir = file("../libdetect")
