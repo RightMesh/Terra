@@ -8,6 +8,8 @@ import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.common.data.Bundle;
+import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
+import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Parser;
@@ -106,6 +108,7 @@ public class STCP implements ConvergenceLayerSPI {
     }
 
     public class Channel implements CLAChannelSPI {
+
         RxTCP.Connection tcpcon;
         CLA channelEID;
         CLA localEID;
@@ -224,7 +227,13 @@ public class STCP implements ConvergenceLayerSPI {
             });
         }
 
+        @Override
         public Observable<Bundle> recvBundle() {
+            return recvBundle(new BaseBLOBFactory().disablePersistent());
+        }
+
+        @Override
+        public Observable<Bundle> recvBundle(BLOBFactory blobFactory) {
             if (initiator) {
                 return Observable.create(s ->
                         tcpcon.recv().subscribe(
@@ -241,7 +250,7 @@ public class STCP implements ConvergenceLayerSPI {
                                 }));
             }
 
-            BundleV7Parser parser = new BundleV7Parser(logger);
+            BundleV7Parser parser = new BundleV7Parser(logger, blobFactory);
             return Observable.create(s -> {
                 CborParser pdu = CBOR.parser()
                         .cbor_open_array(2)

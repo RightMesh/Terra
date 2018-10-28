@@ -90,11 +90,10 @@ public class RoutingEngine implements RoutingAPI {
 
         potentialCLAs
                 .distinct()
-                .flatMapMaybe(claeid -> {
-                    System.out.println(" eid -> "+claeid.getEIDString());
-                    return Maybe.fromSingle(core.getConnectionAgent().createOpportunityForBundle(claeid))
-                            .onErrorComplete();
-                })
+                .flatMapMaybe(claeid ->
+                        Maybe.fromSingle(core.getConnectionAgent()
+                                .createOpportunityForBundle(claeid))
+                                .onErrorComplete())
                 .firstElement()
                 .subscribe(
                         (channel) -> {
@@ -119,16 +118,16 @@ public class RoutingEngine implements RoutingAPI {
         sb.append("--------------\n\n");
         core.getLinkLocalRouting().dumpTable().forEach((entry) -> {
             String remote = entry.channelEID().getEIDString();
-            String local  = entry.localEID().getEIDString();
+            String local = entry.localEID().getEIDString();
             String mode;
-            if(entry.getMode().equals(CLAChannelSPI.ChannelMode.InUnidirectional)) {
+            if (entry.getMode().equals(CLAChannelSPI.ChannelMode.InUnidirectional)) {
                 mode = " <-- ";
             } else if (entry.getMode().equals(CLAChannelSPI.ChannelMode.OutUnidirectional)) {
                 mode = " --> ";
             } else {
                 mode = " <-> ";
             }
-            sb.append(local + mode +remote+"\n");
+            sb.append(local + mode + remote + "\n");
         });
         sb.append("\n");
         return sb.toString();
@@ -141,7 +140,7 @@ public class RoutingEngine implements RoutingAPI {
         sb.append("--------------\n\n");
         core.getRoutingTable().dumpTable().forEach(
                 tableEntry -> {
-                    sb.append(tableEntry.getTo().getEIDString() + " --> "+tableEntry.getNext().getEIDString()+"\n");
+                    sb.append(tableEntry.getTo().getEIDString() + " --> " + tableEntry.getNext().getEIDString() + "\n");
                 }
         );
         sb.append("\n");

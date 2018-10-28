@@ -1,6 +1,7 @@
 package io.left.rightmesh.libdtn.core.spi.cla;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
+import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
@@ -47,6 +48,15 @@ public interface CLAChannelSPI {
      * @return Flowable of Bundle
      */
     Observable<Bundle> recvBundle();
+
+    /**
+     * Receive the deserialized stream of Bundle from this Convergence Layer.
+     * Use the given factory to create BLOB
+     *
+     * @param blobFactory to store received blob
+     * @return Flowable of Bundle
+     */
+    Observable<Bundle> recvBundle(BLOBFactory blobFactory);
 
     /**
      * Send a Bundle.

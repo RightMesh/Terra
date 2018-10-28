@@ -1,5 +1,7 @@
 package io.left.rightmesh.module.aa.ldcp;
 
+import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
+import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.DeliveryAPI;
@@ -30,12 +32,12 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
     }
 
     @Override
-    public void init(RegistrarAPI api, ConfigurationAPI conf, Log logger) {
+    public void init(RegistrarAPI api, ConfigurationAPI conf, Log logger, BLOBFactory factory) {
         int port = conf.getModuleConf(this, LDCP_TCP_PORT, LDCP_TCP_PORT_DEFAULT).value();
         this.registrar = api;
         this.logger = logger;
         logger.i(TAG, "starting a ldcp server on port " + port);
-        new LdcpServer().start(port, null,
+        new LdcpServer().start(port, factory,
                 Router.create()
                         .GET("/isregistered/", isregistered)
                         .POST("/register/", register)
@@ -47,43 +49,45 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
                         .POST("/register/passive", registerpassive));
     }
 
-    private RequestHandler isregistered = (req, res) -> {
-        try {
-            res.setCode(registrar.isRegistered(req.fields.get("sink")) ? ResponseMessage.ResponseCode.OK : ResponseMessage.ResponseCode.ERROR);
-            return Completable.complete();
-        } catch (RegistrarAPI.RegistrarException re) {
-            return Completable.error(re);
-        }
-    };
+    private RequestHandler isregistered = (req, res) ->
+            Completable.create(s -> {
+                try {
+                    res.setCode(registrar.isRegistered(req.fields.get("sink")) ? ResponseMessage.ResponseCode.OK : ResponseMessage.ResponseCode.ERROR);
+                    s.onComplete();
+                } catch (RegistrarAPI.RegistrarException re) {
+                    s.onError(re);
+                }
+            });
 
-    private RequestHandler register = (req, res) -> {
-        try {
-            String sink = registrar.register(req.fields.get("sink"));
-            boolean active = req.fields.get("active").equals("true");
-            if(active) {
-                String host = registrar.register(req.fields.get("active-host"));
-                int port = Integer.valueOf(registrar.register(req.fields.get("active-port")));
-                String cookie = registrar.register(sink, (bundle) ->
-                        LdcpRequest.POST("/deliver/")
-                                .setBundle(bundle)
-                                .send(host, port)
-                                .flatMapCompletable(d ->
-                                        d.code.equals(ResponseMessage.ResponseCode.ERROR)
-                                                ? Completable.error(new DeliveryAPI.DeliveryRefused())
-                                                : Completable.complete()));
-                res.setCode(ResponseMessage.ResponseCode.OK);
-                res.setHeader("cookie", cookie);
-                return Completable.complete();
-            } else {
-                String cookie = registrar.register(sink);
-                res.setCode(ResponseMessage.ResponseCode.OK);
-                res.setHeader("cookie", cookie);
-                return Completable.complete();
-            }
-        } catch (RegistrarAPI.RegistrarException re) {
-            return Completable.error(re);
-        }
-    };
+    private RequestHandler register = (req, res) ->
+            Completable.create(s -> {
+                try {
+                    String sink = registrar.register(req.fields.get("sink"));
+                    boolean active = req.fields.get("active").equals("true");
+                    if (active) {
+                        String host = registrar.register(req.fields.get("active-host"));
+                        int port = Integer.valueOf(registrar.register(req.fields.get("active-port")));
+                        String cookie = registrar.register(sink, (bundle) ->
+                                LdcpRequest.POST("/deliver/")
+                                        .setBundle(bundle)
+                                        .send(host, port, new BaseBLOBFactory().disablePersistent().disableVolatile())
+                                        .flatMapCompletable(d ->
+                                                d.code.equals(ResponseMessage.ResponseCode.ERROR)
+                                                        ? Completable.error(new DeliveryAPI.DeliveryRefused())
+                                                        : Completable.complete()));
+                        res.setCode(ResponseMessage.ResponseCode.OK);
+                        res.setHeader("cookie", cookie);
+                        s.onComplete();
+                    } else {
+                        String cookie = registrar.register(sink);
+                        res.setCode(ResponseMessage.ResponseCode.OK);
+                        res.setHeader("cookie", cookie);
+                        s.onComplete();
+                    }
+                } catch (RegistrarAPI.RegistrarException re) {
+                    s.onError(re);
+                }
+            });
 
     private RequestHandler unregister = (req, res) -> {
         try {
@@ -112,14 +116,15 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
         }
     };
 
-    private RequestHandler dispatch = (req, res) -> {
-        try {
-            res.setCode(registrar.isRegistered(req.fields.get("sink")) ? ResponseMessage.ResponseCode.OK : ResponseMessage.ResponseCode.ERROR);
-            return Completable.complete();
-        } catch (RegistrarAPI.RegistrarException re) {
-            return Completable.error(re);
-        }
-    };
+    private RequestHandler dispatch = (req, res) ->
+        Completable.create(s -> {
+            try {
+                res.setCode(registrar.send(req.bundle) ? ResponseMessage.ResponseCode.OK : ResponseMessage.ResponseCode.ERROR);
+                s.onComplete();
+            } catch (RegistrarAPI.RegistrarException re) {
+                s.onError(re);
+            }
+        });
 
     private RequestHandler registeractive = (req, res) -> {
         try {

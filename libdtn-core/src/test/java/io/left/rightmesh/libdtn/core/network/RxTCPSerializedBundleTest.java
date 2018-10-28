@@ -8,13 +8,14 @@ import java.util.concurrent.TimeUnit;
 
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.storage.TestBundle;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Serializer;
-import io.left.rightmesh.libdtn.core.storage.bundle.Storage;
+import io.left.rightmesh.libdtn.core.storage.Storage;
 import io.left.rightmesh.libdtn.core.utils.Logger;
 import io.left.rightmesh.librxtcp.RxTCP;
 
@@ -44,10 +45,10 @@ public class RxTCPSerializedBundleTest {
                 .start().subscribe(
                 connection -> {
                     // prepare parser
-                    BundleV7Parser bundleParser = new BundleV7Parser(new NullLogger());
+                    BundleV7Parser bundleParser = new BundleV7Parser(new NullLogger(), storage.getBlobFactory());
                     CborParser p = bundleParser.createBundleParser(b -> {
                         recv[i[0]++] = b;
-                    }, storage.getBlobFactory());
+                    });
 
                     connection.recv().subscribe(
                             buffer -> {

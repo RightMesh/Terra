@@ -1,18 +1,21 @@
-package io.left.rightmesh.libdtn.core.storage.bundle;
+package io.left.rightmesh.libdtn.core.storage;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
+import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
+import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.StorageAPI;
-import io.left.rightmesh.libdtn.core.storage.blob.CoreBLOBFactory;
 import io.left.rightmesh.libdtn.core.utils.Logger;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
+
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
 
 
 /**
@@ -26,6 +29,23 @@ public class Storage implements StorageAPI {
     private SimpleStorage simpleStorage;
     private BLOBFactory blobFactory;
     private Logger logger;
+
+    private class CoreBLOBFactory extends BaseBLOBFactory {
+        @Override
+        public BLOB createBLOB(int expectedSize) throws BLOBFactoryException {
+            try {
+                return createVolatileBLOB(expectedSize);
+            } catch(BLOBFactoryException e) {
+                /* ignore */
+            }
+
+            try {
+                return simpleStorage.createBLOB(expectedSize);
+            } catch(StorageAPI.StorageException se) {
+                throw new BLOBFactoryException();
+            }
+        }
+    }
 
     class IndexEntry {
         Bundle bundle;      /* either a bundle or a metabundle */
@@ -46,7 +66,12 @@ public class Storage implements StorageAPI {
         this.logger = logger;
         volatileStorage = new VolatileStorage(this, conf, logger);
         simpleStorage = new SimpleStorage(this, conf, logger);
-        blobFactory = new CoreBLOBFactory(conf, simpleStorage);
+        blobFactory = new CoreBLOBFactory() {
+            @Override
+            public boolean isVolatileEnabled() {
+                return conf.<Boolean>get(COMPONENT_ENABLE_VOLATILE_STORAGE).value();
+            }
+        };
     }
 
     public BLOBFactory getBlobFactory() {
@@ -87,6 +112,7 @@ public class Storage implements StorageAPI {
     public int count() {
         return index.size();
     }
+
 
     public boolean contains(BundleID bid) {
         return index.containsKey(bid);

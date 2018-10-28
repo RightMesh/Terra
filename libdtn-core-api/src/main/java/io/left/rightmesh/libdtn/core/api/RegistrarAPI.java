@@ -72,12 +72,23 @@ public interface RegistrarAPI {
     boolean unregister(String sink, String cookie) throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument;
 
     /**
-     * Send data using the services of the Bundle Protocol.
+     * Allow a registered application-agent to send data using the services of the Bundle Protocol.
      *
+     * @param sink identifying the registered AA.
+     * @param cookie cookie for this registration
      * @param bundle to send
      * @return true if the bundle is queued, false otherwise
      */
     boolean send(String sink, String cookie, Bundle bundle) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument;
+
+    /**
+     * Allow an anonymous application-agent to send data using the services of the Bundle Protocol.
+     *
+     * @param bundle to send
+     * @return true if the bundle is queued, false otherwise
+     */
+    boolean send(Bundle bundle)  throws RegistrarDisabled, NullArgument;
+
 
     /**
      * Check how many bundles are queued for retrieval for a given sink.

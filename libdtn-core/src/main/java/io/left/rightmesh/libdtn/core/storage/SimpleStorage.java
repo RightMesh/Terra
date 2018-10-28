@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.core.storage.bundle;
+package io.left.rightmesh.libdtn.core.storage;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -18,6 +17,7 @@ import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
@@ -29,7 +29,7 @@ import io.left.rightmesh.libdtn.common.data.blob.NullBLOB;
 import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.events.BundleIndexed;
-import io.left.rightmesh.libdtn.core.storage.blob.FileBLOB;
+import io.left.rightmesh.libdtn.common.data.blob.FileBLOB;
 import io.left.rightmesh.libdtn.core.api.StorageAPI.BundleAlreadyExistsException;
 import io.left.rightmesh.libdtn.core.api.StorageAPI.BundleNotFoundException;
 import io.left.rightmesh.libdtn.core.api.StorageAPI.StorageFullException;
@@ -41,6 +41,8 @@ import io.reactivex.Single;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
+import static io.left.rightmesh.libdtn.common.utils.FileUtil.createNewFile;
+import static io.left.rightmesh.libdtn.common.utils.FileUtil.spaceLeft;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
 
 /**
@@ -165,7 +167,7 @@ public class SimpleStorage extends BaseComponent {
              * preparing the parser. We just parse the file header and the primary block of
              * the bundle and then build a MetaBundle that will be use for processing
              */
-            BundleV7Parser bundleParser = new BundleV7Parser(logger);
+            BundleV7Parser bundleParser = new BundleV7Parser(logger, null);
             CborParser parser = CBOR.parser()
                     .cbor_open_array(2)
                     .cbor_parse_custom_item(
@@ -207,24 +209,6 @@ public class SimpleStorage extends BaseComponent {
             } catch (RxParserException | IOException rpe) {
                 continue;
             }
-        }
-    }
-
-    private static File createNewFile(String prefix, String suffix, String path) throws IOException {
-        File f = new File(path);
-        if (f.exists() && f.canRead() && f.canWrite()) {
-            return File.createTempFile(prefix, suffix, f);
-        } else {
-            return null;
-        }
-    }
-
-    private static long spaceLeft(String path) {
-        File f = new File(path);
-        if (f.exists() && f.canRead() && f.canWrite()) {
-            return f.getUsableSpace();
-        } else {
-            return 0;
         }
     }
 
@@ -427,7 +411,7 @@ public class SimpleStorage extends BaseComponent {
             }
 
             /* preparing file and parser */
-            BundleV7Parser bundleParser = new BundleV7Parser(logger);
+            BundleV7Parser bundleParser = new BundleV7Parser(logger, new BaseBLOBFactory().disablePersistent());
             CborParser parser = CBOR.parser()
                     .cbor_open_array(2)
                     .cbor_parse_custom_item(

@@ -12,7 +12,7 @@ import io.left.rightmesh.libdtn.core.routing.RoutingEngine;
 import io.left.rightmesh.libdtn.core.routing.RoutingTable;
 import io.left.rightmesh.libdtn.core.network.DiscoveryAgent;
 import io.left.rightmesh.libdtn.core.network.CLAManager;
-import io.left.rightmesh.libdtn.core.storage.bundle.Storage;
+import io.left.rightmesh.libdtn.core.storage.Storage;
 import io.left.rightmesh.libdtn.core.utils.Logger;
 import io.left.rightmesh.libdtn.core.api.ConnectionAgentAPI;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;

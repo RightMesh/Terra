@@ -21,6 +21,7 @@ import io.left.rightmesh.libdtn.common.data.PreviousNodeBlock;
 import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.common.data.ScopeControlHopLimitBlock;
 import io.left.rightmesh.libdtn.common.data.UnknownExtensionBlock;
+import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
 import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.common.data.eid.IPN;
@@ -42,13 +43,15 @@ public class BundleV7Parser  {
     }
 
     private Log logger;
+    private BLOBFactory factory;
 
-    public BundleV7Parser(Log logger) {
+    public BundleV7Parser(Log logger, BLOBFactory factory) {
+        this.factory = factory;
         this.logger = logger;
     }
 
-    public CborParser createBundleParser(BundleParsedCallback cb, BLOBFactory factory) {
-        return CBOR.parser().cbor_parse_custom_item(() -> new BundleItem(factory), (__, ___, item) -> cb.onBundleParsed(item.bundle));
+    public CborParser createBundleParser(BundleParsedCallback cb) {
+        return CBOR.parser().cbor_parse_custom_item(BundleItem::new, (__, ___, item) -> cb.onBundleParsed(item.bundle));
     }
 
     public BundleItem createBundleItem() {
@@ -70,16 +73,6 @@ public class BundleV7Parser  {
     public class BundleItem implements CborParser.ParseableItem {
 
         public Bundle bundle = null;
-        BLOBFactory factory;
-
-
-        public BundleItem() {
-            this.factory = ByteBufferBLOB::new;
-        }
-
-        public BundleItem(BLOBFactory factory) {
-            this.factory = factory;
-        }
 
         @Override
         public CborParser getItemParser() {

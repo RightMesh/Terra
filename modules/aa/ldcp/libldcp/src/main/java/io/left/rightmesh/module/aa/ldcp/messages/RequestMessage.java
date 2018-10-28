@@ -8,6 +8,7 @@ import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.common.data.Bundle;
+import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Serializer;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
@@ -55,6 +56,7 @@ public class RequestMessage {
             CborEncoder enc = CBOR.encoder()
                     .cbor_encode_int(LDCP_VERSION)
                     .cbor_encode_int(code.code)
+                    .cbor_encode_text_string(path)
                     .cbor_encode_map(fields);
 
             if (bundle != null) {
@@ -69,7 +71,7 @@ public class RequestMessage {
         }
     }
 
-    public static CborParser getParser() {
+    public static CborParser getParser(BLOBFactory factory) {
         return CBOR.parser()
                 .cbor_parse_int((__, ___, i) -> { /* version */
                 })
@@ -81,6 +83,10 @@ public class RequestMessage {
                     final RequestMessage message = new RequestMessage(code);
                     p.setReg(0, message);
                 })
+                .cbor_parse_text_string_full((p, path) -> {
+                    RequestMessage req = p.getReg(0);
+                    req.path = path;
+                })
                 .cbor_parse_linear_map(
                         CBOR.TextStringItem::new,
                         CBOR.TextStringItem::new,
@@ -90,11 +96,15 @@ public class RequestMessage {
                                 req.fields.put(str.value(), map.get(str).value());
                             }
                         })
-                .cbor_parse_custom_item(
-                        () -> new BundleV7Parser(new NullLogger()).createBundleItem(),
-                        (p, ___, item) -> {
-                            RequestMessage req = p.getReg(0);
-                            req.bundle = item.bundle;
-                        });
+                .cbor_parse_boolean((p1, b) -> {
+                    if (b) {
+                        p1.insert_now(CBOR.parser().cbor_parse_custom_item(
+                                () -> new BundleV7Parser(new NullLogger(), factory).createBundleItem(),
+                                (p2, ___, item) -> {
+                                    RequestMessage req = p2.getReg(0);
+                                    req.bundle = item.bundle;
+                                }));
+                    }
+                });
     }
 }

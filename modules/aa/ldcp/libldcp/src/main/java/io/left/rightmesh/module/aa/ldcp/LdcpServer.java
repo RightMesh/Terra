@@ -1,11 +1,8 @@
 package io.left.rightmesh.module.aa.ldcp;
 
-import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Parser;
-import io.left.rightmesh.libdtn.common.utils.NullLogger;
 import io.left.rightmesh.librxtcp.RxTCP;
 import io.left.rightmesh.module.aa.ldcp.messages.RequestMessage;
 import io.left.rightmesh.module.aa.ldcp.messages.ResponseMessage;
@@ -25,7 +22,7 @@ public class LdcpServer {
         server = new RxTCP.Server<>(port);
         server.start().subscribe(
                 con -> {
-                    CborParser parser = RequestMessage.getParser();
+                    CborParser parser = RequestMessage.getParser(factory);
                     con.recv().subscribe(
                             buf -> {
                                 try {

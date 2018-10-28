@@ -58,7 +58,7 @@ public class BundleProcessor implements BundleProcessorAPI {
 
     /* 5.3 */
     public void bundleDispatching(Bundle bundle) {
-        core.getLogger().i(TAG, "dispatching bundle: " + bundle.bid.getBIDString()+" to EID: "+bundle.destination.getEIDString());
+        core.getLogger().i(TAG, "dispatching bundle: " + bundle.bid.getBIDString() + " to EID: " + bundle.destination.getEIDString());
 
         /* 5.3 - step 1 */
         core.getLogger().v(TAG, "5.3-1: " + bundle.bid.getBIDString());
@@ -89,13 +89,11 @@ public class BundleProcessor implements BundleProcessorAPI {
         /* 5.4 - step 2 */
         core.getLogger().v(TAG, "5.4-2 " + bundle.bid.getBIDString());
         core.getRoutingEngine().findOpenedChannelTowards(bundle.destination)
-                .flatMapMaybe(claChannel -> {
-                        System.out.println(" eid -> "+claChannel.channelEID().getEIDString());
-                        return claChannel.sendBundle(bundle)
+                .flatMapMaybe(claChannel ->
+                        claChannel.sendBundle(bundle)
                                 .lastElement()
                                 .doOnError(System.out::println)
-                                .onErrorComplete();
-                })
+                                .onErrorComplete())
                 .firstElement()
                 .subscribe(
                         (i) -> {

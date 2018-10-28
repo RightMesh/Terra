@@ -45,6 +45,11 @@ public class NullBLOB implements BLOB {
             }
 
             @Override
+            public int write(InputStream stream) {
+                return 0;
+            }
+
+            @Override
             public int write(InputStream stream, int size) {
                 return 0;
             }

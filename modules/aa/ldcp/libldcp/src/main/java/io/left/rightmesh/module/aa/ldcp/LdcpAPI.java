@@ -55,6 +55,14 @@ public interface LdcpAPI {
     Single<String> register(String sink) throws RegistrarDisabled, SinkAlreadyRegistered, NullArgument;
 
     /**
+     * Register an active registration. The cookie for this registration is returned.
+     *
+     * @param sink to register
+     * @return a RegistrationHandler if registered, nu
+     */
+    Single<String> register(String sink, ActiveLdcpRegistrationCallback cb) throws RegistrarDisabled, SinkAlreadyRegistered, NullArgument;
+
+    /**
      * Unregister an application agent
      *
      * @param sink identifying the AA to be unregistered
@@ -64,12 +72,22 @@ public interface LdcpAPI {
     Single<Boolean> unregister(String sink, String cookie) throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument;
 
     /**
-     * Send data using the services of the Bundle Protocol.
+     * Send data using the services of the Bundle Protocol from a registered application-agent.
      *
+     * @param sink registered sink for the AA
+     * @param cookie for the registration
      * @param bundle to send
      * @return true if the bundle is queued, false otherwise
      */
     Single<Boolean> send(String sink, String cookie, Bundle bundle) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument;
+
+    /**
+     * Send data using the services of the Bundle Protocol from an anonymous application-agent.
+     *
+     * @param bundle to send
+     * @return true if the bundle is queued, false otherwise
+     */
+    Single<Boolean> send(Bundle bundle);
 
     /**
      * Check how many bundles are queued for retrieval for a given sink.

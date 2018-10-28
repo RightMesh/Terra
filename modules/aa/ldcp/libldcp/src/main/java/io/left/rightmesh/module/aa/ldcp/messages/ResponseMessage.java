@@ -8,6 +8,7 @@ import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.common.data.Bundle;
+import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Serializer;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
@@ -86,7 +87,7 @@ public class ResponseMessage {
         }
     }
 
-    public static CborParser getParser() {
+    public static CborParser getParser(BLOBFactory factory) {
         return CBOR.parser()
                 .cbor_parse_int((__, ___, i) -> { /* version */
                 })
@@ -107,12 +108,16 @@ public class ResponseMessage {
                                 res.fields.put(str.value(), map.get(str).value());
                             }
                         })
-                .cbor_parse_custom_item(
-                        () -> new BundleV7Parser(new NullLogger()).createBundleItem(),
-                        (p, ___, item) -> {
-                            ResponseMessage res = p.getReg(0);
-                            res.bundle = item.bundle;
-                        });
+                .cbor_parse_boolean((p1, b) -> {
+                    if (b) {
+                        p1.insert_now(CBOR.parser().cbor_parse_custom_item(
+                                () -> new BundleV7Parser(new NullLogger(), factory).createBundleItem(),
+                                (p2, ___, item) -> {
+                                    RequestMessage req = p2.getReg(0);
+                                    req.bundle = item.bundle;
+                                }));
+                    }
+                });
 
     }
 

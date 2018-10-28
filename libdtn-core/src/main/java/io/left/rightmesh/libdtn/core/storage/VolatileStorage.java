@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.core.storage.bundle;
+package io.left.rightmesh.libdtn.core.storage;
 
 import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.libdtn.common.data.Bundle;

@@ -21,6 +21,17 @@ public interface WritableBLOB {
 
     /**
      * Read size bytes from the InputStream and store it in the BaseBLOB. Note that there is a natural
+     * limit to the size of a BLOB because we can read up to {@see Integer.MAX_VALUE} bytes.
+     *
+     * @param stream read the data from
+     * @return int number of bytes read
+     * @throws IOException if low-level reading the data or writing to the blob failed
+     * @throws BLOBOverflowException if write size exceed BaseBLOB capacity
+     */
+    int write(InputStream stream) throws IOException, BLOBOverflowException;
+
+    /**
+     * Read size bytes from the InputStream and store it in the BaseBLOB. Note that there is a natural
      * limit to the size of a BaseBLOB because we can read up to {@see Integer.MAX_VALUE} bytes.
      *
      * @param stream read the data from

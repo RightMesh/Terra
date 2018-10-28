@@ -4,9 +4,8 @@ import java.util.Set;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
-import io.left.rightmesh.module.aa.ldcp.messages.RequestMessage;
+import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.module.aa.ldcp.messages.ResponseMessage;
-import io.reactivex.Completable;
 import io.reactivex.Single;
 
 /**
@@ -18,30 +17,25 @@ public class LdcpApplicationAgent implements LdcpAPI {
     int port;
     LdcpServer server;
     ActiveLdcpRegistrationCallback cb;
+    BLOBFactory factory;
 
-    LdcpApplicationAgent(String host, int port, boolean active, ActiveLdcpRegistrationCallback cb) {
+    public LdcpApplicationAgent(String host, int port, BLOBFactory factory) {
         this.host = host;
         this.port = port;
-        this.cb = cb;
-        if (active) {
-            startServer();
-        }
+        this.factory = factory;
     }
 
-    private boolean startServer() {
+    private boolean startServer(ActiveLdcpRegistrationCallback cb) {
         if (server != null) {
             return false;
         }
         server = new LdcpServer();
-        server.start(0, null,
-                Router.create().POST("/deliver/", deliver));
+        server.start(0, factory,
+                (req, res) -> cb.recv(req.bundle)
+                        .doOnComplete(() -> res.setCode(ResponseMessage.ResponseCode.OK))
+                        .doOnError(e -> res.setCode(ResponseMessage.ResponseCode.ERROR)));
         return true;
     }
-
-    RequestHandler deliver = (req, res) ->
-            cb.recv(req.bundle)
-            .doOnComplete(() -> res.setCode(ResponseMessage.ResponseCode.OK))
-            .doOnError(e -> res.setCode(ResponseMessage.ResponseCode.ERROR));
 
     private boolean stopServer() {
         if (server == null) {
@@ -55,7 +49,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
     public Single<Boolean> isRegistered(String sink) {
         return LdcpRequest.GET("/isregistered/")
                 .setHeader("sink", sink)
-                .send(host, port)
+                .send(host, port, factory)
                 .map(res -> res.code == ResponseMessage.ResponseCode.OK);
     }
 
@@ -66,7 +60,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
                 .setHeader("active", cb == null ? "false" : "true")
                 .setHeader("active-host", "127.0.0.1")
                 .setHeader("active-port", "" + server.getPort())
-                .send(host, port)
+                .send(host, port, factory)
                 .flatMap(res -> {
                     if (res.code == ResponseMessage.ResponseCode.ERROR) {
                         return Single.error(new RegistrarException());
@@ -79,11 +73,34 @@ public class LdcpApplicationAgent implements LdcpAPI {
     }
 
     @Override
+    public Single<String> register(String sink, ActiveLdcpRegistrationCallback cb) {
+        if(startServer(cb)) {
+            return LdcpRequest.POST("/register/")
+                    .setHeader("sink", sink)
+                    .setHeader("active", cb == null ? "false" : "true")
+                    .setHeader("active-host", "127.0.0.1")
+                    .setHeader("active-port", "" + server.getPort())
+                    .send(host, port, factory)
+                    .flatMap(res -> {
+                        if (res.code == ResponseMessage.ResponseCode.ERROR) {
+                            return Single.error(new RegistrarException());
+                        }
+                        if (res.fields.get("cookie") == null) {
+                            return Single.error(new RegistrarException());
+                        }
+                        return Single.just(res.fields.get("cookie"));
+                    });
+        } else {
+            return Single.error(new RegistrationAlreadyActive());
+        }
+    }
+
+    @Override
     public Single<Boolean> unregister(String sink, String cookie) {
         return LdcpRequest.POST("/unregister/")
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
-                .send(host, port)
+                .send(host, port, factory)
                 .map(res -> res.code == ResponseMessage.ResponseCode.OK);
     }
 
@@ -98,7 +115,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
                 .setHeader("bundle-id", bundleID.getBIDString())
-                .send(host, port)
+                .send(host, port, factory)
                 .flatMap(res -> {
                     if (res.code == ResponseMessage.ResponseCode.ERROR) {
                         return Single.error(new RegistrarException());
@@ -116,7 +133,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
                 .setHeader("bundle-id", bundleID.getBIDString())
-                .send(host, port)
+                .send(host, port, factory)
                 .flatMap(res -> {
                     if (res.code == ResponseMessage.ResponseCode.ERROR) {
                         return Single.error(new RegistrarException());
@@ -134,19 +151,27 @@ public class LdcpApplicationAgent implements LdcpAPI {
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
                 .setBundle(bundle)
-                .send(host, port)
+                .send(host, port, factory)
+                .map(res -> res.code == ResponseMessage.ResponseCode.OK);
+    }
+
+    @Override
+    public Single<Boolean> send(Bundle bundle) {
+        return LdcpRequest.POST("/bundle/")
+                .setBundle(bundle)
+                .send(host, port, factory)
                 .map(res -> res.code == ResponseMessage.ResponseCode.OK);
     }
 
     @Override
     public Single<Boolean> setActive(String sink, String cookie, ActiveLdcpRegistrationCallback cb) {
-        if(startServer()) {
+        if (startServer(cb)) {
             return LdcpRequest.POST("/register/active/")
                     .setHeader("sink", sink)
                     .setHeader("cookie", cookie)
                     .setHeader("active-host", "127.0.0.1")
                     .setHeader("active-port", "" + server.getPort())
-                    .send(host, port)
+                    .send(host, port, factory)
                     .map(res -> res.code == ResponseMessage.ResponseCode.OK);
         } else {
             return Single.error(new RegistrationAlreadyActive());
@@ -155,11 +180,11 @@ public class LdcpApplicationAgent implements LdcpAPI {
 
     @Override
     public Single<Boolean> setPassive(String sink, String cookie) {
-        if(stopServer()) {
+        if (stopServer()) {
             return LdcpRequest.POST("/register/passive")
                     .setHeader("sink", sink)
                     .setHeader("cookie", cookie)
-                    .send(host, port)
+                    .send(host, port, factory)
                     .map(res -> res.code == ResponseMessage.ResponseCode.OK);
         } else {
             return Single.error(new RegistrationAlreadyActive());

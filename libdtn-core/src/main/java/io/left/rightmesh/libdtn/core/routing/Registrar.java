@@ -140,6 +140,15 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
         return true;
     }
 
+
+    @Override
+    public boolean send(Bundle bundle)  throws RegistrarDisabled, NullArgument {
+        checkEnable();
+        checkArgumentNotNull(bundle);
+        core.getBundleProcessor().bundleDispatching(bundle);
+        return true;
+    }
+
     @Override
     public boolean send(String sink, String cookie, Bundle bundle)  throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
         checkRegisteredSink(sink, cookie);

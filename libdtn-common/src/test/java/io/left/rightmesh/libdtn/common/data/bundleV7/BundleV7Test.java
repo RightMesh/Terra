@@ -14,6 +14,7 @@ import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.data.BlockHeader;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
+import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
 import io.left.rightmesh.libdtn.common.data.blob.ByteBufferBLOB;
 import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
@@ -121,10 +122,10 @@ public class BundleV7Test {
             CborEncoder enc = BundleV7Serializer.encode(bundle);
 
             // prepare parser
-            BundleV7Parser bundleParser = new BundleV7Parser(new NullLogger());
+            BundleV7Parser bundleParser = new BundleV7Parser(new NullLogger(), new BaseBLOBFactory().disablePersistent());
             CborParser p = bundleParser.createBundleParser(b -> {
                 res[0] = b;
-            }, ByteBufferBLOB::new);
+            });
 
             // serialize and parse
             enc.observe(10).subscribe(buf -> {

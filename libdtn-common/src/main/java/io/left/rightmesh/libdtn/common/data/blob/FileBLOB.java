@@ -1,8 +1,5 @@
-package io.left.rightmesh.libdtn.core.storage.blob;
+package io.left.rightmesh.libdtn.common.data.blob;
 
-import io.left.rightmesh.libdtn.common.data.blob.BLOB;
-import io.left.rightmesh.libdtn.common.data.blob.ReadableBLOB;
-import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
 import io.reactivex.Flowable;
 
 import java.io.BufferedInputStream;
@@ -204,6 +201,20 @@ public class FileBLOB implements BLOB {
                     bos.write(buffer.get());
                 }
                 return length;
+            }
+
+            @Override
+            public int write(InputStream stream) throws IOException {
+                open();
+                int total = 0;
+                byte[] fileBuffer = new byte[BUFFER_SIZE];
+                int count = stream.read(fileBuffer, 0, BUFFER_SIZE);
+                while (count > 0) {
+                    bos.write(fileBuffer, 0, count);
+                    total += count;
+                    count = stream.read(fileBuffer, 0, BUFFER_SIZE);
+                }
+                return total;
             }
 
             @Override

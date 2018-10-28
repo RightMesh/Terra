@@ -86,7 +86,7 @@ public class ByteBufferBLOB implements BLOB {
             public int write(byte b) throws BLOBOverflowException {
                 try {
                     data.put(b);
-                } catch(BufferOverflowException boe) {
+                } catch (BufferOverflowException boe) {
                     throw new BLOBOverflowException();
                 }
                 return 1;
@@ -96,7 +96,7 @@ public class ByteBufferBLOB implements BLOB {
             public int write(byte[] a) throws BLOBOverflowException {
                 try {
                     data.put(a);
-                } catch(BufferOverflowException boe) {
+                } catch (BufferOverflowException boe) {
                     throw new BLOBOverflowException();
                 }
                 return a.length;
@@ -107,10 +107,26 @@ public class ByteBufferBLOB implements BLOB {
                 int size = buffer.remaining();
                 try {
                     data.put(buffer);
-                } catch(BufferOverflowException boe) {
+                } catch (BufferOverflowException boe) {
                     throw new BLOBOverflowException();
                 }
                 return size;
+            }
+
+            @Override
+            public int write(InputStream stream)
+                    throws IOException, BLOBOverflowException {
+                int read = data.remaining();
+                int size = read;
+                int b;
+                while (read > 0) {
+                    if ((b = stream.read()) == -1) {
+                        return (size-read);
+                    }
+                    data.put((byte) b);
+                    read--;
+                }
+                throw new BLOBOverflowException();
             }
 
             @Override
@@ -120,8 +136,8 @@ public class ByteBufferBLOB implements BLOB {
                     throw new BLOBOverflowException();
                 }
                 int read = size;
-                while(read > 0) {
-                    data.put((byte)stream.read());
+                while (read > 0) {
+                    data.put((byte) stream.read());
                     read--;
                 }
                 return size;

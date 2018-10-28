@@ -4,7 +4,6 @@ import org.junit.Test;
 
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.core.storage.bundle.Storage;
 import io.left.rightmesh.libdtn.core.utils.Logger;
 
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;

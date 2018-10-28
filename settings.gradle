@@ -16,10 +16,11 @@ include ':libdtn-module-http'
 project(":libdtn-module-http").projectDir = file("modules/core/libdtn-module-http")
 
 // binaries
-include ':terra', ':dtnping', ':dtnconf'
+include ':terra', ':dtnping', ':dtnconf', 'dtncat'
 project(":terra").projectDir = file("linux/terra")
 project(":dtnping").projectDir = file("linux/dtnping")
 project(":dtnconf").projectDir = file("linux/dtnconf")
+project(":dtncat").projectDir = file("linux/dtncat")
 
 // dependencies
 

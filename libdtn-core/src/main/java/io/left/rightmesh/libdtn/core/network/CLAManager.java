@@ -27,13 +27,12 @@ public class CLAManager {
         clas = new LinkedList<>();
     }
 
-
     public void addCLA(ConvergenceLayerSPI cla) {
         clas.add(cla);
         cla.start(core.getConf(), core.getLogger()).subscribe(
                 dtnChannel -> {
                     RxBus.post(new ChannelOpened(dtnChannel));
-                    dtnChannel.recvBundle().subscribe(
+                    dtnChannel.recvBundle(core.getStorage().getBlobFactory()).subscribe(
                             b -> {
                                 core.getLogger().i(TAG, dtnChannel.channelEID().getEIDString() + " -> received a new bundle from: " + b.source.getEIDString() + " to: " + b.destination.getEIDString());
                                 core.getBundleProcessor().bundleReception(b);
