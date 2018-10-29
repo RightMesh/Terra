@@ -88,6 +88,7 @@ public class RoutingEngine implements RoutingAPI {
                 .map(claeid -> listener.watch(claeid.getCLASpecificPart(), bid))
                 .subscribe();
 
+        // try to force an opportunity
         potentialCLAs
                 .distinct()
                 .flatMapMaybe(claeid ->

@@ -44,7 +44,9 @@ public class ResponseMessage {
 
     public ResponseCode code;
     public HashMap<String, String> fields = new HashMap<>();
+
     public Bundle bundle;
+    public String body = "";
 
     public ResponseMessage() {
     }
@@ -52,7 +54,6 @@ public class ResponseMessage {
     public ResponseMessage(ResponseCode code) {
         this.code = code;
     }
-
 
     public ResponseMessage setCode(ResponseCode code) {
         this.code = code;
@@ -69,6 +70,11 @@ public class ResponseMessage {
         return this;
     }
 
+    public ResponseMessage setBody(String body) {
+        this.body = body;
+        return this;
+    }
+
     public Flowable<ByteBuffer> encode() {
         try {
             CborEncoder enc = CBOR.encoder()
@@ -76,12 +82,17 @@ public class ResponseMessage {
                     .cbor_encode_int(code.code)
                     .cbor_encode_map(fields);
 
+            // encode bundle if any
             if (bundle != null) {
                 enc.cbor_encode_boolean(true)
                         .merge(BundleV7Serializer.encode(bundle));
             } else {
                 enc.cbor_encode_boolean(false);
             }
+
+            // encode body
+            enc.cbor_encode_text_string(body);
+
             return enc.observe(1024);
         } catch (CBOR.CborEncodingUnknown ceu) {
             return Flowable.error(ceu);
@@ -114,11 +125,16 @@ public class ResponseMessage {
                         p1.insert_now(CBOR.parser().cbor_parse_custom_item(
                                 () -> new BundleV7Parser(logger, factory).createBundleItem(),
                                 (p2, ___, item) -> {
-                                    RequestMessage req = p2.getReg(0);
-                                    req.bundle = item.bundle;
+                                    ResponseMessage res = p2.getReg(0);
+                                    res.bundle = item.bundle;
                                 }));
                     }
-                });
+                })
+                .cbor_parse_text_string_full(
+                        (p, str) -> {
+                            ResponseMessage res = p.getReg(0);
+                            res.body = str;
+                        });
 
     }
 

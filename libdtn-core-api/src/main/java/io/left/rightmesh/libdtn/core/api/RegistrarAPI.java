@@ -15,24 +15,45 @@ import io.reactivex.Flowable;
 public interface RegistrarAPI {
 
     class RegistrarException extends Exception {
+        public RegistrarException(String msg) {
+            super(msg);
+        }
     }
 
     class RegistrarDisabled extends RegistrarException {
+        public RegistrarDisabled() {
+            super("registrar is disabled");
+        }
     }
 
     class SinkAlreadyRegistered extends RegistrarException {
+        public SinkAlreadyRegistered() {
+            super("sink is already registered");
+        }
     }
 
     class SinkNotRegistered extends RegistrarException {
+        public SinkNotRegistered() {
+            super("sink is not registered");
+        }
     }
 
     class BadCookie extends RegistrarException {
+        public BadCookie() {
+            super("bad cookie");
+        }
     }
 
     class BundleNotFound extends RegistrarException {
+        public BundleNotFound() {
+            super("bundle not found");
+        }
     }
 
     class NullArgument extends RegistrarException {
+        public NullArgument() {
+            super("null argument is forbidden");
+        }
     }
 
     /**
@@ -68,7 +89,6 @@ public interface RegistrarAPI {
      * @throws NullArgument if one of the argument is null
      */
     String register(String sink, ActiveRegistrationCallback cb) throws RegistrarDisabled, SinkAlreadyRegistered, NullArgument;
-
 
     /**
      * Unregister an application agent
@@ -134,7 +154,7 @@ public interface RegistrarAPI {
      * @throws BundleNotFound if the bundle was not found
      * @throws NullArgument if one of the argument is null
      */
-    Bundle get(String sink, String cookie, BundleID bundleID) throws RegistrarDisabled, SinkNotRegistered, BadCookie, BundleNotFound, NullArgument;
+    Bundle get(String sink, String cookie, String bundleID) throws RegistrarDisabled, SinkNotRegistered, BadCookie, BundleNotFound, NullArgument;
 
     /**
      * get a specific bundle and mark it as delivered.
@@ -149,7 +169,7 @@ public interface RegistrarAPI {
      * @throws BundleNotFound if the bundle was not found
      * @throws NullArgument if one of the argument is null
      */
-    Bundle fetch(String sink, String cookie, BundleID bundleID) throws RegistrarDisabled, SinkNotRegistered, BadCookie, BundleNotFound, NullArgument;
+    Bundle fetch(String sink, String cookie, String bundleID) throws RegistrarDisabled, SinkNotRegistered, BadCookie, BundleNotFound, NullArgument;
 
     /**
      * fetch all the bundle from the inbox.
@@ -193,6 +213,22 @@ public interface RegistrarAPI {
      * @throws NullArgument if one of the argument is null
      */
     boolean setPassive(String sink, String cookie) throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument;
+
+    /**
+     * Privileged method! Turn a registration passive. If the registration was already passive it
+     * does nothing.
+     *
+     *
+     * @param sink to the registration
+     * @param cookie of the registration
+     * @return true if the registration was successfully activated, false otherwise.
+     * @throws RegistrarDisabled if the registrar is disabled
+     * @throws SinkNotRegistered if the sink is not register
+     * @throws BadCookie if the cookie provided does not match registration cookie
+     * @throws NullArgument if one of the argument is null
+     */
+    boolean setPassive(String sink) throws RegistrarDisabled, SinkNotRegistered, NullArgument;
+
 
     //todo: remove this
     String printTable();

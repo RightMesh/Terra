@@ -43,6 +43,11 @@ public class LdcpRequest {
         return this;
     }
 
+    public LdcpRequest setBody(String body) {
+        requestMessage.body = body;
+        return this;
+    }
+
     public Single<ResponseMessage> send(String host, int port, BLOBFactory factory, Log logger) {
         return Single.create(s -> new RxTCP.ConnectionRequest<>(host, port)
                 .connect()

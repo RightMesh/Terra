@@ -12,6 +12,7 @@ import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import io.left.rightmesh.libdtn.common.data.blob.ByteBufferBLOB;
 import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.module.aa.ldcp.ActiveLdcpRegistrationCallback;
 import io.left.rightmesh.module.aa.ldcp.LdcpApplicationAgent;
 import io.reactivex.Completable;
 import picocli.CommandLine;
@@ -29,22 +30,25 @@ import picocli.CommandLine;
                 ""})
 public class DTNcat implements Callable<Void> {
 
-    @CommandLine.Option(names = {"-c", "--connect"}, description = "connect to the following DTN host.")
+    @CommandLine.Parameters(index = "0", description = "connect to the following DTN host.")
     private String dtnhost;
 
-    @CommandLine.Option(names = {"-p", "--port"}, description = "connect to the following DTN host.")
+    @CommandLine.Parameters(index = "1", description = "connect to the following DTN host.")
     private int dtnport;
 
     @CommandLine.Option(names = {"-l", "--listen"}, description = "register to a sink and wait for bundles.")
     private String sink;
 
-    @CommandLine.Option(names = {"-r", "--report-to"}, description = "report-to Endpoint-ID (EID)")
+    @CommandLine.Option(names = {"-c", "--cookie"}, description = "register to a sink and wait for bundles.")
+    private String cookie;
+
+    @CommandLine.Option(names = {"-R", "--report-to"}, description = "report-to Endpoint-ID (EID)")
     private String report;
 
     @CommandLine.Option(names = {"-L", "--lifetime"}, description = "Lifetime of the bundle")
     private int lifetime;
 
-    @CommandLine.Option(names = {"-d", "--destination"},  description = "Destination Endpoint-ID (EID)")
+    @CommandLine.Option(names = {"-D", "--destination"},  description = "Destination Endpoint-ID (EID)")
     private String deid;
 
     private LdcpApplicationAgent agent;
@@ -60,8 +64,7 @@ public class DTNcat implements Callable<Void> {
     }
 
     private void listenBundle() {
-        agent = new LdcpApplicationAgent(dtnhost, dtnport, ByteBufferBLOB::new);
-        agent.register(sink, (recvbundle) ->
+        ActiveLdcpRegistrationCallback cb = (recvbundle) ->
                 Completable.create(s -> {
                     try {
                         BufferedOutputStream bos = new BufferedOutputStream(System.out);
@@ -71,15 +74,27 @@ public class DTNcat implements Callable<Void> {
                     } catch (IOException io) {
                         s.onError(io);
                     }
-                })
-        ).subscribe(
-                cookie -> {
-                    System.err.println("sink registered. cookie: " + cookie);
-                },
-                e -> {
-                    System.err.println("could not register to sink: " + sink + " error: " + e.getMessage());
-                    System.exit(1);
                 });
+        agent = new LdcpApplicationAgent(dtnhost, dtnport, ByteBufferBLOB::new);
+
+        if(cookie == null) {
+            agent.register(sink, cb).subscribe(
+                    cookie -> {
+                        System.err.println("sink registered. cookie: " + cookie);
+                    },
+                    e -> {
+                        System.err.println("could not register to sink: " + sink + " - " + e.getMessage());
+                        System.exit(1);
+                    });
+        } else {
+            agent = new LdcpApplicationAgent(dtnhost, dtnport, ByteBufferBLOB::new);
+            agent.reAttach(sink, cookie, cb).subscribe(
+                    b -> System.err.println("re-attach to registered sink"),
+                    e -> {
+                        System.err.println("could not re-attach to sink: " + sink + " - " + e.getMessage());
+                        System.exit(1);
+                    });
+        }
     }
 
     private void sendBundle() {

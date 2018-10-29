@@ -1,11 +1,13 @@
 package io.left.rightmesh.module.aa.ldcp;
 
+import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.data.blob.NullBLOB;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.DeliveryAPI;
 import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
+import io.left.rightmesh.libdtn.core.spi.aa.ActiveRegistrationCallback;
 import io.left.rightmesh.libdtn.core.spi.aa.ApplicationAgentAdapterSPI;
 import io.left.rightmesh.module.aa.ldcp.messages.RequestMessage;
 import io.left.rightmesh.module.aa.ldcp.messages.ResponseMessage;
@@ -23,7 +25,7 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
 
     private static class RequestException extends Exception {
         RequestException(String msg) {
-            super("Request: "+msg);
+            super("Request: " + msg);
         }
     }
 
@@ -48,19 +50,37 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
                 Router.create()
                         .GET("/isregistered/", isregistered)
                         .POST("/register/", register)
+                        .POST("/register/update", update)
                         .POST("/unregister/", unregister)
                         .GET("/get/bundle/", get)
                         .GET("/fetch/bundle/", fetch)
-                        .POST("/bundle/", dispatch)
-                        .POST("/register/active/", registeractive)
-                        .POST("/register/passive", registerpassive));
+                        .POST("/bundle/", dispatch));
     }
 
     private String checkField(RequestMessage req, String key) throws RequestException {
-        if(!req.fields.containsKey(key)) {
+        if (!req.fields.containsKey(key)) {
             throw new RequestException("missing field");
         }
         return req.fields.get(key);
+    }
+
+    private ActiveRegistrationCallback deliverCallback(String sink, String host, int port) {
+        return (bundle) ->
+                LdcpRequest.POST("/deliver/")
+                        .setBundle(bundle)
+                        .send(host, port, NullBLOB::new, logger)
+                        .doOnError(d -> {
+                            try {
+                                /* connection fail - remote is no longer active */
+                                registrar.setPassive(sink);
+                            } catch(RegistrarAPI.RegistrarException re) {
+                                /* ignore */
+                            }
+                        })
+                        .flatMapCompletable(d ->
+                                d.code.equals(ResponseMessage.ResponseCode.ERROR)
+                                        ? Completable.error(new DeliveryAPI.DeliveryRefused())
+                                        : Completable.complete());
     }
 
     private RequestHandler isregistered = (req, res) ->
@@ -84,14 +104,7 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
                         String host = checkField(req, "active-host");
                         int port = Integer.valueOf(checkField(req, "active-port"));
 
-                        String cookie = registrar.register(sink, (bundle) ->
-                                LdcpRequest.POST("/deliver/")
-                                        .setBundle(bundle)
-                                        .send(host, port, NullBLOB::new, logger)
-                                        .flatMapCompletable(d ->
-                                                d.code.equals(ResponseMessage.ResponseCode.ERROR)
-                                                        ? Completable.error(new DeliveryAPI.DeliveryRefused())
-                                                        : Completable.complete()));
+                        String cookie = registrar.register(sink, deliverCallback(sink, host, port));
                         res.setCode(ResponseMessage.ResponseCode.OK);
                         res.setHeader("cookie", cookie);
                         s.onComplete();
@@ -106,60 +119,92 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
                 }
             });
 
-    private RequestHandler unregister = (req, res) -> {
-        try {
-            res.setCode(registrar.isRegistered(req.fields.get("sink")) ? ResponseMessage.ResponseCode.OK : ResponseMessage.ResponseCode.ERROR);
-            return Completable.complete();
-        } catch (RegistrarAPI.RegistrarException re) {
-            return Completable.error(re);
-        }
-    };
 
-    private RequestHandler get = (req, res) -> {
-        try {
-            res.setCode(registrar.isRegistered(req.fields.get("sink")) ? ResponseMessage.ResponseCode.OK : ResponseMessage.ResponseCode.ERROR);
-            return Completable.complete();
-        } catch (RegistrarAPI.RegistrarException re) {
-            return Completable.error(re);
-        }
-    };
+    private RequestHandler update = (req, res) ->
+            Completable.create(s -> {
+                try {
+                    String sink = checkField(req, "sink");
+                    String cookie = checkField(req, "cookie");
+                    boolean active = checkField(req, "active").equals("true");
 
-    private RequestHandler fetch = (req, res) -> {
-        try {
-            res.setCode(registrar.isRegistered(req.fields.get("sink")) ? ResponseMessage.ResponseCode.OK : ResponseMessage.ResponseCode.ERROR);
-            return Completable.complete();
-        } catch (RegistrarAPI.RegistrarException re) {
-            return Completable.error(re);
-        }
-    };
+                    if (active) {
+                        String host = checkField(req, "active-host");
+                        int port = Integer.valueOf(checkField(req, "active-port"));
+
+                        registrar.setActive(sink, cookie, deliverCallback(sink, host, port));
+                        res.setCode(ResponseMessage.ResponseCode.OK);
+                        s.onComplete();
+                    } else {
+                        registrar.setPassive(sink, cookie);
+                        res.setCode(ResponseMessage.ResponseCode.OK);
+                        s.onComplete();
+                    }
+                } catch (RegistrarAPI.RegistrarException | RequestException re) {
+                    s.onError(re);
+                }
+            });
+
+    private RequestHandler unregister = (req, res) ->
+            Completable.create(s -> {
+                try {
+                    String sink = checkField(req, "sink");
+                    String cookie = checkField(req, "cookie");
+
+                    res.setCode(registrar.unregister(sink, cookie) ? ResponseMessage.ResponseCode.OK : ResponseMessage.ResponseCode.ERROR);
+                    s.onComplete();
+                } catch (RegistrarAPI.RegistrarException | RequestException re) {
+                    s.onError(re);
+                }
+            });
+
+    private RequestHandler get = (req, res) ->
+            Completable.create(s -> {
+                try {
+                    String sink = checkField(req, "sink");
+                    String cookie = checkField(req, "cookie");
+                    String bid = checkField(req, "bundle-id");
+
+                    Bundle bundle = registrar.get(sink, cookie, bid);
+                    if (bundle != null) {
+                        res.setCode(ResponseMessage.ResponseCode.OK);
+                        res.setBundle(bundle);
+                    } else {
+                        res.setCode(ResponseMessage.ResponseCode.ERROR);
+                    }
+                    s.onComplete();
+                } catch (RegistrarAPI.RegistrarException | RequestException re) {
+                    s.onError(re);
+                }
+            });
+
+    private RequestHandler fetch = (req, res) ->
+            Completable.create(s -> {
+                try {
+                    String sink = checkField(req, "sink");
+                    String cookie = checkField(req, "cookie");
+                    String bid = checkField(req, "bundle-id");
+
+                    Bundle bundle = registrar.fetch(sink, cookie, bid);
+                    if (bundle != null) {
+                        res.setCode(ResponseMessage.ResponseCode.OK);
+                        res.setBundle(bundle);
+                    } else {
+                        res.setCode(ResponseMessage.ResponseCode.ERROR);
+                    }
+                    s.onComplete();
+                } catch (RegistrarAPI.RegistrarException | RequestException re) {
+                    s.onError(re);
+                }
+            });
 
     private RequestHandler dispatch = (req, res) ->
-        Completable.create(s -> {
-            try {
-                res.setCode(registrar.send(req.bundle) ? ResponseMessage.ResponseCode.OK : ResponseMessage.ResponseCode.ERROR);
-                s.onComplete();
-            } catch (RegistrarAPI.RegistrarException re) {
-                logger.w(TAG, "registrar exception: "+re.getMessage());
-                s.onError(re);
-            }
-        });
-
-    private RequestHandler registeractive = (req, res) -> {
-        try {
-            res.setCode(registrar.isRegistered(req.fields.get("sink")) ? ResponseMessage.ResponseCode.OK : ResponseMessage.ResponseCode.ERROR);
-            return Completable.complete();
-        } catch (RegistrarAPI.RegistrarException re) {
-            return Completable.error(re);
-        }
-    };
-
-    private RequestHandler registerpassive = (req, res) -> {
-        try {
-            res.setCode(registrar.isRegistered(req.fields.get("sink")) ? ResponseMessage.ResponseCode.OK : ResponseMessage.ResponseCode.ERROR);
-            return Completable.complete();
-        } catch (RegistrarAPI.RegistrarException re) {
-            return Completable.error(re);
-        }
-    };
-
+            Completable.create(s -> {
+                try {
+                    res.setCode(registrar.send(req.bundle) ? ResponseMessage.ResponseCode.OK : ResponseMessage.ResponseCode.ERROR);
+                    s.onComplete();
+                } catch (RegistrarAPI.RegistrarException re) {
+                    logger.w(TAG, "registrar exception: " + re.getMessage());
+                    s.onError(re);
+                }
+            });
 }

@@ -14,6 +14,11 @@ public interface LdcpAPI {
     int LDCP_VERSION = 1;
 
     class RegistrarException extends Exception {
+        public RegistrarException() {
+        }
+        public RegistrarException(String msg) {
+            super(msg);
+        }
     }
 
     class RegistrarDisabled extends RegistrarException {
@@ -126,7 +131,7 @@ public interface LdcpAPI {
      * @param cb the callback for the active registration
      * @return true if the registration was successfully activated, false otherwise.
      */
-    Single<Boolean> setActive(String sink, String cookie, ActiveLdcpRegistrationCallback cb) throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument;
+    Single<Boolean> reAttach(String sink, String cookie, ActiveLdcpRegistrationCallback cb) throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument;
 
     /**
      * Turn a registration passive. If the registration was already passive it does nothing,

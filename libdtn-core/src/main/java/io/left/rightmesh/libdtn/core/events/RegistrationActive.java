@@ -10,7 +10,7 @@ public class RegistrationActive implements DTNEvent {
     public String sink;
     public ActiveRegistrationCallback cb;
 
-    RegistrationActive(String sink, ActiveRegistrationCallback cb) {
+    public RegistrationActive(String sink, ActiveRegistrationCallback cb) {
         this.sink = sink;
         this.cb = cb;
     }

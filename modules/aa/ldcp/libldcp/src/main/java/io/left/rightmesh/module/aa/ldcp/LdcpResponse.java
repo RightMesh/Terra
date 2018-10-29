@@ -40,6 +40,11 @@ public class LdcpResponse {
         return this;
     }
 
+    public LdcpResponse setBody(String body) {
+        responseMessage.body = body;
+        return this;
+    }
+
     public void send(RxTCP.Connection con) {
         con.send(responseMessage.encode());
         con.closeJobsDone();

@@ -47,6 +47,7 @@ public class RequestMessage {
     public String path;
     public HashMap<String, String> fields = new HashMap<>();
     public Bundle bundle;
+    public String body = "";
 
     public RequestMessage(RequestCode code) {
         this.code = code;
@@ -66,6 +67,9 @@ public class RequestMessage {
             } else {
                 enc.cbor_encode_boolean(false);
             }
+
+            enc.cbor_encode_text_string(body);
+
             return enc.observe(1024);
         } catch (CBOR.CborEncodingUnknown ceu) {
             return Flowable.error(ceu);
@@ -106,6 +110,11 @@ public class RequestMessage {
                                     req.bundle = item.bundle;
                                 }));
                     }
-                });
+                })
+                .cbor_parse_text_string_full(
+                        (p, str) -> {
+                            RequestMessage req = p.getReg(0);
+                            req.body = str;
+                        });
     }
 }

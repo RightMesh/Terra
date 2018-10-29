@@ -14,6 +14,7 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.core.events.RegistrationActive;
 import io.left.rightmesh.libdtn.core.spi.aa.ActiveRegistrationCallback;
 import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
+import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
@@ -70,7 +71,6 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
     protected void componentDown() {
     }
 
-
     /* ---- helper method ---- */
 
     private void checkEnable() throws RegistrarDisabled {
@@ -83,6 +83,16 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
         if(obj == null) {
             throw new NullArgument();
         }
+    }
+
+    private Registration checkRegisteredSink(String sink) throws RegistrarDisabled, SinkNotRegistered, NullArgument {
+        checkEnable();
+        checkArgumentNotNull(sink);
+        Registration registration = registrations.get(sink);
+        if(registration == null) {
+            throw new SinkNotRegistered();
+        }
+        return registration;
     }
 
     private Registration checkRegisteredSink(String sink, String cookie) throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument {
@@ -98,8 +108,6 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
         }
         return registration;
     }
-
-
 
     /* ------  RegistrarAPI  ------- */
 
@@ -127,6 +135,7 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
         if (registrations.putIfAbsent(sink, registration) == null) {
             core.getLogger().i(TAG, "sink registered: "+sink+" (cookie="+registration.cookie+") - "
                     +(cb==passiveRegistration ? "passive" : "active"));
+            RxBus.post(new RegistrationActive(sink, registration.cb));
             return registration.cookie;
         }
 
@@ -168,7 +177,7 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
     }
 
     @Override
-    public Bundle get(String sink, String cookie, BundleID bundleID) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
+    public Bundle get(String sink, String cookie, String bundleID) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
         checkRegisteredSink(sink, cookie);
         checkArgumentNotNull(bundleID);
         // call storage service
@@ -176,7 +185,7 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
     }
 
     @Override
-    public Bundle fetch(String sink, String cookie, BundleID bundleID) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
+    public Bundle fetch(String sink, String cookie, String bundleID) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
         checkRegisteredSink(sink, cookie);
         checkArgumentNotNull(bundleID);
         return null;
@@ -194,6 +203,15 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
         Registration registration = checkRegisteredSink(sink, cookie);
         registration.cb = cb;
         core.getLogger().i(TAG, "registration active: "+sink);
+        RxBus.post(new RegistrationActive(sink, registration.cb));
+        return true;
+    }
+
+    @Override
+    public boolean setPassive(String sink) throws RegistrarDisabled, SinkNotRegistered, NullArgument {
+        Registration registration = checkRegisteredSink(sink);
+        registration.cb = passiveRegistration;
+        core.getLogger().i(TAG, "registration passive: "+sink);
         return true;
     }
 

@@ -39,8 +39,12 @@ public class LdcpServer {
                                             RequestMessage req = parser.getReg(0);
                                             ResponseMessage res = new ResponseMessage();
                                             action.handle(req, res).subscribe(
-                                                    () -> LdcpResponse.wrap(res).send(con),
-                                                    e -> LdcpResponse.ERROR().send(con)
+                                                    () -> LdcpResponse
+                                                            .wrap(res)
+                                                            .send(con),
+                                                    e -> LdcpResponse.ERROR()
+                                                            .setBody(e.getMessage())
+                                                            .send(con)
                                             );
                                         }
                                     }
