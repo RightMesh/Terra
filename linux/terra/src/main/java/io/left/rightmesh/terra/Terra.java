@@ -6,7 +6,6 @@ import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
-import io.reactivex.Completable;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -18,7 +17,6 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.LOG_L
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_AA_PATH;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_CLA_PATH;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_CORE_PATH;
-
 
 @Command(
         name = "terra", mixinStandardHelpOptions = true, version = "terra 1.0",

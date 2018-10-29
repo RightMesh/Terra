@@ -7,25 +7,38 @@ Delay Tolerant Networking is a network architecture providing communications in 
 * Ability to take advantage of scheduled, predicted, and opportunistic connectivity, whether bidirectional or unidirectional, in addition to continuous connectivity
 * Late binding of overlay network endpoint identifiers to underlying constituent network addresses
 
-The protocol used for DTN is called the **Bundle Protocol** (BP) and is soon-to-be an RFC standard from the IETF. A **Bundle** is a protocol data unit of BP, so named because negotiation of the parameters of a data exchange may be impractical in a delay-tolerant network: it is often better practice to "bundle" with a unit of data all metadata that might be needed in order to make the data immediately usable when delivered to applications.  The BP uses **Endpoint Identifier** (EID) to identify the destination or the source of a Bundle. An EID is an URI and so in essence is a string that can be arbitrarily long but must comply to the URI scheme. An EID is not necessarily unique across the entire network but each DTN node must register to at least one Singleton EID. 
+This library is still a work in progress - no stable version yet.
 
-The bundle protocol sits between a transport layer and the application layer.
+# Description
 
-* The Transport layer “transport” data from one node to another, that includes: TCP, UDP, HTTP but also USB (as in a sneakerNet), Mail (SMTP), etc. The interface between the bundle protocol and a specific underlying transport is termed as a "Convergence Layer Adapter" (CLA). A opens channels (CLAChannel) that can be used to send or receive bundles.
+Libraries:
+* libdtn-core is a modular and lightweight implementation of [bpbis-11](https://tools.ietf.org/html/draft-ietf-dtn-bpbis-11)
 
-* The application layer represents the layer that invoke the services of the BP for any purpose. It pushes down data that are then encapsulated into bundles and may also receive data. Application registers to a specific EID to receive Bundle. It usually is the current node EID + a path (for instance: dtn:this-dtn-node/an-application). That path is also called a “sink”.
-
-# Feature
-
-* libdtn-core is lightweight and bpbis compliant
-* modular architecture with plugins that can be loaded during runtime
-* libdtn-module-stcp (SimpleTCP) - convergence layer adapter module
+Modules:
+* libdtn-module-stcp (SimpleTCP) - convergence layer adapter module, implementation of [draft-stcp-00](https://www.ietf.org/internet-drafts/draft-burleigh-dtn-stcp-00.txt)
 * libdtn-module-ldcp (LibDtn Client Protocol) - application agent module to remote client
 * libdtn-module-http core module for querying the dtn-node
 
-* binaries:
-* Terra - a full dtn node
-* dtncat - netcat of dtn, it is light client that can register/recv/send bundles from a full dtn node using LDCP.
+binaries:
+* terra - a full dtn node application daemon
+* dtncat - netcat of dtn, it is light client that can register/recv/send bundles from a remote dtn node using LDCP.
+* dtnping - work in progress
+
+## License
+
+    Copyright 2018 RightMesh
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 
 
 
