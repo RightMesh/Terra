@@ -9,10 +9,8 @@ import java.util.concurrent.Callable;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
-import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
 import io.left.rightmesh.libdtn.common.data.blob.ByteBufferBLOB;
 import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
-import io.left.rightmesh.libdtn.common.data.eid.API;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.module.aa.ldcp.LdcpApplicationAgent;
 import io.reactivex.Completable;
@@ -75,8 +73,13 @@ public class DTNcat implements Callable<Void> {
                     }
                 })
         ).subscribe(
-                cookie -> System.err.println("sink registered. cookie: " + cookie),
-                e -> System.err.println("could not register to sink: " + sink + " error: " + e.getMessage()));
+                cookie -> {
+                    System.err.println("sink registered. cookie: " + cookie);
+                },
+                e -> {
+                    System.err.println("could not register to sink: " + sink + " error: " + e.getMessage());
+                    System.exit(1);
+                });
     }
 
     private void sendBundle() {
@@ -96,11 +99,16 @@ public class DTNcat implements Callable<Void> {
                     b -> {
                         if (b) {
                             System.err.println("bundle successfully sent to " + dtnhost + ":" + dtnport);
+                            System.exit(0);
                         } else {
                             System.err.println("bundle was refused by " + dtnhost + ":" + dtnport);
+                            System.exit(1);
                         }
                     },
-                    e -> System.out.println("error: " + e.getMessage()));
+                    e -> {
+                        System.err.println("error: " + e.getMessage());
+                        System.exit(1);
+                    });
         } catch (IOException | WritableBLOB.BLOBOverflowException | EID.EIDFormatException e) {
             /* ignore */
             System.err.println("error: "+e.getMessage());

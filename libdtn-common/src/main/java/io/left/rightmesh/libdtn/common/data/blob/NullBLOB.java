@@ -32,53 +32,11 @@ public class NullBLOB implements BLOB {
 
     @Override
     public ReadableBLOB getReadableBLOB() {
-        return new ReadableBLOB() {
-            @Override
-            public void read(OutputStream stream) throws IOException {
-            }
-
-            @Override
-            public void close() {
-            }
-        };
+        return new NullReadableBLOB();
     }
 
     @Override
     public WritableBLOB getWritableBLOB() {
-        return new WritableBLOB() {
-            @Override
-            public void clear() {
-            }
-
-            @Override
-            public int write(InputStream stream) {
-                return 0;
-            }
-
-            @Override
-            public int write(InputStream stream, int size) {
-                return 0;
-            }
-
-            @Override
-            public int write(byte b) {
-                return 0;
-            }
-
-            @Override
-            public int write(byte[] a) {
-                return 0;
-            }
-
-            @Override
-            public int write(ByteBuffer buffer) {
-                return 0;
-            }
-
-            @Override
-            public void close() {
-
-            }
-        };
+        return new NullWritableBLOB();
     }
 }

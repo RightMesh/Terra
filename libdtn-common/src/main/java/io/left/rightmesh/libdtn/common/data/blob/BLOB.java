@@ -17,13 +17,12 @@ public interface BLOB {
     long size();
 
     /**
-     * Return a cold Flowable, BackPressure-enabled, for the entire BaseBLOB. On subscription, it
+     * Return a cold Flowable, BackPressure-enabled, for the entire BLOB. On subscription, it
      * opens a ReadableBLOB and read it entirely.
      *
      * @return Flowable of ByteBuffer
      */
     Flowable<ByteBuffer> observe();
-
 
     /**
      * new {@see ReadableBLOB} from this BaseBLOB. The ReadableBLOB will lock the BaseBLOB for read-only
