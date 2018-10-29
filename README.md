@@ -19,13 +19,13 @@ The bundle protocol sits between a transport layer and the application layer.
 
 * libdtn-core is lightweight and bpbis compliant
 * modular architecture with plugins that can be loaded during runtime
-* * libdtn-module-stcp (SimpleTCP) - convergence layer adapter module
-* * libdtn-module-ldcp (LibDtn Client Protocol) - application agent module to remote client
-* * libdtn-module-http core module for querying the dtn-node
+* libdtn-module-stcp (SimpleTCP) - convergence layer adapter module
+* libdtn-module-ldcp (LibDtn Client Protocol) - application agent module to remote client
+* libdtn-module-http core module for querying the dtn-node
 
 * binaries:
-* * Terra - a full dtn node
-* * dtncat - netcat of dtn, it is light client that can register/recv/send bundles from a full dtn node using LDCP.
+* Terra - a full dtn node
+* dtncat - netcat of dtn, it is light client that can register/recv/send bundles from a full dtn node using LDCP.
 
 
 
