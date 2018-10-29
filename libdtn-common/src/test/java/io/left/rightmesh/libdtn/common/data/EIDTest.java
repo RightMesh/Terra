@@ -31,7 +31,7 @@ public class EIDTest {
         assertEquals(32, ipn.service_number);
 
         try {
-            EID eid = EID.create( "ipn:0.0");
+            EID eid = EID.create("ipn:0.0");
             assertEquals("ipn:0.0", eid.getEIDString());
         } catch (EID.EIDFormatException eid) {
             fail(eid.getMessage());
@@ -41,13 +41,13 @@ public class EIDTest {
     @Test
     public void testEIDDTN() {
         System.out.println("[+] eid: testing DTN Scheme");
-        EID dtn = new DTN("marsOrbital");
-        EID dtnping = new DTN("marsOrbital/pingservice");
-        assertEquals("dtn:marsOrbital", dtn.getEIDString());
-        assertEquals("dtn:marsOrbital/pingservice", dtnping.getEIDString());
-        assertTrue(dtnping.matches(dtn));
-
         try {
+            EID dtn = new DTN("marsOrbital");
+            EID dtnping = new DTN("marsOrbital/pingservice");
+            assertEquals("dtn:marsOrbital", dtn.getEIDString());
+            assertEquals("dtn:marsOrbital/pingservice", dtnping.getEIDString());
+            assertTrue(dtnping.matches(dtn));
+
             dtn = EID.create("dtn:marsOrbital");
             assertEquals("dtn:marsOrbital", dtn.getEIDString());
         } catch (EID.EIDFormatException efe) {
@@ -59,15 +59,15 @@ public class EIDTest {
     public void testEIDCLA() {
         System.out.println("[+] eid: testing CLA Scheme");
 
-        CLA cla = new CLASTCP("google.com", 4556, "/");
-        assertEquals("cla:stcp:google.com:4556/", cla.getEIDString());
-        assertEquals("stcp", cla.cl_name);
-        assertEquals("google.com:4556", cla.cl_specific);
-        assertEquals("/", cla.cl_sink);
-
         try {
-            EID eid = EID.create( "cla:stcp:google.com:4556");
-            EID path = EID.create( "cla:stcp:google.com:4556/pingservice");
+            CLA cla = new CLASTCP("google.com", 4556, "/");
+            assertEquals("cla:stcp:google.com:4556/", cla.getEIDString());
+            assertEquals("stcp", cla.cl_name);
+            assertEquals("google.com:4556", cla.cl_specific);
+            assertEquals("/", cla.cl_sink);
+
+            EID eid = EID.create("cla:stcp:google.com:4556");
+            EID path = EID.create("cla:stcp:google.com:4556/pingservice");
             assertEquals("cla:stcp:google.com:4556", eid.getEIDString());
             assertEquals("cla:stcp:google.com:4556/pingservice", path.getEIDString());
             assertTrue(path.matches(eid));

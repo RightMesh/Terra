@@ -39,24 +39,6 @@ public class Logger extends BaseComponent implements Log {
         RxBus.unregister(this);
     }
 
-    public enum LOGLevel {
-        VERBOSE("VERBOSE"),
-        DEBUG("DEBUG"),
-        INFO("INFO"),
-        WARN("WARN"),
-        ERROR("ERROR");
-
-        private String level;
-
-        LOGLevel(String level) {
-            this.level = level;
-        }
-
-        @Override
-        public String toString() {
-            return level;
-        }
-    }
     private static LOGLevel level;
 
     private void log(LOGLevel l, String tag, String msg) {

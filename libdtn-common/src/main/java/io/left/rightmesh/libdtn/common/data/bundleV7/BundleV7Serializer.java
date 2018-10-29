@@ -17,6 +17,7 @@ import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.PreviousNodeBlock;
 import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.common.data.ScopeControlHopLimitBlock;
+import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
 import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.common.data.eid.IPN;
@@ -158,19 +159,18 @@ public class BundleV7Serializer {
                     .cbor_encode_int(eid.IANA())
                     .cbor_encode_int(0);
         }
-        if (eid instanceof IPN) {
+        if (eid.IANA() == EID.EID_IPN_IANA_VALUE) {
             return CBOR.encoder()
                     .cbor_start_array(2)
                     .cbor_encode_int(eid.IANA())
                     .cbor_start_array(2)
                     .cbor_encode_int(((IPN) eid).node_number)
                     .cbor_encode_int(((IPN) eid).service_number);
-        } else {
-            return CBOR.encoder()
-                    .cbor_start_array(2)
-                    .cbor_encode_int(eid.IANA())
-                    .cbor_encode_text_string(eid.getSsp());
         }
+        return CBOR.encoder()
+                .cbor_start_array(2)
+                .cbor_encode_int(eid.IANA())
+                .cbor_encode_text_string(eid.getSsp());
     }
 
 

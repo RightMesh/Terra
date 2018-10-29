@@ -69,7 +69,7 @@ public class BundleProcessor implements BundleProcessorAPI {
 
         if (core.getConf().<Boolean>get(ENABLE_FORWARDING).value()) {
             /* 5.3 - step 2 */
-            core.getLogger().v(TAG, "step 2: " + bundle.bid.getBIDString());
+            core.getLogger().v(TAG, "5.3-2: " + bundle.bid.getBIDString());
             bundleForwarding(bundle);
         } else {
             bundle.tag("reason_code", NoKnownRouteForDestination);
@@ -246,7 +246,7 @@ public class BundleProcessor implements BundleProcessorAPI {
         core.getLogger().v(TAG, "5.7-2 " + bundle.bid.getBIDString());
         EID localMatch = core.getLocalEID().matchLocal(bundle.destination);
         if (localMatch != null) {
-            String sink = bundle.destination.getEIDString().replaceFirst(localMatch.toString(), "");
+            String sink = bundle.destination.getEIDString().replaceFirst(localMatch.getEIDString(), "");
             core.getDelivery().deliver(sink, bundle).subscribe(
                     () -> bundleLocalDeliverySuccessful(bundle),
                     deliveryFailure -> bundleLocalDeliveryFailure(sink, bundle));

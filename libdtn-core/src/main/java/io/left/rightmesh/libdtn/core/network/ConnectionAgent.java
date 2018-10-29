@@ -1,5 +1,6 @@
 package io.left.rightmesh.libdtn.core.network;
 
+import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.ConnectionAgentAPI;
@@ -48,7 +49,12 @@ public class ConnectionAgent extends BaseComponent implements ConnectionAgentAPI
             return Single.error(new Throwable("AutoConnect is disabled"));
         }
 
-        final CLASTCP eid = new CLASTCP(host, 4556, "/");
+        final CLASTCP eid;
+        try { //todo create safe constructor
+            eid = new CLASTCP(host, 4556, "/");
+        } catch(EID.EIDFormatException efe) {
+            return Single.error(efe);
+        }
         final String opp = "cla=" + eid.getCLAName() + " peer=" + eid.getCLASpecificPart();
         core.getLogger().d(TAG, "trying to create an opportunity with "+opp+" "+Thread.currentThread().getName());
         return core.getClaManager().openChannel(eid)

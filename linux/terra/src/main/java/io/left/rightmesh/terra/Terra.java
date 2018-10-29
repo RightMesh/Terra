@@ -2,6 +2,7 @@ package io.left.rightmesh.terra;
 
 import java.util.concurrent.Callable;
 
+import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
@@ -13,6 +14,7 @@ import picocli.CommandLine.Option;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_AA_MODULES;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_CLA_MODULES;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_CORE_MODULES;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.LOG_LEVEL;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_AA_PATH;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_CLA_PATH;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_CORE_PATH;
@@ -65,6 +67,9 @@ public class Terra implements Callable<Void> {
     @Option(names = {"-c", "--module-core-path"}, description = "set the path to the Core modules.")
     private String coreModuleDirectory;
 
+    @Option(names = {"-v", "--verbose"}, description = "set the log level to debug.")
+    private boolean verbose = false;
+
     @Override
     public Void call() throws Exception {
         DTNConfiguration conf = new DTNConfiguration();
@@ -75,15 +80,17 @@ public class Terra implements Callable<Void> {
         conf.get(ENABLE_CORE_MODULES).update(true);
         conf.get(MODULES_CORE_PATH).update(coreModuleDirectory);
 
+        if(verbose) {
+            conf.get(LOG_LEVEL).update(Log.LOGLevel.VERBOSE);
+        } else {
+            conf.get(LOG_LEVEL).update(Log.LOGLevel.INFO);
+        }
+
         conf.getModuleEnabled("stcp", true).update(true);
         conf.getModuleEnabled("http-daemon", true).update(true);
         conf.getModuleEnabled("ldcp", true).update(true);
 
         CoreAPI core = DTNCore.init(conf);
-        core.getRegistrar().register("/netflix/video/", (bundle) -> {
-                System.out.println("receive a Bundle");
-                return Completable.complete();
-            });
         return null;
     }
 

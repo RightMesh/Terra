@@ -1,12 +1,13 @@
 package io.left.rightmesh.module.aa.ldcp;
 
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
-import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
+import io.left.rightmesh.libdtn.common.data.blob.NullBLOB;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.DeliveryAPI;
 import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
 import io.left.rightmesh.libdtn.core.spi.aa.ApplicationAgentAdapterSPI;
+import io.left.rightmesh.module.aa.ldcp.messages.RequestMessage;
 import io.left.rightmesh.module.aa.ldcp.messages.ResponseMessage;
 import io.reactivex.Completable;
 
@@ -19,6 +20,12 @@ import static io.left.rightmesh.module.aa.ldcp.Configuration.LDCP_TCP_PORT_DEFAU
 public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
 
     private static final String TAG = "ldcp";
+
+    private static class RequestException extends Exception {
+        RequestException(String msg) {
+            super("Request: "+msg);
+        }
+    }
 
     RegistrarAPI registrar;
     Log logger;
@@ -37,7 +44,7 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
         this.registrar = api;
         this.logger = logger;
         logger.i(TAG, "starting a ldcp server on port " + port);
-        new LdcpServer().start(port, factory,
+        new LdcpServer().start(port, factory, logger,
                 Router.create()
                         .GET("/isregistered/", isregistered)
                         .POST("/register/", register)
@@ -49,12 +56,20 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
                         .POST("/register/passive", registerpassive));
     }
 
+    private String checkField(RequestMessage req, String key) throws RequestException {
+        if(!req.fields.containsKey(key)) {
+            throw new RequestException("missing field");
+        }
+        return req.fields.get(key);
+    }
+
     private RequestHandler isregistered = (req, res) ->
             Completable.create(s -> {
                 try {
-                    res.setCode(registrar.isRegistered(req.fields.get("sink")) ? ResponseMessage.ResponseCode.OK : ResponseMessage.ResponseCode.ERROR);
+                    String sink = checkField(req, "sink");
+                    res.setCode(registrar.isRegistered(sink) ? ResponseMessage.ResponseCode.OK : ResponseMessage.ResponseCode.ERROR);
                     s.onComplete();
-                } catch (RegistrarAPI.RegistrarException re) {
+                } catch (RegistrarAPI.RegistrarException | RequestException re) {
                     s.onError(re);
                 }
             });
@@ -62,15 +77,17 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
     private RequestHandler register = (req, res) ->
             Completable.create(s -> {
                 try {
-                    String sink = registrar.register(req.fields.get("sink"));
-                    boolean active = req.fields.get("active").equals("true");
+                    String sink = checkField(req, "sink");
+                    boolean active = checkField(req, "active").equals("true");
+
                     if (active) {
-                        String host = registrar.register(req.fields.get("active-host"));
-                        int port = Integer.valueOf(registrar.register(req.fields.get("active-port")));
+                        String host = checkField(req, "active-host");
+                        int port = Integer.valueOf(checkField(req, "active-port"));
+
                         String cookie = registrar.register(sink, (bundle) ->
                                 LdcpRequest.POST("/deliver/")
                                         .setBundle(bundle)
-                                        .send(host, port, new BaseBLOBFactory().disablePersistent().disableVolatile())
+                                        .send(host, port, NullBLOB::new, logger)
                                         .flatMapCompletable(d ->
                                                 d.code.equals(ResponseMessage.ResponseCode.ERROR)
                                                         ? Completable.error(new DeliveryAPI.DeliveryRefused())
@@ -84,7 +101,7 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
                         res.setHeader("cookie", cookie);
                         s.onComplete();
                     }
-                } catch (RegistrarAPI.RegistrarException re) {
+                } catch (RegistrarAPI.RegistrarException | RequestException re) {
                     s.onError(re);
                 }
             });
@@ -122,6 +139,7 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
                 res.setCode(registrar.send(req.bundle) ? ResponseMessage.ResponseCode.OK : ResponseMessage.ResponseCode.ERROR);
                 s.onComplete();
             } catch (RegistrarAPI.RegistrarException re) {
+                logger.w(TAG, "registrar exception: "+re.getMessage());
                 s.onError(re);
             }
         });

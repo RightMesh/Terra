@@ -1,6 +1,7 @@
 package io.left.rightmesh.libdtn.common.data;
 
 
+import io.left.rightmesh.libdtn.common.data.eid.API;
 import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 
@@ -114,7 +115,6 @@ public class PrimaryBlock extends Block {
     public EID destination;
     public EID source;
     public EID reportto;
-    public EID custodian;
     public long creationTimestamp;
     public long sequenceNumber;
     public long lifetime;
@@ -131,8 +131,7 @@ public class PrimaryBlock extends Block {
         this.procV7Flags = 0;
         this.crcType = CRCFieldType.NO_CRC;
         this.destination = DTN.NullEID();
-        this.source = DTN.NullEID();
-        this.custodian = DTN.NullEID();
+        this.source = API.me();
         this.reportto = DTN.NullEID();
         this.creationTimestamp = System.currentTimeMillis();
         this.sequenceNumber = sequence_counter++;
@@ -162,7 +161,6 @@ public class PrimaryBlock extends Block {
         this.source = other.source;
         this.destination = other.destination;
         this.reportto = other.reportto;
-        this.custodian = other.custodian;
         this.creationTimestamp = other.creationTimestamp;
         this.sequenceNumber = other.sequenceNumber;
         this.lifetime = other.lifetime;

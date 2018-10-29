@@ -23,12 +23,18 @@ public class TestBundle {
     public static String testPayload = "This is a test for bundle serialization";
 
     public static Bundle testBundle0() {
-        Bundle bundle = new Bundle();
-        bundle.destination = new IPN(5, 12);
-        bundle.source = new DTN("source");
-        bundle.reportto = DTN.NullEID();
-        bundle.bid = BundleID.create(bundle);
-        return bundle;
+        try {
+            Bundle bundle = new Bundle();
+            bundle.destination = new IPN(5, 12);
+            bundle.source = new DTN("source");
+            bundle.reportto = DTN.NullEID();
+            bundle.bid = BundleID.create(bundle);
+            return bundle;
+        } catch(EID.EIDFormatException ignore) {
+            // sould not happen
+            //todo: create a safe EID constructor by encoding URI
+            return null;
+        }
     }
 
     public static Bundle testBundle1() {
@@ -54,7 +60,7 @@ public class TestBundle {
         Bundle bundle = testBundle1();
         bundle.addBlock(new AgeBlock());
         bundle.addBlock(new ScopeControlHopLimitBlock());
-        bundle.addBlock(new PreviousNodeBlock(EID.generate()));
+        bundle.addBlock(new PreviousNodeBlock(DTN.generate()));
         return bundle;
     }
 
@@ -63,7 +69,7 @@ public class TestBundle {
         Bundle bundle = testBundle1();
         bundle.addBlock(new AgeBlock());
         bundle.addBlock(new ScopeControlHopLimitBlock());
-        bundle.addBlock(new PreviousNodeBlock(EID.generate()));
+        bundle.addBlock(new PreviousNodeBlock(DTN.generate()));
         bundle.crcType = PrimaryBlock.CRCFieldType.CRC_32;
         return bundle;
     }

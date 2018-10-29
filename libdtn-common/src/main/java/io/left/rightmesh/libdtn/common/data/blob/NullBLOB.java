@@ -14,6 +14,12 @@ import java.nio.ByteBuffer;
  */
 public class NullBLOB implements BLOB {
 
+    public NullBLOB() {
+    }
+    
+    public NullBLOB(int expectedSize) {
+    }
+
     @Override
     public Flowable<ByteBuffer> observe() {
         return Flowable.empty();

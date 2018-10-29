@@ -14,6 +14,8 @@ import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Serializer;
+import io.left.rightmesh.libdtn.common.data.eid.DTN;
+import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI;
@@ -73,7 +75,7 @@ public class STCP implements ConvergenceLayerSPI {
     @Override
     public Observable<CLAChannelSPI> start(ConfigurationAPI conf, Log logger) {
         this.logger = logger;
-        if(port == 0) {
+        if (port == 0) {
             port = conf.getModuleConf(this,
                     CLA_STCP_LISTENING_PORT, CLA_STCP_LISTENING_PORT_DEFAULT).value();
         }
@@ -123,8 +125,8 @@ public class STCP implements ConvergenceLayerSPI {
         public Channel(RxTCP.Connection tcpcon, boolean initiator) {
             this.tcpcon = tcpcon;
             this.initiator = initiator;
-            channelEID = new CLASTCP(tcpcon.getRemoteHost(), tcpcon.getRemotePort(), "");
-            localEID = new CLASTCP(tcpcon.getLocalHost(), tcpcon.getLocalPort(), "");
+            channelEID = CLASTCP.unsafe(tcpcon.getRemoteHost(), tcpcon.getRemotePort());
+            localEID = CLASTCP.unsafe(tcpcon.getLocalHost(), tcpcon.getLocalPort());
             logger.i(TAG, "new CLASTCP CLA channel openned (initiated=" + initiator + "): " + channelEID.getEIDString());
         }
 

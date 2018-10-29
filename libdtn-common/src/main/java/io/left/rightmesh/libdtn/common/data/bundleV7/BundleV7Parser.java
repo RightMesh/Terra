@@ -22,6 +22,9 @@ import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.common.data.ScopeControlHopLimitBlock;
 import io.left.rightmesh.libdtn.common.data.UnknownExtensionBlock;
 import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
+import io.left.rightmesh.libdtn.common.data.eid.API;
+import io.left.rightmesh.libdtn.common.data.eid.CLA;
+import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
 import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.common.data.eid.IPN;
@@ -29,12 +32,13 @@ import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.data.blob.ByteBufferBLOB;
 import io.left.rightmesh.libdtn.common.data.blob.NullBLOB;
 import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
+import io.left.rightmesh.libdtn.common.data.eid.UnkownEID;
 import io.left.rightmesh.libdtn.common.utils.Log;
 
 /**
  * @author Lucien Loiseau on 10/09/18.
  */
-public class BundleV7Parser  {
+public class BundleV7Parser {
 
     private static final String TAG = "BundleV7Parser";
 
@@ -106,7 +110,7 @@ public class BundleV7Parser  {
                     .do_for_each("crc-16", (__, buffer) -> crc16.read(buffer)) // feed CRC16 with every parsed buffer from this sequence
                     .do_for_each("crc-32", (__, buffer) -> crc32.read(buffer)) // feed CRC32 with every parsed buffer from this sequence
                     .cbor_open_array((__, ___, i) -> {
-                        logger.v(TAG, ". array size="+i);
+                        logger.v(TAG, ". array size=" + i);
                         if ((i < 8) || (i > 11)) {
                             throw new RxParserException("wrong number of element in primary block");
                         } else {
@@ -114,15 +118,15 @@ public class BundleV7Parser  {
                         }
                     })
                     .cbor_parse_int((__, ___, i) -> {
-                        logger.v(TAG, ". version="+i);
+                        logger.v(TAG, ". version=" + i);
                         b.version = (int) i;
                     })
                     .cbor_parse_int((__, ___, i) -> {
-                        logger.v(TAG, ". flags="+i);
+                        logger.v(TAG, ". flags=" + i);
                         b.procV7Flags = i;
                     })
                     .cbor_parse_int((p, ___, i) -> {
-                        logger.v(TAG, ". crc="+i);
+                        logger.v(TAG, ". crc=" + i);
                         switch ((int) i) {
                             case 0:
                                 b.crcType = PrimaryBlock.CRCFieldType.NO_CRC;
@@ -144,34 +148,34 @@ public class BundleV7Parser  {
                         }
                     })
                     .cbor_parse_custom_item(EIDItem::new, (__, ___, item) -> {
-                        logger.v(TAG, ". destination="+item.eid.getEIDString());
+                        logger.v(TAG, ". destination=" + item.eid.getEIDString());
                         b.destination = item.eid;
                     })
                     .cbor_parse_custom_item(EIDItem::new, (__, ___, item) -> {
-                        logger.v(TAG, ". source="+item.eid.getEIDString());
+                        logger.v(TAG, ". source=" + item.eid.getEIDString());
                         b.source = item.eid;
                     })
                     .cbor_parse_custom_item(EIDItem::new, (__, ___, item) -> {
-                        logger.v(TAG, ". reportto="+item.eid.getEIDString());
+                        logger.v(TAG, ". reportto=" + item.eid.getEIDString());
                         b.reportto = item.eid;
                     })
                     .cbor_open_array(2)
                     .cbor_parse_int((__, ___, i) -> {
-                        logger.v(TAG, ". creationTimestamp="+i);
+                        logger.v(TAG, ". creationTimestamp=" + i);
                         b.creationTimestamp = i;
                     })
                     .cbor_parse_int((__, ___, i) -> {
-                        logger.v(TAG, ". sequenceNumber="+i);
+                        logger.v(TAG, ". sequenceNumber=" + i);
                         b.sequenceNumber = i;
                         b.bid = BundleID.create(b.source, b.creationTimestamp, b.sequenceNumber);
                     })
                     .cbor_parse_int((__, ___, i) -> {
-                        logger.v(TAG, ". lifetime="+i);
+                        logger.v(TAG, ". lifetime=" + i);
                         b.lifetime = i;
                     })
                     .do_here(p -> p.insert_now(close_crc)) // validate close_crc
                     .do_here(__ -> {
-                        logger.v(TAG, ". crc_check="+this.crc_ok);
+                        logger.v(TAG, ". crc_check=" + this.crc_ok);
                         b.tag("crc_check", this.crc_ok);
                     }); // tag the block
         }
@@ -202,13 +206,13 @@ public class BundleV7Parser  {
                     .do_for_each("crc-16", (__, buffer) -> crc16.read(buffer))
                     .do_for_each("crc-32", (__, buffer) -> crc32.read(buffer))
                     .cbor_open_array((__, ___, i) -> {
-                        logger.v(TAG, ". array size="+i);
+                        logger.v(TAG, ". array size=" + i);
                         if ((i != 5) && (i != 6)) {
                             throw new RxParserException("wrong number of element in canonical block");
                         }
                     })
                     .cbor_parse_int((p, __, i) -> { // block type
-                        logger.v(TAG, ". type="+i);
+                        logger.v(TAG, ". type=" + i);
                         switch ((int) i) {
                             case PayloadBlock.type:
                                 block = new PayloadBlock();
@@ -245,15 +249,15 @@ public class BundleV7Parser  {
                         }
                     })
                     .cbor_parse_int((__, ___, i) -> {
-                        logger.v(TAG, ". number="+i);
+                        logger.v(TAG, ". number=" + i);
                         block.number = (int) i;
                     })
                     .cbor_parse_int((__, ___, i) -> {
-                        logger.v(TAG, ". procV7flags="+i);
+                        logger.v(TAG, ". procV7flags=" + i);
                         block.procV7flags = i;
                     })
                     .cbor_parse_int((p, ___, i) -> {
-                        logger.v(TAG, ". crc="+i);
+                        logger.v(TAG, ". crc=" + i);
                         switch ((int) i) {
                             case 0:
                                 block.crcType = BlockHeader.CRCFieldType.NO_CRC;
@@ -277,7 +281,7 @@ public class BundleV7Parser  {
                     .do_here(p -> p.insert_now(payload))
                     .do_here(p -> p.insert_now(close_crc))  // validate close_crc
                     .do_here(__ -> {
-                        logger.v(TAG, ". crc_check="+this.crc_ok);
+                        logger.v(TAG, ". crc_check=" + this.crc_ok);
                         block.tag("crc_check", this.crc_ok);
                     }); // tag the block
         }
@@ -375,16 +379,29 @@ public class BundleV7Parser  {
     public class EIDItem implements CborParser.ParseableItem {
 
         public EID eid;
+        public int unknown_iana_number;
 
         @Override
         public CborParser getItemParser() {
             return CBOR.parser()
                     .cbor_open_array(2)
                     .cbor_parse_int((p, __, i) -> {
-                        if (i == EID.EID_IPN_IANA_VALUE) { // IPN
-                            p.insert_now(parseIPN);
-                        } else { // DTN or UNKNOWN
-                            p.insert_now(parseDTN);
+                        logger.v(TAG, ".. iana_value=" + i);
+                        switch ((int) i) {
+                            case EID.EID_IPN_IANA_VALUE:
+                                p.insert_now(parseIPN);
+                                break;
+                            case EID.EID_DTN_IANA_VALUE:
+                                p.insert_now(parseDTN);
+                                break;
+                            case EID.EID_CLA_IANA_VALUE:
+                                p.insert_now(parseCLA);
+                                break;
+                            case EID.EID_API_ME:
+                                p.insert_now(parseAPI);
+                                break;
+                            default:
+                                p.insert_now(parseUNK);
                         }
                     });
         }
@@ -406,7 +423,60 @@ public class BundleV7Parser  {
                                     }
                                 },
                                 (__, str) -> {
-                                    eid = new DTN(str);
+                                    logger.v(TAG, ".. dtn_ssp=" + str);
+                                    try {
+                                        eid = new DTN(str);
+                                    } catch (EID.EIDFormatException efe) {
+                                        throw new RxParserException("DTN is not an URI: " + efe);
+                                    }
                                 }));
+
+        CborParser parseCLA = CBOR.parser()
+                .cbor_parse_text_string_full(
+                        (__, ___, size) -> {
+                            if (size > 1024) {
+                                throw new RxParserException("EID size should not exceed 1024");
+                            }
+                        },
+                        (__, str) -> {
+                            try {
+                                logger.v(TAG, ".. cla_ssp=" + str);
+                                eid = CLA.create(str);
+                            } catch (EID.EIDFormatException efe) {
+                                throw new RxParserException("not a CLA EID: " + efe.getMessage());
+                            }
+                        });
+
+        CborParser parseAPI = CBOR.parser()
+                .cbor_parse_text_string_full(
+                        (__, ___, size) -> {
+                            if (size > 1024) {
+                                throw new RxParserException("EID size should not exceed 1024");
+                            }
+                        },
+                        (__, str) -> {
+                            logger.v(TAG, ".. api_ssp=" + str);
+                            try {
+                                eid = new API(str);
+                            } catch(EID.EIDFormatException efe) {
+                                throw new RxParserException("API eid format exception: "+efe.getMessage());
+                            }
+                        });
+
+        CborParser parseUNK = CBOR.parser()
+                .cbor_parse_text_string_full(
+                        (__, ___, size) -> {
+                            if (size > 1024) {
+                                throw new RxParserException("EID size should not exceed 1024");
+                            }
+                        },
+                        (__, str) -> {
+                            try {
+                                logger.v(TAG, ".. unk_ssp=" + str);
+                                eid = new UnkownEID(unknown_iana_number, "unk", str);
+                            } catch (EID.EIDFormatException efe) {
+                                throw new RxParserException("unknown EID: " + efe.getMessage());
+                            }
+                        });
     }
 }

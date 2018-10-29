@@ -24,6 +24,7 @@ public interface EID {
     int EID_IPN_IANA_VALUE = 2;
     int EID_CLA_IANA_VALUE = 3;        // not actually an IANA value
     int EID_CLA_STCP_IANA_VALUE = 50;  // not actually an IANA value
+    int EID_API_ME = 251;  // not actually an IANA value
     int EID_CLA_UNK_IANA_VALUE = 252;  // not actually an IANA value
     int EID_UNK_IANA_VALUE = 253;      // not actually an IANA value
 
@@ -32,6 +33,7 @@ public interface EID {
         IPN(EID_IPN_IANA_VALUE),
         CLA(EID_CLA_IANA_VALUE),
         CLASTCP(EID_CLA_STCP_IANA_VALUE),
+        APIME(EID_API_ME),
         CLAUNK(EID_CLA_IANA_VALUE),
         UNKNOWN(EID_UNK_IANA_VALUE);
 
@@ -40,11 +42,6 @@ public interface EID {
         EIDScheme(int value) {
             this.iana_value = value;
         }
-    }
-
-    static DTN generate() {
-        final String uuid = UUID.randomUUID().toString().replace("-", "");
-        return new DTN(uuid);
     }
 
     static EID create(String str) throws EIDFormatException {
@@ -64,6 +61,9 @@ public interface EID {
             ssp = slashedAuthority + path + undef + query + related;
         } else {
             throw new EIDFormatException("not a URI");
+        }
+        if (scheme.equals("api")) {
+            return new API(ssp);
         }
         if (scheme.equals("dtn")) {
             return DTN.create(ssp);

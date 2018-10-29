@@ -1,6 +1,8 @@
 package io.left.rightmesh.libdtn.core;
 
+import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.spi.ModuleSPI;
 import io.left.rightmesh.libdtn.core.utils.Logger;
@@ -141,7 +143,7 @@ public class DTNConfiguration implements ConfigurationAPI {
 
     public DTNConfiguration() {
         // default configuration
-        this.createCoreEntry(CoreEntry.LOCAL_EID, EID.generate());
+        this.createCoreEntry(CoreEntry.LOCAL_EID, DTN.generate());
         this.<EID>createCoreEntrySet(CoreEntry.ALIASES);
         this.createCoreEntry(CoreEntry.MAX_LIFETIME, (long) 0);
         this.createCoreEntry(CoreEntry.MAX_TIMESTAMP_FUTURE, (long) 0);
@@ -173,7 +175,7 @@ public class DTNConfiguration implements ConfigurationAPI {
         this.<String>createCoreEntrySet(CoreEntry.SIMPLE_STORAGE_PATH);
         this.createCoreEntry(CoreEntry.LIMIT_BLOCKSIZE, (long) 1000000000);
         this.createCoreEntry(CoreEntry.COMPONENT_ENABLE_LOGGING, true);
-        this.<Logger.LOGLevel>createCoreEntry(CoreEntry.LOG_LEVEL, Logger.LOGLevel.VERBOSE);
+        this.createCoreEntry(CoreEntry.LOG_LEVEL, Log.LOGLevel.VERBOSE);
         this.createCoreEntry(CoreEntry.ENABLE_LOG_FILE, false);
         this.createCoreEntry(CoreEntry.LOG_FILE_PATH, "");
     }

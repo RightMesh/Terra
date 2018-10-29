@@ -38,7 +38,7 @@ public class BundleV7Test {
     public static Bundle testBundle0() {
         Bundle bundle = new Bundle();
         bundle.destination = new IPN(5, 12);
-        bundle.source = new DTN("source");
+        bundle.source = DTN.unsafe("source");
         bundle.reportto = DTN.NullEID();
         bundle.bid = BundleID.create(bundle);
         return bundle;
@@ -67,7 +67,7 @@ public class BundleV7Test {
         Bundle bundle = testBundle1();
         bundle.addBlock(new AgeBlock());
         bundle.addBlock(new ScopeControlHopLimitBlock());
-        bundle.addBlock(new PreviousNodeBlock(EID.generate()));
+        bundle.addBlock(new PreviousNodeBlock(DTN.generate()));
         return bundle;
     }
 
@@ -76,7 +76,7 @@ public class BundleV7Test {
         Bundle bundle = testBundle1();
         bundle.addBlock(new AgeBlock());
         bundle.addBlock(new ScopeControlHopLimitBlock());
-        bundle.addBlock(new PreviousNodeBlock(EID.generate()));
+        bundle.addBlock(new PreviousNodeBlock(DTN.generate()));
         bundle.crcType = PrimaryBlock.CRCFieldType.CRC_32;
         return bundle;
     }
@@ -115,7 +115,7 @@ public class BundleV7Test {
                 testBundle6()
         };
 
-        for(Bundle bundle : bundles) {
+        for (Bundle bundle : bundles) {
             Bundle[] res = {null};
 
             // prepare serializer
@@ -145,13 +145,12 @@ public class BundleV7Test {
     }
 
 
-
     public static void checkBundlePayload(Bundle bundle) {
         // assert
         assertEquals(true, bundle != null);
         String[] payload = {null};
         if (bundle != null) {
-            for(CanonicalBlock block : bundle.getBlocks()) {
+            for (CanonicalBlock block : bundle.getBlocks()) {
                 assertEquals(true, block.isTagged("crc_check"));
                 assertEquals(true, block.<Boolean>getTagAttachment("crc_check"));
             }

@@ -4,14 +4,18 @@ package io.left.rightmesh.libdtn.common.data.eid;
  * @author Lucien Loiseau on 17/10/18.
  */
 public class UnkownEID extends BaseEID {
-    int iana;
-    String scheme;
-    String ssp;
 
-    public UnkownEID(int iana_value, String scheme, String ssp) {
+    private int iana;
+    private String scheme;
+    private String ssp;
+
+    public UnkownEID(int iana_value, String scheme, String ssp) throws EIDFormatException {
         this.iana = iana_value;
         this.scheme = scheme;
         this.ssp = ssp;
+        if(!EID.isValidEID(this.getEIDString())) {
+            throw new EIDFormatException("not an URI");
+        }
     }
 
     @Override

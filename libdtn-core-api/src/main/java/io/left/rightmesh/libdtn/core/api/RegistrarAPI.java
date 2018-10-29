@@ -48,7 +48,7 @@ public interface RegistrarAPI {
      * to pull data passively.
      *
      * @param sink to register
-     * @return a RegistrationHandler if registered, nu
+     * @return a cookir for this registration upon success, null otherwise
      */
     String register(String sink) throws RegistrarDisabled, SinkAlreadyRegistered, NullArgument;
 

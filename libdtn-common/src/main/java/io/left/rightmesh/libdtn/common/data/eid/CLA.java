@@ -14,10 +14,18 @@ public abstract class CLA extends BaseEID {
     public String cl_specific;
     public String cl_sink;
 
-    CLA(String cl_name, String cl_specific, String sink) {
+    // should only be called by safe constructor, no validity check
+    protected CLA(String cl_name, String cl_specific) {
+        this.cl_name = cl_name;
+        this.cl_specific = cl_specific;
+        this.cl_sink = "";
+    }
+
+    CLA(String cl_name, String cl_specific, String sink) throws EIDFormatException {
         this.cl_name = cl_name;
         this.cl_specific = cl_specific;
         this.cl_sink = sink;
+        checkValidity();
     }
 
     public static CLA create(String ssp) throws EIDFormatException {
@@ -75,7 +83,7 @@ public abstract class CLA extends BaseEID {
 
     static class Unknown extends CLA {
 
-        public Unknown(String cl_name, String cl_specific, String sink) {
+        public Unknown(String cl_name, String cl_specific, String sink) throws EIDFormatException {
             super(cl_name, cl_specific, sink);
         }
 

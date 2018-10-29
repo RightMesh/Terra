@@ -9,4 +9,9 @@ public abstract class BaseEID implements EID {
         return getScheme() + ":" + getSsp();
     }
 
+    public void checkValidity() throws EIDFormatException {
+        if(!EID.isValidEID(this.getEIDString())) {
+            throw new EIDFormatException("not an URI");
+        }
+    }
 }

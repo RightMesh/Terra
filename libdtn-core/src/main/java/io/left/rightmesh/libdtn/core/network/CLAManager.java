@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
+import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.events.ChannelClosed;
 import io.left.rightmesh.libdtn.core.events.ChannelOpened;
@@ -47,10 +48,15 @@ public class CLAManager {
                             }
                     );
                 },
-                e -> core.getLogger().w(TAG, "can't start CLA " + cla.getModuleName() + ": " + e.getMessage()),
-                () -> core.getLogger().w(TAG, "CLA " + cla.getModuleName() + " has stopped"));
+                e -> {
+                    core.getLogger().w(TAG, "can't start CLA " + cla.getModuleName() + ": " + e.getMessage());
+                    clas.remove(cla);
+                },
+                () -> {
+                    core.getLogger().w(TAG, "CLA " + cla.getModuleName() + " has stopped");
+                    clas.remove(cla);
+                });
     }
-
 
     public Single<CLAChannelSPI> openChannel(CLA peer) {
         for (ConvergenceLayerSPI cla : clas) {

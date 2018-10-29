@@ -11,6 +11,7 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Parser;
 import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Serializer;
+import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
 import io.reactivex.Flowable;
 
@@ -87,7 +88,7 @@ public class ResponseMessage {
         }
     }
 
-    public static CborParser getParser(BLOBFactory factory) {
+    public static CborParser getParser(Log logger, BLOBFactory factory) {
         return CBOR.parser()
                 .cbor_parse_int((__, ___, i) -> { /* version */
                 })
@@ -111,7 +112,7 @@ public class ResponseMessage {
                 .cbor_parse_boolean((p1, b) -> {
                     if (b) {
                         p1.insert_now(CBOR.parser().cbor_parse_custom_item(
-                                () -> new BundleV7Parser(new NullLogger(), factory).createBundleItem(),
+                                () -> new BundleV7Parser(logger, factory).createBundleItem(),
                                 (p2, ___, item) -> {
                                     RequestMessage req = p2.getReg(0);
                                     req.bundle = item.bundle;

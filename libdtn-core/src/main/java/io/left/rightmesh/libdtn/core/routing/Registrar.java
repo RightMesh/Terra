@@ -125,6 +125,8 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
 
         Registration registration = new Registration(sink, cb);
         if (registrations.putIfAbsent(sink, registration) == null) {
+            core.getLogger().i(TAG, "sink registered: "+sink+" (cookie="+registration.cookie+") - "
+                    +(cb==passiveRegistration ? "passive" : "active"));
             return registration.cookie;
         }
 
@@ -137,6 +139,7 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
         if(registrations.remove(sink) == null) {
             throw new SinkNotRegistered();
         }
+        core.getLogger().i(TAG, "sink unregistered: "+sink);
         return true;
     }
 
@@ -190,6 +193,7 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
         checkArgumentNotNull(cb);
         Registration registration = checkRegisteredSink(sink, cookie);
         registration.cb = cb;
+        core.getLogger().i(TAG, "registration active: "+sink);
         return true;
     }
 
@@ -197,6 +201,7 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
     public boolean setPassive(String sink, String cookie) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
         Registration registration = checkRegisteredSink(sink, cookie);
         registration.cb = passiveRegistration;
+        core.getLogger().i(TAG, "registration passive: "+sink);
         return true;
     }
 
