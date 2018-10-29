@@ -2,12 +2,8 @@ package io.left.rightmesh.dtncat;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.concurrent.Callable;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
@@ -16,9 +12,7 @@ import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
 import io.left.rightmesh.libdtn.common.data.blob.ByteBufferBLOB;
 import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
-import io.left.rightmesh.module.aa.ldcp.ActiveLdcpRegistrationCallback;
 import io.left.rightmesh.module.aa.ldcp.LdcpApplicationAgent;
-import io.left.rightmesh.module.aa.ldcp.LdcpRequest;
 import io.reactivex.Completable;
 import picocli.CommandLine;
 
@@ -51,18 +45,14 @@ public class DTNcat implements Callable<Void> {
 
     private LdcpApplicationAgent agent;
 
-    private Bundle createBundleFromSTDIN() {
+    private Bundle createBundleFromSTDIN() throws IOException, WritableBLOB.BLOBOverflowException {
         Bundle bundle = new Bundle();
-        try {
-            BLOB blob = new ByteBufferBLOB(20000);
-            WritableBLOB wb = blob.getWritableBLOB();
-            InputStream isr = new BufferedInputStream(System.in);
-            wb.write(isr);
-            wb.close();
-            bundle.addBlock(new PayloadBlock(blob));
-        } catch (IOException | WritableBLOB.BLOBOverflowException e) {
-            /* ignore */
-        }
+        BLOB blob = new ByteBufferBLOB(20000);
+        WritableBLOB wb = blob.getWritableBLOB();
+        InputStream isr = new BufferedInputStream(System.in);
+        wb.write(isr);
+        wb.close();
+        bundle.addBlock(new PayloadBlock(blob));
         return bundle;
     }
 
@@ -80,23 +70,24 @@ public class DTNcat implements Callable<Void> {
                         }
                     })
             ).subscribe(
-                    cookie -> {
-                        System.err.println("sink registered. cookie: " + cookie);
-                    },
-                    e -> {
-                        System.err.println("could not register to sink: " + sink + " error: " + e.getMessage());
-                    });
+                    cookie -> System.err.println("sink registered. cookie: " + cookie),
+                    e -> System.err.println("could not register to sink: " + sink + " error: " + e.getMessage()));
         } else {
             agent = new LdcpApplicationAgent(dtnhost, dtnport, null);
-            agent.send(createBundleFromSTDIN()).subscribe(
-                    b -> {
-                        if (b) {
-                            System.out.println("bundle successfully sent to " + dtnhost + ":" + dtnport);
-                        } else {
-                            System.out.println("bundle was refused by " + dtnhost + ":" + dtnport);
-                        }
-                    },
-                    e -> System.out.println("error: " + e.getMessage()));
+            try {
+                agent.send(createBundleFromSTDIN()).subscribe(
+                        b -> {
+                            if (b) {
+                                System.err.println("bundle successfully sent to " + dtnhost + ":" + dtnport);
+                            } else {
+                                System.err.println("bundle was refused by " + dtnhost + ":" + dtnport);
+                            }
+                        },
+                        e -> System.out.println("error: " + e.getMessage()));
+            } catch (IOException | WritableBLOB.BLOBOverflowException e) {
+                /* ignore */
+                System.err.println("error: "+e.getMessage());
+            }
         }
         return null;
     }

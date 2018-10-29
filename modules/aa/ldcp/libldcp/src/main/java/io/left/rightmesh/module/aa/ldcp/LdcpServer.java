@@ -27,18 +27,18 @@ public class LdcpServer {
                             buf -> {
                                 try {
                                     while (buf.hasRemaining() && !parser.isDone()) {
-                                        parser.read(buf);
+                                        if(parser.read(buf)) {
+                                            RequestMessage req = parser.getReg(0);
+                                            ResponseMessage res = new ResponseMessage();
+                                            action.handle(req, res).subscribe(
+                                                    () -> LdcpResponse.wrap(res).send(con),
+                                                    e -> LdcpResponse.ERROR().send(con)
+                                            );
+                                        }
                                     }
-                                    RequestMessage req = parser.getReg(0);
-                                    ResponseMessage res = new ResponseMessage();
-                                    action.handle(req, res).subscribe(
-                                            () -> con.send(res.encode()),
-                                            e -> con.send(new ResponseMessage(ResponseMessage.ResponseCode.ERROR).encode())
-                                    );
                                 } catch (RxParserException rpe) {
                                     con.closeNow();
                                 }
-                                con.closeJobsDone();
                             },
                             e -> con.closeNow(),
                             con::closeNow
