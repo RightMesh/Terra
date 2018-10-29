@@ -37,7 +37,7 @@ public class LocalEIDTable implements LocalEIDAPI {
     /**
      * check if an EID is local or foreign.
      *
-     * @param eid
+     * @param eid to check
      * @return true if EID match a local EID or an alias, false otherwise
      */
     public boolean isLocal(EID eid) {

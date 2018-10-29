@@ -40,6 +40,8 @@ public interface RegistrarAPI {
      *
      * @param sink identifying this AA
      * @return true if the AA is registered, false otherwise
+     * @throws RegistrarDisabled if the registrar is disabled
+     * @throws NullArgument if one of the argument is null
      */
     boolean isRegistered(String sink) throws RegistrarDisabled, NullArgument;
 
@@ -49,6 +51,9 @@ public interface RegistrarAPI {
      *
      * @param sink to register
      * @return a cookir for this registration upon success, null otherwise
+     * @throws RegistrarDisabled if the registrar is disabled
+     * @throws SinkAlreadyRegistered if the sink is already registered
+     * @throws NullArgument if one of the argument is null
      */
     String register(String sink) throws RegistrarDisabled, SinkAlreadyRegistered, NullArgument;
 
@@ -58,6 +63,9 @@ public interface RegistrarAPI {
      * @param sink to register
      * @param cb callback to receive data for this registration
      * @return a cookie for this registration upon success, null otherwise.
+     * @throws RegistrarDisabled if the registrar is disabled
+     * @throws SinkAlreadyRegistered if the sink is already registered
+     * @throws NullArgument if one of the argument is null
      */
     String register(String sink, ActiveRegistrationCallback cb) throws RegistrarDisabled, SinkAlreadyRegistered, NullArgument;
 
@@ -68,6 +76,10 @@ public interface RegistrarAPI {
      * @param sink identifying the AA to be unregistered
      * @param cookie cookie for this registration
      * @return true if the AA was unregister, false otherwise
+     * @throws RegistrarDisabled if the registrar is disabled
+     * @throws SinkNotRegistered if the sink to unregister is not register
+     * @throws BadCookie if the cookie provided does not match registration cookie
+     * @throws NullArgument if one of the argument is null
      */
     boolean unregister(String sink, String cookie) throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument;
 
@@ -78,6 +90,10 @@ public interface RegistrarAPI {
      * @param cookie cookie for this registration
      * @param bundle to send
      * @return true if the bundle is queued, false otherwise
+     * @throws RegistrarDisabled if the registrar is disabled
+     * @throws SinkNotRegistered if the sink is not register
+     * @throws BadCookie if the cookie provided does not match registration cookie
+     * @throws NullArgument if one of the argument is null
      */
     boolean send(String sink, String cookie, Bundle bundle) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument;
 
@@ -86,6 +102,8 @@ public interface RegistrarAPI {
      *
      * @param bundle to send
      * @return true if the bundle is queued, false otherwise
+     * @throws RegistrarDisabled if the registrar is disabled
+     * @throws NullArgument if one of the argument is null
      */
     boolean send(Bundle bundle)  throws RegistrarDisabled, NullArgument;
 
@@ -96,6 +114,10 @@ public interface RegistrarAPI {
      * @param sink to check
      * @param cookie that was returned upon registration.
      * @return a list with all the bundle ids.
+     * @throws RegistrarDisabled if the registrar is disabled
+     * @throws SinkNotRegistered if the sink is not register
+     * @throws BadCookie if the cookie provided does not match registration cookie
+     * @throws NullArgument if one of the argument is null
      */
     Set<BundleID> checkInbox(String sink, String cookie) throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument;
 
@@ -104,7 +126,13 @@ public interface RegistrarAPI {
      *
      * @param sink to check
      * @param cookie that was returned upon registration.
+     * @param bundleID id of the bundle to retrieve
      * @return number of data waiting to be retrieved
+     * @throws RegistrarDisabled if the registrar is disabled
+     * @throws SinkNotRegistered if the sink is not register
+     * @throws BadCookie if the cookie provided does not match registration cookie
+     * @throws BundleNotFound if the bundle was not found
+     * @throws NullArgument if one of the argument is null
      */
     Bundle get(String sink, String cookie, BundleID bundleID) throws RegistrarDisabled, SinkNotRegistered, BadCookie, BundleNotFound, NullArgument;
 
@@ -113,7 +141,13 @@ public interface RegistrarAPI {
      *
      * @param sink to check
      * @param cookie that was returned upon registration.
+     * @param bundleID id of the bundle to retrieve
      * @return number of data waiting to be retrieved
+     * @throws RegistrarDisabled if the registrar is disabled
+     * @throws SinkNotRegistered if the sink is not register
+     * @throws BadCookie if the cookie provided does not match registration cookie
+     * @throws BundleNotFound if the bundle was not found
+     * @throws NullArgument if one of the argument is null
      */
     Bundle fetch(String sink, String cookie, BundleID bundleID) throws RegistrarDisabled, SinkNotRegistered, BadCookie, BundleNotFound, NullArgument;
 
@@ -123,6 +157,10 @@ public interface RegistrarAPI {
      * @param sink to check
      * @param cookie that was returned upon registration.
      * @return Flowable of BLOB
+     * @throws RegistrarDisabled if the registrar is disabled
+     * @throws SinkNotRegistered if the sink is not register
+     * @throws BadCookie if the cookie provided does not match registration cookie
+     * @throws NullArgument if one of the argument is null
      */
     Flowable<Bundle> fetch(String sink, String cookie) throws RegistrarDisabled, SinkNotRegistered, BadCookie,NullArgument;
 
@@ -135,6 +173,10 @@ public interface RegistrarAPI {
      * @param cookie of the registration
      * @param cb the callback for the active registration
      * @return true if the registration was successfully activated, false otherwise.
+     * @throws RegistrarDisabled if the registrar is disabled
+     * @throws SinkNotRegistered if the sink is not register
+     * @throws BadCookie if the cookie provided does not match registration cookie
+     * @throws NullArgument if one of the argument is null
      */
     boolean setActive(String sink, String cookie, ActiveRegistrationCallback cb) throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument;
 
@@ -145,6 +187,10 @@ public interface RegistrarAPI {
      * @param sink to the registration
      * @param cookie of the registration
      * @return true if the registration was successfully activated, false otherwise.
+     * @throws RegistrarDisabled if the registrar is disabled
+     * @throws SinkNotRegistered if the sink is not register
+     * @throws BadCookie if the cookie provided does not match registration cookie
+     * @throws NullArgument if one of the argument is null
      */
     boolean setPassive(String sink, String cookie) throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument;
 

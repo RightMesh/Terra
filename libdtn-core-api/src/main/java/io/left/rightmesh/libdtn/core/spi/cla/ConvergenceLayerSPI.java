@@ -18,6 +18,8 @@ public interface ConvergenceLayerSPI  extends ModuleSPI {
      * When a CLA is started it should return an Observable of CLAChannelSPI used to actually send
      * and receive bundles.
      *
+     * @param api configuration
+     * @param logger logger instance
      * @return Flowable of Bundle
      */
     Observable<CLAChannelSPI> start(ConfigurationAPI api, Log logger);

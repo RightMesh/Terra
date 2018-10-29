@@ -1,9 +1,7 @@
 package io.left.rightmesh.libdtn.core.utils;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
@@ -94,14 +92,6 @@ public class ReflectionUtil {
         return rVal;
     }
 
-    /**
-     * Load all classes from a package.
-     *
-     * @param packageName
-     * @return
-     * @throws ClassNotFoundException
-     * @throws IOException
-     */
     public static Class[] getAllClassesFromPackage(final String packageName) throws ClassNotFoundException, IOException {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         assert classLoader != null;
@@ -119,14 +109,6 @@ public class ReflectionUtil {
         return classes.toArray(new Class[classes.size()]);
     }
 
-    /**
-     * Find file in package.
-     *
-     * @param directory
-     * @param packageName
-     * @return
-     * @throws ClassNotFoundException
-     */
     public static List<Class<?>> findClasses(File directory, String packageName) throws ClassNotFoundException {
         List<Class<?>> classes = new ArrayList<Class<?>>();
         if (!directory.exists()) {

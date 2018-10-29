@@ -65,7 +65,7 @@ public class ConnectionAgent extends BaseComponent implements ConnectionAgentAPI
     /**
      * Try to create an opportunity for this destination.
      *
-     * @param eid
+     * @param eid to create an opportunity to
      */
     public Single<CLAChannelSPI> createOpportunityForBundle(CLA eid) {
         if(!isEnabled()) {

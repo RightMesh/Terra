@@ -50,7 +50,7 @@ public class BundleV7Serializer {
     }
 
     /**
-     * Serialize a {@see PrimaryBlock}
+     * Serialize a {@link PrimaryBlock}
      *
      * @param block to serialize
      * @return Flowable

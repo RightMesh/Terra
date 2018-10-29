@@ -2,6 +2,10 @@ plugins {
     id("java-library")
 }
 
+task ApiDoc(type: Javadoc) {
+    source = sourceSets.main.allJava
+}
+
 test {
     systemProperty 'path', '/tmp'
     useJUnit()

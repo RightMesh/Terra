@@ -2,6 +2,11 @@ plugins {
     id("java-library")
 }
 
+
+task ApiDoc(type: Javadoc) {
+    source = sourceSets.main.allJava
+}
+
 test {
     useJUnit()
     maxHeapSize = '1G'

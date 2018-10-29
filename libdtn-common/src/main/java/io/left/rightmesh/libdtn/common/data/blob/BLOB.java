@@ -25,7 +25,7 @@ public interface BLOB {
     Flowable<ByteBuffer> observe();
 
     /**
-     * new {@see ReadableBLOB} from this BaseBLOB. The ReadableBLOB will lock the BaseBLOB for read-only
+     * new {@link ReadableBLOB} from this BaseBLOB. The ReadableBLOB will lock the BaseBLOB for read-only
      * operations. calling close() on the ReadableBLOB will unlock the BaseBLOB. Multiple concurrent
      * ReadableBLOB can be acquired from one single BaseBLOB.
      *
@@ -34,7 +34,7 @@ public interface BLOB {
     ReadableBLOB getReadableBLOB();
 
     /**
-     * new {@see WritableBLOB} from this BaseBLOB. The WritableBLOB will lock the BaseBLOB for write-only
+     * new {@link WritableBLOB} from this BaseBLOB. The WritableBLOB will lock the BaseBLOB for write-only
      * operations. calling close() on the WritableBLOB will unlock the BaseBLOB. Only one WritableBLOB
      * can be acquired from this single BaseBLOB at any given time.
      *

@@ -61,7 +61,9 @@ public interface StorageAPI {
     BLOBFactory getBlobFactory();
 
     /**
-     * count the total number of bundle indexed, wether in persistant or volatile storage
+     * count the total number of bundle indexed, whether in persistant or volatile storage
+     *
+     * @return total number of bundle indexed
      */
     int count();
 
@@ -78,7 +80,7 @@ public interface StorageAPI {
      * If Volatile Storage is enabled, it will return the whole Bundle, otherwise it returns
      * a MetaBundle.
      *
-     * <p></p>Whenever the Single completes, the caller can expect that no further operations is needed
+     * <p>Whenever the Single completes, the caller can expect that no further operations is needed
      * in background to store the bundle.
      *
      * @param bundle to store
@@ -114,6 +116,8 @@ public interface StorageAPI {
 
     /**
      * Clear all bundles
+     *
+     * @return Completable
      */
     Completable clear();
 

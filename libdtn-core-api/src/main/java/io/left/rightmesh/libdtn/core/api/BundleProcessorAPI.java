@@ -24,6 +24,7 @@ public interface BundleProcessorAPI {
     /**
      * Call this method if another component attempted to deliver a bundle but failed
      *
+     * @param sink to deliver the bundle to
      * @param bundle to process
      */
     void bundleLocalDeliveryFailure(String sink, Bundle bundle);

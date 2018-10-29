@@ -5,7 +5,7 @@ import java.util.HashSet;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 
 /**
- * Generic block header object. It is the super class of {@see CanonicalBlock}.
+ * Generic block header object. It is the super class of {@link CanonicalBlock}.
  *
  * @author Lucien Loiseau on 20/07/18.
  */
@@ -72,7 +72,7 @@ public class BlockHeader extends Block {
     }
 
     /**
-     * Get the state of a specific {@see BlockHeader.BlockV6Flags}.
+     * Get the state of a specific {@link BlockHeader.BlockV6Flags}.
      *
      * @param flag to query
      * @return true if the flag is set, false otherwise
@@ -82,7 +82,7 @@ public class BlockHeader extends Block {
     }
 
     /**
-     * Get the state of a specific {@see BlockHeader.BlockV7Flags}.
+     * Get the state of a specific {@link BlockHeader.BlockV7Flags}.
      *
      * @param flag to query
      * @return true if the flag is set, false otherwise

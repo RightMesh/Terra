@@ -90,8 +90,7 @@ public interface EID {
     String getEIDString();
 
     /**
-     * Check that the EID is a URI as defined in RFC 3986:
-     * {@href https://tools.ietf.org/html/rfc3986#appendix-B}
+     * Check that the EID is a URI as defined in <a href="https://tools.ietf.org/html/rfc3986#appendix-B">RFC 3986</a>.
      *
      * <p>The EID is considered valid if there is at least a scheme and a scheme-specific part.
      *

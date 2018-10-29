@@ -19,7 +19,6 @@ public abstract class Block {
      * Add a TAG to this Block. It is useful for Bundle processing.
      *
      * @param tag to add to this bundle
-     * @return true if the tag was added, false if the bundle was already tagged with this tag.
      */
     public void tag(String tag) {
         tag(tag, null);
@@ -30,7 +29,7 @@ public abstract class Block {
      *
      * @param key for this attachement
      * @param o   the attached object
-     * @return false if there was already an object attached under this key, true otherwise.
+     *
      */
     public void tag(String key, Object o) {
         attachement.putIfAbsent(key, o);

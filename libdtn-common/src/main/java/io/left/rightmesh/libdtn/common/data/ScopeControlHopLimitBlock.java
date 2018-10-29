@@ -4,7 +4,7 @@ package io.left.rightmesh.libdtn.common.data;
  * ScopeControlHopLimit CanonicalBlock is used to limit the propagation of the bundle to a maximum number
  * of hop away from the source. It contains a count value that is incremented at every hop and
  * a limit value that is set by the source. This block is described in the following ietf draft:
- * {@href https://tools.ietf.org/html/draft-fall-dtnrg-schl-00}.
+ * See <a href="https://tools.ietf.org/html/draft-fall-dtnrg-schl-00">draft-fall-dtnrg-schl-00</a>.
  *
  * @author Lucien Loiseau on 03/09/18.
  */

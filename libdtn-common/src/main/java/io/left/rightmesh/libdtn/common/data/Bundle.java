@@ -48,7 +48,7 @@ public class Bundle extends PrimaryBlock {
     }
 
     /**
-     * return the list of {@see CanonicalBlock} that are encapsulated in this current Bundle.
+     * return the list of {@link CanonicalBlock} that are encapsulated in this current Bundle.
      *
      * @return list of blocks
      */
@@ -57,7 +57,7 @@ public class Bundle extends PrimaryBlock {
     }
 
     /**
-     * adds a {@see CanonicalBlock} to the current Bundle.
+     * adds a {@link CanonicalBlock} to the current Bundle.
      *
      * @param block to be added
      */
@@ -86,7 +86,7 @@ public class Bundle extends PrimaryBlock {
     }
 
     /**
-     * delete a {@see CanonicalBlock} to the current Bundle.
+     * delete a {@link CanonicalBlock} to the current Bundle.
      *
      * @param block to be deleted
      */

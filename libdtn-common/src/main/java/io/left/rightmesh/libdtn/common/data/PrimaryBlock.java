@@ -8,7 +8,7 @@ import io.left.rightmesh.libdtn.common.data.eid.EID;
 /**
  * PrimaryBlock is the first block of a Bundle (RFC5050), there can be only one per Bundle.
  * The primary bundle block contains the basic information needed to route bundles
- * to their destinations. It is a super class of {@see Bundle}
+ * to their destinations. It is a super class of {@link Bundle}
  *
  * @author Lucien Loiseau on 20/07/18.
  */
@@ -26,39 +26,7 @@ public class PrimaryBlock extends Block {
         CRC_32
     }
 
-    public static long sequence_counter = 0;
-
-    public enum BundleV6Flags {
-        FRAGMENT(0),
-        ADM_RECORD(1),
-        NO_FRAGMENT(2),
-        CUSTODY_REQUEST(3),
-        DESTINATION_IS_SINGLETON(4),
-        APP_ACK_REQUEST(5),
-        RESERVED_6(6),
-        PRIORITY_BIT1(7),
-        PRIORITY_BIT2(8),
-        CLASSOFSERVICE_9(9),
-        CLASSOFSERVICE_10(10),
-        CLASSOFSERVICE_11(11),
-        CLASSOFSERVICE_12(12),
-        CLASSOFSERVICE_13(13),
-        RECEPTION_REPORT(14),
-        CUSTODY_REPORT(15),
-        FORWARD_REPORT(16),
-        DELIVERY_REPORT(17),
-        DELETION_REPORT(18);
-
-        private int offset;
-
-        BundleV6Flags(int offset) {
-            this.offset = offset;
-        }
-
-        public int getOffset() {
-            return offset;
-        }
-    }
+    private static long sequence_counter = 0;
 
     public enum BundleV7Flags {
         /* BundleV7 Processing Control Flag {@href https://tools.ietf.org/html/draft-ietf-dtn-bpbis-11#section-4.1.3}
@@ -170,7 +138,7 @@ public class PrimaryBlock extends Block {
     }
 
     /**
-     * returns the sdnv_value of a specific {@see PrimaryBlock.BundleV7Flags} for this Bundle.
+     * returns the sdnv_value of a specific {@link PrimaryBlock.BundleV7Flags} for this Bundle.
      *
      * @param flag to query
      * @return true if the flag is set, false otherwise
@@ -180,7 +148,7 @@ public class PrimaryBlock extends Block {
     }
 
     /**
-     * setFlag set (or unset) a given {@see PrimaryBlock.BundleFlags}.
+     * set (or unset) a given {@link PrimaryBlock.BundleV7Flags}.
      *
      * @param flag  to be set
      * @param value of the flag: true to set, false to unset

@@ -23,7 +23,7 @@ public interface RoutingAPI {
      * Take care of this bundle for a later forwarding opportunity.
      * todo probably not an API of routing
      *
-     * @param bundle
+     * @param bundle to forward later
      */
     void forwardLater(final Bundle bundle);
 

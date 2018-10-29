@@ -16,7 +16,10 @@ public interface ApplicationAgentAdapterSPI extends ModuleSPI {
     /**
      * Initialize this module.
      *
-     * @param api
+     * @param api registrar api
+     * @param conf configuration
+     * @param logger logger instance
+     * @param factory to create new BLOB
      */
     void init(RegistrarAPI api, ConfigurationAPI conf, Log logger, BLOBFactory factory);
 

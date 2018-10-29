@@ -49,7 +49,7 @@ public class VolatileStorage extends BaseComponent {
      *
      * @return number of volatile bundle in storage
      */
-    public int count() {
+    int count() {
         return (int)metaStorage.index.values().stream().filter(e -> e.isVolatile).count();
     }
 
@@ -59,7 +59,7 @@ public class VolatileStorage extends BaseComponent {
      * @param bundle to store
      * @return Completable that completes once it is done
      */
-    public Single<Bundle> store(Bundle bundle) {
+    Single<Bundle> store(Bundle bundle) {
         if (!isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
@@ -73,11 +73,8 @@ public class VolatileStorage extends BaseComponent {
         }
     }
 
-    /**
-     * Remove a volatile bundle. If the bundle has a persistent copy, replace the bundle with
-     * the MetaBundle, otherwise delete from index.
-     */
-    public Completable remove(BundleID bid, Storage.IndexEntry entry) {
+
+    private Completable remove(BundleID bid, Storage.IndexEntry entry) {
         return Completable.create(s -> {
             if(!entry.isPersistent) {
                 metaStorage.removeEntry(bid, entry);
@@ -91,8 +88,11 @@ public class VolatileStorage extends BaseComponent {
     /**
      * Remove a volatile bundle. If the bundle has a persistent copy, replace the bundle with
      * the MetaBundle, otherwise delete from index.
+     *
+     * @param bid bundle id of te bundle to remove
+     * @return Completable that completes once the bundle is removed
      */
-    public Completable remove(BundleID bid) {
+    Completable remove(BundleID bid) {
         Storage.IndexEntry entry = metaStorage.index.get(bid);
         return remove(bid, entry);
     }
@@ -101,7 +101,7 @@ public class VolatileStorage extends BaseComponent {
      * Remove all volatile bundle. If the bundle has a persistent copy, replace the bundle with
      * the MetaBundle, otherwise delete from index.
      */
-    public Completable clear() {
+    Completable clear() {
         if (!isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }

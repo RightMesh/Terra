@@ -20,7 +20,7 @@ public interface ConnectionAgentAPI {
      * Try to create an opportunity for this CLA eid that is one of the route toward
      * a bundle destination EID
      *
-     * @param CLA-EID to connect to
+     * @param eid to connect to
      * @return an open channel to this CLAChannel upon success, or an error upon failure
      */
     Single<CLAChannelSPI> createOpportunityForBundle(CLA eid);

@@ -49,13 +49,13 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPO
  * SimpleStorage stores bundle in files but keep an index in memory of all the bundles in storage.
  * Each entry in the index contains a filesystem path to the bundle as well as a "MetaBundle" that
  * holds some information about the bundle that can be used for routing without having to pull the
- * bundle from storage until the very last moment.
+ * entire bundle from storage until the very last moment.
  *
  * <p>If the payload of the Bundle is already store in a FileBLOB, the index will keep a reference
  * to it and will not serialize it within the bundle file. By so doing, a payload FileBLOB need not
  * be copied multiple time.
  *
- * <p>The SimpleStorage is configurable through {@see DTNConfiguration} by updating two values:
+ * <p>The SimpleStorage is configurable through {@link ConfigurationAPI} by updating two values:
  * <ul>
  * <li>COMPONENT_ENABLE_SIMPLE_STORAGE: enable/disable SimpleStorage</li>
  * <li>SIMPLE_STORAGE_PATH: update the list of path to be used as storage.
@@ -213,12 +213,14 @@ public class SimpleStorage extends BaseComponent {
     }
 
     /**
-     * Create a new {@see FileBLOB}.
+     * Create a new {@link FileBLOB}.
      *
+     * @param expectedSize expected size of the BLOB to create
      * @return a new FileBLOB with capacity of expectedSize
      * @throws StorageFullException if there isn't enough space in SimpleStorage
+     * @throws StorageUnavailableException if SimpleStorage is disabled
      */
-    public FileBLOB createBLOB(long expectedSize) throws StorageUnavailableException, StorageFullException {
+    FileBLOB createBLOB(long expectedSize) throws StorageUnavailableException, StorageFullException {
         if (!isEnabled()) {
             throw new StorageUnavailableException();
         }
@@ -262,7 +264,7 @@ public class SimpleStorage extends BaseComponent {
      * @param bundle to store
      * @return Single of the MetaBundle
      */
-    public Single<Bundle> store(Bundle bundle) {
+    Single<Bundle> store(Bundle bundle) {
         if (!isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
@@ -517,7 +519,7 @@ public class SimpleStorage extends BaseComponent {
      * Clear the entire persistent storage. Delete all bundles files and related blob (if any) and
      * clear the index.
      *
-     * @return
+     * @return completable that completes once the database is wiped.
      */
     public Completable clear() {
         if (!isEnabled()) {
