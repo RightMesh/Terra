@@ -111,6 +111,7 @@ public class SimpleStorageTest {
                         assertArrayEquals(
                                 flowableToByteArray(bundles[j].getPayloadBlock().data.observe()),
                                 flowableToByteArray(bundle.getPayloadBlock().data.observe()));
+                        bundle.clearBundle();
                     }
                 }
                 assertTrue(found);
@@ -147,6 +148,10 @@ public class SimpleStorageTest {
             clearStorage();
             assertStorageSize(0);
             assertFileStorageSize(0, dir);
+
+            for(Bundle bundle : bundles) {
+                bundle.clearBundle();
+            }
         }
     }
 

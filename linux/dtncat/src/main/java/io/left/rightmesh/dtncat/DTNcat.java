@@ -69,7 +69,6 @@ public class DTNcat implements Callable<Void> {
         wb.write(isr);
         wb.close();
         bundle.addBlock(new PayloadBlock(blob));
-        System.out.println("size = "+blob.size());
         return bundle;
     }
 

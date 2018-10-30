@@ -91,6 +91,10 @@ public class StorageTest {
             assertEquals(0, storage.getVolatileStorage().count());
             assertEquals(0, storage.getSimpleStorage().count());
             assertFileStorageSize(0, dir);
+
+            for(Bundle bundle : bundles) {
+                bundle.clearBundle();
+            }
         }
     }
 

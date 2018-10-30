@@ -26,11 +26,6 @@ public class GrowingBLOB implements BLOB {
         buffers.add(memory.malloc(CHUNK_SIZE));
     }
 
-    public GrowingBLOB(int limit) {
-        super();
-        this.limit = limit;
-    }
-
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
