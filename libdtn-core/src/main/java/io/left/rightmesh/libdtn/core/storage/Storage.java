@@ -15,7 +15,9 @@ import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.VOLATILE_BLOB_STORAGE_MAX_CAPACITY;
 
 
 /**
@@ -25,20 +27,33 @@ public class Storage implements StorageAPI {
 
     private static final String TAG = "Storage";
 
-    private VolatileStorage volatileStorage;
-    private SimpleStorage simpleStorage;
-    private BLOBFactory blobFactory;
-    private Logger logger;
-
     private class CoreBLOBFactory extends BaseBLOBFactory {
-        @Override
-        public BLOB createBLOB(int expectedSize) throws BLOBFactoryException {
-            try {
-                return createVolatileBLOB(expectedSize);
-            } catch(BLOBFactoryException e) {
-                /* ignore */
-            }
+        CoreBLOBFactory() {
+            enableVolatile(conf.<Integer>get(VOLATILE_BLOB_STORAGE_MAX_CAPACITY).value());
+            enablePersistent("");
+        }
 
+        @Override
+        public boolean isVolatileEnabled() {
+            return conf.<Boolean>get(COMPONENT_ENABLE_VOLATILE_STORAGE).value();
+        }
+
+        @Override
+        public boolean isPersistentEnabled() {
+            return conf.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).value();
+        }
+
+        @Override
+        public BLOB createFileBLOB() throws BLOBFactoryException {
+            try {
+                return simpleStorage.createBLOB();
+            } catch(StorageAPI.StorageException se) {
+                throw new BLOBFactoryException();
+            }
+        }
+
+        @Override
+        public BLOB createFileBLOB(int expectedSize) throws BLOBFactoryException {
             try {
                 return simpleStorage.createBLOB(expectedSize);
             } catch(StorageAPI.StorageException se) {
@@ -46,6 +61,13 @@ public class Storage implements StorageAPI {
             }
         }
     }
+
+    private ConfigurationAPI conf;
+    private VolatileStorage volatileStorage;
+    private SimpleStorage simpleStorage;
+    private CoreBLOBFactory blobFactory;
+    private Logger logger;
+
 
     class IndexEntry {
         Bundle bundle;      /* either a bundle or a metabundle */
@@ -64,14 +86,10 @@ public class Storage implements StorageAPI {
 
     public Storage(ConfigurationAPI conf, Logger logger) {
         this.logger = logger;
+        this.conf = conf;
         volatileStorage = new VolatileStorage(this, conf, logger);
         simpleStorage = new SimpleStorage(this, conf, logger);
-        blobFactory = new CoreBLOBFactory() {
-            @Override
-            public boolean isVolatileEnabled() {
-                return conf.<Boolean>get(COMPONENT_ENABLE_VOLATILE_STORAGE).value();
-            }
-        };
+        blobFactory = new CoreBLOBFactory();
     }
 
     public BLOBFactory getBlobFactory() {

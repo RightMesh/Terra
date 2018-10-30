@@ -198,7 +198,9 @@ public class FileBLOB implements BLOB {
             public int write(ByteBuffer buffer) throws IOException {
                 int length = buffer.remaining();
                 while(buffer.hasRemaining()) {
-                    bos.write(buffer.get());
+                    int b = buffer.get();
+                    System.out.println("b="+(char)b);
+                    bos.write(b);
                 }
                 return length;
             }
@@ -239,15 +241,15 @@ public class FileBLOB implements BLOB {
             @Override
             public void close() {
                 try {
-                    if (fos != null) {
-                        fos.close();
+                    if (bos != null) {
+                        bos.close();
                     }
                 } catch (IOException io) {
                     // ignore
                 }
                 try {
-                    if (bos != null) {
-                        bos.close();
+                    if (fos != null) {
+                        fos.close();
                     }
                 } catch (IOException io) {
                     // ignore

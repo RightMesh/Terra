@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import io.left.rightmesh.libdtn.common.data.blob.ByteBufferBLOB;
+import io.left.rightmesh.libdtn.common.data.blob.UntrackedByteBufferBLOB;
 
 /**
  * PayloadBlock is a CanonicalBlock that holds the payload of the Bundle.
@@ -37,7 +38,7 @@ public class PayloadBlock extends BlockBLOB {
      * @param data payload
      */
     public PayloadBlock(String data) {
-        super(type, new ByteBufferBLOB(data.getBytes()));
+        super(type, new UntrackedByteBufferBLOB(data.getBytes()));
     }
 
 
@@ -47,7 +48,7 @@ public class PayloadBlock extends BlockBLOB {
      * @param data payload
      */
     public PayloadBlock(byte[] data) {
-        super(type, new ByteBufferBLOB(data));
+        super(type, new UntrackedByteBufferBLOB(data));
     }
 
 
@@ -57,7 +58,7 @@ public class PayloadBlock extends BlockBLOB {
      * @param data payload
      */
     public PayloadBlock(ByteBuffer data) {
-        super(type, new ByteBufferBLOB(data));
+        super(type, new UntrackedByteBufferBLOB(data));
     }
 
 

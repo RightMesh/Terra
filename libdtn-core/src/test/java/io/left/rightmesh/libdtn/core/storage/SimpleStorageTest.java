@@ -64,7 +64,6 @@ public class SimpleStorageTest {
             assertStorageSize(0);
             assertFileStorageSize(0, dir);
 
-
             /* store the bundles in storage */
             System.out.println("[.] store in SimpleStorage");
             cockLock();

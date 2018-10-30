@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -121,16 +123,16 @@ public class SimpleStorage extends BaseComponent {
      * @return number of Persistent bundle in storage
      */
     public int count() {
-        return (int)metaStorage.index.values().stream().filter(e -> e.isPersistent).count();
+        return (int) metaStorage.index.values().stream().filter(e -> e.isPersistent).count();
     }
 
     private boolean removePath(String path) {
         if (storage_paths.contains(path)) {
             metaStorage.index.forEach(
                     (bid, entry) -> {
-                        if(entry.isPersistent && entry.bundle_path.startsWith(path)) {
+                        if (entry.isPersistent && entry.bundle_path.startsWith(path)) {
                             entry.isPersistent = false;
-                            if(!entry.isVolatile) {
+                            if (!entry.isVolatile) {
                                 metaStorage.removeEntry(bid, entry);
                             }
                         }
@@ -217,7 +219,7 @@ public class SimpleStorage extends BaseComponent {
      *
      * @param expectedSize expected size of the BLOB to create
      * @return a new FileBLOB with capacity of expectedSize
-     * @throws StorageFullException if there isn't enough space in SimpleStorage
+     * @throws StorageFullException        if there isn't enough space in SimpleStorage
      * @throws StorageUnavailableException if SimpleStorage is disabled
      */
     FileBLOB createBLOB(long expectedSize) throws StorageUnavailableException, StorageFullException {
@@ -235,6 +237,33 @@ public class SimpleStorage extends BaseComponent {
                 } catch (IOException io) {
                     // ignore and try next path
                 }
+            }
+        }
+        throw new StorageFullException();
+    }
+
+    /**
+     * Create a new {@link FileBLOB} with indefinite size. In that case it will take the storage
+     * path with the most available space.
+     *
+     * @return a new FileBLOB
+     * @throws StorageFullException        if there isn't enough space in SimpleStorage
+     * @throws StorageUnavailableException if SimpleStorage is disabled
+     */
+    FileBLOB createBLOB() throws StorageUnavailableException, StorageFullException {
+        if (!isEnabled()) {
+            throw new StorageUnavailableException();
+        }
+
+        LinkedList<String> copy = new LinkedList<>();
+        copy.addAll(storage_paths);
+        copy.sort(Comparator.comparing(p -> spaceLeft(p + BLOB_FOLDER)).reversed());
+        for (String path : copy) {
+            try {
+                File fblob = createNewFile("blob-", ".blob", path + BLOB_FOLDER);
+                return new FileBLOB(fblob);
+            } catch (IOException io) {
+                // ignore and try next path
             }
         }
         throw new StorageFullException();
@@ -303,7 +332,7 @@ public class SimpleStorage extends BaseComponent {
                             .cbor_encode_text_string(blob_path)
                             .merge(bundleEncoder); /* bundle */
 
-                    /* asses file size */
+                    /* assess file size */
                     AtomicLong size = new AtomicLong();
                     BundleV7Serializer.encode(bundle).observe()
                             .subscribe(
@@ -363,7 +392,7 @@ public class SimpleStorage extends BaseComponent {
                         bundle.getPayloadBlock().data = blob;
                     }
 
-                    if(!meta.isTagged("serialization_failed")) {
+                    if (!meta.isTagged("serialization_failed")) {
                         final Storage.IndexEntry entry = metaStorage.getEntryOrCreate(meta.bid, meta);
                         entry.isPersistent = true;
                         entry.bundle_path = fbundle.getAbsolutePath();
@@ -381,7 +410,7 @@ public class SimpleStorage extends BaseComponent {
     static void closeSilently(OutputStream s) {
         try {
             s.close();
-        } catch(IOException io) {
+        } catch (IOException io) {
             /* ignore */
         }
     }
@@ -399,7 +428,7 @@ public class SimpleStorage extends BaseComponent {
         }
 
         return Single.<Bundle>create(s -> {
-            if(!metaStorage.containsPersistent(id)) {
+            if (!metaStorage.containsPersistent(id)) {
                 s.onError(new Throwable("no such bundle in storage: " + id.getBIDString()));
                 return;
             }
@@ -413,7 +442,7 @@ public class SimpleStorage extends BaseComponent {
             }
 
             /* preparing file and parser */
-            BundleV7Parser bundleParser = new BundleV7Parser(logger, new BaseBLOBFactory().disablePersistent());
+            BundleV7Parser bundleParser = new BundleV7Parser(logger, metaStorage.getBlobFactory());
             CborParser parser = CBOR.parser()
                     .cbor_open_array(2)
                     .cbor_parse_custom_item(
@@ -452,12 +481,12 @@ public class SimpleStorage extends BaseComponent {
 
             Bundle ret = parser.getReg(1);
             parser.reset();
-            if(ret != null) {
+            if (ret != null) {
                 s.onSuccess(ret);
             } else {
                 s.onError(new Throwable("can't retrieve bundle from file"));
             }
-        }).subscribeOn(Schedulers.io());
+        }); //todo .subscribeOn(Schedulers.io());
     }
 
     /**
@@ -503,7 +532,7 @@ public class SimpleStorage extends BaseComponent {
             entry.blob_path = "";
             entry.isPersistent = false;
 
-            if(!entry.isVolatile) {
+            if (!entry.isVolatile) {
                 metaStorage.removeEntry(id, entry);
             }
 

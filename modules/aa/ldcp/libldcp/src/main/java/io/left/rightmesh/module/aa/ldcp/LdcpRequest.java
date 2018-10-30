@@ -52,34 +52,34 @@ public class LdcpRequest {
         return Single.create(s -> new RxTCP.ConnectionRequest<>(host, port)
                 .connect()
                 .subscribe(
-                        c -> {
-                            c.send(requestMessage.encode());
-
-                            c.recv().subscribe(
-                                    buf -> {
-                                        CborParser parser = ResponseMessage.getParser(logger, factory);
-                                        try {
-                                            while (buf.hasRemaining() && !parser.isDone()) {
-                                                parser.read(buf);
+                        c -> c.order(requestMessage.encode()).observe().ignoreElements().subscribe(
+                                () -> c.recv().subscribe(
+                                        buf -> {
+                                            CborParser parser = ResponseMessage.getParser(logger, factory);
+                                            try {
+                                                while (buf.hasRemaining() && !parser.isDone()) {
+                                                    parser.read(buf);
+                                                }
+                                                c.closeNow();
+                                                s.onSuccess(parser.getReg(0));
+                                            } catch (RxParserException rpe) {
+                                                c.closeNow();
+                                                s.onError(rpe);
                                             }
+                                        },
+                                        e -> {
                                             c.closeNow();
-                                            s.onSuccess(parser.getReg(0));
-                                        } catch (RxParserException rpe) {
+                                            s.onError(e);
+                                        },
+                                        () -> {
                                             c.closeNow();
-                                            s.onError(rpe);
-                                        }
-                                    },
-                                    e -> {
-                                        c.closeNow();
-                                        s.onError(e);
-                                    },
-                                    () -> {
-                                        c.closeNow();
-                                        s.onError(new Throwable("no response"));
-                                    }
-                            );
-
-                        },
+                                            s.onError(new Throwable("no response"));
+                                        }),
+                                e -> {
+                                    c.closeNow();
+                                    s.onError(e);
+                                }
+                        ),
                         s::onError
                 ));
     }

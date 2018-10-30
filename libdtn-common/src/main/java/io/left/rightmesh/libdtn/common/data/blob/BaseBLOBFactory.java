@@ -13,16 +13,14 @@ public class BaseBLOBFactory implements BLOBFactory {
 
     private static final String TAG = "BaseBLOBFactory";
 
-    private boolean enableVolatileBLOB = true;
-    private int BLOBMemoryMaxUsage = 10000000;
-    private int CurrentBLOBMemoryUsage = 0;
-
+    private VolatileMemory memory;
+    private boolean enableVolatileBLOB = false;
     private boolean enableFileBLOB = false;
     private String filePath = "./";
 
     public BaseBLOBFactory enableVolatile(int limit) {
+        this.memory = new VolatileMemory(limit);
         enableVolatileBLOB = true;
-        BLOBMemoryMaxUsage = limit;
         return this;
     }
 
@@ -50,26 +48,29 @@ public class BaseBLOBFactory implements BLOBFactory {
         return enableFileBLOB;
     }
 
+    // ----- definite size blob -------
+
     public BLOB createVolatileBLOB(int expectedSize) throws BLOBFactoryException {
         // try in volatile memory
-        if (isVolatileEnabled() && expectedSize <= (BLOBMemoryMaxUsage - CurrentBLOBMemoryUsage)) {
-            CurrentBLOBMemoryUsage += expectedSize;
-            return new ByteBufferBLOB(expectedSize);
+        if (isVolatileEnabled()) {
+            try {
+                return new ByteBufferBLOB(memory, expectedSize);
+            } catch (IOException io) {
+                throw new BLOBFactoryException();
+            }
         }
         throw new BLOBFactoryException();
     }
 
     public BLOB createFileBLOB(int expectedSize) throws BLOBFactoryException {
         // try in persistent memory
-        if(isPersistentEnabled()) {
+        if (isPersistentEnabled()) {
             if (spaceLeft(filePath) > expectedSize) {
                 try {
                     File fblob = createNewFile("blob-", ".blob", filePath);
-                    if (fblob != null) {
-                        return new FileBLOB(fblob);
-                    }
+                    return new FileBLOB(fblob);
                 } catch (IOException io) {
-                    /* ignore exception will be thrown after */
+                    throw new BLOBFactoryException();
                 }
             }
         }
@@ -78,20 +79,69 @@ public class BaseBLOBFactory implements BLOBFactory {
 
     @Override
     public BLOB createBLOB(int expectedSize) throws BLOBFactoryException {
+        if(expectedSize < 0) {
+            // indefinite size BLOB
+            return createBLOB();
+        }
+
         try {
             return createVolatileBLOB(expectedSize);
-        } catch(BLOBFactoryException e) {
+        } catch (BLOBFactoryException e) {
             /* ignore */
         }
 
         try {
             return createFileBLOB(expectedSize);
-        } catch(BLOBFactoryException e) {
+        } catch (BLOBFactoryException e) {
             /* ignore */
         }
 
         return new NullBLOB();
     }
 
+    // ----- indefinite size blob -------
+
+    public BLOB createGrowingBLOB() throws BLOBFactoryException {
+        if (isVolatileEnabled()) {
+            try {
+                return new GrowingBLOB(memory);
+            } catch (IOException io) {
+                throw new BLOBFactoryException();
+            }
+        }
+        throw new BLOBFactoryException();
+    }
+
+
+    public BLOB createFileBLOB() throws BLOBFactoryException {
+        if (isPersistentEnabled()) {
+            try {
+                File fblob = createNewFile("blob-", ".blob", filePath);
+                return new FileBLOB(fblob);
+            } catch (IOException io) {
+                throw new BLOBFactoryException();
+            }
+        }
+        throw new BLOBFactoryException();
+    }
+
+    private BLOB createBLOB() throws BLOBFactoryException {
+        BLOB gblob;
+        BLOB fblob;
+
+        try {
+            gblob = createGrowingBLOB();
+        } catch(BLOBFactoryException bfe) {
+            gblob = new ZeroBLOB();
+        }
+
+        try {
+            fblob = createFileBLOB();
+        } catch(BLOBFactoryException bfe) {
+            fblob = new ZeroBLOB();
+        }
+
+        return new VersatileBLOB(gblob, fblob);
+    }
 
 }

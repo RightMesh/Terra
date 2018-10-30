@@ -9,7 +9,10 @@ import java.util.concurrent.Callable;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
+import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
+import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
 import io.left.rightmesh.libdtn.common.data.blob.ByteBufferBLOB;
+import io.left.rightmesh.libdtn.common.data.blob.GrowingBLOB;
 import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.module.aa.ldcp.ActiveLdcpRegistrationCallback;
@@ -52,14 +55,21 @@ public class DTNcat implements Callable<Void> {
     private String deid;
 
     private LdcpApplicationAgent agent;
+    private BLOBFactory factory;
 
     private Bundle createBundleFromSTDIN(Bundle bundle) throws IOException, WritableBLOB.BLOBOverflowException {
-        BLOB blob = new ByteBufferBLOB(20000);
+        BLOB blob;
+        try {
+            blob = factory.createBLOB(-1);
+        } catch(BLOBFactory.BLOBFactoryException boe) {
+            throw new WritableBLOB.BLOBOverflowException();
+        }
         WritableBLOB wb = blob.getWritableBLOB();
         InputStream isr = new BufferedInputStream(System.in);
         wb.write(isr);
         wb.close();
         bundle.addBlock(new PayloadBlock(blob));
+        System.out.println("size = "+blob.size());
         return bundle;
     }
 
@@ -70,13 +80,14 @@ public class DTNcat implements Callable<Void> {
                         BufferedOutputStream bos = new BufferedOutputStream(System.out);
                         recvbundle.getPayloadBlock().data.getReadableBLOB().read(bos);
                         bos.flush();
+                        recvbundle.clearBundle();
                         s.onComplete();
                     } catch (IOException io) {
                         s.onError(io);
                     }
                 });
-        agent = new LdcpApplicationAgent(dtnhost, dtnport, ByteBufferBLOB::new);
 
+        agent = new LdcpApplicationAgent(dtnhost, dtnport, factory);
         if(cookie == null) {
             agent.register(sink, cb).subscribe(
                     cookie -> {
@@ -87,7 +98,7 @@ public class DTNcat implements Callable<Void> {
                         System.exit(1);
                     });
         } else {
-            agent = new LdcpApplicationAgent(dtnhost, dtnport, ByteBufferBLOB::new);
+            agent = new LdcpApplicationAgent(dtnhost, dtnport, factory);
             agent.reAttach(sink, cookie, cb).subscribe(
                     b -> System.err.println("re-attach to registered sink"),
                     e -> {
@@ -113,14 +124,17 @@ public class DTNcat implements Callable<Void> {
             agent.send(createBundleFromSTDIN(bundle)).subscribe(
                     b -> {
                         if (b) {
+                            bundle.clearBundle();
                             System.err.println("bundle successfully sent to " + dtnhost + ":" + dtnport);
                             System.exit(0);
                         } else {
+                            bundle.clearBundle();
                             System.err.println("bundle was refused by " + dtnhost + ":" + dtnport);
                             System.exit(1);
                         }
                     },
                     e -> {
+                        bundle.clearBundle();
                         System.err.println("error: " + e.getMessage());
                         System.exit(1);
                     });
@@ -132,6 +146,7 @@ public class DTNcat implements Callable<Void> {
 
     @Override
     public Void call() throws Exception {
+        factory = new BaseBLOBFactory().enableVolatile(1000000).enablePersistent("./");
         if(sink != null) {
             listenBundle();
         } else {

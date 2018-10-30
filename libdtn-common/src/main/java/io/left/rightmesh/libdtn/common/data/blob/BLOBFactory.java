@@ -8,6 +8,7 @@ public interface BLOBFactory {
     class BLOBFactoryException extends Exception {
     }
 
+    // finite size blob
     BLOB createBLOB(int size) throws BLOBFactoryException;
 
 }

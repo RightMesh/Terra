@@ -48,6 +48,16 @@ public class Bundle extends PrimaryBlock {
     }
 
     /**
+     * clear all blocks of this bundle
+     */
+    public void clearBundle() {
+        for(Block block : blocks) {
+            block.clearBlock();
+        }
+        blocks.clear();
+    }
+
+    /**
      * return the list of {@link CanonicalBlock} that are encapsulated in this current Bundle.
      *
      * @return list of blocks

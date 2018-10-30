@@ -31,5 +31,5 @@ project(":dtncat").projectDir = file("linux/dtncat")
 //project(":libcbor").projectDir = file("../libcbor")
 //include ':librxtcp'
 //project(":librxtcp").projectDir = file("../librxtcp")
-include ':libdetect'
-project(":libdetect").projectDir = file("../libdetect")
+//include ':libdetect'
+//project(":libdetect").projectDir = file("../libdetect")

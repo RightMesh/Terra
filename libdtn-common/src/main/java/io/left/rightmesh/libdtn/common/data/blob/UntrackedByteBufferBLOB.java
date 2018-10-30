@@ -10,34 +10,30 @@ import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 
 /**
- * @author Lucien Loiseau on 20/09/18.
+ * UntrackedByteBuffer is a simple ByteBuffer BLOB that doesn't "malloc" to {@link VolatileMemory}.
+ *
+ * @author Lucien Loiseau on 30/10/18.
  */
-public class ByteBufferBLOB implements BLOB {
+public class UntrackedByteBufferBLOB implements BLOB {
 
-    private VolatileMemory memory;
     private ByteBuffer data;
 
 
-    public ByteBufferBLOB(VolatileMemory memory, int expectedSize) throws IOException {
-        this.memory = memory;
-        this.data = memory.malloc(expectedSize);
+    public UntrackedByteBufferBLOB(int expectedSize) {
+        this.data = ByteBuffer.allocate(expectedSize);
         this.data.mark();
     }
 
-    public ByteBufferBLOB(byte[] data) throws IOException {
-        this.data = memory.malloc(data);
+    public UntrackedByteBufferBLOB(byte[] data) {
+        this.data = ByteBuffer.wrap(data);
         this.data.mark();
     }
 
-    public ByteBufferBLOB(ByteBuffer data) throws IOException {
-        this.data = memory.malloc(data);
+    public UntrackedByteBufferBLOB(ByteBuffer data) {
+        this.data = ByteBuffer.allocate(data.remaining());
+        this.data.put(data);
+        this.data.position(0);
         this.data.mark();
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-        memory.free(data.capacity());
     }
 
     @Override

@@ -15,6 +15,9 @@ public abstract class Block {
         attachement = new HashMap<>();
     }
 
+    public void clearBlock() {
+    }
+
     /**
      * Add a TAG to this Block. It is useful for Bundle processing.
      *

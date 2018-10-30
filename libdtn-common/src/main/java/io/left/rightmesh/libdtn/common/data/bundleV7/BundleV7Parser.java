@@ -88,7 +88,7 @@ public class BundleV7Parser {
                         logger.v(TAG, "-> primary block parsed");
                         bundle = item.b;
                     })
-                    .cbor_parse_array_items(() -> new CanonicalBlockItem(factory), (__, ___, item) -> {
+                    .cbor_parse_array_items(CanonicalBlockItem::new, (__, ___, item) -> {
                         logger.v(TAG, "-> canonical block parsed");
                         bundle.addBlock(item.block);
                     });
@@ -185,15 +185,6 @@ public class BundleV7Parser {
 
         public CanonicalBlock block;
         CborParser payload;
-        BLOBFactory factory;
-
-        CanonicalBlockItem() {
-            this.factory = ByteBufferBLOB::new;
-        }
-
-        CanonicalBlockItem(BLOBFactory factory) {
-            this.factory = factory;
-        }
 
         @Override
         public CborParser getItemParser() {
@@ -290,29 +281,29 @@ public class BundleV7Parser {
         CborParser blobBlock = CBOR.parser()
                 .cbor_parse_byte_string(
                         (__, ___, size) -> {
+                            logger.v(TAG, ".. blob_byte_string_size="+size);
                             try {
-                                if (size >= 0) {
-                                    ((BlockBLOB) block).data = factory.createBLOB((int) size);
-                                } else {
-                                    // indefinite length BLOB
-                                    ((BlockBLOB) block).data = factory.createBLOB(2048); //todo change that
-                                }
+                                ((BlockBLOB) block).data = factory.createBLOB((int) size);
                             } catch (BLOBFactory.BLOBFactoryException sfe) {
+                                logger.v(TAG, ".. blob_create=NullBLOB");
                                 ((BlockBLOB) block).data = new NullBLOB();
                             }
                             wblob = ((BlockBLOB) block).data.getWritableBLOB();
                         },
                         (__, chunk) -> {
+                            logger.v(TAG, ".. blob_byte_chunk_size="+chunk.remaining());
                             if (wblob != null) {
                                 try {
                                     wblob.write(chunk);
                                 } catch (WritableBLOB.BLOBOverflowException | IOException io) {
+                                    logger.v(TAG, ".. blob_write_error="+io.getMessage());
                                     wblob.close();
                                     wblob = null;
                                 }
                             }
                         },
                         (__) -> {
+                            logger.v(TAG, ".. blob_byte_string_finish");
                             if (wblob != null) {
                                 wblob.close();
                             }

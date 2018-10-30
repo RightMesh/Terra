@@ -44,13 +44,6 @@ public interface CLAChannelSPI {
 
     /**
      * Receive the deserialized stream of Bundle from this Convergence Layer.
-     *
-     * @return Flowable of Bundle
-     */
-    Observable<Bundle> recvBundle();
-
-    /**
-     * Receive the deserialized stream of Bundle from this Convergence Layer.
      * Use the given factory to create BLOB
      *
      * @param blobFactory to store received blob

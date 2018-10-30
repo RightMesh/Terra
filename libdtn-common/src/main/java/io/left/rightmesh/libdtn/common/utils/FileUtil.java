@@ -13,7 +13,7 @@ public class FileUtil {
         if (f.exists() && f.canRead() && f.canWrite()) {
             return File.createTempFile(prefix, suffix, f);
         } else {
-            return null;
+            throw new IOException();
         }
     }
 

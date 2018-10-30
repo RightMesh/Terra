@@ -230,11 +230,6 @@ public class STCP implements ConvergenceLayerSPI {
         }
 
         @Override
-        public Observable<Bundle> recvBundle() {
-            return recvBundle(new BaseBLOBFactory().disablePersistent());
-        }
-
-        @Override
         public Observable<Bundle> recvBundle(BLOBFactory blobFactory) {
             if (initiator) {
                 return Observable.create(s ->

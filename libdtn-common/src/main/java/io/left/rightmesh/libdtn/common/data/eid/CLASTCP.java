@@ -79,7 +79,6 @@ public class CLASTCP extends CLA {
         }
         if (other instanceof CLASTCP) {
             CLASTCP o = (CLASTCP) other;
-            System.out.println(">> this="+this.getEIDString()+" other="+o.getEIDString());
             return (this.host.equals(o.host) && this.port == o.port);
         }
         return false;

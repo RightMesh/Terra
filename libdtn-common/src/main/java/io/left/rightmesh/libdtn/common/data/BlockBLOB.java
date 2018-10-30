@@ -33,6 +33,15 @@ public abstract class BlockBLOB extends CanonicalBlock {
         this.data = data;
     }
 
+    /**
+     * Clear the blob
+     */
+    @Override
+    public void clearBlock() {
+        super.clearBlock();
+        data.getWritableBLOB().clear();
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("BlockBLOB");

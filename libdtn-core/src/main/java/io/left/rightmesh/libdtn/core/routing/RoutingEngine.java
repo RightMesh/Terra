@@ -99,9 +99,11 @@ public class RoutingEngine implements RoutingAPI {
                 .subscribe(
                         (channel) -> {
                             RxBus.post(new ChannelOpened(channel));
-                            channel.recvBundle().ignoreElements().subscribe(
-                                    () -> RxBus.post(new ChannelClosed(channel)),
-                                    e -> RxBus.post(new ChannelClosed(channel)));
+                            channel.recvBundle(core.getStorage().getBlobFactory())
+                                    .ignoreElements()
+                                    .subscribe(
+                                            () -> RxBus.post(new ChannelClosed(channel)),
+                                            e -> RxBus.post(new ChannelClosed(channel)));
                         },
                         e -> {
                             /* ignore */

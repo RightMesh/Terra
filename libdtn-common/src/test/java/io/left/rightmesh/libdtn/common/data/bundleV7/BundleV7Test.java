@@ -14,16 +14,16 @@ import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.data.BlockHeader;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
+import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
-import io.left.rightmesh.libdtn.common.data.blob.ByteBufferBLOB;
 import io.left.rightmesh.libdtn.common.data.eid.DTN;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.PreviousNodeBlock;
 import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.common.data.ScopeControlHopLimitBlock;
 import io.left.rightmesh.libdtn.common.data.eid.IPN;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
+import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -46,7 +46,7 @@ public class BundleV7Test {
 
     public static Bundle testBundle1() {
         Bundle bundle = testBundle0();
-        bundle.addBlock(new PayloadBlock(new String(testPayload)));
+        bundle.addBlock(new PayloadBlock(testPayload));
         return bundle;
     }
 
@@ -122,7 +122,10 @@ public class BundleV7Test {
             CborEncoder enc = BundleV7Serializer.encode(bundle);
 
             // prepare parser
-            BundleV7Parser bundleParser = new BundleV7Parser(new NullLogger(), new BaseBLOBFactory().disablePersistent());
+            BundleV7Parser bundleParser = new BundleV7Parser(
+                    new NullLogger(),
+                    new BaseBLOBFactory().enableVolatile(100000).disablePersistent());
+
             CborParser p = bundleParser.createBundleParser(b -> {
                 res[0] = b;
             });
@@ -163,9 +166,7 @@ public class BundleV7Test {
                     });
 
             assertEquals(true, payload[0] != null);
-            if (payload[0] != null) {
-                assertEquals(testPayload, payload[0]);
-            }
+            assertEquals(testPayload, payload[0]);
         }
     }
 

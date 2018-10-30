@@ -3,6 +3,7 @@ package io.left.rightmesh.module.core.http;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
+import io.left.rightmesh.libdtn.common.data.blob.UntrackedByteBufferBLOB;
 import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
@@ -111,7 +112,7 @@ public class RequestBundle {
 
         try {
             final Bundle bundle = createBundleSkeletonFromHTTPHeaders(destEID, reportToEID, lifetime);
-            final ByteBufferBLOB blob = new ByteBufferBLOB((int) req.getContentLength());
+            final UntrackedByteBufferBLOB blob = new UntrackedByteBufferBLOB((int) req.getContentLength());
             return req.getContent()
                     .reduce(blob.getWritableBLOB(), (wblob, buff) -> {
                         try {

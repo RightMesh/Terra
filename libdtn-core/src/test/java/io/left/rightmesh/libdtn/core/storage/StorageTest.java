@@ -1,5 +1,7 @@
 package io.left.rightmesh.libdtn.core.storage;
 
+import org.junit.Test;
+
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
@@ -27,6 +29,7 @@ public class StorageTest {
     public static final AtomicReference<CountDownLatch> waitLock = new AtomicReference<>(new CountDownLatch(1));
     private Storage storage;
 
+    @Test
     public void testStoreBundleBothStorage() {
         synchronized (lock) {
             System.out.println("[+] Meta Storage ");
