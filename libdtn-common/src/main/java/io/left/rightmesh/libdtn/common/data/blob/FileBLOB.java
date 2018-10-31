@@ -1,5 +1,7 @@
 package io.left.rightmesh.libdtn.common.data.blob;
 
+import io.left.rightmesh.libdtn.common.data.Tag;
+import io.reactivex.Completable;
 import io.reactivex.Flowable;
 
 import java.io.BufferedInputStream;
@@ -13,6 +15,11 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.NonReadableChannelException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 /**
  * FileBLOB holds a BLOB in a file saved in persistent storage. Useful for large BLOB that can't
@@ -20,13 +27,18 @@ import java.nio.channels.NonReadableChannelException;
  *
  * @author Lucien Loiseau on 26/07/18.
  */
-public class FileBLOB implements BLOB {
+public class FileBLOB extends Tag implements BLOB {
 
     private static final int BUFFER_SIZE = 4096;
     private File file;
 
+    public String getPathToBLOB() {
+        return file.getAbsolutePath();
+    }
+
     /**
-     * Constructor: creates a CoreBLOBFactory from a path. It will open the file and check for existence.
+     * Constructor: creates a BLOB from a path. It will open the file and check for existence.
+     * note that the file must be created beforehand!
      *
      * @param absolutePath to file
      * @throws IOException if the file cannot be accessed
@@ -39,7 +51,7 @@ public class FileBLOB implements BLOB {
     }
 
     /**
-     * Constructor: creates a CoreBLOBFactory out of an already created file.
+     * Constructor: creates a BLOB out of an already created file.
      *
      * @param file to file
      * @throws IOException if the file cannot be accessed
@@ -51,7 +63,8 @@ public class FileBLOB implements BLOB {
         }
     }
 
-    public String getAbsolutePath() {
+    @Override
+    public String getFilePath() {
         return file.getAbsolutePath();
     }
 
@@ -258,18 +271,27 @@ public class FileBLOB implements BLOB {
         };
     }
 
-    /**
-     * Tries to move the file embedded in this FileBLOB to the destination file. It is useful if
-     * a bundle needs to be put in storage and the payload BLOB is already a FileBLOB, by moving it
-     * we avoid the entire read/write of the file that can be quite large.
-     *
-     * @param destinationPath path to destination
-     * @throws IOException if we can't access the source file or if it is busy reading or writing.
-     */
-    public void moveTo(String destinationPath) throws IOException {
-        if (!file.exists()) {
-            throw new IOException("Can't access file: " + this.file);
-        }
-        //Files.move(file, destinationPath, REPLACE_EXISTING);
+    @Override
+    public boolean isFileBLOB() {
+        return true;
+    }
+
+    @Override
+    public Completable moveToFile(String newLocation) {
+        return Completable.create(s -> {
+            try {
+                Path sourcePath = Paths.get(file.getAbsolutePath());
+                Path destinationPath = Paths.get(newLocation);
+                Files.move(sourcePath, destinationPath, REPLACE_EXISTING);
+                file = new File(newLocation);
+                if (!file.exists()) {
+                    s.onError(new IOException("Can't access file: " + newLocation));
+                } else {
+                    s.onComplete();
+                }
+            } catch(IOException io) {
+                s.onError(io);
+            }
+        });
     }
 }

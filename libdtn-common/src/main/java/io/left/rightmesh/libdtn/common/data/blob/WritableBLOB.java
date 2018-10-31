@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 /**
- * DTNInterface to write data to a BaseBLOB.
+ * DTNInterface to write data to a VolatileBLOB.
  *
  * @author Lucien Loiseau on 30/07/18.
  */
@@ -15,60 +15,60 @@ public interface WritableBLOB {
     }
 
     /**
-     * Clear the current BaseBLOB.
+     * Clear the current VolatileBLOB.
      */
     void clear();
 
     /**
-     * Read size bytes from the InputStream and store it in the BaseBLOB. Note that there is a natural
+     * Read size bytes from the InputStream and store it in the VolatileBLOB. Note that there is a natural
      * limit to the size of a BLOB because we can read up to {@link Integer#MAX_VALUE} bytes.
      *
      * @param stream read the data from
      * @return int number of bytes read
      * @throws IOException if low-level reading the data or writing to the blob failed
-     * @throws BLOBOverflowException if write size exceed BaseBLOB capacity
+     * @throws BLOBOverflowException if write size exceed VolatileBLOB capacity
      */
     int write(InputStream stream) throws IOException, BLOBOverflowException;
 
     /**
-     * Read size bytes from the InputStream and store it in the BaseBLOB. Note that there is a natural
-     * limit to the size of a BaseBLOB because we can read up to {@link Integer#MAX_VALUE} bytes.
+     * Read size bytes from the InputStream and store it in the VolatileBLOB. Note that there is a natural
+     * limit to the size of a VolatileBLOB because we can read up to {@link Integer#MAX_VALUE} bytes.
      *
      * @param stream read the data from
      * @param size   of the data to read
      * @return int number of byte read
      * @throws IOException if low-level reading the data or writing to the blob failed
-     * @throws BLOBOverflowException if write size exceed BaseBLOB capacity
+     * @throws BLOBOverflowException if write size exceed VolatileBLOB capacity
      */
     int write(InputStream stream, int size) throws IOException, BLOBOverflowException;
 
     /**
-     * copy one byte to the BaseBLOB.
+     * copy one byte to the VolatileBLOB.
      *
      * @param b the byte
      * @return 1
      * @throws IOException if low-level reading the data or writing to the blob failed
-     * @throws BLOBOverflowException if write size exceed BaseBLOB capacity
+     * @throws BLOBOverflowException if write size exceed VolatileBLOB capacity
      */
     int write(byte b) throws IOException, BLOBOverflowException;
 
     /**
-     * read all the bytes from the array and copy them to the BaseBLOB.
+     * read all the bytes from the array and copy them to the VolatileBLOB.
      *
-     * @param a the byte array to write to the BaseBLOB
+     * @param a the byte array to write to the VolatileBLOB
      * @return number of bytes read
      * @throws IOException if low-level reading the data or writing to the blob failed
-     * @throws BLOBOverflowException if write size exceed BaseBLOB capacity
+     * @throws BLOBOverflowException if write size exceed VolatileBLOB capacity
      */
     int write(byte[] a) throws IOException, BLOBOverflowException;
 
     /**
-     * read all the bytes from the ByteBuffer and copy them to the BaseBLOB.
+     * read all the bytes from the ByteBuffer and copy them to the VolatileBLOB.
      *
-     * @param buffer the bytebyffer to write to the BaseBLOB
+     * @param buffer the bytebyffer to write to the VolatileBLOB
      * @return number of bytes read
      * @throws IOException if low-level reading the data or writing to the blob failed
-     * @throws BLOBOverflowException if write size exceed BaseBLOB capacity
+     * @throws BLOBOverflowException if write size exceed VolatileBLOB capacity
      */
     int write(ByteBuffer buffer) throws IOException, BLOBOverflowException;
 

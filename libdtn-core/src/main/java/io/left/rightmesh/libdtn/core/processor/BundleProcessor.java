@@ -279,6 +279,7 @@ public class BundleProcessor implements BundleProcessorAPI {
                     },
                     storageFailure -> {
                         /* abandon delivery */
+                        core.getLogger().w(TAG, "storage failure: "+storageFailure.getMessage());
                         bundleDeletion(bundle);
                     }
             );
@@ -311,12 +312,11 @@ public class BundleProcessor implements BundleProcessorAPI {
 
     /* 5.11 */
     public void bundleDiscarding(Bundle bundle) {
-        core.getLogger().i(TAG, "discarding bundle: " + bundle.bid.getBIDString());
+        //core.getLogger().i(TAG, "discarding bundle: " + bundle.bid.getBIDString());
         core.getStorage().remove(bundle.bid).subscribe(
-                () -> {
-                },
+                bundle::clearBundle,
                 e -> {
-                    bundle.getPayloadBlock().data.getWritableBLOB().clear();
+                    bundle.clearBundle();
                 }
         );
     }

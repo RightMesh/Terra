@@ -1,5 +1,8 @@
 package io.left.rightmesh.terra;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import io.left.rightmesh.libdtn.common.utils.Log;
@@ -10,6 +13,8 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_AA_MODULES;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_CLA_MODULES;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_CORE_MODULES;
@@ -17,6 +22,12 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.LOG_L
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_AA_PATH;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_CLA_PATH;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_CORE_PATH;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.SIMPLE_STORAGE_PATH;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.VOLATILE_BLOB_STORAGE_MAX_CAPACITY;
+import static io.left.rightmesh.terra.Terra.StorageOption.BOTH;
+import static io.left.rightmesh.terra.Terra.StorageOption.NONE;
+import static io.left.rightmesh.terra.Terra.StorageOption.SIMPLE;
+import static io.left.rightmesh.terra.Terra.StorageOption.VOLATILE;
 
 @Command(
         name = "terra", mixinStandardHelpOptions = true, version = "terra 1.0",
@@ -47,11 +58,22 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODUL
         //descriptionHeading = "@|bold %nDescription|@:%n",
         description = {
                 "",
-                "Terra is a full node DTN implementation for Terrestrial DTN", },
+                "Terra is a full node DTN implementation for Terrestrial DTN",},
         optionListHeading = "@|bold %nOptions|@:%n",
         footer = {
                 ""})
 public class Terra implements Callable<Void> {
+
+    enum StorageOption {NONE, VOLATILE, SIMPLE, BOTH}
+
+    @Option(names = {"-s", "--storage"}, description = "storage values: ${COMPLETION-CANDIDATES}")
+    StorageOption storage = NONE;
+
+    @Option(names = {"-P", "--simple-path"}, description = "simple storage directory")
+    String simplePath = "./";
+
+    @Option(names = {"-L", "--volatile-limit"}, description = "volatile storage size limit")
+    int volatileLimit = 1000000;
 
     @Option(names = {"-d", "--daemon"}, description = "Start Terra as a daemon.")
     private boolean daemon;
@@ -71,6 +93,18 @@ public class Terra implements Callable<Void> {
     @Override
     public Void call() throws Exception {
         DTNConfiguration conf = new DTNConfiguration();
+        conf.get(COMPONENT_ENABLE_VOLATILE_STORAGE).update(storage.equals(VOLATILE) || storage.equals(BOTH));
+        if (storage.equals(VOLATILE) || storage.equals(BOTH)) {
+            conf.get(VOLATILE_BLOB_STORAGE_MAX_CAPACITY).update(volatileLimit);
+        }
+
+        conf.get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(storage.equals(SIMPLE) || storage.equals(BOTH));
+        if (storage.equals(SIMPLE) || storage.equals(BOTH)) {
+            Set<String> paths = new HashSet<>();
+            paths.add(simplePath);
+            conf.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
+        }
+
         conf.get(ENABLE_CLA_MODULES).update(true);
         conf.get(MODULES_CLA_PATH).update(claModuleDirectory);
         conf.get(ENABLE_AA_MODULES).update(true);
@@ -78,7 +112,7 @@ public class Terra implements Callable<Void> {
         conf.get(ENABLE_CORE_MODULES).update(true);
         conf.get(MODULES_CORE_PATH).update(coreModuleDirectory);
 
-        if(verbose) {
+        if (verbose) {
             conf.get(LOG_LEVEL).update(Log.LOGLevel.VERBOSE);
         } else {
             conf.get(LOG_LEVEL).update(Log.LOGLevel.INFO);

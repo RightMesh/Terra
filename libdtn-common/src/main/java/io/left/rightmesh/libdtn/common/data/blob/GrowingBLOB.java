@@ -11,7 +11,7 @@ import io.reactivex.Flowable;
 /**
  * @author Lucien Loiseau on 29/10/18.
  */
-public class GrowingBLOB implements BLOB {
+public class GrowingBLOB extends VolatileBLOB {
 
     private static final int CHUNK_SIZE = 2048;
 

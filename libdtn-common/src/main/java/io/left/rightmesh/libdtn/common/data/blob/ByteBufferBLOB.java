@@ -12,7 +12,7 @@ import io.reactivex.Flowable;
 /**
  * @author Lucien Loiseau on 20/09/18.
  */
-public class ByteBufferBLOB implements BLOB {
+public class ByteBufferBLOB extends VolatileBLOB {
 
     private VolatileMemory memory;
     private ByteBuffer data;
@@ -62,7 +62,7 @@ public class ByteBufferBLOB implements BLOB {
             public void read(OutputStream stream) throws IOException {
                 ByteBuffer dup = data.duplicate();
                 dup.reset();
-                while(dup.hasRemaining()) {
+                while (dup.hasRemaining()) {
                     stream.write(data.get());
                 }
             }
@@ -121,7 +121,7 @@ public class ByteBufferBLOB implements BLOB {
                 int b;
                 while (read > 0) {
                     if ((b = stream.read()) == -1) {
-                        return (size-read);
+                        return (size - read);
                     }
                     data.put((byte) b);
                     read--;
@@ -150,4 +150,5 @@ public class ByteBufferBLOB implements BLOB {
             }
         };
     }
+
 }

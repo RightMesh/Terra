@@ -5,17 +5,16 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
+import io.reactivex.Completable;
 import io.reactivex.Flowable;
 
 /**
  * @author Lucien Loiseau on 29/10/18.
  */
-public class VersatileBLOB implements BLOB {
+public class VersatileBLOB extends VolatileBLOB {
 
     private BLOB volatileBLOB;
     private BLOB fileBLOB;
-
-    private int total_size;
 
     VersatileBLOB(BLOB volatileBLOB, BLOB fileBLOB) {
         this.volatileBLOB = volatileBLOB;
@@ -24,7 +23,7 @@ public class VersatileBLOB implements BLOB {
 
     @Override
     public long size() {
-        return total_size;
+        return volatileBLOB.size() + fileBLOB.size();
     }
 
     @Override
@@ -142,5 +141,27 @@ public class VersatileBLOB implements BLOB {
     @Override
     public WritableBLOB getWritableBLOB() {
         return new VersatileWritableBLOB();
+    }
+
+    @Override
+    public boolean isFileBLOB() {
+        return (volatileBLOB instanceof ZeroBLOB && fileBLOB instanceof FileBLOB);
+    }
+
+    @Override
+    public String getFilePath() throws NotFileBLOB {
+        if(isFileBLOB()) {
+            return fileBLOB.getFilePath();
+        }
+        throw new NotFileBLOB();
+    }
+
+    @Override
+    public Completable moveToFile(String path) {
+        if(isFileBLOB()) {
+            return fileBLOB.moveToFile(path);
+        } else {
+            return super.moveToFile(path);
+        }
     }
 }

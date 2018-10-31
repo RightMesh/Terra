@@ -14,7 +14,7 @@ import io.reactivex.Flowable;
  *
  * @author Lucien Loiseau on 30/10/18.
  */
-public class UntrackedByteBufferBLOB implements BLOB {
+public class UntrackedByteBufferBLOB extends VolatileBLOB {
 
     private ByteBuffer data;
 
@@ -117,7 +117,7 @@ public class UntrackedByteBufferBLOB implements BLOB {
                 int b;
                 while (read > 0) {
                     if ((b = stream.read()) == -1) {
-                        return (size-read);
+                        return (size - read);
                     }
                     data.put((byte) b);
                     read--;

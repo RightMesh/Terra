@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
+import io.left.rightmesh.libdtn.common.data.Tag;
+import io.reactivex.Completable;
 import io.reactivex.Flowable;
 
 /**
@@ -14,7 +16,7 @@ import io.reactivex.Flowable;
  *
  * @author Lucien Loiseau on 30/10/18.
  */
-public class ZeroBLOB implements BLOB {
+public class ZeroBLOB extends Tag implements BLOB {
 
     public ZeroBLOB() {
     }
@@ -86,5 +88,20 @@ public class ZeroBLOB implements BLOB {
     @Override
     public WritableBLOB getWritableBLOB() {
         return new ZeroWritableBLOB();
+    }
+
+    @Override
+    public boolean isFileBLOB() {
+        return false;
+    }
+
+    @Override
+    public String getFilePath() throws NotFileBLOB {
+        throw new NotFileBLOB();
+    }
+
+    @Override
+    public Completable moveToFile(String path) {
+        return Completable.complete();
     }
 }

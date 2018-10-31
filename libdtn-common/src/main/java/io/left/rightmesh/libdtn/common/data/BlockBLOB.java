@@ -34,7 +34,7 @@ public abstract class BlockBLOB extends CanonicalBlock {
     }
 
     /**
-     * Clear the blob
+     * Clear the blob unless it is tagged not so
      */
     @Override
     public void clearBlock() {

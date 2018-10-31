@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.Set;
@@ -19,7 +18,6 @@ import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
-import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
@@ -70,6 +68,7 @@ public class SimpleStorage extends BaseComponent {
 
     private static final String TAG = "SimpleStorage";
 
+    private static final String TMP_FOLDER = File.separator + "tmp" + File.separator;
     private static final String BLOB_FOLDER = File.separator + "blob" + File.separator;
     private static final String BUNDLE_FOLDER = File.separator + "bundle" + File.separator;
 
@@ -147,8 +146,12 @@ public class SimpleStorage extends BaseComponent {
         if (!storage_paths.contains(path)) {
             File f = new File(path);
             if (f.exists() && f.canRead() && f.canWrite()) {
+                File ftmp = new File(path + TMP_FOLDER);
                 File fblob = new File(path + BLOB_FOLDER);
                 File fbundle = new File(path + BUNDLE_FOLDER);
+                if (!ftmp.exists() && !ftmp.mkdir()) {
+                    return false;
+                }
                 if (!fblob.exists() && !fblob.mkdir()) {
                     return false;
                 }
@@ -231,9 +234,7 @@ public class SimpleStorage extends BaseComponent {
             if (spaceLeft(path + BLOB_FOLDER) > expectedSize) {
                 try {
                     File fblob = createNewFile("blob-", ".blob", path + BLOB_FOLDER);
-                    if (fblob != null) {
-                        return new FileBLOB(fblob);
-                    }
+                    return new FileBLOB(fblob);
                 } catch (IOException io) {
                     // ignore and try next path
                 }
@@ -269,15 +270,13 @@ public class SimpleStorage extends BaseComponent {
         throw new StorageFullException();
     }
 
-    private File createBundleEntry(BundleID bid, long expectedSize) throws StorageFullException {
+    private File createBundleFile(BundleID bid, long expectedSize) throws StorageFullException {
         for (String path : storage_paths) {
             if (spaceLeft(path + BUNDLE_FOLDER) > expectedSize) {
                 try {
                     String safeBID = bid.getBIDString().replaceAll("/", "_");
                     File fbundle = createNewFile("bundle-", ".bundle", path + BUNDLE_FOLDER);
-                    if (fbundle != null) {
-                        return fbundle;
-                    }
+                    return fbundle;
                 } catch (IOException io) {
                     System.out.println("IOException createNewFile: " + io.getMessage() + " : " + path + BUNDLE_FOLDER + "bid=" + bid.getBIDString() + ".bundle");
                 }
@@ -308,17 +307,16 @@ public class SimpleStorage extends BaseComponent {
                     boolean has_blob = false;
                     String blob_path = "";
                     BLOB blob = new NullBLOB();
-                    if (bundle.getPayloadBlock().data instanceof FileBLOB) {
+                    if (bundle.getPayloadBlock().data.isFileBLOB()) {
                         blob = bundle.getPayloadBlock().data;
                         has_blob = true;
-                        blob_path = ((FileBLOB) blob).getAbsolutePath();
+                        blob_path = blob.getFilePath();
 
-                        /* momentarily remove the blob from bundle for serialization */
+                        /* temporary remove the blob from bundle for serialization */
                         bundle.getPayloadBlock().data = new NullBLOB();
                     }
 
-                    /* prepare bundle encoder and metabundle */
-                    CborEncoder bundleEncoder = BundleV7Serializer.encode(bundle);
+                    /* prepare metabundle */
                     final MetaBundle meta = new MetaBundle(bundle);
 
                     /*
@@ -326,11 +324,11 @@ public class SimpleStorage extends BaseComponent {
                      * two item, the file header and the bundle
                      */
                     CborEncoder enc = CBOR.encoder()
-                            .cbor_start_array(2)  /* File = header + bundle */
-                            .cbor_start_array(2)  /* File Header */
+                            .cbor_start_array(2)  /* File = {header , bundle} */
+                            .cbor_start_array(2)  /* File Header = { boolean, String }*/
                             .cbor_encode_boolean(has_blob)
                             .cbor_encode_text_string(blob_path)
-                            .merge(bundleEncoder); /* bundle */
+                            .merge(BundleV7Serializer.encode(bundle)); /* bundle */
 
                     /* assess file size */
                     AtomicLong size = new AtomicLong();
@@ -343,7 +341,7 @@ public class SimpleStorage extends BaseComponent {
                     /* create file */
                     File fbundle;
                     try {
-                        fbundle = createBundleEntry(bundle.bid, size.get());
+                        fbundle = createBundleFile(bundle.bid, size.get());
                     } catch (StorageFullException sfe) {
                         if (has_blob) {
                             bundle.getPayloadBlock().data = blob;
@@ -382,13 +380,8 @@ public class SimpleStorage extends BaseComponent {
                                 }
                             });
 
-                    /**
-                     * we put the CoreBLOBFactory back into the data of the bundle. It is technically
-                     * unnecessary as any the reference to this Bundle will use the MetaBundle that
-                     * we are returning and so the actual bundle reference shall normally be lost
-                     * and garbage collected
-                     */
-                    if (has_blob) {
+                    /* post-serialization: we put back the blob into the bundle */
+                    if(has_blob) {
                         bundle.getPayloadBlock().data = blob;
                     }
 
@@ -486,7 +479,7 @@ public class SimpleStorage extends BaseComponent {
             } else {
                 s.onError(new Throwable("can't retrieve bundle from file"));
             }
-        }); //todo .subscribeOn(Schedulers.io());
+        }).subscribeOn(Schedulers.io());
     }
 
     /**
