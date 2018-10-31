@@ -6,8 +6,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.Callable;
 
+import io.left.rightmesh.libdtn.common.data.BlockHeader;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
+import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
@@ -54,6 +56,12 @@ public class DTNcat implements Callable<Void> {
     @CommandLine.Option(names = {"-D", "--destination"},  description = "Destination Endpoint-ID (EID)")
     private String deid;
 
+    @CommandLine.Option(names = {"--crc-16"},  description = "use CRC-16")
+    private boolean crc16 = false;
+
+    @CommandLine.Option(names = {"--crc-32"},  description = "use CRC-32")
+    private boolean crc32 = false;
+
     private LdcpApplicationAgent agent;
     private BLOBFactory factory;
 
@@ -69,6 +77,16 @@ public class DTNcat implements Callable<Void> {
         wb.write(isr);
         wb.close();
         bundle.addBlock(new PayloadBlock(blob));
+
+        if(crc16) {
+            bundle.crcType = PrimaryBlock.CRCFieldType.CRC_16;
+            bundle.getPayloadBlock().crcType = BlockHeader.CRCFieldType.CRC_16;
+        }
+        if(crc32) {
+            bundle.crcType = PrimaryBlock.CRCFieldType.CRC_32;
+            bundle.getPayloadBlock().crcType = BlockHeader.CRCFieldType.CRC_32;
+        }
+
         return bundle;
     }
 

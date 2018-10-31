@@ -15,8 +15,11 @@ import picocli.CommandLine.Option;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_AA_MODULES;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_AUTO_CONNECT_FOR_BUNDLE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_CLA_MODULES;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_CORE_MODULES;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_FORWARDING;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.LOG_LEVEL;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_AA_PATH;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_CLA_PATH;
@@ -86,8 +89,17 @@ public class Terra implements Callable<Void> {
     @Option(names = {"-c", "--module-core-path"}, description = "set the path to the Core modules.")
     private String coreModuleDirectory;
 
-    @Option(names = {"-v", "--verbose"}, description = "set the log level to debug.")
-    private boolean verbose = false;
+    @Option(names = {"-v", "--verbose"}, description = "set the log level to debug (-v -vv -vvv).")
+    private boolean[] verbose = new boolean[0];
+
+    @Option(names = {"--disable-forwarding"}, description = "do not forward bundle that are not local.")
+    private boolean disableForwarding = false;
+
+    @Option(names = {"--disable-eid-autoconnect"}, description = "do not try to create opportunity when dispatching bundles.")
+    private boolean disableEidAutoconnect = false;
+
+    @Option(names = {"--disable-peer-autoconnect"}, description = "do not try to create opportunity with detected peers.")
+    private boolean disablePeerAutoconnect = false;
 
     @Override
     public Void call() throws Exception {
@@ -104,6 +116,10 @@ public class Terra implements Callable<Void> {
             conf.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
         }
 
+        conf.get(ENABLE_FORWARDING).update(!disableForwarding);
+        conf.get(ENABLE_AUTO_CONNECT_FOR_BUNDLE).update(!disableEidAutoconnect);
+        conf.get(ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT).update(!disablePeerAutoconnect);
+
         conf.get(ENABLE_CLA_MODULES).update(true);
         conf.get(MODULES_CLA_PATH).update(claModuleDirectory);
         conf.get(ENABLE_AA_MODULES).update(true);
@@ -111,10 +127,18 @@ public class Terra implements Callable<Void> {
         conf.get(ENABLE_CORE_MODULES).update(true);
         conf.get(MODULES_CORE_PATH).update(coreModuleDirectory);
 
-        if (verbose) {
-            conf.get(LOG_LEVEL).update(Log.LOGLevel.VERBOSE);
-        } else {
-            conf.get(LOG_LEVEL).update(Log.LOGLevel.INFO);
+        switch(verbose.length) {
+            case 0:
+                conf.get(LOG_LEVEL).update(Log.LOGLevel.WARN);
+                break;
+            case 1:
+                conf.get(LOG_LEVEL).update(Log.LOGLevel.INFO);
+                break;
+            case 2:
+                conf.get(LOG_LEVEL).update(Log.LOGLevel.DEBUG);
+                break;
+            default:
+                conf.get(LOG_LEVEL).update(Log.LOGLevel.VERBOSE);
         }
 
         conf.getModuleEnabled("stcp", true).update(true);
