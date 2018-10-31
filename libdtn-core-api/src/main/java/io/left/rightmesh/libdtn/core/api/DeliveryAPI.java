@@ -11,7 +11,6 @@ public interface DeliveryAPI {
     class DeliveryDisabled extends Exception {
     }
 
-
     class PassiveRegistration extends Exception {
     }
 

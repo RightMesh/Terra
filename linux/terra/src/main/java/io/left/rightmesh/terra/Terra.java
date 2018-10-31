@@ -1,6 +1,5 @@
 package io.left.rightmesh.terra;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -67,13 +66,13 @@ public class Terra implements Callable<Void> {
     enum StorageOption {NONE, VOLATILE, SIMPLE, BOTH}
 
     @Option(names = {"-s", "--storage"}, description = "storage values: ${COMPLETION-CANDIDATES}")
-    StorageOption storage = NONE;
+    private StorageOption storage = NONE;
 
     @Option(names = {"-P", "--simple-path"}, description = "simple storage directory")
-    String simplePath = "./";
+    private String simplePath = "./";
 
     @Option(names = {"-L", "--volatile-limit"}, description = "volatile storage size limit")
-    int volatileLimit = 1000000;
+    private int volatileLimit = 1000000;
 
     @Option(names = {"-d", "--daemon"}, description = "Start Terra as a daemon.")
     private boolean daemon;
