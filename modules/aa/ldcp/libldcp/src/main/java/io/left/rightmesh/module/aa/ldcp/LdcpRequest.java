@@ -52,7 +52,7 @@ public class LdcpRequest {
         return Single.create(s -> new RxTCP.ConnectionRequest<>(host, port)
                 .connect()
                 .subscribe(
-                        c -> c.order(requestMessage.encode()).observe().ignoreElements().subscribe(
+                        c -> c.order(requestMessage.encode()).track().ignoreElements().subscribe(
                                 () -> c.recv().subscribe(
                                         buf -> {
                                             CborParser parser = ResponseMessage.getParser(logger, factory);

@@ -77,15 +77,6 @@ public class FileBLOB extends Tag implements BLOB {
         }
     }
 
-    private static class State {
-        FileInputStream left;
-        ByteBuffer right;
-        State(FileInputStream left, ByteBuffer right) {
-            this.left = left;
-            this.right = right;
-        }
-    }
-
     @Override
     public Flowable<ByteBuffer> observe() {
         return Flowable.generate(
@@ -93,32 +84,32 @@ public class FileBLOB extends Tag implements BLOB {
                     if (!file.exists()) {
                         return null;
                     }
-                    FileInputStream fis = new FileInputStream(file);
-                    return new State(fis, ByteBuffer.allocate(2048));
+                    return new FileInputStream(file).getChannel();
                 },
-                (state, emitter) -> {
-                    if (state == null) {
+                (channel, emitter) -> {
+                    if (channel == null) {
                         emitter.onError(new Throwable("couldn't open File CoreBLOBFactory"));
-                        return state;
+                        return null;
                     }
 
                     try {
-                        FileChannel channel = state.left.getChannel();
-                        ByteBuffer buffer = state.right;
+                        ByteBuffer buffer = ByteBuffer.allocate(2048);
                         buffer.clear();
                         if (channel.read(buffer) == -1) {
                             emitter.onComplete();
-                            state.left.close();
+                            channel.close();
                         } else {
                             buffer.flip();
                             emitter.onNext(buffer);
+                            return channel;
                         }
                     } catch (NonReadableChannelException  | IOException io) {
                         emitter.onError(io);
-                        state.left.close();
+                        channel.close();
                     }
-                    return state;
-                });
+                    return channel;
+                },
+                (channel) -> channel.close());
     }
 
     @Override

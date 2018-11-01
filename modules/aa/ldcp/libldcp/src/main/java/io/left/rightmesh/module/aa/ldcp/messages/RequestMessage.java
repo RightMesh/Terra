@@ -70,7 +70,7 @@ public class RequestMessage {
 
             enc.cbor_encode_text_string(body);
 
-            return enc.observe();
+            return enc.observe(1024);
         } catch (CBOR.CborEncodingUnknown ceu) {
             return Flowable.error(ceu);
         }

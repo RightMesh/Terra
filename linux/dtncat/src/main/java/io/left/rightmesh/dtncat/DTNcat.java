@@ -13,8 +13,6 @@ import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
-import io.left.rightmesh.libdtn.common.data.blob.ByteBufferBLOB;
-import io.left.rightmesh.libdtn.common.data.blob.GrowingBLOB;
 import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.module.aa.ldcp.ActiveLdcpRegistrationCallback;
@@ -68,7 +66,7 @@ public class DTNcat implements Callable<Void> {
     private Bundle createBundleFromSTDIN(Bundle bundle) throws IOException, WritableBLOB.BLOBOverflowException {
         BLOB blob;
         try {
-            blob = factory.createBLOB(-1);
+            blob = factory.createBLOB(1000000);
         } catch(BLOBFactory.BLOBFactoryException boe) {
             throw new WritableBLOB.BLOBOverflowException();
         }
@@ -163,7 +161,7 @@ public class DTNcat implements Callable<Void> {
 
     @Override
     public Void call() throws Exception {
-        factory = new BaseBLOBFactory().enableVolatile(1000000).enablePersistent("./");
+        factory = new BaseBLOBFactory().enablePersistent("./");
         if(sink != null) {
             listenBundle();
         } else {

@@ -166,8 +166,7 @@ public class STCP implements ConvergenceLayerSPI {
             }
 
             ConnectionAPI.TrackOrder handle = tcpcon.order(job);
-            return handle.observe();
-            //}
+            return handle.track();
         }
 
 

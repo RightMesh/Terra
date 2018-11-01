@@ -74,7 +74,6 @@ public class DTNCore implements CoreAPI {
         RxBus.register(core);
         core.storage = new Storage(core.conf, core.logger);
 
-
         /* modules */
         core.moduleLoader = new ModuleLoader(core);
 
@@ -141,7 +140,6 @@ public class DTNCore implements CoreAPI {
     public CLAManager getClaManager() {
         return claManager;
     }
-
 
     @Subscribe( thread = RxThread.IO )
     public void onEvent(BundleIndexed event) {
