@@ -81,7 +81,7 @@ public class BaseBLOBFactory implements BLOBFactory {
     public BLOB createBLOB(int expectedSize) throws BLOBFactoryException {
         if(expectedSize < 0) {
             // indefinite size BLOB
-            return createBLOB();
+            return createGrowingBLOB();
         }
 
         try {
@@ -101,47 +101,8 @@ public class BaseBLOBFactory implements BLOBFactory {
 
     // ----- indefinite size blob -------
 
-    public BLOB createGrowingBLOB() throws BLOBFactoryException {
-        if (isVolatileEnabled()) {
-            try {
-                return new GrowingBLOB(memory);
-            } catch (IOException io) {
-                throw new BLOBFactoryException();
-            }
-        }
-        throw new BLOBFactoryException();
-    }
-
-
-    public BLOB createFileBLOB() throws BLOBFactoryException {
-        if (isPersistentEnabled()) {
-            try {
-                File fblob = createNewFile("blob-", ".blob", filePath);
-                return new FileBLOB(fblob);
-            } catch (IOException io) {
-                throw new BLOBFactoryException();
-            }
-        }
-        throw new BLOBFactoryException();
-    }
-
-    private BLOB createBLOB() throws BLOBFactoryException {
-        BLOB gblob;
-        BLOB fblob;
-
-        try {
-            gblob = createGrowingBLOB();
-        } catch(BLOBFactoryException bfe) {
-            gblob = new ZeroBLOB();
-        }
-
-        try {
-            fblob = createFileBLOB();
-        } catch(BLOBFactoryException bfe) {
-            fblob = new ZeroBLOB();
-        }
-
-        return new VersatileBLOB(gblob, fblob);
+    private BLOB createGrowingBLOB() throws BLOBFactoryException {
+        return new VersatileGrowingBuffer(this);
     }
 
 }

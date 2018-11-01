@@ -14,7 +14,7 @@ import io.left.rightmesh.module.aa.ldcp.messages.ResponseMessage;
  */
 public class LdcpServer {
 
-    private static final String TAG = "LdcpServer";
+    private static final String TAG = "ldcp-server";
 
     RxTCP.Server<RxTCP.Connection> server;
 
@@ -37,6 +37,7 @@ public class LdcpServer {
                                     while (buf.hasRemaining() && !parser.isDone()) {
                                         if(parser.read(buf)) {
                                             RequestMessage req = parser.getReg(0);
+                                            logger.v(TAG, con.getRemoteHost()+" "+req.code.name()+" "+req.path);
                                             ResponseMessage res = new ResponseMessage();
                                             action.handle(req, res).subscribe(
                                                     () -> LdcpResponse

@@ -44,15 +44,6 @@ public class Storage implements StorageAPI {
         }
 
         @Override
-        public BLOB createFileBLOB() throws BLOBFactoryException {
-            try {
-                return simpleStorage.createBLOB();
-            } catch(StorageAPI.StorageException se) {
-                throw new BLOBFactoryException();
-            }
-        }
-
-        @Override
         public BLOB createFileBLOB(int expectedSize) throws BLOBFactoryException {
             try {
                 return simpleStorage.createBLOB(expectedSize);

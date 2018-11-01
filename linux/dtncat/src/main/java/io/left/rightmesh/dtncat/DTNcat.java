@@ -161,7 +161,7 @@ public class DTNcat implements Callable<Void> {
 
     @Override
     public Void call() throws Exception {
-        factory = new BaseBLOBFactory().enablePersistent("./");
+        factory = new BaseBLOBFactory().enableVolatile(1000000).enablePersistent("./");
         if(sink != null) {
             listenBundle();
         } else {

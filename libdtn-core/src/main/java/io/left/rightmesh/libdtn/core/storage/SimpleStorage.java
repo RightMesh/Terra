@@ -506,6 +506,7 @@ public class SimpleStorage extends BaseComponent {
             Storage.IndexEntry entry = metaStorage.index.get(id);
 
             File fbundle = new File(entry.bundle_path);
+            logger.v(TAG, "deleting "+id.getBIDString()+" bundle file: "+fbundle.getAbsolutePath());
             if (fbundle.exists() && !fbundle.canWrite()) {
                 error += "can't access bundle file for deletion";
             } else {
@@ -514,7 +515,8 @@ public class SimpleStorage extends BaseComponent {
 
             if (entry.has_blob) {
                 File fblob = new File(entry.blob_path);
-                if (fblob.exists() && !fbundle.canWrite()) {
+                logger.v(TAG, "deleting  "+id.getBIDString()+" blob file: "+fblob.getAbsolutePath());
+                if (fblob.exists() && !fblob.canWrite()) {
                     error += "can't access payload blob file for deletion";
                 } else {
                     fblob.delete();

@@ -10,10 +10,21 @@ import io.left.rightmesh.libdtn.common.utils.NullLogger;
 import io.left.rightmesh.module.aa.ldcp.messages.ResponseMessage;
 import io.reactivex.Single;
 
+import static io.left.rightmesh.module.aa.ldcp.Paths.DELIVER;
+import static io.left.rightmesh.module.aa.ldcp.Paths.DISPATCH;
+import static io.left.rightmesh.module.aa.ldcp.Paths.FETCHBUNDLE;
+import static io.left.rightmesh.module.aa.ldcp.Paths.GETBUNDLE;
+import static io.left.rightmesh.module.aa.ldcp.Paths.ISREGISTERED;
+import static io.left.rightmesh.module.aa.ldcp.Paths.REGISTER;
+import static io.left.rightmesh.module.aa.ldcp.Paths.UNREGISTER;
+import static io.left.rightmesh.module.aa.ldcp.Paths.UPDATE;
+
 /**
  * @author Lucien Loiseau on 25/10/18.
  */
 public class LdcpApplicationAgent implements LdcpAPI {
+
+    private static final String TAG = "ldcp-client";
 
     String host;
     int port;
@@ -41,7 +52,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
         server = new LdcpServer();
         server.start(0, factory,
                 Router.create()
-                        .POST("/deliver/",
+                        .POST(DELIVER,
                                 (req, res) -> cb.recv(req.bundle)
                                         .doOnComplete(() -> res.setCode(ResponseMessage.ResponseCode.OK))
                                         .doOnError(e -> res.setCode(ResponseMessage.ResponseCode.ERROR))));
@@ -58,7 +69,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
 
     @Override
     public Single<Boolean> isRegistered(String sink) {
-        return LdcpRequest.GET("/isregistered/")
+        return LdcpRequest.GET(ISREGISTERED)
                 .setHeader("sink", sink)
                 .send(host, port, factory, logger)
                 .map(res -> res.code == ResponseMessage.ResponseCode.OK);
@@ -72,7 +83,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
     @Override
     public Single<String> register(String sink, ActiveLdcpRegistrationCallback cb) {
         if (startServer(cb)) {
-            return LdcpRequest.POST("/register/")
+            return LdcpRequest.POST(REGISTER)
                     .setHeader("sink", sink)
                     .setHeader("active", cb == null ? "false" : "true")
                     .setHeader("active-host", "127.0.0.1")
@@ -94,7 +105,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
 
     @Override
     public Single<Boolean> unregister(String sink, String cookie) {
-        return LdcpRequest.POST("/unregister/")
+        return LdcpRequest.POST(UNREGISTER)
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
                 .send(host, port, factory, logger)
@@ -108,7 +119,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
 
     @Override
     public Single<Bundle> get(String sink, String cookie, BundleID bundleID) {
-        return LdcpRequest.GET("/get/bundle/")
+        return LdcpRequest.GET(GETBUNDLE)
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
                 .setHeader("bundle-id", bundleID.getBIDString())
@@ -126,7 +137,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
 
     @Override
     public Single<Bundle> fetch(String sink, String cookie, BundleID bundleID) {
-        return LdcpRequest.GET("/fetch/bundle/")
+        return LdcpRequest.GET(FETCHBUNDLE)
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
                 .setHeader("bundle-id", bundleID.getBIDString())
@@ -144,7 +155,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
 
     @Override
     public Single<Boolean> send(String sink, String cookie, Bundle bundle) {
-        return LdcpRequest.POST("/bundle/")
+        return LdcpRequest.POST(DISPATCH)
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
                 .setBundle(bundle)
@@ -154,7 +165,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
 
     @Override
     public Single<Boolean> send(Bundle bundle) {
-        return LdcpRequest.POST("/bundle/")
+        return LdcpRequest.POST(DISPATCH)
                 .setBundle(bundle)
                 .send(host, port, factory, logger)
                 .map(res -> res.code == ResponseMessage.ResponseCode.OK);
@@ -163,7 +174,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
     @Override
     public Single<Boolean> reAttach(String sink, String cookie, ActiveLdcpRegistrationCallback cb) {
         if (startServer(cb)) {
-            return LdcpRequest.POST("/register/update/")
+            return LdcpRequest.POST(UPDATE)
                     .setHeader("sink", sink)
                     .setHeader("cookie", cookie)
                     .setHeader("active", "true")
@@ -184,7 +195,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
     @Override
     public Single<Boolean> setPassive(String sink, String cookie) {
         stopServer();
-        return LdcpRequest.POST("/register/update")
+        return LdcpRequest.POST(UPDATE)
                 .setHeader("active", "false")
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)

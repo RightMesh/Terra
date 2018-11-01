@@ -15,6 +15,14 @@ import io.reactivex.Completable;
 
 import static io.left.rightmesh.module.aa.ldcp.Configuration.LDCPEntry.LDCP_TCP_PORT;
 import static io.left.rightmesh.module.aa.ldcp.Configuration.LDCP_TCP_PORT_DEFAULT;
+import static io.left.rightmesh.module.aa.ldcp.Paths.DELIVER;
+import static io.left.rightmesh.module.aa.ldcp.Paths.DISPATCH;
+import static io.left.rightmesh.module.aa.ldcp.Paths.FETCHBUNDLE;
+import static io.left.rightmesh.module.aa.ldcp.Paths.GETBUNDLE;
+import static io.left.rightmesh.module.aa.ldcp.Paths.ISREGISTERED;
+import static io.left.rightmesh.module.aa.ldcp.Paths.REGISTER;
+import static io.left.rightmesh.module.aa.ldcp.Paths.UNREGISTER;
+import static io.left.rightmesh.module.aa.ldcp.Paths.UPDATE;
 
 /**
  * @author Lucien Loiseau on 25/10/18.
@@ -48,25 +56,27 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
         logger.i(TAG, "starting a ldcp server on port " + port);
         new LdcpServer().start(port, factory, logger,
                 Router.create()
-                        .GET("/isregistered/", isregistered)
-                        .POST("/register/", register)
-                        .POST("/register/update", update)
-                        .POST("/unregister/", unregister)
-                        .GET("/get/bundle/", get)
-                        .GET("/fetch/bundle/", fetch)
-                        .POST("/bundle/", dispatch));
+                        .GET(ISREGISTERED, isregistered)
+                        .POST(REGISTER, register)
+                        .POST(UPDATE, update)
+                        .POST(UNREGISTER, unregister)
+                        .GET(GETBUNDLE, get)
+                        .GET(FETCHBUNDLE, fetch)
+                        .POST(DISPATCH, dispatch));
     }
 
     private String checkField(RequestMessage req, String key) throws RequestException {
         if (!req.fields.containsKey(key)) {
+            logger.v(TAG, ". missing field "+key);
             throw new RequestException("missing field");
         }
+        logger.v(TAG, ". field "+key+"="+req.fields.get(key));
         return req.fields.get(key);
     }
 
     private ActiveRegistrationCallback deliverCallback(String sink, String host, int port) {
         return (bundle) ->
-                LdcpRequest.POST("/deliver/")
+                LdcpRequest.POST(DELIVER)
                         .setBundle(bundle)
                         .send(host, port, NullBLOB::new, logger)
                         .doOnError(d -> {
