@@ -266,8 +266,8 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
             /* deliver every bundle of interest */
             getBundlesOfInterest(event.sink).subscribe(
                     bundleID -> {
-                        /* retrieve the bundle - should be constant operation */
-                        core.getStorage().getMeta(bundleID).subscribe(
+                        /* retrieve the bundle */
+                        core.getStorage().get(bundleID).subscribe(
                                 /* deliver it */
                                 bundle -> event.cb.recv(bundle).subscribe(
                                         () -> {

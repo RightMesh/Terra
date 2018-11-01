@@ -3,6 +3,7 @@ package io.left.rightmesh.libdtn.core;
 import io.left.rightmesh.libdtn.core.api.BundleProcessorAPI;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.LocalEIDAPI;
+import io.left.rightmesh.libdtn.core.events.BundleIndexed;
 import io.left.rightmesh.libdtn.core.network.ConnectionAgent;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.core.routing.Registrar;
@@ -20,6 +21,9 @@ import io.left.rightmesh.libdtn.core.api.DeliveryAPI;
 import io.left.rightmesh.libdtn.core.api.RoutingAPI;
 import io.left.rightmesh.libdtn.core.api.StorageAPI;
 import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
+import io.left.rightmesh.librxbus.RxBus;
+import io.left.rightmesh.librxbus.RxThread;
+import io.left.rightmesh.librxbus.Subscribe;
 
 /**
  * DTNCore registers all the DTN Core BaseComponent.
@@ -59,13 +63,17 @@ public class DTNCore implements CoreAPI {
         core.registrar = new Registrar(core);
 
         /*  core */
-        core.storage = new Storage(core.conf, core.logger);
         core.bundleProcessor = new BundleProcessor(core);
 
         /* network */
         core.connectionAgent = new ConnectionAgent(core);
         core.discoveryAgent = new DiscoveryAgent(core);
         core.claManager = new CLAManager(core);
+
+        /* storage */
+        RxBus.register(core);
+        core.storage = new Storage(core.conf, core.logger);
+
 
         /* modules */
         core.moduleLoader = new ModuleLoader(core);
@@ -132,5 +140,11 @@ public class DTNCore implements CoreAPI {
 
     public CLAManager getClaManager() {
         return claManager;
+    }
+
+
+    @Subscribe( thread = RxThread.IO )
+    public void onEvent(BundleIndexed event) {
+        bundleProcessor.bundleDispatching(event.bundle);
     }
 }

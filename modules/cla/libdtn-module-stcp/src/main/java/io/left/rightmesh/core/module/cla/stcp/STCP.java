@@ -159,23 +159,7 @@ public class STCP implements ConvergenceLayerSPI {
             if (!initiator) {
                 return Observable.error(new RecvOnlyPeerException());
             }
-
-            // todo move this in caller
-            /* pull the bundle from storage if necessary
-            if (bundle instanceof MetaBundle) {
-                return Observable.create(s -> Storage.get(bundle.bid).subscribe(
-                        b -> {
-                            Flowable<ByteBuffer> job = createBundleJob(bundle);
-                            if (job == null) {
-                                s.onError(new Throwable("Cannot serialize the bundle"));
-                            }
-
-                            RxTCP.Connection.JobHandle handle = tcpcon.order(job);
-                            handle.observe().subscribe(s::onNext);
-                        },
-                        s::onError));
-            } else {
-                            */
+            
             Flowable<ByteBuffer> job = createBundleJob(bundle);
             if (job == null) {
                 return Observable.error(new Throwable("Cannot serialize the bundle"));

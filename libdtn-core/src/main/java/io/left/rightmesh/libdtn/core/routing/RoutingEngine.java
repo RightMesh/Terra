@@ -47,8 +47,8 @@ public class RoutingEngine implements RoutingAPI {
             /* deliver every bundle of interest */
             getBundlesOfInterest(event.channel.channelEID().getCLASpecificPart()).subscribe(
                     bundleID -> {
-                        /* retrieve the bundle - should be constant operation */
-                        core.getStorage().getMeta(bundleID).subscribe(
+                        /* retrieve the bundle */
+                        core.getStorage().get(bundleID).subscribe(
                                 /* deliver it */
                                 bundle -> event.channel.sendBundle(bundle).ignoreElements().subscribe(
                                         () -> {

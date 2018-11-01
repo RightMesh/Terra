@@ -10,7 +10,9 @@ import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.StorageAPI;
+import io.left.rightmesh.libdtn.core.events.BundleIndexed;
 import io.left.rightmesh.libdtn.core.utils.Logger;
+import io.left.rightmesh.librxbus.RxBus;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -68,7 +70,6 @@ public class Storage implements StorageAPI {
     private CoreBLOBFactory blobFactory;
     private Logger logger;
 
-
     class IndexEntry {
         Bundle bundle;      /* either a bundle or a metabundle */
 
@@ -115,7 +116,7 @@ public class Storage implements StorageAPI {
         if (contains(bid)) {
             return index.get(bid);
         } else {
-            logger.i(TAG, "new entry: " + bid.getBIDString());
+            logger.d(TAG, "new entry: " + bid.getBIDString());
             return addEntry(bid, bundle);
         }
     }

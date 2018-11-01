@@ -9,6 +9,7 @@ import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.common.data.StatusReport;
 import io.left.rightmesh.libdtn.core.api.BundleProcessorAPI;
+import io.left.rightmesh.librxbus.RxBus;
 
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_FORWARDING;
 import static io.left.rightmesh.libdtn.common.data.BlockHeader.BlockV7Flags.DELETE_BUNDLE_IF_NOT_PROCESSED;
@@ -155,7 +156,7 @@ public class BundleProcessor implements BundleProcessorAPI {
         if (is_failure) {
             bundleForwardingFailed(bundle);
         } else {
-            if (!bundle.isTagged("in_core.getStorage()")) {
+            if (!bundle.isTagged("in_storage")) {
                 core.getStorage().store(bundle).subscribe(
                         b -> {
                             /* in core.getStorage(), defer forwarding */
@@ -166,6 +167,8 @@ public class BundleProcessor implements BundleProcessorAPI {
                             bundleForwardingFailed(bundle);
                         }
                 );
+            } else {
+                core.getRoutingEngine().forwardLater(bundle);
             }
         }
     }
@@ -271,7 +274,7 @@ public class BundleProcessor implements BundleProcessorAPI {
     /* 5.7 - step 2 - delivery failure */
     public void bundleLocalDeliveryFailure(String sink, Bundle bundle) {
         core.getLogger().i(TAG, "bundle could not be delivered sink=" + sink + " bundleID=" + bundle.bid.getBIDString());
-        if (!bundle.isTagged("in_core.getStorage()")) {
+        if (!bundle.isTagged("in_storage")) {
             core.getStorage().store(bundle).subscribe(
                     b -> {
                         /* register for event and deliver later */
@@ -283,6 +286,9 @@ public class BundleProcessor implements BundleProcessorAPI {
                         bundleDeletion(bundle);
                     }
             );
+        } else {
+            /* register for event and deliver later */
+            core.getDelivery().deliverLater(sink, bundle);
         }
     }
 
