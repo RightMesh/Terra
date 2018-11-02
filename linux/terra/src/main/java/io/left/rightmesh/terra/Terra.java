@@ -120,12 +120,24 @@ public class Terra implements Callable<Void> {
         conf.get(ENABLE_AUTO_CONNECT_FOR_BUNDLE).update(!disableEidAutoconnect);
         conf.get(ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT).update(!disablePeerAutoconnect);
 
-        conf.get(ENABLE_CLA_MODULES).update(true);
-        conf.get(MODULES_CLA_PATH).update(claModuleDirectory);
-        conf.get(ENABLE_AA_MODULES).update(true);
-        conf.get(MODULES_AA_PATH).update(aaModuleDirectory);
-        conf.get(ENABLE_CORE_MODULES).update(true);
-        conf.get(MODULES_CORE_PATH).update(coreModuleDirectory);
+        if(claModuleDirectory != null) {
+            conf.get(ENABLE_CLA_MODULES).update(true);
+            conf.get(MODULES_CLA_PATH).update(claModuleDirectory);
+        } else {
+            conf.get(ENABLE_CLA_MODULES).update(false);
+        }
+        if(aaModuleDirectory != null) {
+            conf.get(ENABLE_AA_MODULES).update(true);
+            conf.get(MODULES_AA_PATH).update(aaModuleDirectory);
+        } else {
+            conf.get(ENABLE_AA_MODULES).update(false);
+        }
+        if(coreModuleDirectory != null) {
+            conf.get(ENABLE_CORE_MODULES).update(true);
+            conf.get(MODULES_CORE_PATH).update(coreModuleDirectory);
+        } else {
+            conf.get(ENABLE_CORE_MODULES).update(false);
+        }
 
         switch(verbose.length) {
             case 0:
