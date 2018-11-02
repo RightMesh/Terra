@@ -91,7 +91,7 @@ public class RoutingEngine implements RoutingAPI {
         // try to force an opportunity
         potentialCLAs
                 .distinct()
-                .flatMapMaybe(claeid ->
+                .concatMapMaybe(claeid ->
                         Maybe.fromSingle(core.getConnectionAgent()
                                 .createOpportunityForBundle(claeid))
                                 .onErrorComplete())

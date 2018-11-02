@@ -58,7 +58,7 @@ public class ConnectionAgent extends BaseComponent implements ConnectionAgentAPI
         final String opp = "cla=" + eid.getCLAName() + " peer=" + eid.getCLASpecificPart();
         core.getLogger().d(TAG, "trying to create an opportunity with "+opp+" "+Thread.currentThread().getName());
         return core.getClaManager().openChannel(eid)
-                .doOnError(e -> core.getLogger().d(TAG, "opportunity creation failed: " + opp))
+                .doOnError(e -> core.getLogger().d(TAG, "opportunity creation failed " + opp +": "+e.getMessage()))
                 .doOnSuccess((c) -> core.getLogger().d(TAG, "opportunity creation success: " + opp));
     }
 
@@ -79,7 +79,7 @@ public class ConnectionAgent extends BaseComponent implements ConnectionAgentAPI
         final String opp = "cla=" + eid.getCLAName() + " peer=" + eid.getCLASpecificPart();
         core.getLogger().d(TAG, "trying to create an opportunity with "+opp);
         return core.getClaManager().openChannel(eid)
-                .doOnError(e -> core.getLogger().d(TAG, "opportunity creation failed: " + opp))
+                .doOnError(e -> core.getLogger().d(TAG, "opportunity creation failed " + opp + ": "+e.getMessage()))
                 .doOnSuccess((c) -> core.getLogger().d(TAG, "opportunity creation success: " + opp));
     }
 }

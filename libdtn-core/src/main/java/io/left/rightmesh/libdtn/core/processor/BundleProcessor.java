@@ -89,7 +89,7 @@ public class BundleProcessor implements BundleProcessorAPI {
         /* 5.4 - step 2 */
         core.getLogger().v(TAG, "5.4-2 " + bundle.bid.getBIDString());
         core.getRoutingEngine().findOpenedChannelTowards(bundle.destination)
-                .flatMapMaybe(claChannel ->
+                .concatMapMaybe(claChannel ->
                         claChannel.sendBundle(bundle)
                                 .lastElement()
                                 .doOnError(System.out::println)
