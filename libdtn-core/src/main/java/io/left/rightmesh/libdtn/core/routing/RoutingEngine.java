@@ -70,7 +70,7 @@ public class RoutingEngine implements RoutingAPI {
                         .toObservable(),
                 core.getRoutingTable().resolveEID(destination)
                         .map(core.getLinkLocalRouting()::findCLA)
-                        .flatMap(m -> m.toObservable()))
+                        .flatMap(Maybe::toObservable))
                 .distinct();
     }
 

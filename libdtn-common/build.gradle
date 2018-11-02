@@ -28,7 +28,7 @@ dependencies {
     implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
 
     // RxJava library for reactive programming
-    implementation 'io.reactivex.rxjava2:rxjava:2.1.1'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.3'
 
     // jUnit
     testImplementation 'junit:junit:4.12'

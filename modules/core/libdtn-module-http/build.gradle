@@ -37,7 +37,7 @@ dependencies {
     compile project(path: ':libdtn-core-api')
 
     // RxJava library for reactive programming
-    implementation 'io.reactivex.rxjava2:rxjava:2.1.1'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.3'
 
     // lib rx netty for http API
     compile "io.reactivex:rxnetty-http:${rxnetty_version}"

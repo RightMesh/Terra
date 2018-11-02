@@ -24,12 +24,12 @@ project(":dtncat").projectDir = file("linux/dtncat")
 
 // dependencies
 
-//include ':librxbus', ':libcbor', ':librxtcp', ':libdetect'
-//include ':librxbus'
-//project(":librxbus").projectDir = file("../librxbus")
-//include ':libcbor'
-//project(":libcbor").projectDir = file("../libcbor")
-//include ':librxtcp'
-//project(":librxtcp").projectDir = file("../librxtcp")
-//include ':libdetect'
-//project(":libdetect").projectDir = file("../libdetect")
+include ':librxbus', ':libcbor', ':librxtcp', ':libdetect'
+include ':librxbus'
+project(":librxbus").projectDir = file("../librxbus")
+include ':libcbor'
+project(":libcbor").projectDir = file("../libcbor")
+include ':librxtcp'
+project(":librxtcp").projectDir = file("../librxtcp")
+include ':libdetect'
+project(":libdetect").projectDir = file("../libdetect")

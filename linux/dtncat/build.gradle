@@ -19,7 +19,7 @@ dependencies {
     implementation project(path: ':libldcp')
 
     // RxJava library for reactive programming
-    implementation 'io.reactivex.rxjava2:rxjava:2.1.1'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.3'
 
     // picocli framework for RequestMessage Line Interface
     compile 'info.picocli:picocli:3.6.1'

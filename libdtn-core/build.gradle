@@ -38,10 +38,10 @@ dependencies {
     implementation 'com.github.RightMesh:librxbus:master-SNAPSHOT'
 
     // libdetect to detect neighbour on the LAN
-    implementation 'com.github.RightMesh:libdetect:590610ba1c'
+    implementation 'com.github.RightMesh:libdetect:master-SNAPSHOT'
 
     // RxJava library for reactive programming
-    implementation 'io.reactivex.rxjava2:rxjava:2.1.1'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.3'
 
     // jUnit
     testImplementation 'junit:junit:4.12'
