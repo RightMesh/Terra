@@ -42,10 +42,10 @@ dependencies {
     implementation project(path: ':libdtn-core-api')
 
     // libcbor for encoding/parsing
-    implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
+    implementation 'com.github.RightMesh:libcbor:-SNAPSHOT'
 
     // librxtcp for tcp socket
-    implementation 'com.github.RightMesh:librxtcp:master-SNAPSHOT'
+    implementation 'com.github.RightMesh:librxtcp:-SNAPSHOT'
 
     // jUnit
     testImplementation 'junit:junit:4.12'

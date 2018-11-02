@@ -32,13 +32,13 @@ dependencies {
     implementation project(path: ':libdtn-common')
 
     // libcbor for bundleV7
-    implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
+    implementation 'com.github.RightMesh:libcbor:-SNAPSHOT'
 
     // RxBus for the event bus
-    implementation 'com.github.RightMesh:librxbus:master-SNAPSHOT'
+    implementation 'com.github.RightMesh:librxbus:-SNAPSHOT'
 
     // libdetect to detect neighbour on the LAN
-    implementation 'com.github.RightMesh:libdetect:master-SNAPSHOT'
+    implementation 'com.github.RightMesh:libdetect:-SNAPSHOT'
 
     // RxJava library for reactive programming
     implementation 'io.reactivex.rxjava2:rxjava:2.2.3'

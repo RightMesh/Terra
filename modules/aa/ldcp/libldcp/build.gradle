@@ -20,10 +20,10 @@ dependencies {
     implementation project(path: ':libdtn-common')
 
     // CBOR for encoding/parsing
-    implementation 'com.github.RightMesh:libcbor:master-SNAPSHOT'
+    implementation 'com.github.RightMesh:libcbor:-SNAPSHOT'
 
     // RxTCP for communication between daemon/client
-    implementation 'com.github.RightMesh:librxtcp:master-SNAPSHOT'
+    implementation 'com.github.RightMesh:librxtcp:-SNAPSHOT'
 
     // RxJava library for reactive programming
     implementation 'io.reactivex.rxjava2:rxjava:2.2.3'
