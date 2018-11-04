@@ -11,6 +11,10 @@ public abstract class CanonicalBlock extends BlockHeader {
         super(type);
     }
 
+    CanonicalBlock(CanonicalBlock block) {
+        super(block);
+    }
+
     /**
      * CanonicalBlock Factory.
      *

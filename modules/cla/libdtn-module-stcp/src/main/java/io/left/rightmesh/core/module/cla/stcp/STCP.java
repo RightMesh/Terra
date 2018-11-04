@@ -9,13 +9,10 @@ import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
-import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
+import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
-import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Parser;
-import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Serializer;
-import io.left.rightmesh.libdtn.common.data.eid.DTN;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BundleV7Serializer;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI;
@@ -115,7 +112,7 @@ public class STCP implements ConvergenceLayerSPI {
         CLA channelEID;
         CLA localEID;
         boolean initiator;
-        BundleV7Parser parser;
+        BundleV7Item parser;
 
         /**
          * Constructor.
@@ -230,16 +227,15 @@ public class STCP implements ConvergenceLayerSPI {
                                 }));
             }
 
-            BundleV7Parser parser = new BundleV7Parser(logger, blobFactory);
             return Observable.create(s -> {
                 CborParser pdu = CBOR.parser()
                         .cbor_open_array(2)
                         .cbor_parse_int((__, ___, i) -> {
                             // we might want check the length and refuse large bundle
                         })
-                        .cbor_parse_custom_item(parser::createBundleItem, (__, ___, item) -> {
-                            s.onNext(item.bundle);
-                        });
+                        .cbor_parse_custom_item(
+                                () -> new BundleV7Item(logger, blobFactory),
+                                (__, ___, item) -> s.onNext(item.bundle));
 
                 tcpcon.recv().subscribe(
                         buffer -> {

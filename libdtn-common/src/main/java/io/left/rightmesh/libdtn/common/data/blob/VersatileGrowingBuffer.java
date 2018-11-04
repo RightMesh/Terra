@@ -2,7 +2,6 @@ package io.left.rightmesh.libdtn.common.data.blob;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 
@@ -48,23 +47,15 @@ public class VersatileGrowingBuffer extends VolatileBLOB {
     }
 
     @Override
-    public ReadableBLOB getReadableBLOB() {
-        return new ReadableBLOB() {
-            @Override
-            public void read(OutputStream stream) throws IOException {
-                observe().subscribe(
-                        b -> {
-                            while(b.hasRemaining()) {
-                                stream.write(b.get());
-                            }
-                        });
-            }
+    public void map(Function<ByteBuffer, ByteBuffer> update, Supplier<ByteBuffer> close) throws Exception {
+        if(blobs.size() == 0) {
+            return;
+        }
 
-            @Override
-            public void close() {
-                /* ignore */
-            }
-        };
+        for(int i = 0; i < blobs.size()-1; i++) {
+            blobs.get(i).map(update, () -> ByteBuffer.allocate(0));
+        }
+        blobs.getLast().map(update, close);
     }
 
     @Override

@@ -67,6 +67,42 @@ public class Bundle extends PrimaryBlock {
     }
 
     /**
+     * Get a specific block by its block number.
+     *
+     * @param block_number of the block to query.
+     * @return a Block if found, null otherwise.
+     */
+    public CanonicalBlock getBlock(int block_number) {
+        for(CanonicalBlock block : blocks) {
+            if(block.number == block_number) {
+                return block;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Replace a specific block with another.
+     *
+     * @param block_number of the block to query.
+     * @return a Block if found, null otherwise.
+     */
+    public void updateBlock(int block_number, CanonicalBlock block) {
+        int nb = -1;
+        boolean found = false;
+        while(!found && (nb < blocks.size())) {
+            if(blocks.get(++nb).number == block_number) {
+                found = true;
+            }
+        }
+
+        if(found) {
+            blocks.get(nb).clearBlock();
+            blocks.set(nb, block);
+        }
+    }
+
+    /**
      * adds a {@link CanonicalBlock} to the current Bundle.
      *
      * @param block to be added
@@ -84,15 +120,7 @@ public class Bundle extends PrimaryBlock {
             block.number = block_number++;
         }
 
-        // v6
-        if (blocks.size() > 0) {
-            blocks.getLast().setV6Flag(BlockHeader.BlockV6Flags.LAST_BLOCK, false);
-        }
-
         blocks.add(block);
-
-        // v6
-        block.setV6Flag(BlockHeader.BlockV6Flags.LAST_BLOCK, true);
     }
 
     /**
@@ -102,11 +130,6 @@ public class Bundle extends PrimaryBlock {
      */
     public void delBlock(CanonicalBlock block) {
         blocks.remove(block);
-
-        // v6
-        if (block.getV6Flag(BlockHeader.BlockV6Flags.LAST_BLOCK) && (blocks.size() > 0)) {
-            blocks.getLast().setV6Flag(BlockHeader.BlockV6Flags.LAST_BLOCK, true);
-        }
     }
 
     /**
@@ -122,42 +145,5 @@ public class Bundle extends PrimaryBlock {
             }
         }
         return null;
-    }
-
-    public void onReceptionProcessing(Bundle bundle) throws ProcessingException {
-        for(CanonicalBlock block : getBlocks()) {
-            block.onReceptionProcessing(bundle);
-        }
-    }
-
-    public void onPrepareForTransmission(Bundle bundle) throws ProcessingException {
-        for(CanonicalBlock block : getBlocks()) {
-            block.onPrepareForTransmission(bundle);
-        }
-    }
-
-    public void onPutOnStorage(Bundle bundle) throws ProcessingException {
-        for(CanonicalBlock block : getBlocks()) {
-            block.onPutOnStorage(bundle);
-        }
-    }
-
-    public void onPullFromStorage(Bundle bundle) throws ProcessingException {
-        for(CanonicalBlock block : getBlocks()) {
-            block.onPullFromStorage(bundle);
-        }
-    }
-
-    /**
-     * print debug information about the current bundle.
-     */
-    public void printDebug() {
-        System.out.print("bundle to= " + destination.getEIDString() + " content=");
-        getPayloadBlock().data.observe().subscribe(
-                b -> {
-                    System.out.print(new String(b.array()));
-                }
-        );
-        System.out.println();
     }
 }

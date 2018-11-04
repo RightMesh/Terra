@@ -30,6 +30,10 @@ public class ZeroBLOB extends Tag implements BLOB {
     }
 
     @Override
+    public void map(Function<ByteBuffer, ByteBuffer> function, Supplier<ByteBuffer> close) {
+    }
+
+    @Override
     public long size() {
         return 0;
     }
@@ -42,11 +46,6 @@ public class ZeroBLOB extends Tag implements BLOB {
         @Override
         public void close() {
         }
-    }
-
-    @Override
-    public ReadableBLOB getReadableBLOB() {
-        return new ZeroReadableBLOB();
     }
 
     public class ZeroWritableBLOB implements WritableBLOB {

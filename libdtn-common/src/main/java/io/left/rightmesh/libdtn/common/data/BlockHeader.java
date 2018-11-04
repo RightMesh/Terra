@@ -11,16 +11,6 @@ import io.left.rightmesh.libdtn.common.data.eid.EID;
  */
 public class BlockHeader extends Block {
 
-    public enum BlockV6Flags {
-        REPLICATE_IN_EVERY_FRAGMENT,
-        TRANSMIT_STATUSREPORT_IF_NOT_PROCESSED,
-        DELETE_BUNDLE_IF_NOT_PROCESSED,
-        LAST_BLOCK,
-        DISCARD_IF_NOT_PROCESSED,
-        FORWARDED_WITHOUT_PROCESSED,
-        BLOCK_CONTAINS_EIDS
-    }
-
     public enum CRCFieldType {
         NO_CRC,
         CRC_16,
@@ -48,17 +38,15 @@ public class BlockHeader extends Block {
         DELETE_BUNDLE_IF_NOT_PROCESSED,
         RESERVED_1,
         RESERVED_2,
-        RESERVED_3,
+        BLOCK_IS_ENCRYPTED, //
         RESERVED_4
     }
 
     public int type;
     public int number;
-    public CRCFieldType crcType;
-    public long procV6flags = 0;
     public long procV7flags = 0;
+    public CRCFieldType crcType;
     public long dataSize;
-    public HashSet<EID> eids = new HashSet<>();
 
 
     /**
@@ -72,13 +60,16 @@ public class BlockHeader extends Block {
     }
 
     /**
-     * Get the state of a specific {@link BlockHeader.BlockV6Flags}.
+     * BlockHeader copy constructor
      *
-     * @param flag to query
-     * @return true if the flag is set, false otherwise
+     * @param header to copy
      */
-    public boolean getV6Flag(BlockV6Flags flag) {
-        return ((procV6flags >> flag.ordinal()) & 0x1) == 0x1;
+    public BlockHeader(BlockHeader header) {
+        this.type = header.type;
+        this.number = header.number;
+        this.procV7flags = header.procV7flags;
+        this.crcType = header.crcType;
+        this.dataSize = header.dataSize;
     }
 
     /**
@@ -97,58 +88,11 @@ public class BlockHeader extends Block {
      * @param flag  the flag to be set/clear
      * @param state true to set, false to clear
      */
-    public void setV6Flag(BlockV6Flags flag, boolean state) {
-        if (flag == BlockV6Flags.BLOCK_CONTAINS_EIDS) {
-            return;
-        }
-
-        if (state) {
-            procV6flags |= (1 << flag.ordinal());
-        } else {
-            procV6flags &= ~(1 << flag.ordinal());
-        }
-    }
-
-    /**
-     * Set/clear a flag on this BlockHeader.
-     *
-     * @param flag  the flag to be set/clear
-     * @param state true to set, false to clear
-     */
     public void setV7Flag(BlockV7Flags flag, boolean state) {
         if (state) {
             procV7flags |= (1 << flag.ordinal());
         } else {
             procV7flags &= ~(1 << flag.ordinal());
-        }
-    }
-
-    /**
-     * addEID adds an EID to this Bundle.
-     *
-     * @param eid to be added
-     */
-    public void addEID(EID eid) {
-        eids.add(eid);
-        fixEIDFlag();
-    }
-
-    /**
-     * Set the EIDs in this bundle to the given Set.
-     *
-     * @param eids the eid to set
-     */
-    public void setEID(HashSet<EID> eids) {
-        this.eids = eids;
-        fixEIDFlag();
-    }
-
-
-    private void fixEIDFlag() {
-        if (eids.isEmpty()) {
-            setV6Flag(BlockV6Flags.BLOCK_CONTAINS_EIDS, false);
-        } else {
-            setV6Flag(BlockV6Flags.BLOCK_CONTAINS_EIDS, true);
         }
     }
 }

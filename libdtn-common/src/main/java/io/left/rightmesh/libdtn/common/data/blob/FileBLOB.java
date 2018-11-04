@@ -4,14 +4,14 @@ import io.left.rightmesh.libdtn.common.data.Tag;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.NonReadableChannelException;
@@ -88,7 +88,7 @@ public class FileBLOB extends Tag implements BLOB {
                 },
                 (channel, emitter) -> {
                     if (channel == null) {
-                        emitter.onError(new Throwable("couldn't open File CoreBLOBFactory"));
+                        emitter.onError(new Throwable("couldn't open FileBLOB"));
                         return null;
                     }
 
@@ -113,46 +113,24 @@ public class FileBLOB extends Tag implements BLOB {
     }
 
     @Override
-    public ReadableBLOB getReadableBLOB() {
-        return new ReadableBLOB() {
+    public void map(Function<ByteBuffer, ByteBuffer> update, Supplier<ByteBuffer> close) throws Exception {
+        if (!file.exists()) {
+            throw new FileNotFoundException("file not found: "+file.getAbsolutePath());
+        }
 
-            private FileInputStream fis = null;
-            private BufferedInputStream bis = null;
+        FileChannel readChannel = new RandomAccessFile(file, "r").getChannel();
+        FileChannel writeChannel = new RandomAccessFile(file, "rw").getChannel();
+        ByteBuffer buffer = ByteBuffer.allocate(2048);
+        buffer.clear();
+        while((readChannel.read(buffer) != -1)) {
+            buffer.flip();
+            writeChannel.write(update.apply(buffer));
+            buffer.clear();
+        }
+        writeChannel.write(close.get());
 
-            @Override
-            public void read(OutputStream stream) throws IOException {
-                if (!file.exists()) {
-                    throw new IOException("can't access file");
-                }
-                fis = new FileInputStream(file);
-                bis = new BufferedInputStream(fis);
-
-                byte[] fileBuffer = new byte[BUFFER_SIZE];
-                int count = bis.read(fileBuffer, 0, BUFFER_SIZE);
-                while (count > 0) {
-                    stream.write(fileBuffer, 0, count);
-                    count = bis.read(fileBuffer, 0, BUFFER_SIZE);
-                }
-            }
-
-            @Override
-            public void close() {
-                try {
-                    if (fis != null) {
-                        fis.close();
-                    }
-                } catch (IOException io) {
-                    // ignore
-                }
-                try {
-                    if (bis != null) {
-                        bis.close();
-                    }
-                } catch (IOException io) {
-                    // ignore
-                }
-            }
-        };
+        readChannel.close();
+        writeChannel.close();
     }
 
     @Override

@@ -31,13 +31,14 @@ public interface BLOB extends Taggable {
     Flowable<ByteBuffer> observe();
 
     /**
-     * new {@link ReadableBLOB} from this VolatileBLOB. The ReadableBLOB will lock the VolatileBLOB for read-only
-     * operations. calling close() on the ReadableBLOB will unlock the VolatileBLOB. Multiple concurrent
-     * ReadableBLOB can be acquired from one single VolatileBLOB.
+     * modify the content of the BLOB in-place. If the function throws an Exception it will
+     * not modify the BLOB.
      *
-     * @return ReadableBLOB
+     * @param update that maps a bytebuffer to its new value;
+     * @param close is called when no more value are to be read
+     * @throws Exception if the function throws an Exception
      */
-    ReadableBLOB getReadableBLOB();
+    void map(Function<ByteBuffer, ByteBuffer> update, Supplier<ByteBuffer> close) throws Exception;
 
     /**
      * new {@link WritableBLOB} from this VolatileBLOB. The WritableBLOB will lock the VolatileBLOB for write-only

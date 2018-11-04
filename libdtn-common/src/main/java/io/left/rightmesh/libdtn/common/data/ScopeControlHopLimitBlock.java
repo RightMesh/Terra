@@ -17,7 +17,7 @@ public class ScopeControlHopLimitBlock extends ExtensionBlock {
 
     public ScopeControlHopLimitBlock() {
         super(type);
-        setV6Flag(BlockV6Flags.REPLICATE_IN_EVERY_FRAGMENT, true);
+        setV7Flag(BlockV7Flags.REPLICATE_IN_EVERY_FRAGMENT, true);
         count = 0;
         limit = 0;
     }

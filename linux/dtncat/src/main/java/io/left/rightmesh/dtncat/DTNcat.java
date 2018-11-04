@@ -66,7 +66,7 @@ public class DTNcat implements Callable<Void> {
     private Bundle createBundleFromSTDIN(Bundle bundle) throws IOException, WritableBLOB.BLOBOverflowException {
         BLOB blob;
         try {
-            blob = factory.createBLOB(1000000);
+            blob = factory.createBLOB(-1);
         } catch(BLOBFactory.BLOBFactoryException boe) {
             throw new WritableBLOB.BLOBOverflowException();
         }
@@ -93,7 +93,16 @@ public class DTNcat implements Callable<Void> {
                 Completable.create(s -> {
                     try {
                         BufferedOutputStream bos = new BufferedOutputStream(System.out);
-                        recvbundle.getPayloadBlock().data.getReadableBLOB().read(bos);
+                        recvbundle.getPayloadBlock().data.observe().subscribe(
+                                byteBuffer -> {
+                                    while(byteBuffer.hasRemaining()) {
+                                        bos.write(byteBuffer.get());
+                                    }
+                                },
+                                e -> {
+                                    /* ignore */
+                                }
+                        );
                         bos.flush();
                         recvbundle.clearBundle();
                         s.onComplete();

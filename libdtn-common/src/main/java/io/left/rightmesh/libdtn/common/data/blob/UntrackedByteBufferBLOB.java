@@ -2,7 +2,6 @@ package io.left.rightmesh.libdtn.common.data.blob;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 
@@ -16,8 +15,10 @@ import io.reactivex.Flowable;
  */
 public class UntrackedByteBufferBLOB extends VolatileBLOB {
 
-    private ByteBuffer data;
+    ByteBuffer data;
 
+    UntrackedByteBufferBLOB() {
+    }
 
     public UntrackedByteBufferBLOB(int expectedSize) {
         this.data = ByteBuffer.allocate(expectedSize);
@@ -52,22 +53,15 @@ public class UntrackedByteBufferBLOB extends VolatileBLOB {
     }
 
     @Override
-    public ReadableBLOB getReadableBLOB() {
-        return new ReadableBLOB() {
-            @Override
-            public void read(OutputStream stream) throws IOException {
-                ByteBuffer dup = data.duplicate();
-                dup.reset();
-                while(dup.hasRemaining()) {
-                    stream.write(data.get());
-                }
-            }
-
-            @Override
-            public void close() {
-                // do nothing
-            }
-        };
+    public void map(Function<ByteBuffer, ByteBuffer> function, Supplier<ByteBuffer> close) throws Exception {
+        ByteBuffer mapped = function.apply(data);
+        ByteBuffer closed = close.get();
+        ByteBuffer ret = ByteBuffer.allocate(mapped.remaining() + closed.remaining());
+        ret.put(mapped);
+        ret.put(closed);
+        this.data = ret;
+        data.position(0);
+        data.mark();
     }
 
     @Override

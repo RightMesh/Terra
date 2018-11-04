@@ -33,6 +33,11 @@ public abstract class BlockBLOB extends CanonicalBlock {
         this.data = data;
     }
 
+    public BlockBLOB(CanonicalBlock block) {
+        super(block);
+        data = new NullBLOB();
+    }
+
     /**
      * Clear the blob unless it is tagged not so
      */

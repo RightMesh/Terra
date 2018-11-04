@@ -16,13 +16,13 @@ public class AgeBlock extends ExtensionBlock {
 
     public AgeBlock() {
         super(type);
-        setV6Flag(BlockV6Flags.REPLICATE_IN_EVERY_FRAGMENT, true);
+        setV7Flag(BlockV7Flags.REPLICATE_IN_EVERY_FRAGMENT, true);
         start();
     }
 
     AgeBlock(long age) {
         super(type);
-        setV6Flag(BlockV6Flags.REPLICATE_IN_EVERY_FRAGMENT, true);
+        setV7Flag(BlockV7Flags.REPLICATE_IN_EVERY_FRAGMENT, true);
         this.age = age;
         start();
     }

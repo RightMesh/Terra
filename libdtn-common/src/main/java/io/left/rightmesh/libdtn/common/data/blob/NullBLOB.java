@@ -29,6 +29,10 @@ public class NullBLOB extends Tag implements BLOB {
     }
 
     @Override
+    public void map(Function<ByteBuffer, ByteBuffer> function, Supplier<ByteBuffer> close) {
+    }
+
+    @Override
     public long size() {
         return 0;
     }
@@ -41,11 +45,6 @@ public class NullBLOB extends Tag implements BLOB {
         @Override
         public void close() {
         }
-    }
-
-    @Override
-    public ReadableBLOB getReadableBLOB() {
-        return new NullReadableBLOB();
     }
 
     public class NullWritableBLOB implements WritableBLOB {

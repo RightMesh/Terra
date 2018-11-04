@@ -9,10 +9,9 @@ import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Parser;
-import io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Serializer;
+import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item;
+import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BundleV7Serializer;
 import io.left.rightmesh.libdtn.common.utils.Log;
-import io.left.rightmesh.libdtn.common.utils.NullLogger;
 import io.reactivex.Flowable;
 
 import static io.left.rightmesh.module.aa.ldcp.LdcpAPI.LDCP_VERSION;
@@ -32,8 +31,8 @@ public class ResponseMessage {
             this.code = id;
         }
 
-        public static ResponseMessage.ResponseCode fromId(int id) {
-            for (ResponseMessage.ResponseCode type : values()) {
+        public static ResponseCode fromId(int id) {
+            for (ResponseCode type : values()) {
                 if (type.code == id) {
                     return type;
                 }
@@ -123,7 +122,7 @@ public class ResponseMessage {
                 .cbor_parse_boolean((p1, b) -> {
                     if (b) {
                         p1.insert_now(CBOR.parser().cbor_parse_custom_item(
-                                () -> new BundleV7Parser(logger, factory).createBundleItem(),
+                                () -> new BundleV7Item(logger, factory),
                                 (p2, ___, item) -> {
                                     ResponseMessage res = p2.getReg(0);
                                     res.bundle = item.bundle;

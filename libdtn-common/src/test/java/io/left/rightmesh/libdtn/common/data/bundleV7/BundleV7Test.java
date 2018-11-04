@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.Formatter;
 
+import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
@@ -14,8 +15,9 @@ import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.data.BlockHeader;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
-import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
+import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item;
+import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BundleV7Serializer;
 import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.PreviousNodeBlock;
@@ -122,25 +124,33 @@ public class BundleV7Test {
             CborEncoder enc = BundleV7Serializer.encode(bundle);
 
             // prepare parser
-            BundleV7Parser bundleParser = new BundleV7Parser(
+            BundleV7Item bundleParser = new BundleV7Item(
                     new NullLogger(),
                     new BaseBLOBFactory().enableVolatile(100000).disablePersistent());
 
-            CborParser p = bundleParser.createBundleParser(b -> {
-                res[0] = b;
-            });
+            CborParser p = CBOR.parser().cbor_parse_custom_item(
+                    () -> new BundleV7Item(
+                            new SimpleLogger(),
+                            new BaseBLOBFactory().enableVolatile(100000).disablePersistent()),
+                    (__, ___, item) ->
+                            res[0] = item.bundle);
 
             // serialize and parse
-            enc.observe(10).subscribe(buf -> {
-                try {
-                    if (p.read(buf)) {
-                        assertEquals(false, buf.hasRemaining());
-                    }
-                } catch (RxParserException rpe) {
-                    rpe.printStackTrace();
-                    fail();
-                }
-            });
+            enc.observe(10).subscribe(
+                    buf -> {
+                        try {
+                            if (p.read(buf)) {
+                                assertEquals(false, buf.hasRemaining());
+                            }
+                        } catch (RxParserException rpe) {
+                            rpe.printStackTrace();
+                            fail();
+                        }
+                    },
+                    e -> {
+                        System.out.println(e.getMessage());
+                        e.printStackTrace();
+                    });
 
             // check payload
             checkBundlePayload(res[0]);

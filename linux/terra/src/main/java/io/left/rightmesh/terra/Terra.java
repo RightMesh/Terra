@@ -81,13 +81,13 @@ public class Terra implements Callable<Void> {
     private boolean daemon;
 
     @Option(names = {"-n", "--module-cla-path"}, description = "set the path to the network Convergence Layer Adapters modules.")
-    private String claModuleDirectory;
+    private String claModuleDirectory = null;
 
     @Option(names = {"-a", "--module-aa-path"}, description = "set the path to the Application Agent Adapters modules.")
-    private String aaModuleDirectory;
+    private String aaModuleDirectory = null;
 
     @Option(names = {"-c", "--module-core-path"}, description = "set the path to the Core modules.")
-    private String coreModuleDirectory;
+    private String coreModuleDirectory = null;
 
     @Option(names = {"-v", "--verbose"}, description = "set the log level to debug (-v -vv -vvv).")
     private boolean[] verbose = new boolean[0];
