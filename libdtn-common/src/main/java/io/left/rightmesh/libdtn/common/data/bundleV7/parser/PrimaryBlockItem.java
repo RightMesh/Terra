@@ -19,15 +19,13 @@ import static io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item.
  */
 public class PrimaryBlockItem implements CborParser.ParseableItem {
 
-    public PrimaryBlockItem(Log logger, BLOBFactory factory) {
+    public PrimaryBlockItem(Log logger) {
         this.logger = logger;
-        this.factory = factory;
     }
 
     public Bundle b;
 
     private Log logger;
-    private BLOBFactory factory;
 
     private CRC crc16;
     private CRC crc32;

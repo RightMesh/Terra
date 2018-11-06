@@ -1,6 +1,8 @@
 package io.left.rightmesh.libdtn.common.data.blob;
 
 import io.left.rightmesh.libdtn.common.data.Tag;
+import io.left.rightmesh.libdtn.common.utils.Function;
+import io.left.rightmesh.libdtn.common.utils.Supplier;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 

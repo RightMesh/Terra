@@ -130,7 +130,7 @@ public class BundleV7Test {
 
             CborParser p = CBOR.parser().cbor_parse_custom_item(
                     () -> new BundleV7Item(
-                            new SimpleLogger(),
+                            new NullLogger(),
                             new BaseBLOBFactory().enableVolatile(100000).disablePersistent()),
                     (__, ___, item) ->
                             res[0] = item.bundle);
@@ -179,36 +179,4 @@ public class BundleV7Test {
             assertEquals(testPayload, payload[0]);
         }
     }
-
-
-    // debug
-    private String getEncodedString(CborEncoder enc) {
-        // get all in one buffer
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        enc.observe().subscribe(b -> {
-            while (b.hasRemaining()) {
-                baos.write(b.get());
-            }
-        });
-
-        // return the string
-        Formatter formatter = new Formatter();
-        formatter.format("0x");
-        for (byte b : baos.toByteArray()) {
-            formatter.format("%02x", b);
-        }
-        return (formatter.toString());
-    }
-
-    public static void showRemaining(String prefix, ByteBuffer buf) {
-        buf.mark();
-        Formatter formatter = new Formatter();
-        formatter.format(prefix + " remaining (" + buf.remaining() + "): 0x");
-        while (buf.hasRemaining()) {
-            formatter.format("%02x", buf.get());
-        }
-        System.out.println(formatter.toString());
-        buf.reset();
-    }
-
 }

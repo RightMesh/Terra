@@ -1,7 +1,10 @@
 package io.left.rightmesh.libdtn.common.data.security;
 
+import java.util.LinkedList;
+
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.utils.Log;
 
 /**
  * @author Lucien Loiseau on 03/11/18.
@@ -49,6 +52,13 @@ public interface SecurityBlock {
     int getCipherSuiteId();
 
     /**
+     * add a security source to this SecurityBlock.
+     *
+     * @param source
+     */
+    void setSecuritySource(EID source);
+
+    /**
      * get the security source to this SecurityBlock.
      *
      * @return EID security source
@@ -64,6 +74,13 @@ public interface SecurityBlock {
     boolean getSAFlag(SecurityBlockFlags flag);
 
     /**
+     * add a block number as a target.
+     *
+     * @param number
+     */
+    void addTarget(int number);
+
+    /**
      * try to add this SecurityBlock to a given Bundle. This checks for block interaction.
      *
      * @param bundle to apply this SecurityBlock to.
@@ -74,14 +91,14 @@ public interface SecurityBlock {
      * sender operation (encrypt / digest / sign)
      * @param bundle
      */
-    void applyTo(Bundle bundle, SecurityContext context) throws SecurityOperationException;
+    void applyTo(Bundle bundle, SecurityContext context, Log logger) throws SecurityOperationException;
 
 
     /**
      * receiver operation (decrypt / check / authenticate)
      * @param bundle
      */
-    void applyFrom(Bundle bundle, SecurityContext context) throws SecurityOperationException;
+    void applyFrom(Bundle bundle, SecurityContext context, Log logger) throws SecurityOperationException;
 
 
 }

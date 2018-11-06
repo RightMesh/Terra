@@ -11,6 +11,5 @@ public interface SecurityResult {
     int getResultId();
 
     CborEncoder getValueEncoder();
-    CborParser  getValueParser();
 
 }

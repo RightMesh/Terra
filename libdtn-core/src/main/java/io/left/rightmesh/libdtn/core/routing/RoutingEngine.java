@@ -74,7 +74,6 @@ public class RoutingEngine implements RoutingAPI {
                 .distinct();
     }
 
-
     /* not in RFC - store bundle and wait for an opportunity */
     public void forwardLater(final Bundle bundle) {
         /* register a listener that will listen for ChannelOpened event
@@ -88,7 +87,7 @@ public class RoutingEngine implements RoutingAPI {
                 .map(claeid -> listener.watch(claeid.getCLASpecificPart(), bid))
                 .subscribe();
 
-        // try to force an opportunity
+        // then try to force an opportunity
         potentialCLAs
                 .distinct()
                 .concatMapMaybe(claeid ->

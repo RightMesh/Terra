@@ -1,8 +1,6 @@
 package io.left.rightmesh.libdtn.common.data.security;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
-import java.util.List;
 
 import io.left.rightmesh.libdtn.common.data.ExtensionBlock;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
@@ -12,15 +10,18 @@ import io.left.rightmesh.libdtn.common.data.eid.EID;
  */
 public abstract class AbstractSecurityBlock extends ExtensionBlock implements SecurityBlock {
 
+    public LinkedList<Integer> securityTargets;
+    public int cipherSuiteId;
+    public int securityBlockFlag;
+    public EID securitySource;
+    public LinkedList<LinkedList<SecurityResult>> securityResults;
+
+
     AbstractSecurityBlock(int type) {
         super(type);
+        securityTargets = new LinkedList<>();
+        securityResults = new LinkedList<>();
     }
-
-    LinkedList<Integer> securityTargets;
-    int cipherSuiteId;
-    int securityBlockFlag;
-    EID securitySource;
-    List<List<SecurityResult>> securityResults;
 
     AbstractSecurityBlock(AbstractSecurityBlock block) {
         super(block.type);
@@ -29,6 +30,12 @@ public abstract class AbstractSecurityBlock extends ExtensionBlock implements Se
         securitySource = block.securitySource;
         securityTargets = new LinkedList<>();
         securityTargets.addAll(block.securityTargets);
+        securityResults = new LinkedList<>();
+        for(LinkedList<SecurityResult> lsr : block.securityResults) {
+            LinkedList lsrcopy = new LinkedList<>();
+            lsrcopy.addAll(lsr);
+            securityResults.add(lsrcopy);
+        }
     }
 
     @Override
@@ -46,16 +53,16 @@ public abstract class AbstractSecurityBlock extends ExtensionBlock implements Se
         return cipherSuiteId;
     }
 
-    /**
-     * add a security source to this SecurityBlock.
-     *
-     * @param source
-     */
     public void setSecuritySource(EID source) {
         this.securitySource = source;
         setSAFlag(SecurityBlockFlags.SECURITY_SOURCE_PRESENT, true);
     }
 
+    public void addTarget(int number) {
+        if(!securityTargets.contains(number)) {
+            securityTargets.add(number);
+        }
+    }
 
     /**
      * Set/clear a {@link SecurityBlockFlags} on this SecurityBlock.

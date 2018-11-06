@@ -32,14 +32,13 @@ public class BlockBLOBParser {
                         },
                         (p, chunk) -> {
                             logger.v(TAG, ".. blob_byte_chunk_size=" + chunk.remaining());
-                            if (p.getReg(3) != null) {
-                                try {
-                                    p.<WritableBLOB>getReg(3).write(chunk);
-                                } catch (WritableBLOB.BLOBOverflowException | IOException io) {
-                                    logger.v(TAG, ".. blob_write_error=" + io.getMessage());
-                                    p.<WritableBLOB>getReg(3).close();
-                                    p.setReg(3, null);
-                                }
+                            logger.v(TAG, ".. chunk=" + new String(chunk.array()));
+                            try {
+                                p.<WritableBLOB>getReg(3).write(chunk);
+                            } catch (WritableBLOB.BLOBOverflowException | IOException io) {
+                                logger.v(TAG, ".. blob_write_error=" + io.getMessage());
+                                p.<WritableBLOB>getReg(3).close();
+                                p.setReg(3, null);
                             }
                         },
                         (p) -> {

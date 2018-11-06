@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.common.data.blob;
+package io.left.rightmesh.libdtn.common.utils;
 
 /**
  * @author Lucien Loiseau on 04/11/18.

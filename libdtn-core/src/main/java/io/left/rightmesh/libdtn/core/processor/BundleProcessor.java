@@ -90,7 +90,7 @@ public class BundleProcessor implements BundleProcessorAPI {
         core.getLogger().v(TAG, "5.4-2 " + bundle.bid.getBIDString());
         core.getRoutingEngine().findOpenedChannelTowards(bundle.destination)
                 .concatMapMaybe(claChannel ->
-                        claChannel.sendBundle(bundle)
+                        claChannel.sendBundle(bundle)  /* 5.4 - step 4 */
                                 .lastElement()
                                 .doOnError(System.out::println)
                                 .onErrorComplete())
@@ -122,7 +122,6 @@ public class BundleProcessor implements BundleProcessorAPI {
         bundle.removeTag("forward_pending");
         bundleDiscarding(bundle);
     }
-
 
     /* 5.4.1 */
     public void bundleForwardingContraindicated(Bundle bundle) {
@@ -158,11 +157,12 @@ public class BundleProcessor implements BundleProcessorAPI {
             if (!bundle.isTagged("in_storage")) {
                 core.getStorage().store(bundle).subscribe(
                         b -> {
-                            /* in core.getStorage(), defer forwarding */
+                            /* 5.4.1 - step 3 - in core.getStorage(), defer forwarding */
+                            core.getLogger().v(TAG, "5.4.1-3 " + bundle.bid.getBIDString());
                             core.getRoutingEngine().forwardLater(b);
                         },
                         storageFailure -> {
-                            /* core.getStorage() failed, abandon forwarding */
+                            /* 5.4.1 - step 2 -  core.getStorage() failed, abandon forwarding */
                             bundleForwardingFailed(bundle);
                         }
                 );

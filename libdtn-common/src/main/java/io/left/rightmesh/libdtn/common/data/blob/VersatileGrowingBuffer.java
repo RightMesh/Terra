@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 
+import io.left.rightmesh.libdtn.common.utils.Function;
+import io.left.rightmesh.libdtn.common.utils.Supplier;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;

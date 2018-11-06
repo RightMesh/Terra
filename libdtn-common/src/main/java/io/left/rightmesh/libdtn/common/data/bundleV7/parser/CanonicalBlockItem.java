@@ -17,6 +17,9 @@ import io.left.rightmesh.libdtn.common.data.PreviousNodeBlock;
 import io.left.rightmesh.libdtn.common.data.ScopeControlHopLimitBlock;
 import io.left.rightmesh.libdtn.common.data.UnknownExtensionBlock;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
+import io.left.rightmesh.libdtn.common.data.security.BlockAuthenticationBlock;
+import io.left.rightmesh.libdtn.common.data.security.BlockConfidentialityBlock;
+import io.left.rightmesh.libdtn.common.data.security.BlockIntegrityBlock;
 import io.left.rightmesh.libdtn.common.utils.Log;
 
 import static io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item.TAG;
@@ -84,6 +87,18 @@ public class CanonicalBlockItem implements CborParser.ParseableItem {
                             block = new ScopeControlHopLimitBlock();
                             payloadParser = ScopeControlHopLimitBlockParser.getParser((ScopeControlHopLimitBlock)block, logger);
                             break;
+                        case BlockAuthenticationBlock.type:
+                            block = new BlockAuthenticationBlock();
+                            payloadParser = SecurityBlockParser.getParser((BlockAuthenticationBlock) block, logger);
+                            break;
+                        case BlockIntegrityBlock.type:
+                            block = new BlockIntegrityBlock();
+                            payloadParser = SecurityBlockParser.getParser((BlockIntegrityBlock) block, logger);
+                            break;
+                        case BlockConfidentialityBlock.type:
+                            block = new BlockConfidentialityBlock();
+                            payloadParser = SecurityBlockParser.getParser((BlockConfidentialityBlock) block, logger);
+                            break;
                         default:
                             block = new UnknownExtensionBlock((int) i);
                             payloadParser = BlockBLOBParser.getParser((BlockBLOB)block, factory, logger);
@@ -97,6 +112,9 @@ public class CanonicalBlockItem implements CborParser.ParseableItem {
                 .cbor_parse_int((__, ___, i) -> {
                     logger.v(TAG, ". procV7flags=" + i);
                     block.procV7flags = i;
+                    if(block.getV7Flag(BlockHeader.BlockV7Flags.BLOCK_IS_ENCRYPTED)) {
+                        payloadParser = BlockBLOBParser.getParser((BlockBLOB)block, factory, logger);
+                    }
                 })
                 .cbor_parse_int((p, ___, i) -> {
                     logger.v(TAG, ". crc=" + i);

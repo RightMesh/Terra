@@ -30,7 +30,7 @@ public class BundleV7Item implements CborParser.ParseableItem {
                     logger.v(TAG, "[+] parsing new bundle");
                 })
                 .cbor_parse_custom_item(
-                        () -> new PrimaryBlockItem(logger, factory),
+                        () -> new PrimaryBlockItem(logger),
                         (__, ___, item) -> {
                     logger.v(TAG, "-> primary block parsed");
                     bundle = item.b;
