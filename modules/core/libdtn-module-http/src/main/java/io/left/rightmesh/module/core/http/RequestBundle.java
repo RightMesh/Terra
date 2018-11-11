@@ -127,7 +127,7 @@ public class RequestBundle {
                         bundle.addBlock(new PayloadBlock(blob));
                         final String bundleid = bundle.bid.getBIDString();
                         res.setStatus(HttpResponseStatus.OK);
-                        core.getBundleProcessor().bundleDispatching(bundle);
+                        core.getBundleProcessor().bundleTransmission(bundle);
                         return res;
                     });
         } catch (BadRequestException | EID.EIDFormatException | NumberFormatException bre) {

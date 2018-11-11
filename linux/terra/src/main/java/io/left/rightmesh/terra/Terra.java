@@ -20,6 +20,7 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABL
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_CLA_MODULES;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_CORE_MODULES;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_FORWARDING;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_STATUS_REPORTING;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.LOG_LEVEL;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_AA_PATH;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_CLA_PATH;
@@ -92,6 +93,9 @@ public class Terra implements Callable<Void> {
     @Option(names = {"-v", "--verbose"}, description = "set the log level to debug (-v -vv -vvv).")
     private boolean[] verbose = new boolean[0];
 
+    @Option(names = {"--enable-reporting"}, description = "enable sending status reporting.")
+    private boolean enableReporting = false;
+
     @Option(names = {"--disable-forwarding"}, description = "do not forward bundle that are not local.")
     private boolean disableForwarding = false;
 
@@ -116,6 +120,7 @@ public class Terra implements Callable<Void> {
             conf.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
         }
 
+        conf.get(ENABLE_STATUS_REPORTING).update(enableReporting);
         conf.get(ENABLE_FORWARDING).update(!disableForwarding);
         conf.get(ENABLE_AUTO_CONNECT_FOR_BUNDLE).update(!disableEidAutoconnect);
         conf.get(ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT).update(!disablePeerAutoconnect);

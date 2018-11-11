@@ -56,7 +56,6 @@ public abstract class CLA extends BaseEID {
         return cl_name + ":" + cl_specific + cl_sink;
     }
 
-
     public String getCLAName() {
         return cl_name;
     }

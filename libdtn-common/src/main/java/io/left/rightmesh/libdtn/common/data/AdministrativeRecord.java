@@ -5,9 +5,10 @@ package io.left.rightmesh.libdtn.common.data;
  */
 public abstract class AdministrativeRecord {
 
-    int type;
+    public int type;
 
     AdministrativeRecord(int type) {
         this.type = type;
     }
+
 }

@@ -1,5 +1,8 @@
 package io.left.rightmesh.libdtn.core;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import io.left.rightmesh.libdtn.core.api.BundleProcessorAPI;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.LocalEIDAPI;
@@ -13,6 +16,8 @@ import io.left.rightmesh.libdtn.core.routing.RoutingEngine;
 import io.left.rightmesh.libdtn.core.routing.RoutingTable;
 import io.left.rightmesh.libdtn.core.network.DiscoveryAgent;
 import io.left.rightmesh.libdtn.core.network.CLAManager;
+import io.left.rightmesh.libdtn.core.services.NullAA;
+import io.left.rightmesh.libdtn.core.spi.aa.ApplicationAgentSPI;
 import io.left.rightmesh.libdtn.core.storage.Storage;
 import io.left.rightmesh.libdtn.core.utils.Logger;
 import io.left.rightmesh.libdtn.core.api.ConnectionAgentAPI;
@@ -47,6 +52,7 @@ public class DTNCore implements CoreAPI {
     private DiscoveryAgent discoveryAgent;
     private CLAManager claManager;
     private ModuleLoader moduleLoader;
+    private List<ApplicationAgentSPI> coreServices;
 
     public static CoreAPI init(DTNConfiguration conf) {
         DTNCore core = new DTNCore();
@@ -74,8 +80,16 @@ public class DTNCore implements CoreAPI {
         RxBus.register(core);
         core.storage = new Storage(core.conf, core.logger);
 
-        /* modules */
+        /* runtime modules */
         core.moduleLoader = new ModuleLoader(core);
+
+        /* core services (AA) */
+        core.coreServices = new LinkedList<>();
+        core.coreServices.add(new NullAA());
+        for(ApplicationAgentSPI aa : core.coreServices) {
+            aa.init(core.registrar);
+        }
+
 
         return core;
     }

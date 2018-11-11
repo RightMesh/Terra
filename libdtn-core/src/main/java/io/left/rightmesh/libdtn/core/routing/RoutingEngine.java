@@ -2,7 +2,7 @@ package io.left.rightmesh.libdtn.core.routing;
 
 import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.api.RoutingAPI;
-import io.left.rightmesh.libdtn.core.processor.EventListener;
+import io.left.rightmesh.libdtn.core.storage.EventListener;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;

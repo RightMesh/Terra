@@ -20,6 +20,12 @@ public interface RegistrarAPI {
         }
     }
 
+    class BundleMalformed extends RegistrarException {
+        public BundleMalformed() {
+            super("bundle is malformed");
+        }
+    }
+
     class RegistrarDisabled extends RegistrarException {
         public RegistrarDisabled() {
             super("registrar is disabled");
@@ -115,7 +121,7 @@ public interface RegistrarAPI {
      * @throws BadCookie if the cookie provided does not match registration cookie
      * @throws NullArgument if one of the argument is null
      */
-    boolean send(String sink, String cookie, Bundle bundle) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument;
+    boolean send(String sink, String cookie, Bundle bundle) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument, BundleMalformed;
 
     /**
      * Allow an anonymous application-agent to send data using the services of the Bundle Protocol.
@@ -125,7 +131,7 @@ public interface RegistrarAPI {
      * @throws RegistrarDisabled if the registrar is disabled
      * @throws NullArgument if one of the argument is null
      */
-    boolean send(Bundle bundle)  throws RegistrarDisabled, NullArgument;
+    boolean send(Bundle bundle)  throws RegistrarDisabled, NullArgument, BundleMalformed;
 
 
     /**
@@ -220,7 +226,6 @@ public interface RegistrarAPI {
      *
      *
      * @param sink to the registration
-     * @param cookie of the registration
      * @return true if the registration was successfully activated, false otherwise.
      * @throws RegistrarDisabled if the registrar is disabled
      * @throws SinkNotRegistered if the sink is not register

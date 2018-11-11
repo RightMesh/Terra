@@ -19,6 +19,23 @@ import static io.left.rightmesh.libdtn.common.data.BlockHeader.BlockV7Flags.DELE
  */
 public class EarlyValidator {
 
+    /**
+     * RejectedException is raised if an error during processing must discard the entire bundle.
+     *
+     * @author Lucien Loiseau on 03/09/18.
+     */
+    public static class RejectedException extends ProcessingException {
+
+        /**
+         * Constructor.
+         *
+         * @param reason for not validating the block
+         */
+        public RejectedException(String reason) {
+            super(reason);
+        }
+    }
+
     private DTNCore core;
 
     public EarlyValidator(DTNCore core) {

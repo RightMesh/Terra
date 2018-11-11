@@ -1,5 +1,16 @@
 package io.left.rightmesh.libdtn.core.processor;
 
+import java.nio.ByteBuffer;
+import java.util.LinkedList;
+import java.util.List;
+
+import io.left.rightmesh.libcbor.CborEncoder;
+import io.left.rightmesh.libdtn.common.data.PayloadBlock;
+import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
+import io.left.rightmesh.libdtn.common.data.blob.UntrackedByteBufferBLOB;
+import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
+import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.AdministrativeRecordSerializer;
+import io.left.rightmesh.libdtn.common.data.eid.API;
 import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
@@ -9,7 +20,13 @@ import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.common.data.StatusReport;
 import io.left.rightmesh.libdtn.core.api.BundleProcessorAPI;
+import io.left.rightmesh.libdtn.core.utils.ClockUtil;
 
+import static io.left.rightmesh.libdtn.common.data.StatusReport.ReasonCode.NoAdditionalInformation;
+import static io.left.rightmesh.libdtn.common.data.StatusReport.StatusAssertion.ReportingNodeDeletedBundle;
+import static io.left.rightmesh.libdtn.common.data.StatusReport.StatusAssertion.ReportingNodeDeliveredBundle;
+import static io.left.rightmesh.libdtn.common.data.StatusReport.StatusAssertion.ReportingNodeForwardedBundle;
+import static io.left.rightmesh.libdtn.common.data.StatusReport.StatusAssertion.ReportingNodeReceivedBundle;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_FORWARDING;
 import static io.left.rightmesh.libdtn.common.data.BlockHeader.BlockV7Flags.DELETE_BUNDLE_IF_NOT_PROCESSED;
 import static io.left.rightmesh.libdtn.common.data.BlockHeader.BlockV7Flags.DISCARD_IF_NOT_PROCESSED;
@@ -53,7 +70,9 @@ public class BundleProcessor implements BundleProcessorAPI {
 
         /* 5.2 - step 2 */
         core.getLogger().v(TAG, "5.2-2 " + bundle.bid.getBIDString());
-        bundleForwarding(bundle);
+        bundleDispatching(bundle);
+        // the RFC states to jump to bundleForwarding but I consider that a transmission may also
+        // be for local delivery
     }
 
     /* 5.3 */
@@ -120,6 +139,7 @@ public class BundleProcessor implements BundleProcessorAPI {
     public void bundleForwardingSuccessful(Bundle bundle) {
         core.getLogger().d(TAG, "forwarding successful: " + bundle.bid.getBIDString());
         bundle.removeTag("forward_pending");
+        createStatusReport(ReportingNodeForwardedBundle, bundle, NoAdditionalInformation);
         bundleDiscarding(bundle);
     }
 
@@ -157,12 +177,13 @@ public class BundleProcessor implements BundleProcessorAPI {
             if (!bundle.isTagged("in_storage")) {
                 core.getStorage().store(bundle).subscribe(
                         b -> {
-                            /* 5.4.1 - step 3 - in core.getStorage(), defer forwarding */
+                            /* 5.4.1 - step 3 - in Storage, defer forwarding */
                             core.getLogger().v(TAG, "5.4.1-3 " + bundle.bid.getBIDString());
                             core.getRoutingEngine().forwardLater(b);
+                            endProcessing(bundle);
                         },
                         storageFailure -> {
-                            /* 5.4.1 - step 2 -  core.getStorage() failed, abandon forwarding */
+                            /* 5.4.1 - step 2 -  Storage failed, abandon forwarding */
                             bundleForwardingFailed(bundle);
                         }
                 );
@@ -205,7 +226,7 @@ public class BundleProcessor implements BundleProcessorAPI {
         /* 5.6 - step 2 */
         core.getLogger().v(TAG, "5.6-2 " + bundle.bid.getBIDString());
         if (bundle.getV7Flag(RECEPTION_REPORT) && reporting()) {
-            // todo generate reception status report
+            createStatusReport(ReportingNodeReceivedBundle, bundle, NoAdditionalInformation);
         }
 
         /* 5.6 - step 3 */
@@ -216,7 +237,7 @@ public class BundleProcessor implements BundleProcessorAPI {
                     block.onReceptionProcessing(bundle);
                 } catch (ProcessorNotFoundException pe) {
                     if (block.getV7Flag(TRANSMIT_STATUSREPORT_IF_NOT_PROCESSED) && reporting()) {
-                        // todo create a status report
+                        createStatusReport(ReportingNodeReceivedBundle, bundle, BlockUnintelligible);
                     }
                     if (block.getV7Flag(DELETE_BUNDLE_IF_NOT_PROCESSED)) {
                         bundle.tag("reason_code", BlockUnintelligible);
@@ -253,7 +274,7 @@ public class BundleProcessor implements BundleProcessorAPI {
                     () -> bundleLocalDeliverySuccessful(bundle),
                     deliveryFailure -> bundleLocalDeliveryFailure(sink, bundle));
         } else {
-            // it should never happen because we already checked that the bundle was local.
+            // it should never happen because we already checked that the bundle was local (5.3).
             // but if the configuration changed right when the thread was jumping here it
             // may happen. In such unlikely event, we simply go back to bundleDispatching.
             bundleDispatching(bundle);
@@ -265,7 +286,7 @@ public class BundleProcessor implements BundleProcessorAPI {
         core.getLogger().i(TAG, "bundle successfully delivered: " + bundle.bid.getBIDString());
         bundle.removeTag("delivery_pending");
         if (bundle.getV7Flag(DELIVERY_REPORT) && reporting()) {
-            // todo generate status report
+            createStatusReport(ReportingNodeDeliveredBundle, bundle, NoAdditionalInformation);
         }
         bundleDeletion(bundle);
     }
@@ -278,10 +299,11 @@ public class BundleProcessor implements BundleProcessorAPI {
                     b -> {
                         /* register for event and deliver later */
                         core.getDelivery().deliverLater(sink, bundle);
+                        endProcessing(bundle);
                     },
                     storageFailure -> {
                         /* abandon delivery */
-                        core.getLogger().w(TAG, "storage failure: "+storageFailure.getMessage());
+                        core.getLogger().w(TAG, "storage failure: " + storageFailure.getMessage());
                         bundleDeletion(bundle);
                     }
             );
@@ -304,7 +326,7 @@ public class BundleProcessor implements BundleProcessorAPI {
         /* 5.10 - step 1 */
         core.getLogger().v(TAG, "5.10-2 " + bundle.bid.getBIDString());
         if (bundle.getV7Flag(DELETION_REPORT) && reporting()) {
-            // todo generate deletion report
+            createStatusReport(ReportingNodeDeletedBundle, bundle, NoAdditionalInformation);
         }
 
         /* 5.10 - step 2 */
@@ -317,13 +339,78 @@ public class BundleProcessor implements BundleProcessorAPI {
 
     /* 5.11 */
     public void bundleDiscarding(Bundle bundle) {
-        //core.getLogger().i(TAG, "discarding bundle: " + bundle.bid.getBIDString());
+        core.getLogger().i(TAG, "discarding bundle: " + bundle.bid.getBIDString());
         core.getStorage().remove(bundle.bid).subscribe(
                 bundle::clearBundle,
                 e -> {
                     bundle.clearBundle();
                 }
         );
+        endProcessing(bundle);
+    }
+
+    /* not in RFC - end processing for this bundle, send all status report if any */
+    public void endProcessing(Bundle bundle) {
+        if (bundle.isTagged("status-reports")) {
+            List<Bundle> reports = bundle.getTagAttachment("status-reports");
+            for (Bundle report : reports) {
+                core.getLogger().i(TAG, "sending status report to: " + bundle.destination.getEIDString());
+                bundleTransmission(report);
+            }
+        }
+    }
+
+    /* create status report */
+    public void createStatusReport(StatusReport.StatusAssertion assertion, Bundle bundle, StatusReport.ReasonCode reasonCode) {
+        if (bundle.reportto.equals(DTN.NullEID())) {
+            return;
+        }
+
+        StatusReport statusReport = new StatusReport(reasonCode);
+        statusReport.source = bundle.source;
+        statusReport.creationTimestamp = bundle.creationTimestamp;
+        if (assertion.equals(ReportingNodeDeletedBundle)
+                && bundle.getV7Flag(PrimaryBlock.BundleV7Flags.DELETION_REPORT)) {
+            statusReport.statusInformation.put(ReportingNodeDeletedBundle, ClockUtil.getCurrentTime());
+        } else if (assertion.equals(ReportingNodeForwardedBundle)
+                && bundle.getV7Flag(PrimaryBlock.BundleV7Flags.FORWARD_REPORT)) {
+            statusReport.statusInformation.put(ReportingNodeForwardedBundle, ClockUtil.getCurrentTime());
+        } else if (assertion.equals(ReportingNodeReceivedBundle)
+                && bundle.getV7Flag(PrimaryBlock.BundleV7Flags.RECEPTION_REPORT)) {
+            statusReport.statusInformation.put(ReportingNodeReceivedBundle, ClockUtil.getCurrentTime());
+        } else if (assertion.equals(ReportingNodeDeliveredBundle)
+                && bundle.getV7Flag(PrimaryBlock.BundleV7Flags.DELIVERY_REPORT)) {
+            statusReport.statusInformation.put(ReportingNodeDeliveredBundle, ClockUtil.getCurrentTime());
+        } else {
+            return;
+        }
+
+        /* create the bundle that will carry this status report back to the reporting node */
+        Bundle report = new Bundle(bundle.reportto);
+
+        /* get size of status report for the payload */
+        CborEncoder enc = AdministrativeRecordSerializer.encode(statusReport);
+        long size = enc.observe()
+                .map(ByteBuffer::remaining)
+                .reduce(0, (a, b) -> a + b)
+                .blockingGet();
+
+        /* serialize the status report into the bundle payload */
+        UntrackedByteBufferBLOB blobReport = new UntrackedByteBufferBLOB((int) size);
+        final WritableBLOB wblob = blobReport.getWritableBLOB();
+        enc.observe()
+                .map(wblob::write)
+                .doOnComplete(wblob::close)
+                .subscribe();
+        report.addBlock(new PayloadBlock(blobReport));
+
+        /* attach the status report to the bundle (it will be send during endProcessing) */
+        List<Bundle> reports = bundle.getTagAttachment("status-reports");
+        if (reports == null) {
+            reports = new LinkedList<>();
+            bundle.tag("status-reports", reports);
+        }
+        reports.add(report);
     }
 
 }

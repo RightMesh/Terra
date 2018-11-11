@@ -6,10 +6,12 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.left.rightmesh.libdtn.common.data.BundleID;
+import io.left.rightmesh.libdtn.common.data.eid.API;
+import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.api.DeliveryAPI;
-import io.left.rightmesh.libdtn.core.processor.EventListener;
+import io.left.rightmesh.libdtn.core.storage.EventListener;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.core.events.RegistrationActive;
 import io.left.rightmesh.libdtn.core.spi.aa.ActiveRegistrationCallback;
@@ -109,6 +111,25 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
         return registration;
     }
 
+    private void replaceApiMe(Bundle bundle) throws BundleMalformed {
+        try {
+            if (bundle.source.matches(API.me())) {
+                bundle.source = EID.create(core.getLocalEID().localEID().getEIDString()
+                        + ((API)bundle.source).getPath());
+            }
+            if (bundle.reportto.matches(API.me())) {
+                bundle.reportto = EID.create(core.getLocalEID().localEID().getEIDString()
+                        + ((API)bundle.reportto).getPath());
+            }
+            if (bundle.destination.matches(API.me())) {
+                bundle.destination = EID.create(core.getLocalEID().localEID().getEIDString()
+                        + ((API)bundle.destination).getPath());
+            }
+        } catch(EID.EIDFormatException efe) {
+            throw new BundleMalformed();
+        }
+    }
+
     /* ------  RegistrarAPI  ------- */
 
     @Override
@@ -154,18 +175,20 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
 
 
     @Override
-    public boolean send(Bundle bundle)  throws RegistrarDisabled, NullArgument {
+    public boolean send(Bundle bundle)  throws RegistrarDisabled, NullArgument, BundleMalformed {
         checkEnable();
         checkArgumentNotNull(bundle);
-        core.getBundleProcessor().bundleDispatching(bundle);
+        replaceApiMe(bundle);
+        core.getBundleProcessor().bundleTransmission(bundle);
         return true;
     }
 
     @Override
-    public boolean send(String sink, String cookie, Bundle bundle)  throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
+    public boolean send(String sink, String cookie, Bundle bundle)  throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument, BundleMalformed {
         checkRegisteredSink(sink, cookie);
         checkArgumentNotNull(bundle);
-        core.getBundleProcessor().bundleDispatching(bundle);
+        replaceApiMe(bundle);
+        core.getBundleProcessor().bundleTransmission(bundle);
         return true;
     }
 
@@ -292,16 +315,22 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
             return Completable.error(new DeliveryDisabled());
         }
 
-        Registration registration = registrations.get(sink);
-        if(registration == null) {
-            return Completable.error(new UnregisteredSink());
-        }
+        /* first prefix matching strategy */
+        for(String registeredSink : registrations.keySet()) {
+            if(sink.startsWith(registeredSink)) {
+                Registration registration = registrations.get(registeredSink);
+                if (registration == null) {
+                    return Completable.error(new UnregisteredSink());
+                }
 
-        if(!registration.isActive()) {
-            return Completable.error(new PassiveRegistration());
-        }
+                if (!registration.isActive()) {
+                    return Completable.error(new PassiveRegistration());
+                }
 
-        return registration.cb.recv(bundle);
+                return registration.cb.recv(bundle);
+            }
+        }
+        return Completable.error(new UnregisteredSink());
     }
 
     public void deliverLater(String sink, final Bundle bundle) {

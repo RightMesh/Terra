@@ -38,6 +38,17 @@ public class Bundle extends PrimaryBlock {
     }
 
     /**
+     * Constructor: creates a Bundle set with a destination.
+     *
+     * @param destination of the bundle
+     */
+    public Bundle(EID destination) {
+        super();
+        this.destination = destination;
+    }
+
+
+    /**
      * Constructor: creates a Bundle out of a PrimaryBlock.
      *
      * @param destination of the bundle

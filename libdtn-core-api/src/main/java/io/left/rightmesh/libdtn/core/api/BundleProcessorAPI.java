@@ -8,7 +8,14 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 public interface BundleProcessorAPI {
 
     /**
-     * Process Bundle that were received from the Application Agent
+     * Process Bundle following a send order (from either an AA or a CLA)
+     *
+     * @param bundle to process
+     */
+    void bundleTransmission(Bundle bundle);
+
+    /**
+     * Dispatch a bundle (for delivery or forwarding)
      *
      * @param bundle to process
      */

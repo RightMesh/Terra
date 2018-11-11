@@ -1,11 +1,15 @@
 package io.left.rightmesh.libdtn.common.data.eid;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * @author Lucien Loiseau on 29/10/18.
  */
 public class API extends BaseEID {
 
     String ssp;
+    String path;
 
     private API() {
         this.ssp = "me";
@@ -16,7 +20,16 @@ public class API extends BaseEID {
     }
 
     public API(String ssp) throws EIDFormatException {
-        this.ssp = ssp;
+        this();
+        final String regex = "me(/.*)?";
+        Pattern r = Pattern.compile(regex);
+        Matcher m = r.matcher(ssp);
+        if (m.find()) {
+            this.ssp = "me";
+            this.path = m.group(1) == null ? "" : m.group(1);
+        } else {
+            throw new EIDFormatException("not an API:ME");
+        }
         checkValidity();
     }
 
@@ -37,7 +50,11 @@ public class API extends BaseEID {
 
     @Override
     public String getSsp() {
-        return ssp;
+        return ssp + path;
+    }
+
+    public String getPath() {
+        return path;
     }
 
     @Override

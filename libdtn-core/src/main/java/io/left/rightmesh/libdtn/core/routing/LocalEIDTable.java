@@ -51,9 +51,6 @@ public class LocalEIDTable implements LocalEIDAPI {
      * @return true if the eid is local, false otherwise
      */
     public EID matchLocal(EID eid) {
-        if(eid.matches(API.me())) {
-            return API.me();
-        }
         if (eid.matches(localEID())) {
             return localEID();
         }

@@ -29,7 +29,7 @@ public class PrimaryBlock extends Block {
     private static long sequence_counter = 0;
 
     public enum BundleV7Flags {
-        /* BundleV7 Processing Control Flag {@href https://tools.ietf.org/html/draft-ietf-dtn-bpbis-11#section-4.1.3}
+        /* BundleV7 Processing Control Flag {@link https://tools.ietf.org/html/draft-ietf-dtn-bpbis-11#section-4.1.3}
             . Bit 0 (the high-order bit, 0x8000): reserved.
             . Bit 1 (0x4000): reserved.
             . Bit 2 (0x2000): reserved.
@@ -144,7 +144,7 @@ public class PrimaryBlock extends Block {
      * @return true if the flag is set, false otherwise
      */
     public boolean getV7Flag(BundleV7Flags flag) {
-        return (flag.getOffset() & this.procV7Flags) > 0;
+        return ((0b1L << flag.getOffset()) & this.procV7Flags) > 0;
     }
 
     /**
