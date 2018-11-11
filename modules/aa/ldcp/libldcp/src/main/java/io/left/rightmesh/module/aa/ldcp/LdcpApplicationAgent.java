@@ -50,7 +50,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
         }
 
         server = new LdcpServer();
-        server.start(0, factory,
+        server.start(0, factory, logger,
                 Router.create()
                         .POST(DELIVER,
                                 (req, res) -> cb.recv(req.bundle)

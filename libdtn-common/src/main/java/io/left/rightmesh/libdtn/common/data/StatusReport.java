@@ -42,6 +42,11 @@ public class StatusReport extends AdministrativeRecord {
     public Long fragmentOffset;
     public Long appDataLength = null;
 
+    public StatusReport() {
+        super(type);
+        statusInformation = new HashMap<>();
+    }
+
     public StatusReport(ReasonCode code) {
         super(type);
         statusInformation = new HashMap<>();

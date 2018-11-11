@@ -15,7 +15,8 @@ public class StatusReportSerializer {
         CborEncoder enc = CBOR.encoder()
                 .cbor_start_array(report.subjectBundleIsFragment ? 6 : 4);
 
-        /* encode first item - status assertion */
+        /* encode first item - status assertion array*/
+        enc.cbor_start_array(StatusReport.StatusAssertion.values().length);
         for(StatusReport.StatusAssertion assertion : StatusReport.StatusAssertion.values()) {
             if(report.statusInformation.containsKey(assertion)) {
                 enc.cbor_start_array(2)

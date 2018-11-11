@@ -18,6 +18,9 @@ dependencies {
 
     implementation project(path: ':libldcp')
 
+    // CBOR for parsing StatusReport
+    implementation 'com.github.RightMesh:libcbor:-SNAPSHOT'
+
     // RxJava library for reactive programming
     implementation 'io.reactivex.rxjava2:rxjava:2.2.3'
 

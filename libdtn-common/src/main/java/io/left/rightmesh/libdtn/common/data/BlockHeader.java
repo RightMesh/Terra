@@ -38,7 +38,7 @@ public class BlockHeader extends Block {
         DELETE_BUNDLE_IF_NOT_PROCESSED,
         RESERVED_1,
         RESERVED_2,
-        BLOCK_IS_ENCRYPTED, //
+        BLOCK_IS_ENCRYPTED, // not in RFC
         RESERVED_4
     }
 
