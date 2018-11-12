@@ -44,7 +44,7 @@ public class Logger extends BaseComponent implements Log {
     private void log(LOGLevel l, String tag, String msg) {
         if (isEnabled()) {
             if (l.ordinal() >= level.ordinal()) {
-                System.out.println(l + " - " + tag + ": " + msg);
+                System.out.println(System.currentTimeMillis()+" "+l + " - " + tag + ": " + msg);
             }
         }
     }

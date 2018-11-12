@@ -10,7 +10,6 @@ import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.common.data.blob.UntrackedByteBufferBLOB;
 import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.AdministrativeRecordSerializer;
-import io.left.rightmesh.libdtn.common.data.eid.API;
 import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;

@@ -23,7 +23,7 @@ dependencies {
     implementation 'com.github.RightMesh:libcbor:-SNAPSHOT'
 
     // RxTCP for communication between daemon/client
-    implementation 'com.github.RightMesh:librxtcp:3da2e1c273'
+    implementation 'com.github.RightMesh:librxtcp:65e2cb0ab8'
 
     // RxJava library for reactive programming
     implementation 'io.reactivex.rxjava2:rxjava:2.2.3'

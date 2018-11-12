@@ -7,27 +7,27 @@ public class SimpleLogger implements Log {
 
     @Override
     public void v(String tag, String msg) {
-        System.out.println(tag+" "+msg);
+        System.out.println(System.currentTimeMillis() + " " + tag + " " + msg);
     }
 
     @Override
     public void d(String tag, String msg) {
-        System.out.println(tag+" "+msg);
+        System.out.println(System.currentTimeMillis() + " " + tag + " " + msg);
     }
 
     @Override
     public void i(String tag, String msg) {
-        System.out.println(tag+" "+msg);
+        System.out.println(System.currentTimeMillis() + " " + tag + " " + msg);
     }
 
     @Override
     public void w(String tag, String msg) {
-        System.out.println(tag+" "+msg);
+        System.out.println(System.currentTimeMillis() + " " + tag + " " + msg);
     }
 
     @Override
     public void e(String tag, String msg) {
-        System.out.println(tag+" "+msg);
+        System.out.println(System.currentTimeMillis() + " " + tag + " " + msg);
     }
 
 }

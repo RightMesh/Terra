@@ -49,10 +49,17 @@ public class DTNPing implements Callable<Void> {
     private LdcpApplicationAgent agent;
     private String sink;
 
+    public static float round(float number, int scale) {
+        int pow = 10;
+        for (int i = 1; i < scale; i++)
+            pow *= 10;
+        float tmp = number * pow;
+        return ( (float) ( (int) ((tmp - (int) tmp) >= 0.5f ? tmp + 1 : tmp) ) ) / pow;
+    }
+
     private void receiveEchoResponse() {
         ActiveLdcpRegistrationCallback cb = (recvbundle) ->
                 Completable.create(s -> {
-
                     String dest = recvbundle.destination.getEIDString();
 
                     final String regex = "(.*)/dtnping/([0-9a-fA-F]+)/([0-9]+)/([0-9]+)";
@@ -75,15 +82,15 @@ public class DTNPing implements Callable<Void> {
                         return;
                     }
 
-                    long timeElapsed = System.currentTimeMillis() - timestamp;
-                    System.err.println("echo response from " + eid + ": seq=" + seq + " time=" + timeElapsed +" ms");
+                    long timeElapsed = System.nanoTime() - timestamp;
+                    System.err.println("echo response from " + eid + " seq=" + seq + " time=" + round((timeElapsed/1000000.0f),2) +" ms");
 
                     s.onComplete();
                 });
 
         BLOBFactory factory = new BaseBLOBFactory().enableVolatile(10000);
         if (cookie == null) {
-            agent = new LdcpApplicationAgent(dtnhost, dtnport, factory);
+            agent = new LdcpApplicationAgent(dtnhost, dtnport, factory, new SimpleLogger());
             agent.register(sink, cb).subscribe(
                     cookie -> {
                         System.err.println("sink registered. cookie: " + cookie);
@@ -124,7 +131,7 @@ public class DTNPing implements Callable<Void> {
         Runnable sendPing = () -> {
             try {
                 /* update ping seq number */
-                long timestamp = System.currentTimeMillis();
+                long timestamp = System.nanoTime();
                 String dest = "api:me" + sink + seq.get() + "/" + timestamp;
                 bundle.reportto = EID.create(dest);
                 agent.send(bundle).subscribe(

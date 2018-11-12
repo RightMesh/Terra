@@ -15,6 +15,8 @@ import io.reactivex.Single;
  */
 public class LdcpRequest {
 
+    public static final String TAG = "LdcpRequest";
+
     private RequestMessage requestMessage;
 
     private LdcpRequest(RequestMessage requestMessage) {
@@ -52,34 +54,41 @@ public class LdcpRequest {
         return Single.create(s -> new RxTCP.ConnectionRequest<>(host, port)
                 .connect()
                 .subscribe(
-                        c -> c.order(requestMessage.encode()).track().ignoreElements().subscribe(
-                                () -> c.recv().subscribe(
-                                        buf -> {
-                                            CborParser parser = ResponseMessage.getParser(logger, factory);
-                                            try {
-                                                while (buf.hasRemaining() && !parser.isDone()) {
-                                                    parser.read(buf);
-                                                }
-                                                c.closeNow();
-                                                s.onSuccess(parser.getReg(0));
-                                            } catch (RxParserException rpe) {
-                                                c.closeNow();
-                                                s.onError(rpe);
-                                            }
-                                        },
-                                        e -> {
-                                            c.closeNow();
-                                            s.onError(e);
-                                        },
-                                        () -> {
-                                            c.closeNow();
-                                            s.onError(new Throwable("no response"));
-                                        }),
-                                e -> {
-                                    c.closeNow();
-                                    s.onError(e);
-                                }
-                        ),
+                        c -> {
+                            logger.d(TAG, "connected to: "+host+":"+port);
+                            c.order(requestMessage.encode()).track().ignoreElements().subscribe(
+                                    () -> {
+                                        logger.d(TAG, "request sent, waiting for response");
+                                        c.recv().subscribe(
+                                                buf -> {
+                                                    CborParser parser = ResponseMessage.getParser(logger, factory);
+                                                    try {
+                                                        while (buf.hasRemaining() && !parser.isDone()) {
+                                                            if(parser.read(buf)) {
+                                                                c.closeNow();
+                                                                s.onSuccess(parser.getReg(0));
+                                                            }
+                                                        }
+                                                    } catch (RxParserException rpe) {
+                                                        c.closeNow();
+                                                        s.onError(rpe);
+                                                    }
+                                                },
+                                                e -> {
+                                                    c.closeNow();
+                                                    s.onError(e);
+                                                },
+                                                () -> {
+                                                    c.closeNow();
+                                                    s.onError(new Throwable("no response"));
+                                                });
+                                    },
+                                    e -> {
+                                        c.closeNow();
+                                        s.onError(e);
+                                    }
+                            );
+                        },
                         s::onError
                 ));
     }

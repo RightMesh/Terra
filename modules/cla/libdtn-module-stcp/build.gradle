@@ -45,7 +45,7 @@ dependencies {
     implementation 'com.github.RightMesh:libcbor:-SNAPSHOT'
 
     // librxtcp for tcp socket
-    implementation 'com.github.RightMesh:librxtcp:3da2e1c273'
+    implementation 'com.github.RightMesh:librxtcp:65e2cb0ab8'
 
     // jUnit
     testImplementation 'junit:junit:4.12'

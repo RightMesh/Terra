@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.DTNCore;
@@ -21,6 +22,7 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABL
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_CORE_MODULES;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_FORWARDING;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_STATUS_REPORTING;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.LOCAL_EID;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.LOG_LEVEL;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_AA_PATH;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_CLA_PATH;
@@ -69,6 +71,9 @@ public class Terra implements Callable<Void> {
 
     enum StorageOption {NONE, VOLATILE, SIMPLE, BOTH}
 
+    @Option(names = {"-e", "--eid"}, description = "set local eid")
+    private String localEID = null;
+
     @Option(names = {"-s", "--storage"}, description = "storage values: ${COMPLETION-CANDIDATES}")
     private StorageOption storage = NONE;
 
@@ -108,6 +113,16 @@ public class Terra implements Callable<Void> {
     @Override
     public Void call() throws Exception {
         DTNConfiguration conf = new DTNConfiguration();
+
+        if(localEID != null) {
+            try {
+                EID eid = EID.create(localEID);
+                conf.get(LOCAL_EID).update(eid);
+            } catch(EID.EIDFormatException efe) {
+                throw new Exception("localEID is not a valid Endpoint ID: "+efe.getMessage());
+            }
+        }
+
         conf.get(COMPONENT_ENABLE_VOLATILE_STORAGE).update(storage.equals(VOLATILE) || storage.equals(BOTH));
         if (storage.equals(VOLATILE) || storage.equals(BOTH)) {
             conf.get(VOLATILE_BLOB_STORAGE_MAX_CAPACITY).update(volatileLimit);
