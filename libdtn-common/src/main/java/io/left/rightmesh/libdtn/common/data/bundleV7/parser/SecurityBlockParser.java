@@ -60,9 +60,9 @@ public class SecurityBlockParser {
                                                     },
                                                     (p, __, ___) -> { });
                                 },
-                        (p, __, size) -> logger.v(TAG, ".. security_results=" + size),
+                        (__, ___, size) -> logger.v(TAG, ".. security_results=" + size),
                         (__, ___, item) -> { },
-                        (p, __, ___) -> { });
+                        (__, ___, ____) -> { });
     }
 
 }

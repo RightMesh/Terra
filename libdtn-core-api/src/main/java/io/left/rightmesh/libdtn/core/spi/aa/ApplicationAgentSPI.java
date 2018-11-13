@@ -1,5 +1,6 @@
 package io.left.rightmesh.libdtn.core.spi.aa;
 
+import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
 
 /**
@@ -7,6 +8,6 @@ import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
  */
 public interface ApplicationAgentSPI {
 
-    void init(RegistrarAPI registrar);
+    void init(RegistrarAPI registrar, Log logger);
 
 }

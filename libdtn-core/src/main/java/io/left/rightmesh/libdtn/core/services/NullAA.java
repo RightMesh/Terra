@@ -1,5 +1,6 @@
 package io.left.rightmesh.libdtn.core.services;
 
+import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
 import io.left.rightmesh.libdtn.core.spi.aa.ApplicationAgentSPI;
 import io.reactivex.Completable;
@@ -13,7 +14,7 @@ import io.reactivex.Completable;
 public class NullAA implements ApplicationAgentSPI {
 
     @Override
-    public void init(RegistrarAPI registrar) {
+    public void init(RegistrarAPI registrar, Log logger) {
         try {
             registrar.register("/null/", (bundle) -> {
                 bundle.clearBundle();

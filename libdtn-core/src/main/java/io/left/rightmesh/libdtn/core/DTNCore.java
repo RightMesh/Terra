@@ -87,9 +87,8 @@ public class DTNCore implements CoreAPI {
         core.coreServices = new LinkedList<>();
         core.coreServices.add(new NullAA());
         for(ApplicationAgentSPI aa : core.coreServices) {
-            aa.init(core.registrar);
+            aa.init(core.registrar, core.logger);
         }
-
 
         return core;
     }

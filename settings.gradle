@@ -11,6 +11,10 @@ include ':libdtn-module-ldcp' // libdtn core module for ldcp
 project(":libldcp").projectDir = file("modules/aa/ldcp/libldcp")
 project(":libdtn-module-ldcp").projectDir = file("modules/aa/ldcp/libdtn-module-ldcp")
 
+// module hello
+include ':libdtn-module-hello'
+project(":libdtn-module-hello").projectDir = file("modules/aa/libdtn-module-hello")
+
 // module http
 include ':libdtn-module-http'
 project(":libdtn-module-http").projectDir = file("modules/core/libdtn-module-http")

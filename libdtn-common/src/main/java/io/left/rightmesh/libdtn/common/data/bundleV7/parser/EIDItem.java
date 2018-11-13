@@ -19,7 +19,7 @@ import static io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item.
  */
 public class EIDItem implements CborParser.ParseableItem {
 
-    EIDItem(Log logger) {
+    public EIDItem(Log logger) {
         this.logger = logger;
     }
 

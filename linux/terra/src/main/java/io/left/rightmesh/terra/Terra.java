@@ -176,6 +176,7 @@ public class Terra implements Callable<Void> {
         conf.getModuleEnabled("stcp", true).update(true);
         conf.getModuleEnabled("http-daemon", true).update(true);
         conf.getModuleEnabled("ldcp", true).update(true);
+        conf.getModuleEnabled("hello", true).update(true);
 
         CoreAPI core = DTNCore.init(conf);
         return null;

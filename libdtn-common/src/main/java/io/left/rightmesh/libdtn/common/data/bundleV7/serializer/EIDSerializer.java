@@ -11,7 +11,7 @@ import io.left.rightmesh.libdtn.common.data.eid.IPN;
  */
 public class EIDSerializer {
 
-    static CborEncoder encode(EID eid) {
+    public static CborEncoder encode(EID eid) {
         if (eid.equals(DTN.NullEID())) {
             return CBOR.encoder()
                     .cbor_start_array(2)
