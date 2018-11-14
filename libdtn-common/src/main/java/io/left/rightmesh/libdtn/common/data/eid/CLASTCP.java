@@ -73,6 +73,13 @@ public class CLASTCP extends CLA {
     }
 
     @Override
+    public EID copy() {
+        CLASTCP ret = new CLASTCP(host, port);
+        ret.cl_sink = this.cl_sink;
+        return ret;
+    }
+
+    @Override
     public boolean matches(EID other) {
         if (other == null) {
             return false;

@@ -198,10 +198,10 @@ public class DTNConfiguration implements ConfigurationAPI {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> EntryInterface<T> getModuleConf(ModuleSPI module, ModuleEntry entry, T default_value) {
-        EntryInterface ret = entries.get(module.getModuleName()+":conf:"+entry.toString());
+    public <T> EntryInterface<T> getModuleConf(String moduleName, String entry, T default_value) {
+        EntryInterface ret = entries.get(moduleName+":conf:"+entry);
         if(ret == null) {
-            ret = this.createEntryCustom(module.getModuleName()+":conf:"+entry.toString(), default_value);
+            ret = this.createEntryCustom(moduleName+":conf:"+entry, default_value);
         }
         return ret;
     }

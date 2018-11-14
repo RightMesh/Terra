@@ -7,22 +7,7 @@ import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
  */
 public interface Configuration extends ConfigurationAPI.ModuleEntry {
 
-    enum LDCPEntry implements ConfigurationAPI.ModuleEntry {
-
-        LDCP_TCP_PORT("ldcp_tcp_port");
-
-        private final String key;
-
-        LDCPEntry(final String key) {
-            this.key = key;
-        }
-
-        @Override
-        public String toString() {
-            return key;
-        }
-    }
-
+    String LDCP_TCP_PORT = "ldcp_tcp_port";
     int LDCP_TCP_PORT_DEFAULT = 4557;
 
 }

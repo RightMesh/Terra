@@ -35,7 +35,7 @@ public class STCPTest {
         }
 
         @Override
-        public <T> EntryInterface<T> getModuleConf(ModuleSPI module, ModuleEntry entry, T default_value) {
+        public <T> EntryInterface<T> getModuleConf(String module, String entry, T default_value) {
             return new EntryInterface<T>() {
                 @Override
                 public T value() {

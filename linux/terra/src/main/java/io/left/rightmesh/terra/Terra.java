@@ -86,20 +86,20 @@ public class Terra implements Callable<Void> {
     @Option(names = {"-d", "--daemon"}, description = "Start Terra as a daemon.")
     private boolean daemon;
 
-    @Option(names = {"-n", "--module-cla-path"}, description = "set the path to the network Convergence Layer Adapters modules.")
+    @Option(names = {"--module-cla"}, description = "set the path to the network Convergence Layer Adapters modules.")
     private String claModuleDirectory = null;
 
-    @Option(names = {"-a", "--module-aa-path"}, description = "set the path to the Application Agent Adapters modules.")
+    @Option(names = {"--module-aa"}, description = "set the path to the Application Agent Adapters modules.")
     private String aaModuleDirectory = null;
 
-    @Option(names = {"-c", "--module-core-path"}, description = "set the path to the Core modules.")
+    @Option(names = {"--module-core"}, description = "set the path to the Core modules.")
     private String coreModuleDirectory = null;
 
     @Option(names = {"-v", "--verbose"}, description = "set the log level to debug (-v -vv -vvv).")
     private boolean[] verbose = new boolean[0];
 
-    @Option(names = {"--enable-reporting"}, description = "enable sending status reporting.")
-    private boolean enableReporting = false;
+    @Option(names = {"--disable-reporting"}, description = "disable sending status reporting.")
+    private boolean disableReporting = false;
 
     @Option(names = {"--disable-forwarding"}, description = "do not forward bundle that are not local.")
     private boolean disableForwarding = false;
@@ -110,10 +110,17 @@ public class Terra implements Callable<Void> {
     @Option(names = {"--disable-peer-autoconnect"}, description = "do not try to create opportunity with detected peers.")
     private boolean disablePeerAutoconnect = false;
 
+    @Option(names = {"--ldcp-port"}, description = "do not try to create opportunity with detected peers.")
+    private int ldcpPort = 4557;
+
+    @Option(names = {"--stcp-port"}, description = "do not try to create opportunity with detected peers.")
+    private int stcpPort = 4556;
+
     @Override
     public Void call() throws Exception {
         DTNConfiguration conf = new DTNConfiguration();
 
+        /* Terra configuration */
         if(localEID != null) {
             try {
                 EID eid = EID.create(localEID);
@@ -135,7 +142,7 @@ public class Terra implements Callable<Void> {
             conf.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
         }
 
-        conf.get(ENABLE_STATUS_REPORTING).update(enableReporting);
+        conf.get(ENABLE_STATUS_REPORTING).update(!disableReporting);
         conf.get(ENABLE_FORWARDING).update(!disableForwarding);
         conf.get(ENABLE_AUTO_CONNECT_FOR_BUNDLE).update(!disableEidAutoconnect);
         conf.get(ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT).update(!disablePeerAutoconnect);
@@ -173,10 +180,14 @@ public class Terra implements Callable<Void> {
                 conf.get(LOG_LEVEL).update(Log.LOGLevel.VERBOSE);
         }
 
+        /* module configuration */
         conf.getModuleEnabled("stcp", true).update(true);
         conf.getModuleEnabled("http-daemon", true).update(true);
         conf.getModuleEnabled("ldcp", true).update(true);
         conf.getModuleEnabled("hello", true).update(true);
+
+        conf.getModuleConf("ldcp","ldcp_tcp_port", 4557).update(ldcpPort);
+        conf.getModuleConf("stcp","cla_stcp_port", 4556).update(stcpPort);
 
         CoreAPI core = DTNCore.init(conf);
         return null;

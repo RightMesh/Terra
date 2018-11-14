@@ -46,6 +46,11 @@ public class DTN extends BaseEID {
     }
 
     @Override
+    public EID copy() {
+        return unsafe(this.ssp);
+    }
+
+    @Override
     public int IANA() {
         return EID_DTN_IANA_VALUE;
     }

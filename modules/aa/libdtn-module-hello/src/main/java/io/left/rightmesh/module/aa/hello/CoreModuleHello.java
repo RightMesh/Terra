@@ -9,6 +9,7 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.blob.UntrackedByteBufferBLOB;
 import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
+import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
@@ -16,6 +17,7 @@ import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
 import io.left.rightmesh.libdtn.core.events.LinkLocalEntryUp;
 import io.left.rightmesh.libdtn.core.spi.core.CoreModuleSPI;
 import io.left.rightmesh.librxbus.RxBus;
+import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Completable;
 
 /**
@@ -23,7 +25,7 @@ import io.reactivex.Completable;
  */
 public class CoreModuleHello implements CoreModuleSPI {
 
-    private static final String TAG = "hello";
+    private static final String TAG = "HelloModule";
 
     private static class RequestException extends Exception {
         RequestException(String msg) {
@@ -39,7 +41,7 @@ public class CoreModuleHello implements CoreModuleSPI {
 
     @Override
     public String getModuleName() {
-        return TAG;
+        return "hello";
     }
 
     private void initHelloBundle() {
@@ -111,9 +113,16 @@ public class CoreModuleHello implements CoreModuleSPI {
     }
 
     /* events are serialized */
+    @Subscribe
     public void onEvent(LinkLocalEntryUp up) {
-        helloBundle.destination = up.channel.channelEID();
-        up.channel.sendBundle(helloBundle);
+        try {
+            CLA eid = up.channel.channelEID().setPath("/hello/");
+            coreAPI.getLogger().i(TAG, "sending hello message to: " + eid.getEIDString());
+            helloBundle.destination = eid;
+            up.channel.sendBundle(helloBundle).ignoreElements().subscribe();
+        } catch(EID.EIDFormatException efe) {
+            coreAPI.getLogger().e(TAG, "Cannot append /hello/ to IID: "+up.channel.channelEID()+" reason="+efe.getMessage());
+        }
     }
 
 }

@@ -34,6 +34,13 @@ public class API extends BaseEID {
     }
 
     @Override
+    public EID copy() {
+        API me = me();
+        me.path = path;
+        return me;
+    }
+
+    @Override
     public int IANA() {
         return EID_API_ME;
     }

@@ -8,8 +8,8 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.netty.protocol.http.server.HttpServer;
 import rx.Observable;
 
+import static io.left.rightmesh.module.core.http.Configuration.API_DAEMON_HTTP_API_PORT;
 import static io.left.rightmesh.module.core.http.Configuration.API_DAEMON_HTTP_API_PORT_DEFAULT;
-import static io.left.rightmesh.module.core.http.Configuration.HTTPEntry.API_DAEMON_HTTP_API_PORT;
 import static io.left.rightmesh.module.core.http.nettyrouter.Dispatch.using;
 
 /**
@@ -38,7 +38,7 @@ public class ModuleHTTPDaemon implements CoreModuleSPI {
         RequestNetwork networkAPI = new RequestNetwork(core);
         RequestStorage storageAPI = new RequestStorage(core);
         RequestBundle applicationAgentAPI = new RequestBundle(core);
-        int serverPort = core.getConf().getModuleConf(this,
+        int serverPort = core.getConf().getModuleConf(getModuleName(),
                 API_DAEMON_HTTP_API_PORT, API_DAEMON_HTTP_API_PORT_DEFAULT).value();
         api.getLogger().i(TAG, "starting a http server on port "+serverPort);
         server = HttpServer.newServer(serverPort)

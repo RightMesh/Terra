@@ -25,8 +25,8 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.subscribers.DisposableSubscriber;
 
+import static io.left.rightmesh.core.module.cla.stcp.Configuration.CLA_STCP_LISTENING_PORT;
 import static io.left.rightmesh.core.module.cla.stcp.Configuration.CLA_STCP_LISTENING_PORT_DEFAULT;
-import static io.left.rightmesh.core.module.cla.stcp.Configuration.STCPEntry.CLA_STCP_LISTENING_PORT;
 
 /**
  * Simple TCP (CLASTCP) is a TCP Convergence Layer Adapter (CLA) for the Bundle Protocol. it was
@@ -73,7 +73,7 @@ public class STCP implements ConvergenceLayerSPI {
     public Observable<CLAChannelSPI> start(ConfigurationAPI conf, Log logger) {
         this.logger = logger;
         if (port == 0) {
-            port = conf.getModuleConf(this,
+            port = conf.getModuleConf(getModuleName(),
                     CLA_STCP_LISTENING_PORT, CLA_STCP_LISTENING_PORT_DEFAULT).value();
         }
         server = new RxTCP.Server<>(port);

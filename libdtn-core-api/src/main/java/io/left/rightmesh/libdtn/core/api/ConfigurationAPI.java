@@ -135,6 +135,6 @@ public interface ConfigurationAPI {
 
     EntryInterface<Boolean> getModuleEnabled(String name, boolean default_value);
 
-    <T> EntryInterface<T> getModuleConf(ModuleSPI module, ModuleEntry entry, T default_value);
+    <T> EntryInterface<T> getModuleConf(String moduleName, String entry, T default_value);
 
 }

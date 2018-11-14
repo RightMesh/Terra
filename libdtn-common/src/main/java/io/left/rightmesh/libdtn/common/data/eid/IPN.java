@@ -32,6 +32,11 @@ public class IPN extends BaseEID {
     }
 
     @Override
+    public EID copy() {
+        return new IPN(node_number, service_number);
+    }
+
+    @Override
     public boolean matches(EID other) {
         if (other == null) {
             return false;

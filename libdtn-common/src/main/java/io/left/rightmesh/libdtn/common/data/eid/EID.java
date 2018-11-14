@@ -89,6 +89,8 @@ public interface EID {
 
     String getEIDString();
 
+    EID copy();
+
     /**
      * Check that the EID is a URI as defined in <a href="https://tools.ietf.org/html/rfc3986#appendix-B">RFC 3986</a>.
      *

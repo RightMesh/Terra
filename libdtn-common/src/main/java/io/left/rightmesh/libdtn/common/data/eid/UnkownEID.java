@@ -9,6 +9,10 @@ public class UnkownEID extends BaseEID {
     private String scheme;
     private String ssp;
 
+    /* unsafe constructor - no validity check */
+    private UnkownEID() {
+    }
+
     public UnkownEID(int iana_value, String scheme, String ssp) throws EIDFormatException {
         this.iana = iana_value;
         this.scheme = scheme;
@@ -16,6 +20,15 @@ public class UnkownEID extends BaseEID {
         if(!EID.isValidEID(this.getEIDString())) {
             throw new EIDFormatException("not an URI");
         }
+    }
+
+    @Override
+    public EID copy() {
+        UnkownEID ret = new UnkownEID();
+        ret.iana = iana;
+        ret.scheme = scheme;
+        ret.ssp = ssp;
+        return ret;
     }
 
     @Override

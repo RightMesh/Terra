@@ -13,7 +13,7 @@ import io.left.rightmesh.module.aa.ldcp.messages.RequestMessage;
 import io.left.rightmesh.module.aa.ldcp.messages.ResponseMessage;
 import io.reactivex.Completable;
 
-import static io.left.rightmesh.module.aa.ldcp.Configuration.LDCPEntry.LDCP_TCP_PORT;
+import static io.left.rightmesh.module.aa.ldcp.Configuration.LDCP_TCP_PORT;
 import static io.left.rightmesh.module.aa.ldcp.Configuration.LDCP_TCP_PORT_DEFAULT;
 import static io.left.rightmesh.module.aa.ldcp.Paths.DELIVER;
 import static io.left.rightmesh.module.aa.ldcp.Paths.DISPATCH;
@@ -50,7 +50,7 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
 
     @Override
     public void init(RegistrarAPI api, ConfigurationAPI conf, Log logger, BLOBFactory factory) {
-        int port = conf.getModuleConf(this, LDCP_TCP_PORT, LDCP_TCP_PORT_DEFAULT).value();
+        int port = conf.getModuleConf(getModuleName(), LDCP_TCP_PORT, LDCP_TCP_PORT_DEFAULT).value();
         this.registrar = api;
         this.logger = logger;
         logger.i(TAG, "starting a ldcp server on port " + port);

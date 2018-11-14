@@ -46,6 +46,15 @@ public abstract class CLA extends BaseEID {
         }
     }
 
+    public CLA setPath(String path) throws EIDFormatException {
+        if(!path.startsWith("/")) {
+            path = "/" + path;
+        }
+        this.cl_sink = path;
+        checkValidity();
+        return this;
+    }
+
     @Override
     public String getScheme() {
         return "cla";
@@ -82,10 +91,13 @@ public abstract class CLA extends BaseEID {
 
     static class Unknown extends CLA {
 
+        private Unknown(String cl_name, String cl_specific) {
+            super(cl_name, cl_specific);
+        }
+
         public Unknown(String cl_name, String cl_specific, String sink) throws EIDFormatException {
             super(cl_name, cl_specific, sink);
         }
-
 
         @Override
         public int IANA() {
@@ -95,6 +107,13 @@ public abstract class CLA extends BaseEID {
         @Override
         public EIDScheme getSchemeCode() {
             return CLAUNK;
+        }
+
+        @Override
+        public EID copy() {
+            Unknown unk = new Unknown(cl_name, cl_specific);
+            unk.cl_sink = this.cl_sink;
+            return unk;
         }
     }
 }
