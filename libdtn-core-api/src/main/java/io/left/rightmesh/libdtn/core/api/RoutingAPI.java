@@ -11,6 +11,14 @@ import io.reactivex.Observable;
 public interface RoutingAPI {
 
     /**
+     * Add a route to the routing table.
+     *
+     * @param to EID of a destination
+     * @param nextHop next hop toward the destination
+     */
+    void addRoute(EID to, EID nextHop);
+
+    /**
      * Returns an Observable of currently opened CLAChannel that enable a bundle to make forward
      * progress toward a destination.
      *

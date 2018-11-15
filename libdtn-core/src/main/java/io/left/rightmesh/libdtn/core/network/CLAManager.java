@@ -36,6 +36,7 @@ public class CLAManager {
                     dtnChannel.recvBundle(core.getStorage().getBlobFactory()).subscribe(
                             b -> {
                                 core.getLogger().i(TAG, dtnChannel.channelEID().getEIDString() + " -> received a new bundle from: " + b.source.getEIDString() + " to: " + b.destination.getEIDString());
+                                b.tag("cla-origin-iid", dtnChannel.channelEID());
                                 core.getBundleProcessor().bundleReception(b);
                             },
                             e -> {

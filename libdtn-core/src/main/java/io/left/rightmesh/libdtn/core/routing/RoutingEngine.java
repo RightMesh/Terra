@@ -32,6 +32,11 @@ public class RoutingEngine implements RoutingAPI {
 
     private ForwardingListener listener;
 
+    @Override
+    public void addRoute(EID to, EID nextHop) {
+        core.getRoutingTable().addRoute(to, nextHop);
+    }
+
     public class ForwardingListener extends EventListener<String> {
         ForwardingListener(DTNCore core) {
             super(core);

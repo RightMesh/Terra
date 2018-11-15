@@ -80,25 +80,29 @@ public class CoreModuleHello implements CoreModuleSPI {
 
         try {
             api.getRegistrar().register("/hello/", (bundle) -> {
-                CborParser p = CBOR.parser()
-                        .cbor_parse_custom_item(
-                                HelloMessage::new,
-                                (__, ___, item) -> {
-                                    for(EID eid : item.eids) {
-                                        System.out.println("new eid: "+eid.getEIDString());
-                                    }
-                                });
+                if(bundle.getTagAttachment("cla-origin-iid") != null) {
+                    CborParser p = CBOR.parser()
+                            .cbor_parse_custom_item(
+                                    HelloMessage::new,
+                                    (__, ___, item) -> {
+                                        for (EID eid : item.eids) {
+                                            coreAPI.getRoutingEngine().addRoute(
+                                                    eid,
+                                                    bundle.getTagAttachment("cla-origin-iid"));
+                                        }
+                                    });
 
-                bundle.getPayloadBlock().data.observe().subscribe(
-                        b -> {
-                            try {
-                                while (b.hasRemaining() && !p.isDone()) {
-                                    p.read(b);
+                    bundle.getPayloadBlock().data.observe().subscribe(
+                            b -> {
+                                try {
+                                    while (b.hasRemaining() && !p.isDone()) {
+                                        p.read(b);
+                                    }
+                                } catch (RxParserException rpe) {
+                                    api.getLogger().i(TAG, "malformed hello message: " + rpe.getMessage());
                                 }
-                            } catch(RxParserException rpe) {
-                                api.getLogger().i(TAG, "malformed hello message: "+rpe.getMessage());
-                            }
-                        });
+                            });
+                }
 
                 return Completable.complete();
             });

@@ -112,7 +112,6 @@ public class STCP implements ConvergenceLayerSPI {
         CLA channelEID;
         CLA localEID;
         boolean initiator;
-        BundleV7Item parser;
 
         /**
          * Constructor.

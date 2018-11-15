@@ -77,6 +77,11 @@ public class RoutingTable {
         }
     }
 
+    void addRoute(EID to, EID nextHop) {
+        routingTable.add(new TableEntry(to, nextHop));
+    }
+
+
     Observable<TableEntry> compoundTableObservable() {
         if(staticIsEnabled) {
             return Observable.fromIterable(staticRoutingTable)
