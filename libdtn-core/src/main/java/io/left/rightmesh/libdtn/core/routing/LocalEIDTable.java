@@ -27,7 +27,7 @@ public class LocalEIDTable implements LocalEIDAPI {
 
     public EID localEID() {
         return core.getConf().<EID>get(ConfigurationAPI.CoreEntry.LOCAL_EID)
-                .value();
+                .value().copy();
     }
 
     public Set<EID> aliases() {

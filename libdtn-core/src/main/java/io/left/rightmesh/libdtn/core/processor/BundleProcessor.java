@@ -357,6 +357,7 @@ public class BundleProcessor implements BundleProcessorAPI {
             List<Bundle> reports = bundle.getTagAttachment("status-reports");
             for (Bundle report : reports) {
                 core.getLogger().i(TAG, "sending status report to: " + report.destination.getEIDString());
+                report.source = core.getLocalEID().localEID();
                 bundleTransmission(report);
             }
         }

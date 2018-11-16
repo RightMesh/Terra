@@ -90,7 +90,7 @@ public class DTNPing implements Callable<Void> {
                     }
 
                     long timeElapsed = System.nanoTime() - timestamp;
-                    System.err.println("echo response from " + eid + " seq=" + seq + " time=" + round((timeElapsed/1000000.0f),2) +" ms");
+                    System.err.println("echo response from " + recvbundle.source.getEIDString() + " seq=" + seq + " time=" + round((timeElapsed/1000000.0f),2) +" ms");
 
                     s.onComplete();
                 });
