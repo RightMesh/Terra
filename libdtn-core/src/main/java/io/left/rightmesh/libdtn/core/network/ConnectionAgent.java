@@ -7,8 +7,11 @@ import io.left.rightmesh.libdtn.core.api.ConnectionAgentAPI;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
 import io.left.rightmesh.libdtn.core.DTNCore;
+import io.left.rightmesh.libdtn.core.events.ChannelClosed;
+import io.left.rightmesh.libdtn.core.events.ChannelOpened;
 import io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI;
 
+import io.left.rightmesh.librxbus.RxBus;
 import io.reactivex.Single;
 
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_CONNECTION_AGENT;
@@ -59,7 +62,10 @@ public class ConnectionAgent extends BaseComponent implements ConnectionAgentAPI
         core.getLogger().d(TAG, "trying to create an opportunity with "+opp+" "+Thread.currentThread().getName());
         return core.getClaManager().openChannel(eid)
                 .doOnError(e -> core.getLogger().d(TAG, "opportunity creation failed " + opp +": "+e.getMessage()))
-                .doOnSuccess((c) -> core.getLogger().d(TAG, "opportunity creation success: " + opp));
+                .doOnSuccess((c) -> {
+                    core.getLogger().d(TAG, "opportunity creation success: " + opp);
+                    RxBus.post(new ChannelOpened(c));
+                });
     }
 
     /**
@@ -80,6 +86,9 @@ public class ConnectionAgent extends BaseComponent implements ConnectionAgentAPI
         core.getLogger().d(TAG, "trying to create an opportunity with "+opp);
         return core.getClaManager().openChannel(eid)
                 .doOnError(e -> core.getLogger().d(TAG, "opportunity creation failed " + opp + ": "+e.getMessage()))
-                .doOnSuccess((c) -> core.getLogger().d(TAG, "opportunity creation success: " + opp));
+                .doOnSuccess((c) -> {
+                    core.getLogger().d(TAG, "opportunity creation success: " + opp);
+                    RxBus.post(new ChannelOpened(c));
+                });
     }
 }

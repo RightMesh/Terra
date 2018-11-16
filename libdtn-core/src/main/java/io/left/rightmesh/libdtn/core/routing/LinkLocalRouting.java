@@ -31,11 +31,13 @@ public class LinkLocalRouting extends BaseComponent {
     private static final String TAG = "LinkLocalRouting";
 
     public LinkLocalRouting(DTNCore core) {
+        this.core = core;
         linkLocalTable = new HashSet<>();
         initComponent(core.getConf(), COMPONENT_ENABLE_LINKLOCAL_ROUTING, core.getLogger());
     }
 
     private Set<CLAChannelSPI> linkLocalTable;
+    private DTNCore core;
 
     @Override
     public String getComponentName() {
@@ -54,6 +56,17 @@ public class LinkLocalRouting extends BaseComponent {
 
     void channelOpened(CLAChannelSPI channel) {
         if(linkLocalTable.add(channel)) {
+            channel.recvBundle(core.getStorage().getBlobFactory()).subscribe(
+                    b -> {
+                        core.getLogger().i(TAG, "channel "
+                                + channel.channelEID().getEIDString()
+                                + " received a new bundle from "
+                                + b.source.getEIDString());
+                        b.tag("cla-origin-iid", channel.channelEID());
+                        core.getBundleProcessor().bundleReception(b);
+                    },
+                    e -> channelClosed(channel),
+                    () -> channelClosed(channel));
             RxBus.post(new LinkLocalEntryUp(channel));
         }
     }

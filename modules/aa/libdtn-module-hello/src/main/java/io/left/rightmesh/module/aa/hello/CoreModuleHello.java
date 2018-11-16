@@ -81,6 +81,10 @@ public class CoreModuleHello implements CoreModuleSPI {
         try {
             api.getRegistrar().register("/hello/", (bundle) -> {
                 if(bundle.getTagAttachment("cla-origin-iid") != null) {
+                    coreAPI.getLogger().i(TAG, "received hello message from: " +
+                            bundle.source.getEIDString() +
+                            " on CLA: " +
+                            bundle.<EID>getTagAttachment("cla-origin-iid").getEIDString());
                     CborParser p = CBOR.parser()
                             .cbor_parse_custom_item(
                                     HelloMessage::new,
@@ -102,6 +106,10 @@ public class CoreModuleHello implements CoreModuleSPI {
                                     api.getLogger().i(TAG, "malformed hello message: " + rpe.getMessage());
                                 }
                             });
+                } else {
+                    coreAPI.getLogger().i(TAG, "received hello message from: " +
+                            bundle.source.getEIDString() +
+                            " but the CLA wasn't tagged - ignoring");
                 }
 
                 return Completable.complete();
@@ -120,10 +128,16 @@ public class CoreModuleHello implements CoreModuleSPI {
     @Subscribe
     public void onEvent(LinkLocalEntryUp up) {
         try {
-            CLA eid = up.channel.channelEID().setPath("/hello/");
+            CLA eid = ((CLA)up.channel.channelEID().copy()).setPath("/hello/");
             coreAPI.getLogger().i(TAG, "sending hello message to: " + eid.getEIDString());
             helloBundle.destination = eid;
-            up.channel.sendBundle(helloBundle).ignoreElements().subscribe();
+            up.channel.sendBundle(helloBundle).subscribe(
+                    i -> {/* ignore */},
+                    e -> coreAPI.getLogger().i(
+                                    TAG, "fail to send hello message: " +
+                                    eid.getEIDString()),
+                    () -> {/* ignore */}
+            );
         } catch(EID.EIDFormatException efe) {
             coreAPI.getLogger().e(TAG, "Cannot append /hello/ to IID: "+up.channel.channelEID()+" reason="+efe.getMessage());
         }

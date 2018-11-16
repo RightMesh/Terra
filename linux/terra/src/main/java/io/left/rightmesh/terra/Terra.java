@@ -116,6 +116,9 @@ public class Terra implements Callable<Void> {
     @Option(names = {"--stcp-port"}, description = "do not try to create opportunity with detected peers.")
     private int stcpPort = 4556;
 
+    @Option(names = {"--http-port"}, description = "do not try to create opportunity with detected peers.")
+    private int httpPort = 8080;
+
     @Override
     public Void call() throws Exception {
         DTNConfiguration conf = new DTNConfiguration();
@@ -182,12 +185,13 @@ public class Terra implements Callable<Void> {
 
         /* module configuration */
         conf.getModuleEnabled("stcp", true).update(true);
-        conf.getModuleEnabled("http-daemon", true).update(true);
+        conf.getModuleEnabled("http", true).update(true);
         conf.getModuleEnabled("ldcp", true).update(true);
         conf.getModuleEnabled("hello", true).update(true);
 
         conf.getModuleConf("ldcp","ldcp_tcp_port", 4557).update(ldcpPort);
         conf.getModuleConf("stcp","cla_stcp_port", 4556).update(stcpPort);
+        conf.getModuleConf("http","module_http_port", 8080).update(httpPort);
 
         CoreAPI core = DTNCore.init(conf);
         return null;

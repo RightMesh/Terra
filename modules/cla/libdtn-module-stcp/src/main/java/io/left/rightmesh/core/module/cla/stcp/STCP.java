@@ -128,11 +128,14 @@ public class STCP implements ConvergenceLayerSPI {
 
         @Override
         public ChannelMode getMode() {
+            /*
             if (initiator) {
                 return ChannelMode.OutUnidirectional;
             } else {
                 return ChannelMode.InUnidirectional;
             }
+            */
+            return ChannelMode.BiDirectional;
         }
 
         @Override
@@ -152,10 +155,11 @@ public class STCP implements ConvergenceLayerSPI {
 
         @Override
         public Observable<Integer> sendBundle(Bundle bundle) {
+            /*
             if (!initiator) {
                 return Observable.error(new RecvOnlyPeerException());
             }
-            
+            */
             Flowable<ByteBuffer> job = createBundleJob(bundle);
             if (job == null) {
                 return Observable.error(new Throwable("Cannot serialize the bundle"));
@@ -168,10 +172,11 @@ public class STCP implements ConvergenceLayerSPI {
 
         @Override
         public Observable<Integer> sendBundles(Flowable<Bundle> upstream) {
+            /*
             if (!initiator) {
                 return Observable.error(new RecvOnlyPeerException());
             }
-
+            */
             return Observable.create(s -> {
                 upstream.subscribe(new DisposableSubscriber<Bundle>() {
                     int bundleSent;
@@ -210,11 +215,12 @@ public class STCP implements ConvergenceLayerSPI {
 
         @Override
         public Observable<Bundle> recvBundle(BLOBFactory blobFactory) {
+            /*
             if (initiator) {
                 return Observable.create(s ->
                         tcpcon.recv().subscribe(
                                 buffer -> {
-                                    /* ignore, STCP is unidirectional */
+
                                 },
                                 e -> {
                                     s.onComplete();
@@ -225,6 +231,7 @@ public class STCP implements ConvergenceLayerSPI {
                                     close();
                                 }));
             }
+            */
 
             return Observable.create(s -> {
                 CborParser pdu = CBOR.parser()

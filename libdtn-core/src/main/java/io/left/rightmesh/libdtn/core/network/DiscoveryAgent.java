@@ -46,15 +46,7 @@ public class DiscoveryAgent extends BaseComponent {
                 core.getLogger().i(TAG, "peer detected :" + peer.address.getHostAddress());
                 core.getConnectionAgent().createOpportunityLibDetect(peer.address.getHostAddress()).subscribe(
                         channel -> {
-                            RxBus.post(new ChannelOpened(channel));
-                            channel.recvBundle(core.getStorage().getBlobFactory()).subscribe(
-                                    b -> {
-                                        /* ignore for the moment */
-                                        core.getLogger().i(TAG, channel.channelEID()+" -> received a new bundle from " + b.source.getEIDString());
-                                        core.getBundleProcessor().bundleReception(b);
-                                    },
-                                    e -> RxBus.post(new ChannelClosed(channel)),
-                                    () -> RxBus.post(new ChannelClosed(channel)));
+                           /* ignore */
                         },
                         e -> {
                             /* ignore */

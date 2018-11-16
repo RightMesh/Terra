@@ -33,21 +33,6 @@ public class CLAManager {
         cla.start(core.getConf(), core.getLogger()).subscribe(
                 dtnChannel -> {
                     RxBus.post(new ChannelOpened(dtnChannel));
-                    dtnChannel.recvBundle(core.getStorage().getBlobFactory()).subscribe(
-                            b -> {
-                                core.getLogger().i(TAG, dtnChannel.channelEID().getEIDString() + " -> received a new bundle from: " + b.source.getEIDString() + " to: " + b.destination.getEIDString());
-                                b.tag("cla-origin-iid", dtnChannel.channelEID());
-                                core.getBundleProcessor().bundleReception(b);
-                            },
-                            e -> {
-                                // channel has closed
-                                RxBus.post(new ChannelClosed(dtnChannel));
-                            },
-                            () -> {
-                                // channel has closed
-                                RxBus.post(new ChannelClosed(dtnChannel));
-                            }
-                    );
                 },
                 e -> {
                     core.getLogger().w(TAG, "can't start CLA " + cla.getModuleName() + ": " + e.getMessage());

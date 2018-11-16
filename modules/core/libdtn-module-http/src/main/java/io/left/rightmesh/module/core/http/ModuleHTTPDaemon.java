@@ -17,7 +17,7 @@ import static io.left.rightmesh.module.core.http.nettyrouter.Dispatch.using;
  */
 public class ModuleHTTPDaemon implements CoreModuleSPI {
 
-    private static final String TAG = "http-daemon";
+    private static final String TAG = "http";
 
     private CoreAPI core;
     private HttpServer<ByteBuf, ByteBuf> server;

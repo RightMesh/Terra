@@ -9,11 +9,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
+import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
+import io.left.rightmesh.libdtn.common.data.blob.NullBLOB;
 import io.left.rightmesh.libdtn.common.data.eid.API;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
 import io.left.rightmesh.module.aa.ldcp.ActiveLdcpRegistrationCallback;
 import io.left.rightmesh.module.aa.ldcp.LdcpApplicationAgent;
@@ -46,8 +49,12 @@ public class DTNPing implements Callable<Void> {
     @CommandLine.Option(names = {"-s", "--sessionID"}, description = "manually set the session ID")
     private String sessionID = null;
 
+    @CommandLine.Option(names = {"-v", "--verbose"}, description = "set the log level to debug (-v -vv -vvv).")
+    private boolean[] verbose = new boolean[0];
+
     private LdcpApplicationAgent agent;
     private String sink;
+    private Log logger;
 
     public static float round(float number, int scale) {
         int pow = 10;
@@ -90,7 +97,7 @@ public class DTNPing implements Callable<Void> {
 
         BLOBFactory factory = new BaseBLOBFactory().enableVolatile(10000);
         if (cookie == null) {
-            agent = new LdcpApplicationAgent(dtnhost, dtnport, factory, new SimpleLogger());
+            agent = new LdcpApplicationAgent(dtnhost, dtnport, factory, logger);
             agent.register(sink, cb).subscribe(
                     cookie -> {
                         System.err.println("sink registered. cookie: " + cookie);
@@ -117,6 +124,21 @@ public class DTNPing implements Callable<Void> {
         }
         sink = "/dtnping/" + sessionID + "/";
 
+        logger = new SimpleLogger();
+        switch(verbose.length) {
+            case 0:
+                ((SimpleLogger) logger).set(Log.LOGLevel.WARN);
+                break;
+            case 1:
+                ((SimpleLogger) logger).set(Log.LOGLevel.INFO);
+                break;
+            case 2:
+                ((SimpleLogger) logger).set(Log.LOGLevel.DEBUG);
+                break;
+            default:
+                ((SimpleLogger) logger).set(Log.LOGLevel.VERBOSE);
+        }
+
         /* register echo response */
         receiveEchoResponse();
 
@@ -125,6 +147,7 @@ public class DTNPing implements Callable<Void> {
         Bundle bundle = new Bundle(destination);
         bundle.source = API.me();
         bundle.setV7Flag(PrimaryBlock.BundleV7Flags.DELIVERY_REPORT, true);
+        bundle.addBlock(new PayloadBlock(new NullBLOB()));
 
         /* send periodic echo request */
         AtomicInteger seq = new AtomicInteger(0);

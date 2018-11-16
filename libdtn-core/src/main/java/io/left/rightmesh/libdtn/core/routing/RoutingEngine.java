@@ -23,6 +23,8 @@ import static io.left.rightmesh.libdtn.common.data.StatusReport.ReasonCode.Trans
  */
 public class RoutingEngine implements RoutingAPI {
 
+    public static final String TAG = "RoutingEngine";
+
     private DTNCore core;
 
     public RoutingEngine(DTNCore core) {
@@ -34,6 +36,7 @@ public class RoutingEngine implements RoutingAPI {
 
     @Override
     public void addRoute(EID to, EID nextHop) {
+        core.getLogger().i(TAG, "adding a new Route: "+to.getEIDString()+" -> "+nextHop.getEIDString());
         core.getRoutingTable().addRoute(to, nextHop);
     }
 
@@ -102,12 +105,7 @@ public class RoutingEngine implements RoutingAPI {
                 .firstElement()
                 .subscribe(
                         (channel) -> {
-                            RxBus.post(new ChannelOpened(channel));
-                            channel.recvBundle(core.getStorage().getBlobFactory())
-                                    .ignoreElements()
-                                    .subscribe(
-                                            () -> RxBus.post(new ChannelClosed(channel)),
-                                            e -> RxBus.post(new ChannelClosed(channel)));
+                            /* ignore - bundle listener will take care of forwarding it*/
                         },
                         e -> {
                             /* ignore */

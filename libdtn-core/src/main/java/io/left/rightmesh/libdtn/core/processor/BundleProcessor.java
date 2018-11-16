@@ -109,8 +109,11 @@ public class BundleProcessor implements BundleProcessorAPI {
         core.getRoutingEngine().findOpenedChannelTowards(bundle.destination)
                 .concatMapMaybe(claChannel ->
                         claChannel.sendBundle(bundle)  /* 5.4 - step 4 */
+                                .doOnSubscribe((d) ->
+                                        core.getLogger().v(TAG, "5.4-4 "
+                                                + bundle.bid.getBIDString() + " -> "
+                                                + claChannel.channelEID().getEIDString()))
                                 .lastElement()
-                                .doOnError(System.out::println)
                                 .onErrorComplete())
                 .firstElement()
                 .subscribe(
@@ -353,7 +356,7 @@ public class BundleProcessor implements BundleProcessorAPI {
         if (bundle.isTagged("status-reports")) {
             List<Bundle> reports = bundle.getTagAttachment("status-reports");
             for (Bundle report : reports) {
-                core.getLogger().i(TAG, "sending status report to: " + bundle.destination.getEIDString());
+                core.getLogger().i(TAG, "sending status report to: " + report.destination.getEIDString());
                 bundleTransmission(report);
             }
         }
