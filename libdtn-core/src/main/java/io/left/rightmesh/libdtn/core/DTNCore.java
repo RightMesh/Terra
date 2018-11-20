@@ -108,12 +108,9 @@ public class DTNCore implements CoreAPI {
         return localEIDTable;
     }
 
-    public LinkLocalRouting getLinkLocalRouting() {
-        return linkLocalRouting;
-    }
-
-    public RoutingTable getRoutingTable() {
-        return routingTable;
+    @Override
+    public ModuleLoader getModuleLoader() {
+        return moduleLoader;
     }
 
     @Override
@@ -144,6 +141,14 @@ public class DTNCore implements CoreAPI {
     @Override
     public ConnectionAgentAPI getConnectionAgent() {
         return connectionAgent;
+    }
+
+    public LinkLocalRouting getLinkLocalRouting() {
+        return linkLocalRouting;
+    }
+
+    public RoutingTable getRoutingTable() {
+        return routingTable;
     }
 
     public DiscoveryAgent getDiscoveryAgent() {

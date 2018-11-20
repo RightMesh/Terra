@@ -5,6 +5,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ServiceLoader;
 
+import io.left.rightmesh.libdtn.core.api.ModuleLoaderAPI;
 import io.left.rightmesh.libdtn.core.spi.aa.ApplicationAgentAdapterSPI;
 import io.left.rightmesh.libdtn.core.spi.cla.ConvergenceLayerSPI;
 import io.left.rightmesh.libdtn.core.spi.core.CoreModuleSPI;
@@ -19,7 +20,7 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODUL
 /**
  * @author Lucien Loiseau on 25/10/18.
  */
-public class ModuleLoader {
+public class ModuleLoader implements ModuleLoaderAPI  {
 
     private static final String TAG = "CLAManager";
 
@@ -27,12 +28,30 @@ public class ModuleLoader {
 
     ModuleLoader(DTNCore core) {
         this.core = core;
-        loadAAModules();
-        loadCLAModules();
-        loadCoreModules();
+        loadAAModulesFromDirectory();
+        loadCLAModulesFromDirectory();
+        loadCoreModulesFromDirectory();
     }
 
-    private void loadAAModules() {
+    @Override
+    public void loadAAModule(ApplicationAgentAdapterSPI aa) {
+        aa.init(core.getRegistrar(), core.getConf(), core.getLogger(), core.getStorage().getBlobFactory());
+        core.getLogger().i(TAG, "AA module loaded: " + aa.getModuleName()+" - UP");
+    }
+
+    @Override
+    public void loadCLAModule(ConvergenceLayerSPI cla) {
+        core.getClaManager().addCLA(cla);
+        core.getLogger().i(TAG, "CLA module loaded: " + cla.getModuleName()+" - UP");
+    }
+
+    @Override
+    public void loadCoreModule(CoreModuleSPI cm) {
+        cm.init(core);
+        core.getLogger().i(TAG, "Core module loaded: " + cm.getModuleName()+" - UP");
+    }
+
+    private void loadAAModulesFromDirectory() {
         if (core.getConf().<Boolean>get(ENABLE_AA_MODULES).value()) {
             String path = core.getConf().<String>get(MODULES_AA_PATH).value();
             try {
@@ -40,8 +59,7 @@ public class ModuleLoader {
                 ServiceLoader<ApplicationAgentAdapterSPI> sl = ServiceLoader.load(ApplicationAgentAdapterSPI.class, ucl);
                 for (ApplicationAgentAdapterSPI aa : sl) {
                     if(core.getConf().<Boolean>getModuleEnabled(aa.getModuleName(), false).value()) {
-                        core.getLogger().i(TAG, "AA module loaded: " + aa.getModuleName()+" - UP");
-                        aa.init(core.getRegistrar(), core.getConf(), core.getLogger(), core.getStorage().getBlobFactory());
+                        loadAAModule(aa);
                     } else {
                         core.getLogger().i(TAG, "AA module loaded: " + aa.getModuleName()+" - DOWN");
                     }
@@ -52,7 +70,7 @@ public class ModuleLoader {
         }
     }
 
-    private void loadCLAModules() {
+    private void loadCLAModulesFromDirectory() {
         if (core.getConf().<Boolean>get(ENABLE_CLA_MODULES).value()) {
             String path = core.getConf().<String>get(MODULES_CLA_PATH).value();
             try {
@@ -60,8 +78,7 @@ public class ModuleLoader {
                 ServiceLoader<ConvergenceLayerSPI> sl = ServiceLoader.load(ConvergenceLayerSPI.class, ucl);
                 for (ConvergenceLayerSPI cla : sl) { ;
                     if(core.getConf().getModuleEnabled(cla.getModuleName(), false).value()) {
-                        core.getLogger().i(TAG, "CLA module loaded: " + cla.getModuleName()+" - UP");
-                        core.getClaManager().addCLA(cla);
+                        loadCLAModule(cla);
                     } else {
                         core.getLogger().i(TAG, "CLA module loaded: " + cla.getModuleName()+" - DOWN");
                     }
@@ -72,7 +89,7 @@ public class ModuleLoader {
         }
     }
 
-    private void loadCoreModules() {
+    private void loadCoreModulesFromDirectory() {
         if (core.getConf().<Boolean>get(ENABLE_CORE_MODULES).value()) {
             String path = core.getConf().<String>get(MODULES_CORE_PATH).value();
             try {
@@ -80,8 +97,7 @@ public class ModuleLoader {
                 ServiceLoader<CoreModuleSPI> sl = ServiceLoader.load(CoreModuleSPI.class, ucl);
                 for (CoreModuleSPI cm : sl) {
                     if(core.getConf().getModuleEnabled(cm.getModuleName(), false).value()) {
-                        core.getLogger().i(TAG, "Core module loaded: " + cm.getModuleName()+" - UP");
-                        cm.init(core);
+                        loadCoreModule(cm);
                     } else {
                         core.getLogger().i(TAG, "Core module loaded: " + cm.getModuleName()+" - DOWN");
                     }

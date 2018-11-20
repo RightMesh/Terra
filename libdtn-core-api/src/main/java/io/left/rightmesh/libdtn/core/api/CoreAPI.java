@@ -25,4 +25,6 @@ public interface CoreAPI {
 
     ConnectionAgentAPI getConnectionAgent();
 
+    ModuleLoaderAPI getModuleLoader();
+
 }
