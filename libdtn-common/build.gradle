@@ -1,7 +1,9 @@
 plugins {
     id("java-library")
+    id("com.github.dcendents.android-maven")
 }
 
+group='com.github.RightMesh.Terra'
 
 task ApiDoc(type: Javadoc) {
     source = sourceSets.main.allJava
