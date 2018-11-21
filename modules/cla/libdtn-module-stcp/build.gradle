@@ -45,7 +45,7 @@ dependencies {
     implementation project(path: ':libdtn-core-api')
 
     // libcbor for encoding/parsing
-    implementation 'com.github.RightMesh:libcbor:-SNAPSHOT'
+    implementation 'com.github.RightMesh:libcbor:6e5ca8868f'
 
     // librxtcp for tcp socket
     implementation 'com.github.RightMesh:librxtcp:65e2cb0ab8'

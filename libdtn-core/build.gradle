@@ -35,10 +35,10 @@ dependencies {
     implementation project(path: ':libdtn-common')
 
     // libcbor for bundleV7
-    implementation 'com.github.RightMesh:libcbor:-SNAPSHOT'
+    implementation 'com.github.RightMesh:libcbor:6e5ca8868f'
 
     // RxBus for the event bus
-    implementation 'com.github.RightMesh:librxbus:-SNAPSHOT'
+    implementation 'com.github.RightMesh:librxbus:8abd695a02'
 
     // libdetect to detect neighbour on the LAN
     implementation 'com.github.RightMesh:libdetect:5d8aaf041d'
