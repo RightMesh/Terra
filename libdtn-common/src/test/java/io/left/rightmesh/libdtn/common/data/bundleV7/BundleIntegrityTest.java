@@ -2,18 +2,6 @@ package io.left.rightmesh.libdtn.common.data.bundleV7;
 
 import org.junit.Test;
 
-import java.io.UnsupportedEncodingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-
-import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
@@ -22,6 +10,7 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item;
+import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BaseBlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BundleV7Serializer;
 import io.left.rightmesh.libdtn.common.data.security.BlockIntegrityBlock;
 import io.left.rightmesh.libdtn.common.data.security.SecurityBlock;
@@ -36,7 +25,6 @@ import static io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Test.testBun
 import static io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Test.testBundle4;
 import static io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Test.testBundle5;
 import static io.left.rightmesh.libdtn.common.data.bundleV7.BundleV7Test.testBundle6;
-import static io.left.rightmesh.libdtn.common.data.security.BlockConfidentialityBlock.TAG;
 import static io.left.rightmesh.libdtn.common.data.security.CipherSuites.BIB_SHA256;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -77,7 +65,7 @@ public class BundleIntegrityTest {
 
             try {
                 // perform integrity sum
-                bib.applyTo(b, context, logger);
+                bib.applyTo(b, context, new BaseBlockDataSerializerFactory(), logger);
             } catch (SecurityBlock.SecurityOperationException foe) {
                 System.out.println(foe.getMessage());
                 foe.printStackTrace();
@@ -119,7 +107,7 @@ public class BundleIntegrityTest {
             for (CanonicalBlock block : res[0].blocks) {
                 if (block.type == BlockIntegrityBlock.type) {
                     try {
-                        ((BlockIntegrityBlock) block).applyFrom(res[0], context, logger);
+                        ((BlockIntegrityBlock) block).applyFrom(res[0], context, new BaseBlockDataSerializerFactory(), logger);
                     } catch(SecurityBlock.SecurityOperationException soe) {
                         soe.printStackTrace();
                         fail();

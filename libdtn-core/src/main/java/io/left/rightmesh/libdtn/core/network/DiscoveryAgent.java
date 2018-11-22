@@ -49,7 +49,7 @@ public class DiscoveryAgent extends BaseComponent {
                            /* ignore */
                         },
                         e -> {
-                            /* ignore */
+                           /* ignore */
                         }
                 );
             }

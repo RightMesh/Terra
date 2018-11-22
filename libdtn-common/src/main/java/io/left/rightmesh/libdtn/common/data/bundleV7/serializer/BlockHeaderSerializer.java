@@ -9,7 +9,7 @@ import io.left.rightmesh.libdtn.common.data.BlockHeader;
  */
 public class BlockHeaderSerializer {
 
-    static CborEncoder encode(BlockHeader block) {
+    public static CborEncoder encode(BlockHeader block) {
         return CBOR.encoder()
                 .cbor_start_array(getItemCount(block))
                 .cbor_encode_int(block.type)

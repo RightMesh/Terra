@@ -31,7 +31,7 @@ public class NullBLOB extends Tag implements BLOB {
     }
 
     @Override
-    public void map(Function<ByteBuffer, ByteBuffer> function, Supplier<ByteBuffer> close) {
+    public void map(Supplier<ByteBuffer> open, Function<ByteBuffer, ByteBuffer> function, Supplier<ByteBuffer> close) {
     }
 
     @Override

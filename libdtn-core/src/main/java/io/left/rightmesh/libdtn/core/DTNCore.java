@@ -3,9 +3,11 @@ package io.left.rightmesh.libdtn.core;
 import java.util.LinkedList;
 import java.util.List;
 
+import io.left.rightmesh.libdtn.core.api.BlockManagerAPI;
 import io.left.rightmesh.libdtn.core.api.BundleProcessorAPI;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.LocalEIDAPI;
+import io.left.rightmesh.libdtn.core.blocks.BlockManager;
 import io.left.rightmesh.libdtn.core.events.BundleIndexed;
 import io.left.rightmesh.libdtn.core.network.ConnectionAgent;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
@@ -42,6 +44,7 @@ public class DTNCore implements CoreAPI {
     private ConfigurationAPI conf;
     private Logger logger;
     private LocalEIDAPI localEIDTable;
+    private BlockManagerAPI blockManager;
     private LinkLocalRouting linkLocalRouting;
     private RoutingTable routingTable;
     private RoutingAPI routingEngine;
@@ -61,6 +64,9 @@ public class DTNCore implements CoreAPI {
         /* core */
         core.logger = new Logger(conf);
         core.localEIDTable = new LocalEIDTable(core);
+
+        /* block toolbox */
+        core.blockManager = new BlockManager();
 
         /* routing */
         core.linkLocalRouting = new LinkLocalRouting(core);
@@ -106,6 +112,11 @@ public class DTNCore implements CoreAPI {
     @Override
     public LocalEIDAPI getLocalEID() {
         return localEIDTable;
+    }
+
+    @Override
+    public BlockManagerAPI getBlockManager() {
+        return blockManager;
     }
 
     @Override

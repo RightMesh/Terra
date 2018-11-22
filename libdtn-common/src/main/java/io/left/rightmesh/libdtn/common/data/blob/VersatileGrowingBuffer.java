@@ -20,15 +20,23 @@ public class VersatileGrowingBuffer extends VolatileBLOB {
 
     private BLOBFactory factory;
     private LinkedList<BLOB> blobs;
+    private int blobSizeUnit = VOLATILE_BLOB_SIZE;
 
-    VersatileGrowingBuffer(BLOBFactory factory) throws BLOBFactory.BLOBFactoryException {
+    public VersatileGrowingBuffer(BLOBFactory factory) throws BLOBFactory.BLOBFactoryException {
         this.factory = factory;
         blobs = new LinkedList<>();
         allocateBLOB();
     }
 
+    public VersatileGrowingBuffer(BLOBFactory factory, int blob_size) throws BLOBFactory.BLOBFactoryException {
+        this.factory = factory;
+        this.blobSizeUnit = blob_size;
+        blobs = new LinkedList<>();
+        allocateBLOB();
+    }
+
     private BLOB allocateBLOB() throws BLOBFactory.BLOBFactoryException {
-        BLOB blob = factory.createBLOB(VOLATILE_BLOB_SIZE);
+        BLOB blob = factory.createBLOB(blobSizeUnit);
         blobs.add(blob);
         return blob;
     }
@@ -49,15 +57,25 @@ public class VersatileGrowingBuffer extends VolatileBLOB {
     }
 
     @Override
-    public void map(Function<ByteBuffer, ByteBuffer> update, Supplier<ByteBuffer> close) throws Exception {
+    public void map(Supplier<ByteBuffer> open, Function<ByteBuffer, ByteBuffer> update, Supplier<ByteBuffer> close) throws Exception {
         if(blobs.size() == 0) {
             return;
         }
 
-        for(int i = 0; i < blobs.size()-1; i++) {
-            blobs.get(i).map(update, () -> ByteBuffer.allocate(0));
+        for(int i = 0; i < blobs.size(); i++) {
+            if(i == 0) {
+                // first
+                blobs.get(i).map(open, update, () -> ByteBuffer.allocate(0));
+            }
+            if(i == blobs.size()-1) {
+                // last
+                blobs.getLast().map(() -> ByteBuffer.allocate(0), update, close);
+            }
+            if((i > 0) && (i < blobs.size()-1)){
+                // intermediate
+                blobs.get(i).map(() -> ByteBuffer.allocate(0), update, () -> ByteBuffer.allocate(0));
+            }
         }
-        blobs.getLast().map(update, close);
     }
 
     @Override

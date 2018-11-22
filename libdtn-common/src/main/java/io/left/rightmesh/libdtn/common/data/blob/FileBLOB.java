@@ -115,7 +115,7 @@ public class FileBLOB extends Tag implements BLOB {
     }
 
     @Override
-    public void map(Function<ByteBuffer, ByteBuffer> update, Supplier<ByteBuffer> close) throws Exception {
+    public void map(Supplier<ByteBuffer> open, Function<ByteBuffer, ByteBuffer> update, Supplier<ByteBuffer> close) throws Exception {
         if (!file.exists()) {
             throw new FileNotFoundException("file not found: "+file.getAbsolutePath());
         }
@@ -124,6 +124,8 @@ public class FileBLOB extends Tag implements BLOB {
         FileChannel writeChannel = new RandomAccessFile(file, "rw").getChannel();
         ByteBuffer buffer = ByteBuffer.allocate(2048);
         buffer.clear();
+
+        writeChannel.write(open.get());
         while((readChannel.read(buffer) != -1)) {
             buffer.flip();
             writeChannel.write(update.apply(buffer));

@@ -7,8 +7,10 @@ import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libdtn.common.data.BlockFactory;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
+import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BlockDataParserFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
@@ -214,7 +216,9 @@ public class STCP implements ConvergenceLayerSPI {
         }
 
         @Override
-        public Observable<Bundle> recvBundle(BLOBFactory blobFactory) {
+        public Observable<Bundle> recvBundle(BlockFactory blockFactory,
+                                             BlockDataParserFactory parserFactory,
+                                             BLOBFactory blobFactory) {
             /*
             if (initiator) {
                 return Observable.create(s ->
@@ -240,7 +244,7 @@ public class STCP implements ConvergenceLayerSPI {
                             // we might want check the length and refuse large bundle
                         })
                         .cbor_parse_custom_item(
-                                () -> new BundleV7Item(logger, blobFactory),
+                                () -> new BundleV7Item(logger, blockFactory, parserFactory, blobFactory),
                                 (__, ___, item) -> s.onNext(item.bundle));
 
                 tcpcon.recv().subscribe(

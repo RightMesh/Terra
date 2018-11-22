@@ -40,7 +40,7 @@ public interface BLOB extends Taggable {
      * @param close is called when no more value are to be read
      * @throws Exception if the function throws an Exception
      */
-    void map(Function<ByteBuffer, ByteBuffer> update, Supplier<ByteBuffer> close) throws Exception;
+    void map(Supplier<ByteBuffer> open, Function<ByteBuffer, ByteBuffer> update, Supplier<ByteBuffer> close) throws Exception;
 
     /**
      * new {@link WritableBLOB} from this VolatileBLOB. The WritableBLOB will lock the VolatileBLOB for write-only

@@ -1,6 +1,5 @@
 package io.left.rightmesh.libdtn.common.data.security;
 
-import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -12,7 +11,7 @@ import javax.crypto.NoSuchPaddingException;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
-import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.CanonicalBlockSerializer;
+import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 
 import static io.left.rightmesh.libdtn.common.data.security.BlockConfidentialityBlock.TAG;
@@ -69,8 +68,10 @@ public class BlockIntegrityBlock extends AbstractSecurityBlock {
         bundle.addBlock(this);
     }
 
-    @Override
-    public void applyTo(Bundle bundle, SecurityContext context, Log logger) throws SecurityOperationException {
+    public void applyTo(Bundle bundle,
+                        SecurityContext context,
+                        BlockDataSerializerFactory serializerFactory,
+                        Log logger) throws SecurityOperationException {
         for (int block_number : securityTargets) {
             logger.v(TAG, ".. computing integrity for block number: " + block_number);
             CanonicalBlock block = bundle.getBlock(block_number);
@@ -85,8 +86,13 @@ public class BlockIntegrityBlock extends AbstractSecurityBlock {
                     throw new SecurityOperationException(e.getMessage());
                 }
 
+                CborEncoder encoder;
+                try {
+                    encoder = serializerFactory.create(block);
+                } catch(BlockDataSerializerFactory.UnknownBlockTypeException ubte) {
+                    throw new SecurityOperationException("target block serializer not found");
+                }
 
-                CborEncoder encoder = CanonicalBlockSerializer.encodePayload(block);
                 encoder.observe()
                         .subscribe( /* same thread */
                                 byteBuffer -> digest.update(byteBuffer.array()),
@@ -102,8 +108,10 @@ public class BlockIntegrityBlock extends AbstractSecurityBlock {
         }
     }
 
-    @Override
-    public void applyFrom(Bundle bundle, SecurityContext context, Log logger) throws SecurityOperationException {
+    public void applyFrom(Bundle bundle,
+                          SecurityContext context,
+                          BlockDataSerializerFactory serializerFactory,
+                          Log logger) throws SecurityOperationException {
         if(securityResults.size() != securityTargets.size()) {
             throw new SecurityOperationException("There should be as many results as there is targets");
         }
@@ -133,7 +141,12 @@ public class BlockIntegrityBlock extends AbstractSecurityBlock {
 
                 IntegrityResult ir = (IntegrityResult)results.get(0);
 
-                CborEncoder encoder = CanonicalBlockSerializer.encodePayload(block);
+                CborEncoder encoder;
+                try {
+                    encoder = serializerFactory.create(block);
+                } catch(BlockDataSerializerFactory.UnknownBlockTypeException ubte) {
+                    throw new SecurityOperationException("target block serializer not found");
+                }
                 encoder.observe()
                         .subscribe( /* same thread */
                                 byteBuffer -> {

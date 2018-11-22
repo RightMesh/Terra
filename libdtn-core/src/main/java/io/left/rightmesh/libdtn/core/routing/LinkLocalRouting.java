@@ -56,7 +56,11 @@ public class LinkLocalRouting extends BaseComponent {
 
     void channelOpened(CLAChannelSPI channel) {
         if(linkLocalTable.add(channel)) {
-            channel.recvBundle(core.getStorage().getBlobFactory()).subscribe(
+            channel.recvBundle(
+                    core.getBlockManager().getBlockFactory(),
+                    core.getBlockManager().getBlockDataParserFactory(),
+                    core.getStorage().getBlobFactory())
+                    .subscribe(
                     b -> {
                         core.getLogger().i(TAG, "channel "
                                 + channel.channelEID().getEIDString()

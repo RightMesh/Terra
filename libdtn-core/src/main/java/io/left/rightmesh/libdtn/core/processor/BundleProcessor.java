@@ -71,7 +71,7 @@ public class BundleProcessor implements BundleProcessorAPI {
         core.getLogger().v(TAG, "5.2-2 " + bundle.bid.getBIDString());
         bundleDispatching(bundle);
         // the RFC states to jump to bundleForwarding but I consider that a transmission may also
-        // be for local delivery
+        // be for local delivery so jump to bundleDispatching instead
     }
 
     /* 5.3 */

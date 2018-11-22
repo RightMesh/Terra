@@ -1,6 +1,7 @@
 package io.left.rightmesh.libdtn.common.data.security;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
+import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 
 /**
@@ -18,11 +19,15 @@ public class BlockAuthenticationBlock extends AbstractSecurityBlock implements S
     public void addTo(Bundle bundle) {
     }
 
-    @Override
-    public void applyTo(Bundle bundle, SecurityContext context, Log logger) {
+    public void applyTo(Bundle bundle,
+                        SecurityContext context,
+                        BlockDataSerializerFactory serializerFactory,
+                        Log logger) {
     }
 
-    @Override
-    public void applyFrom(Bundle bundle, SecurityContext context, Log logger) {
+    public void applyFrom(Bundle bundle,
+                          SecurityContext context,
+                          BlockDataSerializerFactory serializerFactory,
+                          Log logger) {
     }
 }

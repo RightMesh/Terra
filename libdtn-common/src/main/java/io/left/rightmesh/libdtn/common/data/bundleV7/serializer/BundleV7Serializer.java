@@ -13,18 +13,31 @@ public class BundleV7Serializer {
     public static final byte BUNDLE_VERSION_7 = 0x07;
 
     /**
-     * Turn a Bundle into a serialized Flowable of ByteBuffer.
+     * Serialize a bundle into a cbor stream. If an ExtensionBlock is unknown, the block payload
+     * will be empty.
      *
      * @param bundle to serialize
      * @return Flowable
      */
     public static CborEncoder encode(Bundle bundle) {
+        return encode(bundle, new BaseBlockDataSerializerFactory());
+    }
+
+    /**
+     * Serialize a bundle into a cbor stream. If an ExtensionBlock is unknown, the block payload
+     * will be empty.
+     *
+     * @param bundle to serialize
+     * @param  blockDataSerializerFactory block serializer
+     * @return Flowable
+     */
+    public static CborEncoder encode(Bundle bundle, BlockDataSerializerFactory blockDataSerializerFactory) {
         CborEncoder enc = CBOR.encoder()
                 .cbor_start_indefinite_array()
                 .merge(PrimaryBlockSerializer.encode(bundle));
 
         for (CanonicalBlock block : bundle.getBlocks()) {
-            enc.merge(CanonicalBlockSerializer.encode(block));
+            enc.merge(CanonicalBlockSerializer.encode(block, blockDataSerializerFactory));
         }
 
         enc.cbor_stop_array();

@@ -5,21 +5,14 @@ import java.nio.ByteBuffer;
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
-import io.left.rightmesh.libdtn.common.data.AgeBlock;
+import io.left.rightmesh.libdtn.common.data.BaseBlockFactory;
 import io.left.rightmesh.libdtn.common.data.BlockBLOB;
+import io.left.rightmesh.libdtn.common.data.BlockFactory;
 import io.left.rightmesh.libdtn.common.data.BlockHeader;
 import io.left.rightmesh.libdtn.common.data.CRC;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
-import io.left.rightmesh.libdtn.common.data.FlowLabelBlock;
-import io.left.rightmesh.libdtn.common.data.ManifestBlock;
-import io.left.rightmesh.libdtn.common.data.PayloadBlock;
-import io.left.rightmesh.libdtn.common.data.PreviousNodeBlock;
-import io.left.rightmesh.libdtn.common.data.ScopeControlHopLimitBlock;
 import io.left.rightmesh.libdtn.common.data.UnknownExtensionBlock;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
-import io.left.rightmesh.libdtn.common.data.security.BlockAuthenticationBlock;
-import io.left.rightmesh.libdtn.common.data.security.BlockConfidentialityBlock;
-import io.left.rightmesh.libdtn.common.data.security.BlockIntegrityBlock;
 import io.left.rightmesh.libdtn.common.utils.Log;
 
 import static io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item.TAG;
@@ -29,15 +22,26 @@ import static io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item.
  */
 public class CanonicalBlockItem implements CborParser.ParseableItem {
 
-    public CanonicalBlockItem(Log logger, BLOBFactory factory) {
+    public CanonicalBlockItem(Log logger, BLOBFactory blobFactory) {
         this.logger = logger;
-        this.factory = factory;
+        this.blockFactory = new BaseBlockFactory();
+        this.parserFactory = new BaseBlockDataParserFactory();
+        this.blobFactory = blobFactory;
+    }
+
+    public CanonicalBlockItem(Log logger, BlockFactory blockFactory, BlockDataParserFactory parserFactory, BLOBFactory blobFactory) {
+        this.logger = logger;
+        this.blockFactory = blockFactory;
+        this.parserFactory = parserFactory;
+        this.blobFactory = blobFactory;
     }
 
     public CanonicalBlock block;
 
     private Log logger;
-    private BLOBFactory factory;
+    private BlockFactory blockFactory;
+    private BlockDataParserFactory parserFactory;
+    private BLOBFactory blobFactory;
     private CborParser payloadParser;
     private CRC crc16;
     private CRC crc32;
@@ -62,47 +66,16 @@ public class CanonicalBlockItem implements CborParser.ParseableItem {
                 })
                 .cbor_parse_int((p, __, i) -> { // block type
                     logger.v(TAG, ". type=" + i);
-                    switch ((int) i) {
-                        case PayloadBlock.type:
-                            block = new PayloadBlock();
-                            payloadParser = BlockBLOBParser.getParser((BlockBLOB)block, factory, logger);
-                            break;
-                        case ManifestBlock.type:
-                            block = new ManifestBlock();
-                            payloadParser = ManifestBlockParser.getParser((ManifestBlock)block, logger);
-                            break;
-                        case FlowLabelBlock.type:
-                            block = new FlowLabelBlock();
-                            payloadParser = FlowLabelBlockParser.getParser((FlowLabelBlock)block, logger);
-                            break;
-                        case PreviousNodeBlock.type:
-                            block = new PreviousNodeBlock();
-                            payloadParser = PreviousNodeBlockParser.getParser((PreviousNodeBlock)block, logger);
-                            break;
-                        case AgeBlock.type:
-                            block = new AgeBlock();
-                            payloadParser = AgeBlockParser.getParser((AgeBlock)block, logger);
-                            break;
-                        case ScopeControlHopLimitBlock.type:
-                            block = new ScopeControlHopLimitBlock();
-                            payloadParser = ScopeControlHopLimitBlockParser.getParser((ScopeControlHopLimitBlock)block, logger);
-                            break;
-                        case BlockAuthenticationBlock.type:
-                            block = new BlockAuthenticationBlock();
-                            payloadParser = SecurityBlockParser.getParser((BlockAuthenticationBlock) block, logger);
-                            break;
-                        case BlockIntegrityBlock.type:
-                            block = new BlockIntegrityBlock();
-                            payloadParser = SecurityBlockParser.getParser((BlockIntegrityBlock) block, logger);
-                            break;
-                        case BlockConfidentialityBlock.type:
-                            block = new BlockConfidentialityBlock();
-                            payloadParser = SecurityBlockParser.getParser((BlockConfidentialityBlock) block, logger);
-                            break;
-                        default:
-                            block = new UnknownExtensionBlock((int) i);
-                            payloadParser = BlockBLOBParser.getParser((BlockBLOB)block, factory, logger);
-                            break;
+                    try {
+                        block = blockFactory.create((int) i);
+                    } catch(BlockFactory.UnknownBlockTypeException ubte) {
+                        block = new UnknownExtensionBlock((int) i);
+                    }
+
+                    try {
+                        payloadParser = parserFactory.create((int) i, block, blobFactory, logger);
+                    } catch(BlockDataParserFactory.UnknownBlockTypeException ubte) {
+                        payloadParser = BlockBLOBParser.getParser((BlockBLOB) block, blobFactory, logger);
                     }
                 })
                 .cbor_parse_int((__, ___, i) -> {
@@ -112,8 +85,8 @@ public class CanonicalBlockItem implements CborParser.ParseableItem {
                 .cbor_parse_int((__, ___, i) -> {
                     logger.v(TAG, ". procV7flags=" + i);
                     block.procV7flags = i;
-                    if(block.getV7Flag(BlockHeader.BlockV7Flags.BLOCK_IS_ENCRYPTED)) {
-                        payloadParser = BlockBLOBParser.getParser((BlockBLOB)block, factory, logger);
+                    if (block.getV7Flag(BlockHeader.BlockV7Flags.BLOCK_IS_ENCRYPTED)) {
+                        payloadParser = BlockBLOBParser.getParser((BlockBLOB) block, blobFactory, logger);
                     }
                 })
                 .cbor_parse_int((p, ___, i) -> {

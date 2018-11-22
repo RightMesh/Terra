@@ -16,5 +16,4 @@ public abstract class ExtensionBlock extends CanonicalBlock {
         super(type);
     }
 
-
 }

@@ -55,10 +55,12 @@ public class UntrackedByteBufferBLOB extends VolatileBLOB {
     }
 
     @Override
-    public void map(Function<ByteBuffer, ByteBuffer> function, Supplier<ByteBuffer> close) throws Exception {
+    public void map(Supplier<ByteBuffer> open, Function<ByteBuffer, ByteBuffer> function, Supplier<ByteBuffer> close) throws Exception {
+        ByteBuffer opened = open.get();
         ByteBuffer mapped = function.apply(data);
         ByteBuffer closed = close.get();
-        ByteBuffer ret = ByteBuffer.allocate(mapped.remaining() + closed.remaining());
+        ByteBuffer ret = ByteBuffer.allocate(opened.remaining() + mapped.remaining() + closed.remaining());
+        ret.put(opened);
         ret.put(mapped);
         ret.put(closed);
         this.data = ret;

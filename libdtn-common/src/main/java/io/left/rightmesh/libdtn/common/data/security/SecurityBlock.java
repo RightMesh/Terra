@@ -1,8 +1,10 @@
 package io.left.rightmesh.libdtn.common.data.security;
 
-import java.util.LinkedList;
 
+import io.left.rightmesh.libdtn.common.data.BlockFactory;
 import io.left.rightmesh.libdtn.common.data.Bundle;
+import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BlockDataParserFactory;
+import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.common.utils.Log;
 
@@ -86,19 +88,4 @@ public interface SecurityBlock {
      * @param bundle to apply this SecurityBlock to.
      */
     void addTo(Bundle bundle) throws ForbiddenOperationException, NoSuchBlockException;
-
-    /**
-     * sender operation (encrypt / digest / sign)
-     * @param bundle
-     */
-    void applyTo(Bundle bundle, SecurityContext context, Log logger) throws SecurityOperationException;
-
-
-    /**
-     * receiver operation (decrypt / check / authenticate)
-     * @param bundle
-     */
-    void applyFrom(Bundle bundle, SecurityContext context, Log logger) throws SecurityOperationException;
-
-
 }
