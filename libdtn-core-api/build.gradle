@@ -15,6 +15,9 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
+    // libcbor for block extension parser/serializer
+    implementation 'com.github.RightMesh:libcbor:6e5ca8868f'
+
     // libdtn-common for data
     implementation project(path: ':libdtn-common')
 
