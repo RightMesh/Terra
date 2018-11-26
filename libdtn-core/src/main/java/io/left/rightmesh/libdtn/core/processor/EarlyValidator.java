@@ -1,11 +1,11 @@
 package io.left.rightmesh.libdtn.core.processor;
 
+import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
 import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.data.BlockHeader;
-import io.left.rightmesh.libdtn.common.data.ProcessingException;
-import io.left.rightmesh.libdtn.common.data.ProcessorNotFoundException;
+import io.left.rightmesh.libdtn.common.data.bundleV7.processor.ProcessingException;
 import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.core.utils.ClockUtil;
@@ -96,8 +96,9 @@ public class EarlyValidator {
      */
     public void onDeserialized(CanonicalBlock block) throws RejectedException {
         try {
-            block.onBlockDataDeserialized();
-        } catch (ProcessorNotFoundException pne) {
+            core.getBlockManager().getBlockProcessorFactory().create(block.type)
+                    .onBlockDataDeserialized(block);
+        } catch (BlockProcessorFactory.ProcessorNotFoundException pne) {
             if (block.getV7Flag(DELETE_BUNDLE_IF_NOT_PROCESSED)) {
                 throw new RejectedException("mandatory block cannot be processed");
             }

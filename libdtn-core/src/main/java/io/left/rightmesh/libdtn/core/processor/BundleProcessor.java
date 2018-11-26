@@ -9,12 +9,12 @@ import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.common.data.blob.UntrackedByteBufferBLOB;
 import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
+import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.AdministrativeRecordSerializer;
 import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
-import io.left.rightmesh.libdtn.common.data.ProcessingException;
-import io.left.rightmesh.libdtn.common.data.ProcessorNotFoundException;
+import io.left.rightmesh.libdtn.common.data.bundleV7.processor.ProcessingException;
 import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.common.data.StatusReport;
@@ -106,15 +106,29 @@ public class BundleProcessor implements BundleProcessorAPI {
 
         /* 5.4 - step 2 */
         core.getLogger().v(TAG, "5.4-2 " + bundle.bid.getBIDString());
-        core.getRoutingEngine().findOpenedChannelTowards(bundle.destination)
-                .concatMapMaybe(claChannel ->
-                        claChannel.sendBundle(bundle)  /* 5.4 - step 4 */
-                                .doOnSubscribe((d) ->
-                                        core.getLogger().v(TAG, "5.4-4 "
-                                                + bundle.bid.getBIDString() + " -> "
-                                                + claChannel.channelEID().getEIDString()))
-                                .lastElement()
-                                .onErrorComplete())
+        core.getRoutingEngine()
+                .findOpenedChannelTowards(bundle.destination)
+                .concatMapMaybe(
+                        claChannel ->
+                                claChannel.sendBundle(bundle)  /* 5.4 - step 4 */
+                                        .doOnSubscribe((d) -> {
+                                            core.getLogger().v(TAG, "5.4-4 "
+                                                    + bundle.bid.getBIDString() + " -> "
+                                                    + claChannel.channelEID().getEIDString());
+
+                                            /* call block-specific routine for transmission */
+                                            for (CanonicalBlock block : bundle.getBlocks()) {
+                                                try {
+                                                    core.getBlockManager().getBlockProcessorFactory()
+                                                            .create(block.type)
+                                                            .onPrepareForTransmission(block, bundle, core.getLogger());
+                                                } catch (ProcessingException pe) {
+                                                    /* ignore */
+                                                }
+                                            }
+                                        })
+                                        .lastElement()
+                                        .onErrorComplete())
                 .firstElement()
                 .subscribe(
                         (i) -> {
@@ -236,8 +250,9 @@ public class BundleProcessor implements BundleProcessorAPI {
         try {
             for (CanonicalBlock block : bundle.getBlocks()) {
                 try {
-                    block.onReceptionProcessing(bundle);
-                } catch (ProcessorNotFoundException pe) {
+                    core.getBlockManager().getBlockProcessorFactory().create(block.type)
+                            .onReceptionProcessing(block, bundle, core.getLogger());
+                } catch (BlockProcessorFactory.ProcessorNotFoundException pe) {
                     if (block.getV7Flag(TRANSMIT_STATUSREPORT_IF_NOT_PROCESSED) && reporting()) {
                         createStatusReport(ReportingNodeReceivedBundle, bundle, BlockUnintelligible);
                     }

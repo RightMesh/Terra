@@ -84,7 +84,7 @@ public class DTNCore implements CoreAPI {
 
         /* storage */
         RxBus.register(core);
-        core.storage = new Storage(core.conf, core.logger);
+        core.storage = new Storage(core);
 
         /* runtime modules */
         core.moduleLoader = new ModuleLoader(core);

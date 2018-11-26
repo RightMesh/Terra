@@ -3,6 +3,8 @@ package io.left.rightmesh.libdtn.core.network;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -10,8 +12,17 @@ import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item;
+import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BaseBlockProcessorFactory;
+import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
+import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
+import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.MockBlockManager;
+import io.left.rightmesh.libdtn.core.MockCore;
+import io.left.rightmesh.libdtn.core.api.BlockManagerAPI;
+import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
+import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.storage.TestBundle;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BundleV7Serializer;
@@ -21,6 +32,7 @@ import io.left.rightmesh.librxtcp.RxTCP;
 
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.SIMPLE_STORAGE_PATH;
 import static junit.framework.TestCase.fail;
 
 /**
@@ -28,14 +40,39 @@ import static junit.framework.TestCase.fail;
  */
 public class RxTCPSerializedBundleTest {
 
+
+    /* mocking the core */
+    public CoreAPI mockCore() {
+        return new MockCore() {
+            @Override
+            public ConfigurationAPI getConf() {
+                DTNConfiguration conf = new DTNConfiguration();
+                conf.<Boolean>get(COMPONENT_ENABLE_VOLATILE_STORAGE).update(true);
+                conf.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(false);
+                return conf;
+            }
+
+            @Override
+            public BlockManagerAPI getBlockManager() {
+                return new MockBlockManager() {
+                    @Override
+                    public BlockProcessorFactory getBlockProcessorFactory() {
+                        return new BaseBlockProcessorFactory();
+                    }
+                };
+            }
+
+            @Override
+            public Log getLogger() {
+                return new SimpleLogger();
+            }
+        };
+    }
+
     @Test
     public void testServerOneClient() {
         System.out.println("[+] rxtcp: testing bundle serialization / parsing over RxTCP");
-
-        DTNConfiguration conf = new DTNConfiguration();
-        conf.<Boolean>get(COMPONENT_ENABLE_VOLATILE_STORAGE).update(true);
-        conf.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(false);
-        Storage storage = new Storage(conf, new Logger(conf));
+        Storage storage = new Storage(mockCore());
 
         CountDownLatch lock = new CountDownLatch(6);
         Bundle[] recv = {null, null, null, null, null, null};

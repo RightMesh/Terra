@@ -5,12 +5,16 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
+import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
+import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
+import io.left.rightmesh.libdtn.common.data.bundleV7.processor.ProcessingException;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
+import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
+import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.api.StorageAPI;
-import io.left.rightmesh.libdtn.core.utils.Logger;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -57,7 +61,8 @@ public class Storage implements StorageAPI {
     private VolatileStorage volatileStorage;
     private SimpleStorage simpleStorage;
     private CoreBLOBFactory blobFactory;
-    private Logger logger;
+    private BlockProcessorFactory processorFactory;
+    private Log logger;
 
     class IndexEntry {
         Bundle bundle;      /* either a bundle or a metabundle */
@@ -74,11 +79,12 @@ public class Storage implements StorageAPI {
     }
     Map<BundleID, IndexEntry> index = new ConcurrentHashMap<>();
 
-    public Storage(ConfigurationAPI conf, Logger logger) {
-        this.logger = logger;
-        this.conf = conf;
+    public Storage(CoreAPI core) {
+        this.logger = core.getLogger();
+        this.conf = core.getConf();
+        this.processorFactory = core.getBlockManager().getBlockProcessorFactory();
         volatileStorage = new VolatileStorage(this, conf, logger);
-        simpleStorage = new SimpleStorage(this, conf, logger);
+        simpleStorage = new SimpleStorage(this, processorFactory, conf, logger);
         blobFactory = new CoreBLOBFactory();
     }
 
@@ -151,6 +157,20 @@ public class Storage implements StorageAPI {
         if (index.containsKey(bundle.bid)) {
             return Single.error(new BundleAlreadyExistsException());
         }
+
+        /* call block specific routing for storage */
+        try {
+            for (CanonicalBlock block : bundle.getBlocks()) {
+                try {
+                    processorFactory.create(block.type).onPutOnStorage(block, bundle, logger);
+                } catch (BlockProcessorFactory.ProcessorNotFoundException pe) {
+                    /* ignore */
+                }
+            }
+        } catch (ProcessingException e) {
+            return Single.error(e);
+        }
+
         return Single.create(s -> volatileStorage.store(bundle).subscribe(
                 vb -> simpleStorage.store(vb).onErrorReturnItem(vb)
                         .subscribe(
@@ -172,7 +192,22 @@ public class Storage implements StorageAPI {
 
     public Single<Bundle> get(BundleID id) {
         if (containsVolatile(id)) {
-            return Single.just(index.get(id).bundle);
+            Bundle vb = index.get(id).bundle;
+
+            /* call block specific routine when bundle is pulled from volatile storage */
+            try {
+                for (CanonicalBlock block : vb.getBlocks()) {
+                    try {
+                        processorFactory.create(block.type).onPullFromStorage(block, vb, logger);
+                    } catch (BlockProcessorFactory.ProcessorNotFoundException pe) {
+                        /* ignore */
+                    }
+                }
+            } catch (ProcessingException e) {
+                return Single.error(e);
+            }
+
+            return Single.just(vb);
         } else {
             return simpleStorage.get(id);
         }

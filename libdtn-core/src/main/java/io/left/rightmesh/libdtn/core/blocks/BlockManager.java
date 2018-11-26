@@ -12,6 +12,9 @@ import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BaseBlockDataParserFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BlockDataParserFactory;
+import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BaseBlockProcessorFactory;
+import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessor;
+import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BaseBlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
@@ -25,6 +28,7 @@ public class BlockManager implements BlockManagerAPI {
     private Map<Integer, Supplier<CanonicalBlock>> extensionBlockFactory = new HashMap<>();
     private Map<Integer, Supplier<CborParser>> extensionBlockParserFactory = new HashMap<>();
     private Map<Integer, Supplier<CborEncoder>> extensionBlockSerializerFactory = new HashMap<>();
+    private Map<Integer, Supplier<BlockProcessor>> extensionBlockProcessorFactory = new HashMap<>();
 
     private BlockFactory coreBlockFactory = new BlockFactory() {
         BlockFactory baseBlockFactory = new BaseBlockFactory();
@@ -72,6 +76,22 @@ public class BlockManager implements BlockManagerAPI {
         }
     };
 
+    private BlockProcessorFactory coreProcessorFactory = new BlockProcessorFactory() {
+        BaseBlockProcessorFactory baseBlockProcessorFactory = new BaseBlockProcessorFactory();
+
+        @Override
+        public BlockProcessor create(int type) throws ProcessorNotFoundException {
+            try {
+                return baseBlockProcessorFactory.create(type);
+            } catch(ProcessorNotFoundException pnfe) {
+                if(extensionBlockProcessorFactory.containsKey(type)) {
+                    return extensionBlockProcessorFactory.get(type).get();
+                }
+            }
+            throw new ProcessorNotFoundException();
+        }
+    };
+
     @Override
     public BlockFactory getBlockFactory() {
         return coreBlockFactory;
@@ -88,15 +108,22 @@ public class BlockManager implements BlockManagerAPI {
     }
 
     @Override
+    public BlockProcessorFactory getBlockProcessorFactory() {
+        return coreProcessorFactory;
+    }
+
+    @Override
     public void addExtensionBlock(int type,
-                           Supplier<CanonicalBlock> block,
-                           Supplier<CborParser> parser,
-                           Supplier<CborEncoder> serializer) throws BlockTypeAlreadyManaged {
+                                      Supplier<CanonicalBlock> block,
+                                      Supplier<CborParser> parser,
+                                      Supplier<CborEncoder> serializer,
+                                      Supplier<BlockProcessor> processor) throws BlockTypeAlreadyManaged {
         if(extensionBlockFactory.containsKey(type)) {
             throw new BlockTypeAlreadyManaged();
         }
         extensionBlockFactory.put(type, block);
         extensionBlockParserFactory.put(type, parser);
         extensionBlockSerializerFactory.put(type, serializer);
+        extensionBlockProcessorFactory.put(type, processor);
     }
 }

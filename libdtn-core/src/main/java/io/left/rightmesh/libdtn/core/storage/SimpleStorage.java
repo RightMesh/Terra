@@ -18,6 +18,9 @@ import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
+import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
+import io.left.rightmesh.libdtn.common.data.bundleV7.processor.ProcessingException;
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item;
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.PrimaryBlockItem;
 import io.left.rightmesh.libdtn.common.utils.Log;
@@ -74,10 +77,12 @@ public class SimpleStorage extends BaseComponent {
     private static final String BUNDLE_FOLDER = File.separator + "bundle" + File.separator;
 
     private Storage metaStorage;
+    private BlockProcessorFactory processorFactory;
     private Log logger;
 
-    public SimpleStorage(Storage metaStorage, ConfigurationAPI conf, Log logger) {
+    public SimpleStorage(Storage metaStorage, BlockProcessorFactory processorFactory, ConfigurationAPI conf, Log logger) {
         this.metaStorage = metaStorage;
+        this.processorFactory = processorFactory;
         this.logger = logger;
         initComponent(conf, COMPONENT_ENABLE_SIMPLE_STORAGE, logger);
         conf.<Set<String>>get(ConfigurationAPI.CoreEntry.SIMPLE_STORAGE_PATH).observe()
@@ -470,12 +475,26 @@ public class SimpleStorage extends BaseComponent {
             } catch (RxParserException | IOException rpe) {
                 /* should not happen */
                 s.onError(rpe);
+                return;
             }
 
             Bundle ret = parser.getReg(1);
             parser.reset();
+
             if (ret != null) {
-                s.onSuccess(ret);
+                /* call block specific routine when bundle is pulled from storage */
+                try {
+                    for (CanonicalBlock block : ret.getBlocks()) {
+                        try {
+                            processorFactory.create(block.type).onPullFromStorage(block, ret, logger);
+                        } catch (BlockProcessorFactory.ProcessorNotFoundException pe) {
+                            /* ignore */
+                        }
+                    }
+                    s.onSuccess(ret);
+                } catch (ProcessingException e) {
+                    s.onError(e);
+                }
             } else {
                 s.onError(new Throwable("can't retrieve bundle from file"));
             }

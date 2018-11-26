@@ -28,29 +28,4 @@ public class UnknownExtensionBlock extends BlockBLOB {
     public UnknownExtensionBlock(int type, BLOB data) {
         super(type, data);
     }
-
-    @Override
-    public void onBlockDataDeserialized() throws ProcessingException {
-        throw new ProcessorNotFoundException();
-    }
-
-    @Override
-    public boolean onReceptionProcessing(Bundle bundle) throws ProcessingException {
-        throw new ProcessorNotFoundException();
-    }
-
-    @Override
-    public boolean onPrepareForTransmission(Bundle bundle) throws ProcessingException {
-        throw new ProcessorNotFoundException();
-    }
-
-    @Override
-    public boolean onPutOnStorage(Bundle bundle) throws ProcessingException {
-        throw new ProcessorNotFoundException();
-    }
-
-    @Override
-    public boolean onPullFromStorage(Bundle bundle) throws ProcessingException {
-        throw new ProcessorNotFoundException();
-    }
 }
