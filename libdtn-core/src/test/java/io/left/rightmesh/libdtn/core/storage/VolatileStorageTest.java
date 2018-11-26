@@ -12,6 +12,7 @@ import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BlockDataParserFacto
 import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BaseBlockProcessorFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessor;
 import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
+import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BaseBlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
@@ -56,6 +57,10 @@ public class VolatileStorageTest {
             @Override
             public BlockManagerAPI getBlockManager() {
                 return new MockBlockManager() {
+                    @Override
+                    public BlockDataSerializerFactory getBlockDataSerializerFactory() {
+                        return new BaseBlockDataSerializerFactory();
+                    }
                     @Override
                     public BlockProcessorFactory getBlockProcessorFactory() {
                         return new BaseBlockProcessorFactory();

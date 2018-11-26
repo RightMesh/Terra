@@ -36,7 +36,7 @@ public class RoutingEngine implements RoutingAPI {
 
     @Override
     public void addRoute(EID to, EID nextHop) {
-        core.getLogger().i(TAG, "adding a new Route: "+to.getEIDString()+" -> "+nextHop.getEIDString());
+        core.getLogger().i(TAG, "adding a new Route: " + to.getEIDString() + " -> " + nextHop.getEIDString());
         core.getRoutingTable().addRoute(to, nextHop);
     }
 
@@ -58,14 +58,19 @@ public class RoutingEngine implements RoutingAPI {
                         /* retrieve the bundle */
                         core.getStorage().get(bundleID).subscribe(
                                 /* deliver it */
-                                bundle -> event.channel.sendBundle(bundle).ignoreElements().subscribe(
+                                bundle -> event.channel.sendBundle(
+                                        bundle,
+                                        core.getBlockManager().getBlockDataSerializerFactory()
+                                ).ignoreElements().subscribe(
                                         () -> {
                                             listener.unwatch(bundle.bid);
-                                            core.getBundleProcessor().bundleForwardingSuccessful(bundle);
+                                            core.getBundleProcessor()
+                                                    .bundleForwardingSuccessful(bundle);
                                         },
                                         e -> {
                                             bundle.tag("reason_code", TransmissionCancelled);
-                                            core.getBundleProcessor().bundleForwardingContraindicated(bundle);
+                                            core.getBundleProcessor()
+                                                    .bundleForwardingContraindicated(bundle);
                                         }),
                                 e -> { /* should we delete it ? */});
                     });

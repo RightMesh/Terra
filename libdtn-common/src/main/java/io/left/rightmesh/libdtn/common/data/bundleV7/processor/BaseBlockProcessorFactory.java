@@ -19,7 +19,7 @@ public class BaseBlockProcessorFactory implements BlockProcessorFactory {
 
     static BlockProcessor nullProcessor = new BlockProcessor() {
         @Override
-        public void onBlockDataDeserialized(CanonicalBlock block) throws ProcessingException {
+        public void onBlockDeserialized(CanonicalBlock block) throws ProcessingException {
         }
 
         @Override

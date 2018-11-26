@@ -12,6 +12,8 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BlockDataParserFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item;
+import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
+import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BundleV7Serializer;
@@ -156,13 +158,14 @@ public class STCP implements ConvergenceLayerSPI {
         }
 
         @Override
-        public Observable<Integer> sendBundle(Bundle bundle) {
+        public Observable<Integer> sendBundle(Bundle bundle,
+                                              BlockDataSerializerFactory serializerFactory) {
             /*
             if (!initiator) {
                 return Observable.error(new RecvOnlyPeerException());
             }
             */
-            Flowable<ByteBuffer> job = createBundleJob(bundle);
+            Flowable<ByteBuffer> job = createBundleJob(bundle, serializerFactory);
             if (job == null) {
                 return Observable.error(new Throwable("Cannot serialize the bundle"));
             }
@@ -173,7 +176,8 @@ public class STCP implements ConvergenceLayerSPI {
 
 
         @Override
-        public Observable<Integer> sendBundles(Flowable<Bundle> upstream) {
+        public Observable<Integer> sendBundles(Flowable<Bundle> upstream,
+                                               BlockDataSerializerFactory serializerFactory) {
             /*
             if (!initiator) {
                 return Observable.error(new RecvOnlyPeerException());
@@ -191,7 +195,7 @@ public class STCP implements ConvergenceLayerSPI {
 
                     @Override
                     public void onNext(Bundle bundle) {
-                        sendBundle(bundle).subscribe(
+                        sendBundle(bundle, serializerFactory).subscribe(
                                 i -> {
                                 },
                                 e -> request(1),
@@ -218,7 +222,8 @@ public class STCP implements ConvergenceLayerSPI {
         @Override
         public Observable<Bundle> recvBundle(BlockFactory blockFactory,
                                              BlockDataParserFactory parserFactory,
-                                             BLOBFactory blobFactory) {
+                                             BLOBFactory blobFactory,
+                                             BlockProcessorFactory processorFactory) {
             /*
             if (initiator) {
                 return Observable.create(s ->
@@ -244,7 +249,12 @@ public class STCP implements ConvergenceLayerSPI {
                             // we might want check the length and refuse large bundle
                         })
                         .cbor_parse_custom_item(
-                                () -> new BundleV7Item(logger, blockFactory, parserFactory, blobFactory),
+                                () -> new BundleV7Item(
+                                        logger,
+                                        blockFactory,
+                                        parserFactory,
+                                        blobFactory,
+                                        processorFactory),
                                 (__, ___, item) -> s.onNext(item.bundle));
 
                 tcpcon.recv().subscribe(
@@ -272,8 +282,9 @@ public class STCP implements ConvergenceLayerSPI {
             });
         }
 
-        Flowable<ByteBuffer> createBundleJob(Bundle b) {
-            CborEncoder encodedB = BundleV7Serializer.encode(b);
+        Flowable<ByteBuffer> createBundleJob(Bundle b,
+                                             BlockDataSerializerFactory serializerFactory) {
+            CborEncoder encodedB = BundleV7Serializer.encode(b, serializerFactory);
             long[] size = {0};
             encodedB.observe().subscribe(
                     buffer -> {

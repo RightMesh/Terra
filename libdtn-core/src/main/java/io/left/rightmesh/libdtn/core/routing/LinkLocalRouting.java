@@ -59,7 +59,8 @@ public class LinkLocalRouting extends BaseComponent {
             channel.recvBundle(
                     core.getBlockManager().getBlockFactory(),
                     core.getBlockManager().getBlockDataParserFactory(),
-                    core.getStorage().getBlobFactory())
+                    core.getStorage().getBlobFactory(),
+                    core.getBlockManager().getBlockProcessorFactory())
                     .subscribe(
                     b -> {
                         core.getLogger().i(TAG, "channel "

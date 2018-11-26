@@ -81,7 +81,8 @@ public class BundleEncryptionTest {
             Bundle[] res = {null};
 
             // prepare serializer
-            CborEncoder enc = BundleV7Serializer.encode(bundle);
+            CborEncoder enc = BundleV7Serializer.encode(bundle,
+                    new BaseBlockDataSerializerFactory());
 
             // prepare parser
             CborParser p = CBOR.parser().cbor_parse_custom_item(

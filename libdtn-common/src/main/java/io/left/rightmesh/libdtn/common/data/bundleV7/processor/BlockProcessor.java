@@ -24,7 +24,7 @@ public interface BlockProcessor {
      *
      * @throws ProcessingException if there is any issue during processing
      */
-    void onBlockDataDeserialized(CanonicalBlock block) throws ProcessingException;
+    void onBlockDeserialized(CanonicalBlock block) throws ProcessingException;
 
     /**
      * This is called during bundle processing step 5.4 when the bundle is being processed by the

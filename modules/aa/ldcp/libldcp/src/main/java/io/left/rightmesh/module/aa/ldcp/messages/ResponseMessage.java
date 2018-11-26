@@ -10,6 +10,7 @@ import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item;
+import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BaseBlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BundleV7Serializer;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.reactivex.Flowable;
@@ -84,7 +85,8 @@ public class ResponseMessage {
             // encode bundle if any
             if (bundle != null) {
                 enc.cbor_encode_boolean(true)
-                        .merge(BundleV7Serializer.encode(bundle));
+                        .merge(BundleV7Serializer.encode(bundle,
+                                new BaseBlockDataSerializerFactory()));
             } else {
                 enc.cbor_encode_boolean(false);
             }

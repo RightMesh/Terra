@@ -14,6 +14,8 @@ import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item;
 import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BaseBlockProcessorFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
+import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BaseBlockDataSerializerFactory;
+import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
 import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
@@ -55,6 +57,11 @@ public class RxTCPSerializedBundleTest {
             @Override
             public BlockManagerAPI getBlockManager() {
                 return new MockBlockManager() {
+                    @Override
+                    public BlockDataSerializerFactory getBlockDataSerializerFactory() {
+                        return new BaseBlockDataSerializerFactory();
+                    }
+
                     @Override
                     public BlockProcessorFactory getBlockProcessorFactory() {
                         return new BaseBlockProcessorFactory();
@@ -118,7 +125,9 @@ public class RxTCPSerializedBundleTest {
                     };
 
                     for(Bundle bundle : bundles) {
-                        connection.send(BundleV7Serializer.encode(bundle).observe(2048));
+                        connection.send(BundleV7Serializer.encode(bundle,
+                                mockCore().getBlockManager().getBlockDataSerializerFactory())
+                                .observe(2048));
                     }
 
                     connection.closeJobsDone();

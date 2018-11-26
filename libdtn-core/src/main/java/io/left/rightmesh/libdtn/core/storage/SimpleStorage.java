@@ -23,7 +23,6 @@ import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFac
 import io.left.rightmesh.libdtn.common.data.bundleV7.processor.ProcessingException;
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item;
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.PrimaryBlockItem;
-import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.MetaBundle;
@@ -32,6 +31,7 @@ import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BundleV7Serializ
 import io.left.rightmesh.libdtn.common.data.blob.NullBLOB;
 import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
+import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.events.BundleIndexed;
 import io.left.rightmesh.libdtn.common.data.blob.FileBLOB;
 import io.left.rightmesh.libdtn.core.api.StorageAPI.BundleAlreadyExistsException;
@@ -77,15 +77,14 @@ public class SimpleStorage extends BaseComponent {
     private static final String BUNDLE_FOLDER = File.separator + "bundle" + File.separator;
 
     private Storage metaStorage;
-    private BlockProcessorFactory processorFactory;
-    private Log logger;
+    private CoreAPI core;
 
-    public SimpleStorage(Storage metaStorage, BlockProcessorFactory processorFactory, ConfigurationAPI conf, Log logger) {
+    public SimpleStorage(Storage metaStorage,
+                         CoreAPI core) {
         this.metaStorage = metaStorage;
-        this.processorFactory = processorFactory;
-        this.logger = logger;
-        initComponent(conf, COMPONENT_ENABLE_SIMPLE_STORAGE, logger);
-        conf.<Set<String>>get(ConfigurationAPI.CoreEntry.SIMPLE_STORAGE_PATH).observe()
+        this.core = core;
+        initComponent(core.getConf(), COMPONENT_ENABLE_SIMPLE_STORAGE, core.getLogger());
+        core.getConf().<Set<String>>get(ConfigurationAPI.CoreEntry.SIMPLE_STORAGE_PATH).observe()
                 .subscribe(
                         updated_paths -> {
                             /* remove obsolete path */
@@ -178,7 +177,7 @@ public class SimpleStorage extends BaseComponent {
              * preparing the parser. We just parse the file header and the primary block of
              * the bundle and then build a MetaBundle that will be use for processing
              */
-            BundleV7Item bundleParser = new BundleV7Item(logger, null);
+            BundleV7Item bundleParser = new BundleV7Item(core.getLogger(), null);
             CborParser parser = CBOR.parser()
                     .cbor_open_array(2)
                     .cbor_parse_custom_item(
@@ -189,7 +188,7 @@ public class SimpleStorage extends BaseComponent {
                     .cbor_open_array((__, ___, ____) -> {
                     }) /* we are just parsing te primary block */
                     .cbor_parse_custom_item(
-                            () -> new PrimaryBlockItem(logger),
+                            () -> new PrimaryBlockItem(core.getLogger()),
                             (p, ___, item) -> {
                                 MetaBundle meta = new MetaBundle(item.b);
                                 Storage.IndexEntry entry = metaStorage.getEntryOrCreate(meta.bid, meta);
@@ -334,11 +333,13 @@ public class SimpleStorage extends BaseComponent {
                             .cbor_start_array(2)  /* File Header = { boolean, String }*/
                             .cbor_encode_boolean(has_blob)
                             .cbor_encode_text_string(blob_path)
-                            .merge(BundleV7Serializer.encode(bundle)); /* bundle */
+                            .merge(BundleV7Serializer.encode(bundle,
+                                    core.getBlockManager().getBlockDataSerializerFactory())); /* bundle */
 
                     /* assess file size */
                     AtomicLong size = new AtomicLong();
-                    BundleV7Serializer.encode(bundle).observe()
+                    BundleV7Serializer.encode(bundle,
+                            core.getBlockManager().getBlockDataSerializerFactory()).observe()
                             .subscribe(
                                     buffer -> size.set(size.get() + buffer.remaining()),
                                     e -> size.set(-1),
@@ -447,7 +448,7 @@ public class SimpleStorage extends BaseComponent {
                             FileHeaderItem::new,
                             (p, ___, item) -> p.setReg(0, item))
                     .cbor_parse_custom_item(
-                            () -> new BundleV7Item(logger, metaStorage.getBlobFactory()),
+                            () -> new BundleV7Item(core.getLogger(), metaStorage.getBlobFactory()),
                             (p, ___, item) -> {
                                 if (p.<FileHeaderItem>getReg(0).has_blob) {
                                     String path = p.<FileHeaderItem>getReg(0).blob_path;
@@ -486,7 +487,8 @@ public class SimpleStorage extends BaseComponent {
                 try {
                     for (CanonicalBlock block : ret.getBlocks()) {
                         try {
-                            processorFactory.create(block.type).onPullFromStorage(block, ret, logger);
+                            core.getBlockManager().getBlockProcessorFactory().create(block.type)
+                                    .onPullFromStorage(block, ret, core.getLogger());
                         } catch (BlockProcessorFactory.ProcessorNotFoundException pe) {
                             /* ignore */
                         }
@@ -525,7 +527,7 @@ public class SimpleStorage extends BaseComponent {
             Storage.IndexEntry entry = metaStorage.index.get(id);
 
             File fbundle = new File(entry.bundle_path);
-            logger.v(TAG, "deleting "+id.getBIDString()+" bundle file: "+fbundle.getAbsolutePath());
+            core.getLogger().v(TAG, "deleting "+id.getBIDString()+" bundle file: "+fbundle.getAbsolutePath());
             if (fbundle.exists() && !fbundle.canWrite()) {
                 error += "can't access bundle file for deletion";
             } else {
@@ -534,7 +536,7 @@ public class SimpleStorage extends BaseComponent {
 
             if (entry.has_blob) {
                 File fblob = new File(entry.blob_path);
-                logger.v(TAG, "deleting  "+id.getBIDString()+" blob file: "+fblob.getAbsolutePath());
+                core.getLogger().v(TAG, "deleting  "+id.getBIDString()+" blob file: "+fblob.getAbsolutePath());
                 if (fblob.exists() && !fblob.canWrite()) {
                     error += "can't access payload blob file for deletion";
                 } else {

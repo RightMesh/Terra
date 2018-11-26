@@ -17,6 +17,7 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item;
+import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BaseBlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BundleV7Serializer;
 import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
@@ -121,7 +122,8 @@ public class BundleV7Test {
             Bundle[] res = {null};
 
             // prepare serializer
-            CborEncoder enc = BundleV7Serializer.encode(bundle);
+            CborEncoder enc = BundleV7Serializer.encode(bundle,
+                    new BaseBlockDataSerializerFactory());
 
             // prepare parser
             BundleV7Item bundleParser = new BundleV7Item(

@@ -110,7 +110,7 @@ public class BundleProcessor implements BundleProcessorAPI {
                 .findOpenedChannelTowards(bundle.destination)
                 .concatMapMaybe(
                         claChannel ->
-                                claChannel.sendBundle(bundle)  /* 5.4 - step 4 */
+                                claChannel.sendBundle(bundle, core.getBlockManager().getBlockDataSerializerFactory())  /* 5.4 - step 4 */
                                         .doOnSubscribe((d) -> {
                                             core.getLogger().v(TAG, "5.4-4 "
                                                     + bundle.bid.getBIDString() + " -> "

@@ -97,7 +97,7 @@ public class EarlyValidator {
     public void onDeserialized(CanonicalBlock block) throws RejectedException {
         try {
             core.getBlockManager().getBlockProcessorFactory().create(block.type)
-                    .onBlockDataDeserialized(block);
+                    .onBlockDeserialized(block);
         } catch (BlockProcessorFactory.ProcessorNotFoundException pne) {
             if (block.getV7Flag(DELETE_BUNDLE_IF_NOT_PROCESSED)) {
                 throw new RejectedException("mandatory block cannot be processed");

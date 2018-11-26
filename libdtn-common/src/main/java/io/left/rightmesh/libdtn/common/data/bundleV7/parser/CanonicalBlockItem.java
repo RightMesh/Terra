@@ -29,7 +29,10 @@ public class CanonicalBlockItem implements CborParser.ParseableItem {
         this.blobFactory = blobFactory;
     }
 
-    public CanonicalBlockItem(Log logger, BlockFactory blockFactory, BlockDataParserFactory parserFactory, BLOBFactory blobFactory) {
+    public CanonicalBlockItem(Log logger,
+                              BlockFactory blockFactory,
+                              BlockDataParserFactory parserFactory,
+                              BLOBFactory blobFactory) {
         this.logger = logger;
         this.blockFactory = blockFactory;
         this.parserFactory = parserFactory;

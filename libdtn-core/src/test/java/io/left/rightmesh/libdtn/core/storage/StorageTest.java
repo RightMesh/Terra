@@ -11,6 +11,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BaseBlockProcessorFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
+import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BaseBlockDataSerializerFactory;
+import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
@@ -58,6 +60,10 @@ public class StorageTest {
             @Override
             public BlockManagerAPI getBlockManager() {
                 return new MockBlockManager() {
+                    @Override
+                    public BlockDataSerializerFactory getBlockDataSerializerFactory() {
+                        return new BaseBlockDataSerializerFactory();
+                    }
                     @Override
                     public BlockProcessorFactory getBlockProcessorFactory() {
                         return new BaseBlockProcessorFactory();

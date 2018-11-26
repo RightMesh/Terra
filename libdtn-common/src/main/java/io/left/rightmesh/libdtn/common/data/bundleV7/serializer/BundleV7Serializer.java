@@ -17,17 +17,6 @@ public class BundleV7Serializer {
      * will be empty.
      *
      * @param bundle to serialize
-     * @return Flowable
-     */
-    public static CborEncoder encode(Bundle bundle) {
-        return encode(bundle, new BaseBlockDataSerializerFactory());
-    }
-
-    /**
-     * Serialize a bundle into a cbor stream. If an ExtensionBlock is unknown, the block payload
-     * will be empty.
-     *
-     * @param bundle to serialize
      * @param  blockDataSerializerFactory block serializer
      * @return Flowable
      */
