@@ -1,0 +1,56 @@
+plugins {
+    id("java-library")
+    id "com.github.harbby.gradle.serviceloader" version "1.1.5"
+    id("com.github.dcendents.android-maven")
+}
+
+group='com.github.RightMesh.Terra'
+
+task ApiDoc(type: Javadoc) {
+    source = sourceSets.main.allJava
+}
+
+jar {
+    // META-INF/services to load module with ServiceLoader
+    serviceLoader {
+        serviceInterface 'io.left.rightmesh.libdtn.core.spi.core.CoreModuleSPI'
+        serviceInterface 'io.left.rightmesh.module.core.ipdiscovery.CoreModuleIpDiscovery'
+    }
+
+    // fat jar dependency, exclude those already in libdtn-core
+    from {
+        configurations.compile
+                .filter({! it.name.matches("rxjava.*")})
+                .filter({! it.name.matches("librxbus.*")})
+                .filter({! it.name.matches("reactive-streams.*")})
+                .filter({! it.name.matches("libcbor.*")})
+                .filter({! it.name.matches("libdtn-common.*")})
+                .collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+repositories {
+    google()
+    jcenter()
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    // libdetect to detect neighbour on the LAN
+    compile 'com.github.RightMesh:libdetect:5d8aaf041d'
+
+    // interface spi
+    compile project(path: ':libdtn-core-api')
+
+    // interface spi
+    compile project(path: ':libdtn-common')
+
+    // RxJava library for reactive programming
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.3'
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
