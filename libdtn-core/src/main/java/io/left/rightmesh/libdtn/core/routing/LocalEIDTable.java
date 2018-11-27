@@ -18,7 +18,7 @@ public class LocalEIDTable implements LocalEIDAPI {
 
     private static final String TAG = "LocalEIDTable";
 
-    DTNCore core;
+    private DTNCore core;
 
     public LocalEIDTable(DTNCore core) {
         this.core = core;
@@ -34,22 +34,12 @@ public class LocalEIDTable implements LocalEIDAPI {
         return core.getConf().<Set<EID>>get(ConfigurationAPI.CoreEntry.ALIASES).value();
     }
 
-    /**
-     * check if an EID is local or foreign.
-     *
-     * @param eid to check
-     * @return true if EID match a local EID or an alias, false otherwise
-     */
+    @Override
     public boolean isLocal(EID eid) {
         return matchLocal(eid) != null;
     }
 
-    /**
-     * return the matching EID.
-     *
-     * @param eid to check
-     * @return true if the eid is local, false otherwise
-     */
+    @Override
     public EID matchLocal(EID eid) {
         if (eid.matches(localEID())) {
             return localEID();

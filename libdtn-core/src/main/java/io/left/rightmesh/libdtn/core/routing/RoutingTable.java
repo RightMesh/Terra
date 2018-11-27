@@ -9,6 +9,7 @@ import java.util.Set;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.core.DTNCore;
+import io.left.rightmesh.libdtn.core.api.RoutingTableAPI;
 import io.reactivex.Observable;
 
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_STATIC_ROUTING;
@@ -20,7 +21,7 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.STATI
  *
  * @author Lucien Loiseau on 24/08/18.
  */
-public class RoutingTable {
+public class RoutingTable implements RoutingTableAPI {
 
     private static final String TAG = "RoutingTable";
 
@@ -38,51 +39,11 @@ public class RoutingTable {
         core.getConf().<Map<EID, EID>>get(STATIC_ROUTE_CONFIGURATION).observe().subscribe(
                 m -> {
                     staticRoutingTable.clear();
-                    m.forEach((to, from) -> staticRoutingTable.add(new TableEntry(to, from)));
+                    m.forEach((to, from) -> staticRoutingTable.add(new RoutingTableAPI.TableEntry(to, from)));
                 });
     }
 
-
-    static class TableEntry {
-        EID to;
-        EID next;
-
-        TableEntry(EID to, EID next) {
-            this.to = to;
-            this.next = next;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (o == null) {
-                return false;
-            }
-            if (o instanceof TableEntry) {
-                return next.equals(o) && to.equals(o);
-            }
-            return false;
-        }
-
-        public EID getTo() {
-            return to;
-        }
-
-        public EID getNext() {
-            return next;
-        }
-
-        @Override
-        public int hashCode() {
-            return next.getEIDString().concat(to.getEIDString()).hashCode();
-        }
-    }
-
-    void addRoute(EID to, EID nextHop) {
-        routingTable.add(new TableEntry(to, nextHop));
-    }
-
-
-    Observable<TableEntry> compoundTableObservable() {
+    private Observable<TableEntry> compoundTableObservable() {
         if(staticIsEnabled) {
             return Observable.fromIterable(staticRoutingTable)
                     .concatWith(Observable.fromIterable(routingTable));
@@ -91,7 +52,7 @@ public class RoutingTable {
         }
     }
 
-    Observable<EID> lookupPotentialNextHops(EID destination) {
+    private Observable<EID> lookupPotentialNextHops(EID destination) {
         return Observable.concat(Observable.just(destination)
                         .filter(eid -> destination instanceof CLA),
                 compoundTableObservable()
@@ -119,11 +80,18 @@ public class RoutingTable {
                                         })));
     }
 
-    Observable<CLA> resolveEID(EID destination) {
+    @Override
+    public void addRoute(EID to, EID nextHop) {
+        routingTable.add(new TableEntry(to, nextHop));
+    }
+
+    @Override
+    public Observable<CLA> resolveEID(EID destination) {
         return resolveEID(destination, Observable.empty());
     }
 
-    Set<TableEntry> dumpTable() {
+    @Override
+    public Set<TableEntry> dumpTable() {
         Set<TableEntry> ret = new HashSet<>();
         ret.addAll(staticRoutingTable);
         ret.addAll(routingTable);

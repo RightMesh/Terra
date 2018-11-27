@@ -3,6 +3,7 @@ package io.left.rightmesh.libdtn.core.routing;
 import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.core.DTNCore;
+import io.left.rightmesh.libdtn.core.api.LinkLocalRoutingAPI;
 import io.left.rightmesh.libdtn.core.events.ChannelClosed;
 import io.left.rightmesh.libdtn.core.events.ChannelOpened;
 import io.left.rightmesh.libdtn.core.events.LinkLocalEntryDown;
@@ -26,7 +27,7 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPO
  *
  * @author Lucien Loiseau on 24/08/18.
  */
-public class LinkLocalRouting extends BaseComponent {
+public class LinkLocalRouting extends BaseComponent implements LinkLocalRoutingAPI  {
 
     private static final String TAG = "LinkLocalRouting";
 
@@ -54,7 +55,7 @@ public class LinkLocalRouting extends BaseComponent {
         RxBus.unregister(this);
     }
 
-    void channelOpened(CLAChannelSPI channel) {
+    private void channelOpened(CLAChannelSPI channel) {
         if(linkLocalTable.add(channel)) {
             channel.recvBundle(
                     core.getBlockManager().getBlockFactory(),
@@ -76,13 +77,14 @@ public class LinkLocalRouting extends BaseComponent {
         }
     }
 
-    void channelClosed(CLAChannelSPI channel) {
+    private void channelClosed(CLAChannelSPI channel) {
         if(linkLocalTable.remove(channel)) {
             RxBus.post(new LinkLocalEntryDown(channel));
         }
     }
 
-    CLA isEIDLinkLocal(EID eid) {
+    @Override
+    public CLA isEIDLinkLocal(EID eid) {
         if(!isEnabled()) {
             return null;
         }
@@ -95,7 +97,8 @@ public class LinkLocalRouting extends BaseComponent {
         return null;
     }
 
-    Maybe<CLAChannelSPI> findCLA(EID destination) {
+    @Override
+    public Maybe<CLAChannelSPI> findCLA(EID destination) {
         if(!isEnabled()) {
             return Maybe.error(new Throwable(TAG+" is disabled"));
         }
@@ -104,6 +107,12 @@ public class LinkLocalRouting extends BaseComponent {
                 .filter(c -> destination.matches(c.channelEID()))
                 .lastElement();
     }
+
+    @Override
+    public Set<CLAChannelSPI> dumpTable() {
+        return Collections.unmodifiableSet(linkLocalTable);
+    }
+
 
     @Subscribe
     public void onEvent(ChannelOpened event) {
@@ -114,9 +123,4 @@ public class LinkLocalRouting extends BaseComponent {
     public void onEvent(ChannelClosed event) {
         channelClosed(event.channel);
     }
-
-    Set<CLAChannelSPI> dumpTable() {
-        return Collections.unmodifiableSet(linkLocalTable);
-    }
-
 }

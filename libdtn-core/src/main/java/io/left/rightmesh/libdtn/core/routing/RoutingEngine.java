@@ -7,11 +7,8 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
-import io.left.rightmesh.libdtn.core.events.ChannelClosed;
-import io.left.rightmesh.libdtn.core.events.ChannelOpened;
 import io.left.rightmesh.libdtn.core.events.LinkLocalEntryUp;
 import io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI;
-import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
@@ -104,8 +101,8 @@ public class RoutingEngine implements RoutingAPI {
         potentialCLAs
                 .distinct()
                 .concatMapMaybe(claeid ->
-                        Maybe.fromSingle(core.getConnectionAgent()
-                                .createOpportunityForBundle(claeid))
+                        Maybe.fromSingle(core.getClaManager()
+                                .createOpportunity(claeid))
                                 .onErrorComplete())
                 .firstElement()
                 .subscribe(

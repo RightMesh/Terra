@@ -34,14 +34,16 @@ public class CoreModuleIpDiscovery implements CoreModuleSPI {
             @Override
             public void onPeerReachable(PeerReachable peer) {
                 api.getLogger().i(TAG, "peer detected :" + peer.address.getHostAddress());
+                /*
                 api.getConnectionAgent().createOpportunityLibDetect(peer.address.getHostAddress()).subscribe(
                         channel -> {
-                            /* ignore */
+                            // ignore
                         },
                         e -> {
-                            /* ignore */
+                            // ignore
                         }
                 );
+                */
             }
 
             @Override
@@ -50,4 +52,27 @@ public class CoreModuleIpDiscovery implements CoreModuleSPI {
             }
         }, true);
     }
+
+    /*
+    public Single<CLAChannelSPI> createOpportunityLibDetect(String host) {
+        if(!core.getConf().<Boolean>get(ConfigurationAPI.CoreEntry.ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT).value()) {
+            return Single.error(new Throwable("AutoConnect is disabled"));
+        }
+
+        final CLASTCP eid;
+        try { //todo create safe constructor
+            eid = new CLASTCP(host, 4556, "/");
+        } catch(EID.EIDFormatException efe) {
+            return Single.error(efe);
+        }
+        final String opp = "cla=" + eid.getCLAName() + " peer=" + eid.getCLASpecificPart();
+        core.getLogger().d(TAG, "trying to create an opportunity with "+opp+" "+Thread.currentThread().getName());
+        return core.getClaManager().openChannel(eid)
+                .doOnError(e -> core.getLogger().d(TAG, "opportunity creation failed " + opp +": "+e.getMessage()))
+                .doOnSuccess((c) -> {
+                    core.getLogger().d(TAG, "opportunity creation success: " + opp);
+                    RxBus.post(new ChannelOpened(c));
+                });
+    }
+    */
 }

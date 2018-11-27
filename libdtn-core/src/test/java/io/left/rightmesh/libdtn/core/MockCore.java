@@ -15,14 +15,16 @@ import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
 import io.left.rightmesh.libdtn.core.api.BlockManagerAPI;
 import io.left.rightmesh.libdtn.core.api.BundleProcessorAPI;
+import io.left.rightmesh.libdtn.core.api.CLAManagerAPI;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
-import io.left.rightmesh.libdtn.core.api.ConnectionAgentAPI;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.api.DeliveryAPI;
+import io.left.rightmesh.libdtn.core.api.LinkLocalRoutingAPI;
 import io.left.rightmesh.libdtn.core.api.LocalEIDAPI;
 import io.left.rightmesh.libdtn.core.api.ModuleLoaderAPI;
 import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
 import io.left.rightmesh.libdtn.core.api.RoutingAPI;
+import io.left.rightmesh.libdtn.core.api.RoutingTableAPI;
 import io.left.rightmesh.libdtn.core.api.StorageAPI;
 
 /**
@@ -100,7 +102,17 @@ public class MockCore implements CoreAPI  {
     }
 
     @Override
-    public ConnectionAgentAPI getConnectionAgent() {
+    public CLAManagerAPI getClaManager() {
+        return null;
+    }
+
+    @Override
+    public LinkLocalRoutingAPI getLinkLocalRouting() {
+        return null;
+    }
+
+    @Override
+    public RoutingTableAPI getRoutingTable() {
         return null;
     }
 

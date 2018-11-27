@@ -5,11 +5,13 @@ import java.util.List;
 
 import io.left.rightmesh.libdtn.core.api.BlockManagerAPI;
 import io.left.rightmesh.libdtn.core.api.BundleProcessorAPI;
+import io.left.rightmesh.libdtn.core.api.CLAManagerAPI;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
+import io.left.rightmesh.libdtn.core.api.LinkLocalRoutingAPI;
 import io.left.rightmesh.libdtn.core.api.LocalEIDAPI;
+import io.left.rightmesh.libdtn.core.api.RoutingTableAPI;
 import io.left.rightmesh.libdtn.core.blocks.BlockManager;
 import io.left.rightmesh.libdtn.core.events.BundleIndexed;
-import io.left.rightmesh.libdtn.core.network.ConnectionAgent;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.core.routing.Registrar;
 import io.left.rightmesh.libdtn.core.routing.LinkLocalRouting;
@@ -21,7 +23,6 @@ import io.left.rightmesh.libdtn.core.services.NullAA;
 import io.left.rightmesh.libdtn.core.spi.aa.ApplicationAgentSPI;
 import io.left.rightmesh.libdtn.core.storage.Storage;
 import io.left.rightmesh.libdtn.core.utils.Logger;
-import io.left.rightmesh.libdtn.core.api.ConnectionAgentAPI;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.api.DeliveryAPI;
 import io.left.rightmesh.libdtn.core.api.RoutingAPI;
@@ -44,14 +45,13 @@ public class DTNCore implements CoreAPI {
     private Logger logger;
     private LocalEIDAPI localEIDTable;
     private BlockManagerAPI blockManager;
-    private LinkLocalRouting linkLocalRouting;
-    private RoutingTable routingTable;
+    private LinkLocalRoutingAPI linkLocalRouting;
+    private RoutingTableAPI routingTable;
     private RoutingAPI routingEngine;
     private Registrar registrar;
     private StorageAPI storage;
     private BundleProcessorAPI bundleProcessor;
-    private ConnectionAgentAPI connectionAgent;
-    private CLAManager claManager;
+    private CLAManagerAPI claManager;
     private ModuleLoader moduleLoader;
     private List<ApplicationAgentSPI> coreServices;
 
@@ -63,7 +63,7 @@ public class DTNCore implements CoreAPI {
         core.logger = new Logger(conf);
         core.localEIDTable = new LocalEIDTable(core);
 
-        /* block toolbox */
+        /* BP block toolbox */
         core.blockManager = new BlockManager();
 
         /* routing */
@@ -76,7 +76,6 @@ public class DTNCore implements CoreAPI {
         core.bundleProcessor = new BundleProcessor(core);
 
         /* network cla */
-        core.connectionAgent = new ConnectionAgent(core);
         core.claManager = new CLAManager(core);
 
         /* storage */
@@ -122,11 +121,6 @@ public class DTNCore implements CoreAPI {
     }
 
     @Override
-    public RoutingAPI getRoutingEngine() {
-        return routingEngine;
-    }
-
-    @Override
     public RegistrarAPI getRegistrar() {
         return registrar;
     }
@@ -147,20 +141,23 @@ public class DTNCore implements CoreAPI {
     }
 
     @Override
-    public ConnectionAgentAPI getConnectionAgent() {
-        return connectionAgent;
+    public CLAManagerAPI getClaManager() {
+        return claManager;
     }
 
-    public LinkLocalRouting getLinkLocalRouting() {
+    @Override
+    public RoutingAPI getRoutingEngine() {
+        return routingEngine;
+    }
+
+    @Override
+    public LinkLocalRoutingAPI getLinkLocalRouting() {
         return linkLocalRouting;
     }
 
-    public RoutingTable getRoutingTable() {
+    @Override
+    public RoutingTableAPI getRoutingTable() {
         return routingTable;
-    }
-
-    public CLAManager getClaManager() {
-        return claManager;
     }
 
     @Subscribe( thread = RxThread.IO )

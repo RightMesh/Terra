@@ -25,7 +25,11 @@ public interface CoreAPI {
 
     StorageAPI getStorage();
 
-    ConnectionAgentAPI getConnectionAgent();
+    CLAManagerAPI getClaManager();
+
+    LinkLocalRoutingAPI getLinkLocalRouting();
+
+    RoutingTableAPI getRoutingTable();
 
     ModuleLoaderAPI getModuleLoader();
 
