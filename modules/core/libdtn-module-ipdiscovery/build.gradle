@@ -40,13 +40,14 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     // libdetect to detect neighbour on the LAN
+    // note: we need to use compile keyword to add in the fatjar, implementation/api doesn't work
     compile 'com.github.RightMesh:libdetect:5d8aaf041d'
 
     // interface spi
-    compile project(path: ':libdtn-core-api')
+    implementation project(path: ':libdtn-core-api')
 
     // interface spi
-    compile project(path: ':libdtn-common')
+    implementation project(path: ':libdtn-common')
 
     // RxJava library for reactive programming
     implementation 'io.reactivex.rxjava2:rxjava:2.2.3'

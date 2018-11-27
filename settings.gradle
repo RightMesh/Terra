@@ -7,8 +7,8 @@ project(":libdtn-module-stcp").projectDir = file("modules/cla/libdtn-module-stcp
 
 // module LDCP
 include ':libldcp' // LibDtn Cbor Protocol (LDCP)
-include ':libdtn-module-ldcp' // libdtn core module for ldcp
 project(":libldcp").projectDir = file("modules/aa/ldcp/libldcp")
+include ':libdtn-module-ldcp' // libdtn core module for ldcp
 project(":libdtn-module-ldcp").projectDir = file("modules/aa/ldcp/libdtn-module-ldcp")
 
 // module hello

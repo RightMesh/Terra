@@ -11,6 +11,7 @@ task ApiDoc(type: Javadoc) {
 }
 
 jar {
+    dependsOn(':libldcp:jar')
     // META-INF/services to load module with ServiceLoader
     serviceLoader {
         serviceInterface 'io.left.rightmesh.libdtn.core.spi.aa.ApplicationAgentAdapterSPI'
@@ -38,14 +39,15 @@ dependencies {
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
+    // protocol library
+    // note: we need to use compile keyword to add in the fatjar, implementation/api doesn't work
+    compile project(path: ':libldcp')
+
     // Bundle data
     implementation project(path: ':libdtn-common')
 
     // interface spi
     implementation project(path: ':libdtn-core-api')
-
-    // protocol library (we need to put the compile keyword for the fat jar)
-    compile project(path: ':libldcp')
 
     // RxJava library for reactive programming
     implementation 'io.reactivex.rxjava2:rxjava:2.2.3'

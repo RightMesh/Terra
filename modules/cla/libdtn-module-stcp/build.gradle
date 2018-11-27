@@ -51,6 +51,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     // librxtcp for tcp socket
+    // note: we need to use compile keyword to add in the fatjar, implementation/api doesn't work
     compile 'com.github.RightMesh:librxtcp:65e2cb0ab8'
 
     // libdtn-common for data

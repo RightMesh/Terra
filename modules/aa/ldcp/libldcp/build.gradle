@@ -9,6 +9,13 @@ task ApiDoc(type: Javadoc) {
     source = sourceSets.main.allJava
 }
 
+jar {
+    manifest {
+        attributes 'Library-Version': '1.0'
+        attributes 'Build-Date': new Date()
+    }
+}
+
 repositories {
     google()
     jcenter()

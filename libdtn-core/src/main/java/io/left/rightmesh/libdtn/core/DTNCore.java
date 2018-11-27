@@ -72,10 +72,10 @@ public class DTNCore implements CoreAPI {
         core.routingEngine = new RoutingEngine(core);
         core.registrar = new Registrar(core);
 
-        /*  processor */
+        /* bundle processor */
         core.bundleProcessor = new BundleProcessor(core);
 
-        /* network */
+        /* network cla */
         core.connectionAgent = new ConnectionAgent(core);
         core.claManager = new CLAManager(core);
 
