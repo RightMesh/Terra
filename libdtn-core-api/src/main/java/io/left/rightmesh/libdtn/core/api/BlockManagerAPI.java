@@ -20,7 +20,7 @@ public interface BlockManagerAPI {
     }
 
     /**
-     * get the block factory to instantiate new Block.
+     * get the block factory to instantiate a new Block.
      *
      * @return BlockFactory
      */

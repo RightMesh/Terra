@@ -69,9 +69,7 @@ public class BundleProcessor implements BundleProcessorAPI {
 
         /* 5.2 - step 2 */
         core.getLogger().v(TAG, "5.2-2 " + bundle.bid.getBIDString());
-        bundleDispatching(bundle);
-        // the RFC states to jump to bundleForwarding but I consider that a transmission may also
-        // be for local delivery so jump to bundleDispatching instead
+        bundleForwarding(bundle);
     }
 
     /* 5.3 */
@@ -373,7 +371,7 @@ public class BundleProcessor implements BundleProcessorAPI {
             for (Bundle report : reports) {
                 core.getLogger().i(TAG, "sending status report to: " + report.destination.getEIDString());
                 report.source = core.getLocalEID().localEID();
-                bundleTransmission(report);
+                bundleDispatching(report);
             }
         }
     }

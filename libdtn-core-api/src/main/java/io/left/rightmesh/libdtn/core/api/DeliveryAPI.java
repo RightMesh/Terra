@@ -4,6 +4,9 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.reactivex.Completable;
 
 /**
+ * DeliveryAPI is the registrar-side contract facing DTNCore. It lets Bundle to be delivered
+ * to the correct application agent.
+ *
  * @author Lucien Loiseau on 24/10/18.
  */
 public interface DeliveryAPI {

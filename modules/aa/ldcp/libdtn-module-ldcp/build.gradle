@@ -44,8 +44,8 @@ dependencies {
     // interface spi
     implementation project(path: ':libdtn-core-api')
 
-    // protocol library
-    implementation project(path: ':libldcp')
+    // protocol library (we need to put the compile keyword for the fat jar)
+    compile project(path: ':libldcp')
 
     // RxJava library for reactive programming
     implementation 'io.reactivex.rxjava2:rxjava:2.2.3'

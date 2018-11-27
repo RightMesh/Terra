@@ -130,7 +130,7 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
         }
     }
 
-    /* ------  RegistrarAPI  ------- */
+    /* ------  RegistrarAPI  is the contract facing ApplicationAgentAdapter ------- */
 
     @Override
     public boolean isRegistered(String sink) throws RegistrarDisabled, NullArgument {
@@ -179,7 +179,7 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
         checkEnable();
         checkArgumentNotNull(bundle);
         replaceApiMe(bundle);
-        core.getBundleProcessor().bundleTransmission(bundle);
+        core.getBundleProcessor().bundleDispatching(bundle);
         return true;
     }
 
@@ -188,14 +188,14 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
         checkRegisteredSink(sink, cookie);
         checkArgumentNotNull(bundle);
         replaceApiMe(bundle);
-        core.getBundleProcessor().bundleTransmission(bundle);
+        core.getBundleProcessor().bundleDispatching(bundle);
         return true;
     }
 
     @Override
     public Set<BundleID> checkInbox(String sink, String cookie) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
         checkRegisteredSink(sink, cookie);
-        // call storage service
+        // todo: call storage service
         return null;
     }
 
@@ -203,7 +203,7 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
     public Bundle get(String sink, String cookie, String bundleID) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
         checkRegisteredSink(sink, cookie);
         checkArgumentNotNull(bundleID);
-        // call storage service
+        // todo: call storage service
         return null;
     }
 
@@ -272,7 +272,7 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
         return sb.toString();
     }
 
-    /* ------  DeliveryAPI  ------- */
+    /* ------  DeliveryAPI is the contract facing DTNCore ------- */
 
     public class DeliveryListener extends EventListener<String> {
         DeliveryListener(DTNCore core) {

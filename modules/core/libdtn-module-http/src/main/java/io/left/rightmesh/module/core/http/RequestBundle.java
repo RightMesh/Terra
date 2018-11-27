@@ -125,9 +125,8 @@ public class RequestBundle {
                     .flatMap((wblob) -> {
                         wblob.close();
                         bundle.addBlock(new PayloadBlock(blob));
-                        final String bundleid = bundle.bid.getBIDString();
                         res.setStatus(HttpResponseStatus.OK);
-                        core.getBundleProcessor().bundleTransmission(bundle);
+                        core.getBundleProcessor().bundleDispatching(bundle);
                         return res;
                     });
         } catch (BadRequestException | EID.EIDFormatException | NumberFormatException bre) {
