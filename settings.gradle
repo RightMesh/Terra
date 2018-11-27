@@ -13,7 +13,11 @@ project(":libdtn-module-ldcp").projectDir = file("modules/aa/ldcp/libdtn-module-
 
 // module hello
 include ':libdtn-module-hello'
-project(":libdtn-module-hello").projectDir = file("modules/aa/libdtn-module-hello")
+project(":libdtn-module-hello").projectDir = file("modules/core/libdtn-module-hello")
+
+// module discovery with libdetect
+include ':libdtn-module-ipdiscovery'
+project(":libdtn-module-ipdiscovery").projectDir = file("modules/core/libdtn-module-ipdiscovery")
 
 // module http
 include ':libdtn-module-http'

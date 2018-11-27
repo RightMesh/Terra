@@ -185,9 +185,10 @@ public class Terra implements Callable<Void> {
 
         /* module configuration */
         conf.getModuleEnabled("stcp", true).update(true);
-        conf.getModuleEnabled("http", true).update(true);
         conf.getModuleEnabled("ldcp", true).update(true);
         conf.getModuleEnabled("hello", true).update(true);
+        conf.getModuleEnabled("ipdiscovery", true).update(true);
+        conf.getModuleEnabled("http", false).update(false);
 
         conf.getModuleConf("ldcp","ldcp_tcp_port", 4557).update(ldcpPort);
         conf.getModuleConf("stcp","cla_stcp_port", 4556).update(stcpPort);

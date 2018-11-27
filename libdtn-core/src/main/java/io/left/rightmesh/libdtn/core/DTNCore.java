@@ -16,7 +16,6 @@ import io.left.rightmesh.libdtn.core.routing.LinkLocalRouting;
 import io.left.rightmesh.libdtn.core.routing.LocalEIDTable;
 import io.left.rightmesh.libdtn.core.routing.RoutingEngine;
 import io.left.rightmesh.libdtn.core.routing.RoutingTable;
-import io.left.rightmesh.libdtn.core.network.DiscoveryAgent;
 import io.left.rightmesh.libdtn.core.network.CLAManager;
 import io.left.rightmesh.libdtn.core.services.NullAA;
 import io.left.rightmesh.libdtn.core.spi.aa.ApplicationAgentSPI;
@@ -52,7 +51,6 @@ public class DTNCore implements CoreAPI {
     private StorageAPI storage;
     private BundleProcessorAPI bundleProcessor;
     private ConnectionAgentAPI connectionAgent;
-    private DiscoveryAgent discoveryAgent;
     private CLAManager claManager;
     private ModuleLoader moduleLoader;
     private List<ApplicationAgentSPI> coreServices;
@@ -79,7 +77,6 @@ public class DTNCore implements CoreAPI {
 
         /* network */
         core.connectionAgent = new ConnectionAgent(core);
-        core.discoveryAgent = new DiscoveryAgent(core);
         core.claManager = new CLAManager(core);
 
         /* storage */
@@ -160,10 +157,6 @@ public class DTNCore implements CoreAPI {
 
     public RoutingTable getRoutingTable() {
         return routingTable;
-    }
-
-    public DiscoveryAgent getDiscoveryAgent() {
-        return discoveryAgent;
     }
 
     public CLAManager getClaManager() {

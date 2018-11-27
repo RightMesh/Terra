@@ -22,7 +22,7 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODUL
  */
 public class ModuleLoader implements ModuleLoaderAPI  {
 
-    private static final String TAG = "CLAManager";
+    private static final String TAG = "ModuleLoader";
 
     private DTNCore core;
 
@@ -48,7 +48,7 @@ public class ModuleLoader implements ModuleLoaderAPI  {
     @Override
     public void loadCoreModule(CoreModuleSPI cm) {
         cm.init(core);
-        core.getLogger().i(TAG, "Core module loaded: " + cm.getModuleName()+" - UP");
+        core.getLogger().i(TAG, "CORE module loaded: " + cm.getModuleName()+" - UP");
     }
 
     private void loadAAModulesFromDirectory() {
@@ -76,7 +76,7 @@ public class ModuleLoader implements ModuleLoaderAPI  {
             try {
                 URLClassLoader ucl = new URLClassLoader(pathToListOfJarURL(path));
                 ServiceLoader<ConvergenceLayerSPI> sl = ServiceLoader.load(ConvergenceLayerSPI.class, ucl);
-                for (ConvergenceLayerSPI cla : sl) { ;
+                for (ConvergenceLayerSPI cla : sl) {
                     if(core.getConf().getModuleEnabled(cla.getModuleName(), false).value()) {
                         loadCLAModule(cla);
                     } else {
@@ -99,11 +99,11 @@ public class ModuleLoader implements ModuleLoaderAPI  {
                     if(core.getConf().getModuleEnabled(cm.getModuleName(), false).value()) {
                         loadCoreModule(cm);
                     } else {
-                        core.getLogger().i(TAG, "Core module loaded: " + cm.getModuleName()+" - DOWN");
+                        core.getLogger().i(TAG, "CORE module loaded: " + cm.getModuleName()+" - DOWN");
                     }
                 }
             } catch (Exception e) {
-                core.getLogger().w(TAG, "error loading Core module: " + e.getMessage());
+                core.getLogger().w(TAG, "error loading CORE module: " + e.getMessage());
             }
         }
     }

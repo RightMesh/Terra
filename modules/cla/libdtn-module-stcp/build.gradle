@@ -14,9 +14,21 @@ jar {
     // META-INF/services to load module with ServiceLoader
     serviceLoader {
         serviceInterface 'io.left.rightmesh.libdtn.core.spi.cla.ConvergenceLayerSPI'
-        serviceInterface 'io.left.rightmesh.core.module.cla.stcp.STCP'
         serviceInterface 'io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI'
+        serviceInterface 'io.left.rightmesh.core.module.cla.stcp.STCP'
         serviceInterface 'io.left.rightmesh.core.module.cla.stcp.STCP$Channel'
+    }
+
+    // fat jar dependency, exclude those already in libdtn-core
+    from {
+        configurations.compile
+                .filter({! it.name.matches("rxjava.*")})
+                .filter({! it.name.matches("librxbus.*")})
+                .filter({! it.name.matches("reactive-streams.*")})
+                .filter({! it.name.matches("libcbor.*")})
+                .filter({! it.name.matches("libdtn-core-api.*")})
+                .filter({! it.name.matches("libdtn-common.*")})
+                .collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
 
@@ -38,6 +50,9 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
+    // librxtcp for tcp socket
+    compile 'com.github.RightMesh:librxtcp:65e2cb0ab8'
+
     // libdtn-common for data
     implementation project(path: ':libdtn-common')
 
@@ -46,9 +61,6 @@ dependencies {
 
     // libcbor for encoding/parsing
     implementation 'com.github.RightMesh:libcbor:6e5ca8868f'
-
-    // librxtcp for tcp socket
-    implementation 'com.github.RightMesh:librxtcp:65e2cb0ab8'
 
     // jUnit
     testImplementation 'junit:junit:4.12'
