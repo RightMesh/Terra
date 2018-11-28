@@ -22,7 +22,6 @@ public class CoreModuleIpDiscovery implements CoreModuleSPI {
 
     private static final String TAG = "IpDiscovery";
 
-
     @Override
     public String getModuleName() {
         return "ipdiscovery";

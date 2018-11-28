@@ -3,12 +3,14 @@ package io.left.rightmesh.libdtn.core;
 import java.util.LinkedList;
 import java.util.List;
 
+import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.api.BlockManagerAPI;
 import io.left.rightmesh.libdtn.core.api.BundleProcessorAPI;
 import io.left.rightmesh.libdtn.core.api.CLAManagerAPI;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.LinkLocalRoutingAPI;
 import io.left.rightmesh.libdtn.core.api.LocalEIDAPI;
+import io.left.rightmesh.libdtn.core.api.ModuleLoaderAPI;
 import io.left.rightmesh.libdtn.core.api.RoutingTableAPI;
 import io.left.rightmesh.libdtn.core.blocks.BlockManager;
 import io.left.rightmesh.libdtn.core.events.BundleIndexed;
@@ -42,7 +44,7 @@ public class DTNCore implements CoreAPI {
     public static final String TAG = "DTNCore";
 
     private ConfigurationAPI conf;
-    private Logger logger;
+    private Log logger;
     private LocalEIDAPI localEIDTable;
     private BlockManagerAPI blockManager;
     private LinkLocalRoutingAPI linkLocalRouting;
@@ -52,47 +54,44 @@ public class DTNCore implements CoreAPI {
     private StorageAPI storage;
     private BundleProcessorAPI bundleProcessor;
     private CLAManagerAPI claManager;
-    private ModuleLoader moduleLoader;
+    private ModuleLoaderAPI moduleLoader;
     private List<ApplicationAgentSPI> coreServices;
 
-    public static CoreAPI init(DTNConfiguration conf) {
-        DTNCore core = new DTNCore();
-        core.conf = conf;
+    public DTNCore(DTNConfiguration conf) {
+        this.conf = conf;
 
         /* core */
-        core.logger = new Logger(conf);
-        core.localEIDTable = new LocalEIDTable(core);
+        this.logger = new Logger(conf);
+        this.localEIDTable = new LocalEIDTable(this);
 
         /* BP block toolbox */
-        core.blockManager = new BlockManager();
+        this.blockManager = new BlockManager();
 
         /* routing */
-        core.linkLocalRouting = new LinkLocalRouting(core);
-        core.routingTable = new RoutingTable(core);
-        core.routingEngine = new RoutingEngine(core);
-        core.registrar = new Registrar(core);
+        this.linkLocalRouting = new LinkLocalRouting(this);
+        this.routingTable = new RoutingTable(this);
+        this.routingEngine = new RoutingEngine(this);
+        this.registrar = new Registrar(this);
 
         /* bundle processor */
-        core.bundleProcessor = new BundleProcessor(core);
+        this.bundleProcessor = new BundleProcessor(this);
 
         /* network cla */
-        core.claManager = new CLAManager(core);
+        this.claManager = new CLAManager(this);
 
         /* storage */
-        RxBus.register(core);
-        core.storage = new Storage(core);
+        RxBus.register(this);
+        this.storage = new Storage(this);
 
         /* runtime modules */
-        core.moduleLoader = new ModuleLoader(core);
+        this.moduleLoader = new ModuleLoader(this);
 
         /* core services (AA) */
-        core.coreServices = new LinkedList<>();
-        core.coreServices.add(new NullAA());
-        for(ApplicationAgentSPI aa : core.coreServices) {
-            aa.init(core.registrar, core.logger);
+        this.coreServices = new LinkedList<>();
+        this.coreServices.add(new NullAA());
+        for(ApplicationAgentSPI aa : this.coreServices) {
+            aa.init(this.registrar, this.logger);
         }
-
-        return core;
     }
 
     @Override
@@ -101,7 +100,7 @@ public class DTNCore implements CoreAPI {
     }
 
     @Override
-    public Logger getLogger() {
+    public Log getLogger() {
         return logger;
     }
 
@@ -116,7 +115,7 @@ public class DTNCore implements CoreAPI {
     }
 
     @Override
-    public ModuleLoader getModuleLoader() {
+    public ModuleLoaderAPI getModuleLoader() {
         return moduleLoader;
     }
 

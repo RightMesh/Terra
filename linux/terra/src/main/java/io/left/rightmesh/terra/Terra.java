@@ -194,7 +194,7 @@ public class Terra implements Callable<Void> {
         conf.getModuleConf("stcp","cla_stcp_port", 4556).update(stcpPort);
         conf.getModuleConf("http","module_http_port", 8080).update(httpPort);
 
-        CoreAPI core = DTNCore.init(conf);
+        CoreAPI core = new DTNCore(conf);
         return null;
     }
 
