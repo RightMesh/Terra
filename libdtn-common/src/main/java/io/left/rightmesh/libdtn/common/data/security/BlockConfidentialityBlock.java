@@ -10,6 +10,7 @@ import javax.crypto.NoSuchPaddingException;
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
+import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.BlockBLOB;
 import io.left.rightmesh.libdtn.common.data.BlockFactory;
 import io.left.rightmesh.libdtn.common.data.Bundle;
@@ -21,6 +22,7 @@ import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BlockDataParserFacto
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.CanonicalBlockItem;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockHeaderSerializer;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 
 /**
@@ -174,8 +176,7 @@ public class BlockConfidentialityBlock extends AbstractSecurityBlock {
 
     public void applyFrom(Bundle bundle,
                           SecurityContext context,
-                          BlockFactory blockFactory,
-                          BlockDataParserFactory parserFactory,
+                          ExtensionToolbox toolbox,
                           Log logger) throws SecurityOperationException {
         for (int block_number : securityTargets) {
             CanonicalBlock block = bundle.getBlock(block_number);
@@ -194,7 +195,7 @@ public class BlockConfidentialityBlock extends AbstractSecurityBlock {
                     // decrypted block
                     CborParser parser = CBOR.parser()
                             .cbor_parse_custom_item(
-                                    () -> new CanonicalBlockItem(logger, blockFactory, parserFactory,
+                                    () -> new CanonicalBlockItem(logger, toolbox,
                                             (size) -> new VersatileGrowingBuffer(UntrackedByteBufferBLOB::new, 1024)),
                                     (__, ___, item) -> {
                                         bundle.updateBlock(block.number, item.block);

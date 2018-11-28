@@ -7,6 +7,7 @@ import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.BlockFactory;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
@@ -14,9 +15,12 @@ import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BlockDataParserFacto
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item;
 import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockDataSerializerFactory;
-import io.left.rightmesh.libdtn.common.data.eid.CLA;
-import io.left.rightmesh.libdtn.common.data.eid.CLASTCP;
+import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
+import io.left.rightmesh.libdtn.common.data.eid.CLAEID;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BundleV7Serializer;
+import io.left.rightmesh.libdtn.common.data.eid.CLAEIDParser;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
+import io.left.rightmesh.libdtn.common.data.eid.UnknownCLAEID;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI;
@@ -33,7 +37,7 @@ import static io.left.rightmesh.core.module.cla.stcp.Configuration.CLA_STCP_LIST
 import static io.left.rightmesh.core.module.cla.stcp.Configuration.CLA_STCP_LISTENING_PORT_DEFAULT;
 
 /**
- * Simple TCP (CLASTCP) is a TCP Convergence Layer Adapter (CLA) for the Bundle Protocol. it was
+ * Simple TCP (CLASTCP) is a TCP Convergence Layer Adapter (BaseCLAEID) for the Bundle Protocol. it was
  * introduced by Scott Burleigh in 2018 as an alternative to the quite complicated TCPCLv4.
  * As per the author's own words:
  *
@@ -74,6 +78,11 @@ public class STCP implements ConvergenceLayerSPI {
     }
 
     @Override
+    public CLAEIDParser getCLAEIDParser() {
+        return new CLASTCPParser();
+    }
+
+    @Override
     public Observable<CLAChannelSPI> start(ConfigurationAPI conf, Log logger) {
         this.logger = logger;
         if (port == 0) {
@@ -102,7 +111,7 @@ public class STCP implements ConvergenceLayerSPI {
                 });
     }
 
-    public Single<CLAChannelSPI> open(CLA peer) {
+    public Single<CLAChannelSPI> open(CLAEID peer) {
         if (peer instanceof CLASTCP) {
             return open(((CLASTCP) peer).host, ((CLASTCP) peer).port);
         } else {
@@ -113,8 +122,8 @@ public class STCP implements ConvergenceLayerSPI {
     public class Channel implements CLAChannelSPI {
 
         RxTCP.Connection tcpcon;
-        CLA channelEID;
-        CLA localEID;
+        BaseCLAEID channelEID;
+        BaseCLAEID localEID;
         boolean initiator;
 
         /**
@@ -143,12 +152,12 @@ public class STCP implements ConvergenceLayerSPI {
         }
 
         @Override
-        public CLA channelEID() {
+        public BaseCLAEID channelEID() {
             return channelEID;
         }
 
         @Override
-        public CLA localEID() {
+        public BaseCLAEID localEID() {
             return localEID;
         }
 
@@ -220,10 +229,8 @@ public class STCP implements ConvergenceLayerSPI {
         }
 
         @Override
-        public Observable<Bundle> recvBundle(BlockFactory blockFactory,
-                                             BlockDataParserFactory parserFactory,
-                                             BLOBFactory blobFactory,
-                                             BlockProcessorFactory processorFactory) {
+        public Observable<Bundle> recvBundle(ExtensionToolbox toolbox,
+                                             BLOBFactory blobFactory) {
             /*
             if (initiator) {
                 return Observable.create(s ->
@@ -251,10 +258,8 @@ public class STCP implements ConvergenceLayerSPI {
                         .cbor_parse_custom_item(
                                 () -> new BundleV7Item(
                                         logger,
-                                        blockFactory,
-                                        parserFactory,
-                                        blobFactory,
-                                        processorFactory),
+                                        toolbox,
+                                        blobFactory),
                                 (__, ___, item) -> s.onNext(item.bundle));
 
                 tcpcon.recv().subscribe(

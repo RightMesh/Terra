@@ -8,8 +8,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.eid.API;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
 import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.libdtn.core.DTNCore;
+import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.api.DeliveryAPI;
 import io.left.rightmesh.libdtn.core.storage.EventListener;
 import io.left.rightmesh.libdtn.common.data.Bundle;
@@ -49,11 +51,11 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
         }
     }
 
-    private DTNCore core;
+    private CoreAPI core;
     private Map<String, Registration> registrations;
     private DeliveryListener listener;
 
-    public Registrar(DTNCore core) {
+    public Registrar(CoreAPI core) {
         this.core = core;
         registrations = new ConcurrentHashMap<>();
         listener = new DeliveryListener(core);
@@ -114,19 +116,22 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
     private void replaceApiMe(Bundle bundle) throws BundleMalformed {
         try {
             if (bundle.source.matches(API.me())) {
-                bundle.source = EID.create(core.getLocalEID().localEID().getEIDString()
+                bundle.source = core.getExtensionManager().getEIDFactory().create(
+                        core.getLocalEID().localEID().getEIDString()
                         + ((API)bundle.source).getPath());
             }
             if (bundle.reportto.matches(API.me())) {
-                bundle.reportto = EID.create(core.getLocalEID().localEID().getEIDString()
+                bundle.reportto = core.getExtensionManager().getEIDFactory().create(
+                        core.getLocalEID().localEID().getEIDString()
                         + ((API)bundle.reportto).getPath());
             }
             if (bundle.destination.matches(API.me())) {
-                bundle.destination = EID.create(core.getLocalEID().localEID().getEIDString()
+                bundle.destination = core.getExtensionManager().getEIDFactory().create(
+                        core.getLocalEID().localEID().getEIDString()
                         + ((API)bundle.destination).getPath());
             }
-        } catch(EID.EIDFormatException efe) {
-            throw new BundleMalformed();
+        } catch(EIDFormatException efe) {
+            throw new BundleMalformed(efe.getMessage());
         }
     }
 
@@ -275,7 +280,7 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
     /* ------  DeliveryAPI is the contract facing DTNCore ------- */
 
     public class DeliveryListener extends EventListener<String> {
-        DeliveryListener(DTNCore core) {
+        DeliveryListener(CoreAPI core) {
             super(core);
         }
 

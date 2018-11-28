@@ -8,7 +8,7 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 public interface BundleProcessorAPI {
 
     /**
-     * Process Bundle following a send order (from either an AA or a CLA)
+     * Process Bundle following a send order (from either an AA or a BaseCLAEID)
      *
      * @param bundle to process
      */

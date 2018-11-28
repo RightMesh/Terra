@@ -3,6 +3,7 @@ package io.left.rightmesh.libdtn.common.data.bundleV7.parser;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 
 /**
@@ -22,7 +23,11 @@ public interface BlockDataParserFactory {
      * @return CborParser
      * @throws UnknownBlockTypeException if type is unknown
      */
-    CborParser create(int type, CanonicalBlock block, BLOBFactory blobFactory, Log logger) throws UnknownBlockTypeException;
+    CborParser create(int type,
+                      CanonicalBlock block,
+                      BLOBFactory blobFactory,
+                      EIDFactory eidFactory,
+                      Log logger) throws UnknownBlockTypeException;
 
 
 }

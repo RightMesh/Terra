@@ -10,6 +10,7 @@ import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.CRC;
 import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 
 import static io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item.TAG;
@@ -19,13 +20,15 @@ import static io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item.
  */
 public class PrimaryBlockItem implements CborParser.ParseableItem {
 
-    public PrimaryBlockItem(Log logger) {
+    public PrimaryBlockItem(EIDFactory eidFactory, Log logger) {
+        this.eidFactory = eidFactory;
         this.logger = logger;
     }
 
-    public Bundle b;
-
+    private EIDFactory eidFactory;
     private Log logger;
+
+    public Bundle b;
 
     private CRC crc16;
     private CRC crc32;
@@ -80,15 +83,15 @@ public class PrimaryBlockItem implements CborParser.ParseableItem {
                             throw new RxParserException("wrong CRC type");
                     }
                 })
-                .cbor_parse_custom_item(() -> new EIDItem(logger), (__, ___, item) -> {
+                .cbor_parse_custom_item(() -> new EIDItem(eidFactory, logger), (__, ___, item) -> {
                     logger.v(TAG, ". destination=" + item.eid.getEIDString());
                     b.destination = item.eid;
                 })
-                .cbor_parse_custom_item(() -> new EIDItem(logger), (__, ___, item) -> {
+                .cbor_parse_custom_item(() -> new EIDItem(eidFactory, logger), (__, ___, item) -> {
                     logger.v(TAG, ". source=" + item.eid.getEIDString());
                     b.source = item.eid;
                 })
-                .cbor_parse_custom_item(() -> new EIDItem(logger), (__, ___, item) -> {
+                .cbor_parse_custom_item(() -> new EIDItem(eidFactory, logger), (__, ___, item) -> {
                     logger.v(TAG, ". reportto=" + item.eid.getEIDString());
                     b.reportto = item.eid;
                 })

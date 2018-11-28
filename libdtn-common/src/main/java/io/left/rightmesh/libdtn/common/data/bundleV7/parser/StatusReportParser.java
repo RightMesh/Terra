@@ -4,6 +4,7 @@ import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.common.data.StatusReport;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 
 import static io.left.rightmesh.libdtn.common.data.bundleV7.parser.AdministrativeRecordItem.TAG;
@@ -13,7 +14,7 @@ import static io.left.rightmesh.libdtn.common.data.bundleV7.parser.Administrativ
  */
 public class StatusReportParser {
 
-    static CborParser getParser(StatusReport report, Log logger) {
+    static CborParser getParser(StatusReport report, EIDFactory eidFactory, Log logger) {
         return CBOR.parser()
                 .cbor_open_array((__, ___, i) -> {
                     logger.v(TAG, ".. status_report_array size=" + i);
@@ -67,7 +68,7 @@ public class StatusReportParser {
                         report.code = StatusReport.ReasonCode.values()[(int) error];
                     }
                 })
-                .cbor_parse_custom_item(() -> new EIDItem(logger), (__, ___, item) -> {
+                .cbor_parse_custom_item(() -> new EIDItem(eidFactory, logger), (__, ___, item) -> {
                     logger.v(TAG, ".. subject_source_EID=" + item.eid.getEIDString());
                     report.source = item.eid;
                 })

@@ -125,16 +125,33 @@ public interface ConfigurationAPI {
         }
     }
 
-    interface ModuleEntry {
-
-        String toString();
-
-    }
-
+    /**
+     * get a core configuration entry
+     *
+     * @param key of the entry to query
+     * @param <T> type of the entry
+     * @return the queried configuration entry.
+     */
     <T> EntryInterface<T> get(CoreEntry key);
 
+    /**
+     * set wether a module is enabled or not
+     *
+     * @param name of the module
+     * @param default_value set the default value if not set already
+     * @return a Boolean that is true if module is enabled, false otherwise.
+     */
     EntryInterface<Boolean> getModuleEnabled(String name, boolean default_value);
 
+    /**
+     * get a module specific entry.
+     *
+     * @param moduleName name of the module
+     * @param entry name of the entry
+     * @param default_value set the default value if not set already
+     * @param <T> type of the entry
+     * @return queried entry.
+     */
     <T> EntryInterface<T> getModuleConf(String moduleName, String entry, T default_value);
 
 }

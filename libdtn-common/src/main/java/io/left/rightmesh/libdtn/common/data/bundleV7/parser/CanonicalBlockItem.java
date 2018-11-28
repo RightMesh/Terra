@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.BaseBlockFactory;
 import io.left.rightmesh.libdtn.common.data.BlockBLOB;
 import io.left.rightmesh.libdtn.common.data.BlockFactory;
@@ -13,6 +14,8 @@ import io.left.rightmesh.libdtn.common.data.CRC;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.data.UnknownExtensionBlock;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
+import io.left.rightmesh.libdtn.common.data.eid.BaseEIDFactory;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 
 import static io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item.TAG;
@@ -22,28 +25,18 @@ import static io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item.
  */
 public class CanonicalBlockItem implements CborParser.ParseableItem {
 
-    public CanonicalBlockItem(Log logger, BLOBFactory blobFactory) {
-        this.logger = logger;
-        this.blockFactory = new BaseBlockFactory();
-        this.parserFactory = new BaseBlockDataParserFactory();
-        this.blobFactory = blobFactory;
-    }
-
     public CanonicalBlockItem(Log logger,
-                              BlockFactory blockFactory,
-                              BlockDataParserFactory parserFactory,
+                              ExtensionToolbox toolbox,
                               BLOBFactory blobFactory) {
         this.logger = logger;
-        this.blockFactory = blockFactory;
-        this.parserFactory = parserFactory;
+        this.toolbox = toolbox;
         this.blobFactory = blobFactory;
     }
 
     public CanonicalBlock block;
 
     private Log logger;
-    private BlockFactory blockFactory;
-    private BlockDataParserFactory parserFactory;
+    private ExtensionToolbox toolbox;
     private BLOBFactory blobFactory;
     private CborParser payloadParser;
     private CRC crc16;
@@ -70,13 +63,13 @@ public class CanonicalBlockItem implements CborParser.ParseableItem {
                 .cbor_parse_int((p, __, i) -> { // block type
                     logger.v(TAG, ". type=" + i);
                     try {
-                        block = blockFactory.create((int) i);
+                        block = toolbox.getBlockFactory().create((int) i);
                     } catch(BlockFactory.UnknownBlockTypeException ubte) {
                         block = new UnknownExtensionBlock((int) i);
                     }
 
                     try {
-                        payloadParser = parserFactory.create((int) i, block, blobFactory, logger);
+                        payloadParser = toolbox.getBlockDataParserFactory().create((int) i, block, blobFactory, toolbox.getEIDFactory(), logger);
                     } catch(BlockDataParserFactory.UnknownBlockTypeException ubte) {
                         payloadParser = BlockBLOBParser.getParser((BlockBLOB) block, blobFactory, logger);
                     }

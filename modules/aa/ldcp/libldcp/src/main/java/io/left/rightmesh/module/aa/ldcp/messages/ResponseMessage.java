@@ -7,6 +7,7 @@ import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item;
@@ -100,7 +101,7 @@ public class ResponseMessage {
         }
     }
 
-    public static CborParser getParser(Log logger, BLOBFactory factory) {
+    public static CborParser getParser(Log logger, ExtensionToolbox toolbox, BLOBFactory factory) {
         return CBOR.parser()
                 .cbor_parse_int((__, ___, i) -> { /* version */
                 })
@@ -124,7 +125,7 @@ public class ResponseMessage {
                 .cbor_parse_boolean((p1, b) -> {
                     if (b) {
                         p1.insert_now(CBOR.parser().cbor_parse_custom_item(
-                                () -> new BundleV7Item(logger, factory),
+                                () -> new BundleV7Item(logger, toolbox, factory),
                                 (p2, ___, item) -> {
                                     ResponseMessage res = p2.getReg(0);
                                     res.bundle = item.bundle;

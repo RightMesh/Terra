@@ -11,9 +11,13 @@ import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BaseBlockProcesso
 import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessor;
 import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockDataSerializerFactory;
+import io.left.rightmesh.libdtn.common.data.eid.BaseEIDFactory;
+import io.left.rightmesh.libdtn.common.data.eid.CLAEIDParser;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
+import io.left.rightmesh.libdtn.common.data.eid.EIDSspParser;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
-import io.left.rightmesh.libdtn.core.api.BlockManagerAPI;
+import io.left.rightmesh.libdtn.core.api.ExtensionManagerAPI;
 import io.left.rightmesh.libdtn.core.api.BundleProcessorAPI;
 import io.left.rightmesh.libdtn.core.api.CLAManagerAPI;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
@@ -47,8 +51,13 @@ public class MockCore implements CoreAPI  {
     }
 
     @Override
-    public BlockManagerAPI getBlockManager() {
-        return new BlockManagerAPI() {
+    public ExtensionManagerAPI getExtensionManager() {
+        return new ExtensionManagerAPI() {
+            @Override
+            public EIDFactory getEIDFactory() {
+                return new BaseEIDFactory();
+            }
+
             @Override
             public BlockFactory getBlockFactory() {
                 return null;
@@ -71,7 +80,14 @@ public class MockCore implements CoreAPI  {
 
             @Override
             public void addExtensionBlock(int type, Supplier<CanonicalBlock> block, Supplier<CborParser> parser, Supplier<CborEncoder> serializer, Supplier<BlockProcessor> processor) throws BlockTypeAlreadyManaged {
+            }
 
+            @Override
+            public void addExtensionCLA(String cl_name, CLAEIDParser parser) {
+            }
+
+            @Override
+            public void addExtensionEID(int schemeId, String schemeStr, EIDSspParser ssPparser) {
             }
         };
     }

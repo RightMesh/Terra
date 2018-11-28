@@ -9,9 +9,10 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.blob.UntrackedByteBufferBLOB;
 import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
-import io.left.rightmesh.libdtn.common.data.eid.CLA;
+import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
 import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
 import io.left.rightmesh.libdtn.core.events.LinkLocalEntryUp;
@@ -45,7 +46,7 @@ public class CoreModuleHello implements CoreModuleSPI {
     }
 
     private void initHelloBundle() {
-        HelloMessage hello = new HelloMessage();
+        HelloMessage hello = new HelloMessage(coreAPI.getExtensionManager().getEIDFactory());
 
         /* add node main EID */
         hello.eids.add(coreAPI.getLocalEID().localEID());
@@ -83,11 +84,11 @@ public class CoreModuleHello implements CoreModuleSPI {
                 if (bundle.getTagAttachment("cla-origin-iid") != null) {
                     coreAPI.getLogger().i(TAG, "received hello message from: " +
                             bundle.source.getEIDString() +
-                            " on CLA: " +
+                            " on BaseCLAEID: " +
                             bundle.<EID>getTagAttachment("cla-origin-iid").getEIDString());
                     CborParser p = CBOR.parser()
                             .cbor_parse_custom_item(
-                                    HelloMessage::new,
+                                    () -> new HelloMessage(api.getExtensionManager().getEIDFactory()),
                                     (__, ___, item) -> {
                                         for (EID eid : item.eids) {
                                             coreAPI.getRoutingEngine().addRoute(
@@ -109,7 +110,7 @@ public class CoreModuleHello implements CoreModuleSPI {
                 } else {
                     coreAPI.getLogger().i(TAG, "received hello message from: " +
                             bundle.source.getEIDString() +
-                            " but the CLA wasn't tagged - ignoring");
+                            " but the BaseCLAEID wasn't tagged - ignoring");
                 }
 
                 return Completable.complete();
@@ -128,11 +129,11 @@ public class CoreModuleHello implements CoreModuleSPI {
     @Subscribe
     public void onEvent(LinkLocalEntryUp up) {
         try {
-            CLA eid = ((CLA) up.channel.channelEID().copy()).setPath("/hello/");
+            BaseCLAEID eid = ((BaseCLAEID) up.channel.channelEID().copy()).setPath("/hello/");
             coreAPI.getLogger().i(TAG, "sending hello message to: " + eid.getEIDString());
             helloBundle.destination = eid;
             up.channel.sendBundle(helloBundle,
-                    coreAPI.getBlockManager().getBlockDataSerializerFactory()
+                    coreAPI.getExtensionManager().getBlockDataSerializerFactory()
             ).subscribe(
                     i -> {/* ignore */},
                     e -> coreAPI.getLogger().i(
@@ -140,7 +141,7 @@ public class CoreModuleHello implements CoreModuleSPI {
                                     eid.getEIDString()),
                     () -> {/* ignore */}
             );
-        } catch (EID.EIDFormatException efe) {
+        } catch (EIDFormatException efe) {
             coreAPI.getLogger().e(TAG, "Cannot append /hello/ to IID: " + up.channel.channelEID() + " reason=" + efe.getMessage());
         }
     }

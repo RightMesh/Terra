@@ -1,11 +1,11 @@
 package io.left.rightmesh.libdtn.core.routing;
 
+import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
 import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.api.RoutingAPI;
 import io.left.rightmesh.libdtn.core.storage.EventListener;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
-import io.left.rightmesh.libdtn.common.data.eid.CLA;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.core.events.LinkLocalEntryUp;
 import io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI;
@@ -57,7 +57,7 @@ public class RoutingEngine implements RoutingAPI {
                                 /* deliver it */
                                 bundle -> event.channel.sendBundle(
                                         bundle,
-                                        core.getBlockManager().getBlockDataSerializerFactory()
+                                        core.getExtensionManager().getBlockDataSerializerFactory()
                                 ).ignoreElements().subscribe(
                                         () -> {
                                             listener.unwatch(bundle.bid);
@@ -90,9 +90,9 @@ public class RoutingEngine implements RoutingAPI {
          * and pull the bundle from storage if there is a match */
         final BundleID bid = bundle.bid;
         final EID destination = bundle.destination;
-        Observable<CLA> potentialCLAs = core.getRoutingTable().resolveEID(destination);
+        Observable<BaseCLAEID> potentialCLAs = core.getRoutingTable().resolveEID(destination);
 
-        // watch bundle for all potential CLA
+        // watch bundle for all potential BaseCLAEID
         potentialCLAs
                 .map(claeid -> listener.watch(claeid.getCLASpecificPart(), bid))
                 .subscribe();

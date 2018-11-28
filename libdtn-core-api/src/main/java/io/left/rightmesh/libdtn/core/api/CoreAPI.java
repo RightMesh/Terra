@@ -13,7 +13,7 @@ public interface CoreAPI {
 
     LocalEIDAPI getLocalEID();
 
-    BlockManagerAPI getBlockManager();
+    ExtensionManagerAPI getExtensionManager();
 
     RoutingAPI getRoutingEngine();
 

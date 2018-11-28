@@ -6,6 +6,7 @@ import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libdtn.common.BaseExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.BaseBlockFactory;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
@@ -14,6 +15,7 @@ import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BaseBlockDataParserF
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BaseBlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BundleV7Serializer;
+import io.left.rightmesh.libdtn.common.data.eid.BaseEIDFactory;
 import io.left.rightmesh.libdtn.common.data.security.BlockConfidentialityBlock;
 import io.left.rightmesh.libdtn.common.data.security.SecurityBlock;
 import io.left.rightmesh.libdtn.common.data.security.SecurityContext;
@@ -88,6 +90,7 @@ public class BundleEncryptionTest {
             CborParser p = CBOR.parser().cbor_parse_custom_item(
                     () -> new BundleV7Item(
                             logger,
+                            new BaseExtensionToolbox(),
                             new BaseBLOBFactory().enableVolatile(100000).disablePersistent()),
                     (__, ___, item) ->
                             res[0] = item.bundle);
@@ -112,7 +115,11 @@ public class BundleEncryptionTest {
             for (CanonicalBlock block : res[0].blocks) {
                 if (block.type == BlockConfidentialityBlock.type) {
                     try {
-                        ((BlockConfidentialityBlock) block).applyFrom(res[0], context, new BaseBlockFactory(), new BaseBlockDataParserFactory(), logger);
+                        ((BlockConfidentialityBlock) block).applyFrom(
+                                res[0],
+                                context,
+                                new BaseExtensionToolbox(),
+                                logger);
                     } catch(SecurityBlock.SecurityOperationException e) {
                         e.printStackTrace();
                         fail();

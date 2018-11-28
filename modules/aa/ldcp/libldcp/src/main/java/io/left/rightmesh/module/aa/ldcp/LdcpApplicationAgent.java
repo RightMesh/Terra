@@ -2,6 +2,7 @@ package io.left.rightmesh.module.aa.ldcp;
 
 import java.util.Set;
 
+import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
@@ -26,20 +27,22 @@ public class LdcpApplicationAgent implements LdcpAPI {
 
     private static final String TAG = "ldcp-client";
 
-    String host;
-    int port;
-    LdcpServer server;
+    private String host;
+    private int port;
+    private LdcpServer server;
+    private BLOBFactory factory;
+    private ExtensionToolbox toolbox;
+    private Log logger;
     ActiveLdcpRegistrationCallback cb;
-    BLOBFactory factory;
-    Log logger;
 
-    public LdcpApplicationAgent(String host, int port, BLOBFactory factory) {
-        this(host, port, factory, new NullLogger());
+    public LdcpApplicationAgent(String host, int port, ExtensionToolbox toolbox, BLOBFactory factory) {
+        this(host, port, toolbox, factory, new NullLogger());
     }
 
-    public LdcpApplicationAgent(String host, int port, BLOBFactory factory, Log logger) {
+    public LdcpApplicationAgent(String host, int port, ExtensionToolbox toolbox, BLOBFactory factory, Log logger) {
         this.host = host;
         this.port = port;
+        this.toolbox = toolbox;
         this.factory = factory;
         this.logger = logger;
     }
@@ -50,7 +53,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
         }
 
         server = new LdcpServer();
-        server.start(0, factory, logger,
+        server.start(0, toolbox, factory, logger,
                 Router.create()
                         .POST(DELIVER,
                                 (req, res) -> cb.recv(req.bundle)
@@ -71,7 +74,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
     public Single<Boolean> isRegistered(String sink) {
         return LdcpRequest.GET(ISREGISTERED)
                 .setHeader("sink", sink)
-                .send(host, port, factory, logger)
+                .send(host, port, toolbox, factory, logger)
                 .map(res -> res.code == ResponseMessage.ResponseCode.OK);
     }
 
@@ -88,7 +91,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
                     .setHeader("active", cb == null ? "false" : "true")
                     .setHeader("active-host", "127.0.0.1")
                     .setHeader("active-port", "" + server.getPort())
-                    .send(host, port, factory, logger)
+                    .send(host, port, toolbox, factory, logger)
                     .flatMap(res -> {
                         if (res.code == ResponseMessage.ResponseCode.ERROR) {
                             return Single.error(new RegistrarException(res.body));
@@ -108,7 +111,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
         return LdcpRequest.POST(UNREGISTER)
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
-                .send(host, port, factory, logger)
+                .send(host, port, toolbox, factory, logger)
                 .map(res -> res.code == ResponseMessage.ResponseCode.OK);
     }
 
@@ -123,7 +126,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
                 .setHeader("bundle-id", bundleID.getBIDString())
-                .send(host, port, factory, logger)
+                .send(host, port, toolbox, factory, logger)
                 .flatMap(res -> {
                     if (res.code == ResponseMessage.ResponseCode.ERROR) {
                         return Single.error(new RegistrarException());
@@ -141,7 +144,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
                 .setHeader("bundle-id", bundleID.getBIDString())
-                .send(host, port, factory, logger)
+                .send(host, port, toolbox, factory, logger)
                 .flatMap(res -> {
                     if (res.code == ResponseMessage.ResponseCode.ERROR) {
                         return Single.error(new RegistrarException());
@@ -159,7 +162,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
                 .setBundle(bundle)
-                .send(host, port, factory, logger)
+                .send(host, port, toolbox, factory, logger)
                 .map(res -> res.code == ResponseMessage.ResponseCode.OK);
     }
 
@@ -167,7 +170,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
     public Single<Boolean> send(Bundle bundle) {
         return LdcpRequest.POST(DISPATCH)
                 .setBundle(bundle)
-                .send(host, port, factory, logger)
+                .send(host, port, toolbox, factory, logger)
                 .map(res -> res.code == ResponseMessage.ResponseCode.OK);
     }
 
@@ -180,7 +183,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
                     .setHeader("active", "true")
                     .setHeader("active-host", "127.0.0.1")
                     .setHeader("active-port", "" + server.getPort())
-                    .send(host, port, factory, logger)
+                    .send(host, port, toolbox, factory, logger)
                     .flatMap(res -> {
                         if (res.code == ResponseMessage.ResponseCode.ERROR) {
                             return Single.error(new RegistrarException(res.body));
@@ -199,7 +202,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
                 .setHeader("active", "false")
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
-                .send(host, port, factory, logger)
+                .send(host, port, toolbox, factory, logger)
                 .flatMap(res -> {
                     if (res.code == ResponseMessage.ResponseCode.ERROR) {
                         return Single.error(new RegistrarException(res.body));

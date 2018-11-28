@@ -21,8 +21,8 @@ public interface RegistrarAPI {
     }
 
     class BundleMalformed extends RegistrarException {
-        public BundleMalformed() {
-            super("bundle is malformed");
+        public BundleMalformed(String msg) {
+            super("bundle is malformed: "+msg);
         }
     }
 

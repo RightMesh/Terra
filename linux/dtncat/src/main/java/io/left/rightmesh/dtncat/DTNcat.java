@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.Callable;
 
+import io.left.rightmesh.libdtn.common.BaseExtensionToolbox;
+import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.BlockHeader;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
@@ -14,7 +16,9 @@ import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
 import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
+import io.left.rightmesh.libdtn.common.data.eid.BaseEIDFactory;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
 import io.left.rightmesh.module.aa.ldcp.ActiveLdcpRegistrationCallback;
 import io.left.rightmesh.module.aa.ldcp.LdcpApplicationAgent;
 import io.reactivex.Completable;
@@ -61,6 +65,7 @@ public class DTNcat implements Callable<Void> {
     private boolean crc32 = false;
 
     private LdcpApplicationAgent agent;
+    private ExtensionToolbox toolbox;
     private BLOBFactory factory;
 
     private Bundle createBundleFromSTDIN(Bundle bundle) throws IOException, WritableBLOB.BLOBOverflowException {
@@ -111,7 +116,7 @@ public class DTNcat implements Callable<Void> {
                     }
                 });
 
-        agent = new LdcpApplicationAgent(dtnhost, dtnport, factory);
+        agent = new LdcpApplicationAgent(dtnhost, dtnport, toolbox, factory);
         if(cookie == null) {
             agent.register(sink, cb).subscribe(
                     cookie -> {
@@ -122,7 +127,7 @@ public class DTNcat implements Callable<Void> {
                         System.exit(1);
                     });
         } else {
-            agent = new LdcpApplicationAgent(dtnhost, dtnport, factory);
+            agent = new LdcpApplicationAgent(dtnhost, dtnport, toolbox, factory);
             agent.reAttach(sink, cookie, cb).subscribe(
                     b -> System.err.println("re-attach to registered sink"),
                     e -> {
@@ -137,14 +142,14 @@ public class DTNcat implements Callable<Void> {
             if(deid == null) {
                 throw new IOException("destination must be set");
             }
-            EID destination = EID.create(deid);
+            EID destination = new BaseEIDFactory().create(deid);
             Bundle bundle = new Bundle(destination, lifetime);
             if (report != null) {
-                EID reportTo = EID.create(report);
+                EID reportTo = new BaseEIDFactory().create(report);
                 bundle.reportto = reportTo;
             }
 
-            agent = new LdcpApplicationAgent(dtnhost, dtnport, null);
+            agent = new LdcpApplicationAgent(dtnhost, dtnport, toolbox, null);
             agent.send(createBundleFromSTDIN(bundle)).subscribe(
                     b -> {
                         if (b) {
@@ -162,7 +167,7 @@ public class DTNcat implements Callable<Void> {
                         System.err.println("error: " + e.getMessage());
                         System.exit(1);
                     });
-        } catch (IOException | WritableBLOB.BLOBOverflowException | EID.EIDFormatException e) {
+        } catch (IOException | WritableBLOB.BLOBOverflowException | EIDFormatException e) {
             /* ignore */
             System.err.println("error: "+e.getMessage());
         }
@@ -170,6 +175,7 @@ public class DTNcat implements Callable<Void> {
 
     @Override
     public Void call() throws Exception {
+        toolbox = new BaseExtensionToolbox();
         factory = new BaseBLOBFactory().enableVolatile(1000000).enablePersistent("./");
         if(sink != null) {
             listenBundle();

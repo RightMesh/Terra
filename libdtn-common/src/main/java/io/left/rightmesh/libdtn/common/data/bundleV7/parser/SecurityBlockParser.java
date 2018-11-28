@@ -4,6 +4,7 @@ import java.util.LinkedList;
 
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
 import io.left.rightmesh.libdtn.common.data.security.AbstractSecurityBlock;
 import io.left.rightmesh.libdtn.common.data.security.SecurityBlock;
 import io.left.rightmesh.libdtn.common.data.security.SecurityResult;
@@ -16,7 +17,7 @@ import static io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item.
  */
 public class SecurityBlockParser {
 
-    static CborParser getParser(AbstractSecurityBlock block, Log logger) {
+    static CborParser getParser(AbstractSecurityBlock block, EIDFactory eidFactory, Log logger) {
         return CBOR.parser()
                 .cbor_open_array(5)
                 .cbor_parse_linear_array(
@@ -41,7 +42,7 @@ public class SecurityBlockParser {
                 .do_insert_if(
                         (p) -> block.getSAFlag(SecurityBlock.SecurityBlockFlags.SECURITY_SOURCE_PRESENT),
                         CBOR.parser().cbor_parse_custom_item(
-                                () -> new EIDItem(logger),
+                                () -> new EIDItem(eidFactory, logger),
                                 (p, __, item) -> {
                                     logger.v(TAG, ".. securitySource=" + item.eid.getEIDString());
                                     block.securitySource = item.eid;

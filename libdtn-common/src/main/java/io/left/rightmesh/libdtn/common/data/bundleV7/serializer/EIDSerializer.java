@@ -6,6 +6,8 @@ import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.common.data.eid.IPN;
 
+import static io.left.rightmesh.libdtn.common.data.eid.IPN.EID_IPN_IANA_VALUE;
+
 /**
  * @author Lucien Loiseau on 04/11/18.
  */
@@ -18,7 +20,7 @@ public class EIDSerializer {
                     .cbor_encode_int(eid.IANA())
                     .cbor_encode_int(0);
         }
-        if (eid.IANA() == EID.EID_IPN_IANA_VALUE) {
+        if (eid.IANA() == EID_IPN_IANA_VALUE) {
             return CBOR.encoder()
                     .cbor_start_array(2)
                     .cbor_encode_int(eid.IANA())

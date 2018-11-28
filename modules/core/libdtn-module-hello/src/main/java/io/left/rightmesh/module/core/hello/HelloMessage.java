@@ -9,6 +9,7 @@ import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.EIDItem;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.EIDSerializer;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
 
 /**
@@ -18,15 +19,18 @@ public class HelloMessage implements CborParser.ParseableItem {
 
     public List<EID> eids;
 
-    HelloMessage() {
+    HelloMessage(EIDFactory eidFactory) {
+        this.eidFactory = eidFactory;
         eids = new LinkedList<>();
     }
+
+    private EIDFactory eidFactory;
 
     @Override
     public CborParser getItemParser() {
         return CBOR.parser()
                 .cbor_parse_linear_array(
-                        () -> new EIDItem(new NullLogger()),
+                        () -> new EIDItem(eidFactory, new NullLogger()),
                         (__, ___, size) -> {},
                         (__, ___, item) -> eids.add(item.eid),
                         (__, ___, ____) -> {});

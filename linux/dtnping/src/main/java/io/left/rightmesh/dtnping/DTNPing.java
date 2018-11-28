@@ -8,6 +8,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.left.rightmesh.libdtn.common.BaseExtensionToolbox;
+import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
@@ -15,7 +17,10 @@ import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
 import io.left.rightmesh.libdtn.common.data.blob.NullBLOB;
 import io.left.rightmesh.libdtn.common.data.eid.API;
+import io.left.rightmesh.libdtn.common.data.eid.BaseEIDFactory;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
 import io.left.rightmesh.module.aa.ldcp.ActiveLdcpRegistrationCallback;
@@ -95,9 +100,10 @@ public class DTNPing implements Callable<Void> {
                     s.onComplete();
                 });
 
+        ExtensionToolbox toolbox = new BaseExtensionToolbox();
         BLOBFactory factory = new BaseBLOBFactory().enableVolatile(10000);
         if (cookie == null) {
-            agent = new LdcpApplicationAgent(dtnhost, dtnport, factory, logger);
+            agent = new LdcpApplicationAgent(dtnhost, dtnport, toolbox, factory, logger);
             agent.register(sink, cb).subscribe(
                     cookie -> {
                         System.err.println("sink registered. cookie: " + cookie);
@@ -107,7 +113,7 @@ public class DTNPing implements Callable<Void> {
                         System.exit(1);
                     });
         } else {
-            agent = new LdcpApplicationAgent(dtnhost, dtnport, factory);
+            agent = new LdcpApplicationAgent(dtnhost, dtnport, toolbox, factory);
             agent.reAttach(sink, cookie, cb).subscribe(
                     b -> System.err.println("re-attach to registered sink"),
                     e -> {
@@ -119,6 +125,8 @@ public class DTNPing implements Callable<Void> {
 
     @Override
     public Void call() throws Exception {
+        EIDFactory eidFactory = new BaseEIDFactory();
+
         if (sessionID == null) {
             sessionID = Long.toHexString(Double.doubleToLongBits(Math.random()));
         }
@@ -143,7 +151,7 @@ public class DTNPing implements Callable<Void> {
         receiveEchoResponse();
 
         /* create ping bundle */
-        EID destination = EID.create(dtneid + "/null/");
+        EID destination = eidFactory.create(dtneid + "/null/");
         Bundle bundle = new Bundle(destination);
         bundle.source = API.me();
         bundle.setV7Flag(PrimaryBlock.BundleV7Flags.DELIVERY_REPORT, true);
@@ -156,7 +164,7 @@ public class DTNPing implements Callable<Void> {
                 /* update ping seq number */
                 long timestamp = System.nanoTime();
                 String dest = "api:me" + sink + seq.get() + "/" + timestamp;
-                bundle.reportto = EID.create(dest);
+                bundle.reportto = eidFactory.create(dest);
                 agent.send(bundle).subscribe(
                         b -> {
                             if (b) {
@@ -172,7 +180,7 @@ public class DTNPing implements Callable<Void> {
                             System.err.println("error: " + e.getMessage());
                             System.exit(1);
                         });
-            } catch (EID.EIDFormatException efe) {
+            } catch (EIDFormatException efe) {
                 /* ignore */
                 System.err.println("eid error: " + efe.getMessage());
                 System.exit(1);

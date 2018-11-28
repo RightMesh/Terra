@@ -10,6 +10,7 @@ import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libdtn.common.BaseExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.AgeBlock;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.data.BlockHeader;
@@ -128,11 +129,13 @@ public class BundleV7Test {
             // prepare parser
             BundleV7Item bundleParser = new BundleV7Item(
                     new NullLogger(),
+                    new BaseExtensionToolbox(),
                     new BaseBLOBFactory().enableVolatile(100000).disablePersistent());
 
             CborParser p = CBOR.parser().cbor_parse_custom_item(
                     () -> new BundleV7Item(
                             new NullLogger(),
+                            new BaseExtensionToolbox(),
                             new BaseBLOBFactory().enableVolatile(100000).disablePersistent()),
                     (__, ___, item) ->
                             res[0] = item.bundle);

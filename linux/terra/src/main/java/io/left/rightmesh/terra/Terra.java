@@ -4,7 +4,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import io.left.rightmesh.libdtn.common.data.eid.BaseEIDFactory;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.core.DTNCore;
@@ -126,9 +128,9 @@ public class Terra implements Callable<Void> {
         /* Terra configuration */
         if(localEID != null) {
             try {
-                EID eid = EID.create(localEID);
+                EID eid = new BaseEIDFactory().create(localEID);
                 conf.get(LOCAL_EID).update(eid);
-            } catch(EID.EIDFormatException efe) {
+            } catch(EIDFormatException efe) {
                 throw new Exception("localEID is not a valid Endpoint ID: "+efe.getMessage());
             }
         }

@@ -7,6 +7,9 @@ import java.util.UUID;
  */
 public class DTN extends BaseEID {
 
+    public static final int EID_DTN_IANA_VALUE = 1;
+    public static final String EID_DTN_SCHEME = "dtn";
+
     String ssp;
 
     private DTN() {
@@ -36,11 +39,14 @@ public class DTN extends BaseEID {
         return ret;
     }
 
-    public static DTN create(String ssp) throws EIDFormatException {
-        return new DTN(ssp);
+    public static class DTNParser implements EIDSspParser {
+        @Override
+        public EID create(String ssp) throws EIDFormatException {
+            return new DTN(ssp);
+        }
     }
 
-    public DTN(String ssp) throws EIDFormatException  {
+    public DTN(String ssp) throws EIDFormatException {
         this.ssp = ssp;
         checkValidity();
     }
@@ -56,13 +62,8 @@ public class DTN extends BaseEID {
     }
 
     @Override
-    public EIDScheme getSchemeCode() {
-        return EIDScheme.DTN;
-    }
-
-    @Override
     public String getScheme() {
-        return "dtn";
+        return EID_DTN_SCHEME;
     }
 
     @Override

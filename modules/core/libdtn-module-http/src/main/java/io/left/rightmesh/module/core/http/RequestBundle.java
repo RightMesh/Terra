@@ -4,10 +4,12 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import io.left.rightmesh.libdtn.common.data.blob.UntrackedByteBufferBLOB;
+import io.left.rightmesh.libdtn.common.data.eid.BaseEIDFactory;
 import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.blob.ByteBufferBLOB;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.module.core.http.nettyrouter.Router;
 import io.netty.buffer.ByteBuf;
@@ -129,7 +131,7 @@ public class RequestBundle {
                         core.getBundleProcessor().bundleDispatching(bundle);
                         return res;
                     });
-        } catch (BadRequestException | EID.EIDFormatException | NumberFormatException bre) {
+        } catch (BadRequestException | EIDFormatException | NumberFormatException bre) {
             core.getLogger().i(TAG, req.getDecodedPath() + " - bad request: " + bre.getMessage());
             return res.setStatus(HttpResponseStatus.BAD_REQUEST);
         }
@@ -138,7 +140,7 @@ public class RequestBundle {
     private Bundle createBundleSkeletonFromHTTPHeaders(String destinationstr,
                                                       String reporttostr,
                                                       String lifetimestr)
-            throws BadRequestException, EID.EIDFormatException, NumberFormatException {
+            throws BadRequestException, EIDFormatException, NumberFormatException {
         EID destination;
         EID reportTo;
         long lifetime;
@@ -147,11 +149,11 @@ public class RequestBundle {
             throw new BadRequestException("DestinationEID is null");
         }
 
-        destination = EID.create(destinationstr);
+        destination = new BaseEIDFactory().create(destinationstr);
         if (reporttostr == null) {
             reportTo = DTN.NullEID();
         } else {
-            reportTo = EID.create(reporttostr);
+            reportTo = new BaseEIDFactory().create(reporttostr);
         }
 
         if (lifetimestr == null) {

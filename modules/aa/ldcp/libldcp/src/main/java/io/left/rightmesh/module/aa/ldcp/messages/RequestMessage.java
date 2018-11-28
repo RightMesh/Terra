@@ -7,11 +7,16 @@ import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libdtn.common.ExtensionToolbox;
+import io.left.rightmesh.libdtn.common.data.BlockFactory;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
+import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BlockDataParserFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item;
+import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BaseBlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BundleV7Serializer;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.reactivex.Flowable;
 
@@ -77,7 +82,9 @@ public class RequestMessage {
         }
     }
 
-    public static CborParser getParser(Log logger, BLOBFactory factory) {
+    public static CborParser getParser(Log logger,
+                                       ExtensionToolbox toolbox,
+                                       BLOBFactory blobFactory) {
         return CBOR.parser()
                 .cbor_parse_int((__, ___, i) -> { /* version */
                 })
@@ -105,7 +112,10 @@ public class RequestMessage {
                 .cbor_parse_boolean((p1, b) -> {
                     if (b) {
                         p1.insert_now(CBOR.parser().cbor_parse_custom_item(
-                                () -> new BundleV7Item(logger, factory),
+                                () -> new BundleV7Item(
+                                        logger,
+                                        toolbox,
+                                        blobFactory),
                                 (p2, ___, item) -> {
                                     RequestMessage req = p2.getReg(0);
                                     req.bundle = item.bundle;

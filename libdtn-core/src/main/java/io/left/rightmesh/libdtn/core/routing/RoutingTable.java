@@ -1,12 +1,11 @@
 package io.left.rightmesh.libdtn.core.routing;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import io.left.rightmesh.libdtn.common.data.eid.CLA;
+import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.api.RoutingTableAPI;
@@ -54,19 +53,19 @@ public class RoutingTable implements RoutingTableAPI {
 
     private Observable<EID> lookupPotentialNextHops(EID destination) {
         return Observable.concat(Observable.just(destination)
-                        .filter(eid -> destination instanceof CLA),
+                        .filter(eid -> destination instanceof BaseCLAEID),
                 compoundTableObservable()
                         .filter(entry -> destination.matches(entry.to))
                         .map(entry -> entry.next));
     }
 
-    private Observable<CLA> resolveEID(EID destination, Observable<EID> path) {
+    private Observable<BaseCLAEID> resolveEID(EID destination, Observable<EID> path) {
         return Observable.concat(
                 lookupPotentialNextHops(destination)
-                        .filter(eid -> eid instanceof CLA)
-                        .map(eid -> (CLA)eid),
+                        .filter(eid -> eid instanceof BaseCLAEID)
+                        .map(eid -> (BaseCLAEID)eid),
                 lookupPotentialNextHops(destination)
-                        .filter(eid -> !(eid instanceof CLA))
+                        .filter(eid -> !(eid instanceof BaseCLAEID))
                         .flatMap(candidate ->
                                 path.contains(candidate)
                                         .toObservable()
@@ -86,7 +85,7 @@ public class RoutingTable implements RoutingTableAPI {
     }
 
     @Override
-    public Observable<CLA> resolveEID(EID destination) {
+    public Observable<BaseCLAEID> resolveEID(EID destination) {
         return resolveEID(destination, Observable.empty());
     }
 

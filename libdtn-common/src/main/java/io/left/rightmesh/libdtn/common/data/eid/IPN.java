@@ -8,21 +8,27 @@ import java.util.regex.Pattern;
  */
 public class IPN extends BaseEID {
 
+    public static final int EID_IPN_IANA_VALUE = 2;
+    public static final String EID_IPN_SCHEME = "ipn";
+
     public int node_number;
     public int service_number;
 
-    public static IPN create(String ssp) throws EIDFormatException {
-        final String regex = "^([0-9]+)\\.([0-9]+)";
-        Pattern r = Pattern.compile(regex);
-        Matcher m = r.matcher(ssp);
-        if (m.find()) {
-            String node = m.group(1);
-            String service = m.group(2);
-            int node_number = Integer.valueOf(node);
-            int service_number = Integer.valueOf(service);
-            return new IPN(node_number, service_number);
-        } else {
-            throw new EIDFormatException("not an IPN");
+    public static class IPNParser implements EIDSspParser {
+        @Override
+        public EID create(String ssp) throws EIDFormatException {
+            final String regex = "^([0-9]+)\\.([0-9]+)";
+            Pattern r = Pattern.compile(regex);
+            Matcher m = r.matcher(ssp);
+            if (m.find()) {
+                String node = m.group(1);
+                String service = m.group(2);
+                int node_number = Integer.valueOf(node);
+                int service_number = Integer.valueOf(service);
+                return new IPN(node_number, service_number);
+            } else {
+                throw new EIDFormatException("not an IPN");
+            }
         }
     }
 
@@ -55,13 +61,8 @@ public class IPN extends BaseEID {
     }
 
     @Override
-    public EIDScheme getSchemeCode() {
-        return EIDScheme.IPN;
-    }
-
-    @Override
     public String getScheme() {
-        return "ipn";
+        return EID_IPN_SCHEME;
     }
 
     @Override

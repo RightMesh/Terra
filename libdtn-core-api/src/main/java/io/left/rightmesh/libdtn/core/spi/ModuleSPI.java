@@ -6,9 +6,9 @@ package io.left.rightmesh.libdtn.core.spi;
 public interface ModuleSPI {
 
     /**
-     * The name for this AA.
+     * The name for this ModuleSPI.
      *
-     * @return a String with the name of this CLA.
+     * @return a String with the name of this BaseCLAEID.
      */
     String getModuleName();
 

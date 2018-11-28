@@ -35,7 +35,11 @@ public class ModuleLoader implements ModuleLoaderAPI  {
 
     @Override
     public void loadAAModule(ApplicationAgentAdapterSPI aa) {
-        aa.init(core.getRegistrar(), core.getConf(), core.getLogger(), core.getStorage().getBlobFactory());
+        aa.init(core.getRegistrar(),
+                core.getConf(),
+                core.getLogger(),
+                core.getExtensionManager(),
+                core.getStorage().getBlobFactory());
         core.getLogger().i(TAG, "AA module loaded: " + aa.getModuleName()+" - UP");
     }
 

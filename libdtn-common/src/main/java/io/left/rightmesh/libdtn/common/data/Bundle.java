@@ -7,7 +7,7 @@ import io.left.rightmesh.libdtn.common.data.eid.EID;
 /**
  * The format of a bundle and its specifications are described in RFC 5050.
  * According to this RFC each bundle consists of a linked sequence of block structures,
- * there should be at least two blocks in a bundle and the first block must be a primary
+ * there should be at least two extension in a bundle and the first block must be a primary
  * bundle block. There cannot be more than one primary bundle block in a single bundle.
  *
  * <p>This Bundle class also allows the bundle to be "marked" or have some object attached.
@@ -59,7 +59,7 @@ public class Bundle extends PrimaryBlock {
     }
 
     /**
-     * clear all blocks of this bundle
+     * clear all extension of this bundle
      */
     public void clearBundle() {
         for(Block block : blocks) {
@@ -71,7 +71,7 @@ public class Bundle extends PrimaryBlock {
     /**
      * return the list of {@link CanonicalBlock} that are encapsulated in this current Bundle.
      *
-     * @return list of blocks
+     * @return list of extension
      */
     public LinkedList<CanonicalBlock> getBlocks() {
         return blocks;

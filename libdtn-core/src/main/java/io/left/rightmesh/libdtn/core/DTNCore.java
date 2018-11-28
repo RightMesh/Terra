@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import io.left.rightmesh.libdtn.common.utils.Log;
-import io.left.rightmesh.libdtn.core.api.BlockManagerAPI;
+import io.left.rightmesh.libdtn.core.api.ExtensionManagerAPI;
 import io.left.rightmesh.libdtn.core.api.BundleProcessorAPI;
 import io.left.rightmesh.libdtn.core.api.CLAManagerAPI;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
@@ -12,7 +12,7 @@ import io.left.rightmesh.libdtn.core.api.LinkLocalRoutingAPI;
 import io.left.rightmesh.libdtn.core.api.LocalEIDAPI;
 import io.left.rightmesh.libdtn.core.api.ModuleLoaderAPI;
 import io.left.rightmesh.libdtn.core.api.RoutingTableAPI;
-import io.left.rightmesh.libdtn.core.blocks.BlockManager;
+import io.left.rightmesh.libdtn.core.extension.ExtensionManager;
 import io.left.rightmesh.libdtn.core.events.BundleIndexed;
 import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
 import io.left.rightmesh.libdtn.core.routing.Registrar;
@@ -46,7 +46,7 @@ public class DTNCore implements CoreAPI {
     private ConfigurationAPI conf;
     private Log logger;
     private LocalEIDAPI localEIDTable;
-    private BlockManagerAPI blockManager;
+    private ExtensionManagerAPI extensionManager;
     private LinkLocalRoutingAPI linkLocalRouting;
     private RoutingTableAPI routingTable;
     private RoutingAPI routingEngine;
@@ -55,7 +55,6 @@ public class DTNCore implements CoreAPI {
     private BundleProcessorAPI bundleProcessor;
     private CLAManagerAPI claManager;
     private ModuleLoaderAPI moduleLoader;
-    private List<ApplicationAgentSPI> coreServices;
 
     public DTNCore(DTNConfiguration conf) {
         this.conf = conf;
@@ -65,7 +64,7 @@ public class DTNCore implements CoreAPI {
         this.localEIDTable = new LocalEIDTable(this);
 
         /* BP block toolbox */
-        this.blockManager = new BlockManager();
+        this.extensionManager = new ExtensionManager(logger);
 
         /* routing */
         this.linkLocalRouting = new LinkLocalRouting(this);
@@ -86,10 +85,10 @@ public class DTNCore implements CoreAPI {
         /* runtime modules */
         this.moduleLoader = new ModuleLoader(this);
 
-        /* core services (AA) */
-        this.coreServices = new LinkedList<>();
-        this.coreServices.add(new NullAA());
-        for(ApplicationAgentSPI aa : this.coreServices) {
+        /* DTN core services (AA) */
+        List<ApplicationAgentSPI> dtnAAServices = new LinkedList<>();
+        dtnAAServices.add(new NullAA());
+        for(ApplicationAgentSPI aa : dtnAAServices) {
             aa.init(this.registrar, this.logger);
         }
     }
@@ -110,8 +109,8 @@ public class DTNCore implements CoreAPI {
     }
 
     @Override
-    public BlockManagerAPI getBlockManager() {
-        return blockManager;
+    public ExtensionManagerAPI getExtensionManager() {
+        return extensionManager;
     }
 
     @Override

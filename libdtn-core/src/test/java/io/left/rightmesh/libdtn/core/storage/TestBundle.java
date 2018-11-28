@@ -11,6 +11,7 @@ import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.common.data.ScopeControlHopLimitBlock;
 import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
 import io.left.rightmesh.libdtn.common.data.eid.IPN;
 
 import static org.junit.Assert.assertEquals;
@@ -30,8 +31,8 @@ public class TestBundle {
             bundle.reportto = DTN.NullEID();
             bundle.bid = BundleID.create(bundle);
             return bundle;
-        } catch(EID.EIDFormatException ignore) {
-            // sould not happen
+        } catch(EIDFormatException ignore) {
+            // should not happen
             //todo: create a safe EID constructor by encoding URI
             return null;
         }

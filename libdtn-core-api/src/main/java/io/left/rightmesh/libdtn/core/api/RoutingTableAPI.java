@@ -2,7 +2,7 @@ package io.left.rightmesh.libdtn.core.api;
 
 import java.util.Set;
 
-import io.left.rightmesh.libdtn.common.data.eid.CLA;
+import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.reactivex.Observable;
 
@@ -58,9 +58,9 @@ public interface RoutingTableAPI {
      * Resolve an EID using this Routing Table.
      *
      * @param destination EID of destination
-     * @return Observable of CLA-EID that can make forward progress toward destination
+     * @return Observable of BaseCLAEID-EID that can make forward progress toward destination
      */
-    Observable<CLA> resolveEID(EID destination);
+    Observable<BaseCLAEID> resolveEID(EID destination);
 
     /**
      * Dump all entries from the Routing Table.

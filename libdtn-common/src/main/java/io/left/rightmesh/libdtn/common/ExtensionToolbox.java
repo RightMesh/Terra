@@ -1,23 +1,15 @@
-package io.left.rightmesh.libdtn.core.api;
+package io.left.rightmesh.libdtn.common;
 
-import java.util.function.Supplier;
-
-import io.left.rightmesh.libcbor.CborEncoder;
-import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libdtn.common.data.BlockFactory;
-import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BlockDataParserFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessor;
 import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockDataSerializerFactory;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
 
 /**
- * @author Lucien Loiseau on 22/11/18.
+ * @author Lucien Loiseau on 28/11/18.
  */
-public interface BlockManagerAPI {
-
-    class BlockTypeAlreadyManaged extends Exception {
-    }
+public interface ExtensionToolbox {
 
     /**
      * get the block factory to instantiate a new Block.
@@ -48,18 +40,10 @@ public interface BlockManagerAPI {
     BlockProcessorFactory getBlockProcessorFactory();
 
     /**
-     * Add a new ExtensionBlock.
+     * get the EID factory
      *
-     * @param type block type
-     * @param block block supplier
-     * @param parser parser supplier
-     * @param serializer serializer supplier
-     * @throws BlockTypeAlreadyManaged if the block is already managed
+     * @return EIDFactory
      */
-    void addExtensionBlock(int type,
-                           Supplier<CanonicalBlock> block,
-                           Supplier<CborParser> parser,
-                           Supplier<CborEncoder> serializer,
-                           Supplier<BlockProcessor> processor) throws BlockTypeAlreadyManaged;
+    EIDFactory getEIDFactory();
 
 }

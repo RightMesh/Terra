@@ -3,6 +3,7 @@ package io.left.rightmesh.libdtn.common.data.bundleV7.parser;
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.BaseBlockFactory;
 import io.left.rightmesh.libdtn.common.data.BlockFactory;
 import io.left.rightmesh.libdtn.common.data.Bundle;
@@ -10,6 +11,8 @@ import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BaseBlockProcessorFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.processor.ProcessingException;
+import io.left.rightmesh.libdtn.common.data.eid.BaseEIDFactory;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 
 /**
@@ -19,32 +22,18 @@ public class BundleV7Item implements CborParser.ParseableItem {
 
     static final String TAG = "BundleV7Item";
 
-    public BundleV7Item(Log logger, BLOBFactory blobFactory) {
-        this.logger = logger;
-        this.blockFactory = new BaseBlockFactory();
-        this.parserFactory = new BaseBlockDataParserFactory();
-        this.blobFactory = blobFactory;
-        this.processorFactory = new BaseBlockProcessorFactory();
-    }
-
     public BundleV7Item(Log logger,
-                        BlockFactory blockFactory,
-                        BlockDataParserFactory parserFactory,
-                        BLOBFactory blobFactory,
-                        BlockProcessorFactory processorFactory) {
+                        ExtensionToolbox toolbox,
+                        BLOBFactory blobFactory) {
         this.logger = logger;
-        this.blockFactory = blockFactory;
-        this.parserFactory = parserFactory;
+        this.toolbox = toolbox;
         this.blobFactory = blobFactory;
-        this.processorFactory = processorFactory;
     }
 
     public Bundle bundle = null;
     private Log logger;
-    private BlockFactory blockFactory;
-    private BlockDataParserFactory parserFactory;
+    private ExtensionToolbox toolbox;
     private BLOBFactory blobFactory;
-    private BlockProcessorFactory processorFactory;
 
 
     @Override
@@ -54,19 +43,19 @@ public class BundleV7Item implements CborParser.ParseableItem {
                     logger.v(TAG, "[+] parsing new bundle");
                 })
                 .cbor_parse_custom_item(
-                        () -> new PrimaryBlockItem(logger),
+                        () -> new PrimaryBlockItem(toolbox.getEIDFactory(), logger),
                         (__, ___, item) -> {
                     logger.v(TAG, "-> primary block parsed");
                     bundle = item.b;
                 })
                 .cbor_parse_array_items(
-                        () -> new CanonicalBlockItem(logger, blockFactory, parserFactory, blobFactory),
+                        () -> new CanonicalBlockItem(logger, toolbox, blobFactory),
                         (__, ___, item) -> {
                     logger.v(TAG, "-> canonical block parsed");
 
                     /* early validation of block */
                     try {
-                        processorFactory.create(item.block.type).onBlockDeserialized(item.block);
+                        toolbox.getBlockProcessorFactory().create(item.block.type).onBlockDeserialized(item.block);
                     } catch(BlockProcessorFactory.ProcessorNotFoundException pnfe) {
                         /* ignore */
                     } catch(ProcessingException pe) {

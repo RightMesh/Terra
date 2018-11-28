@@ -17,12 +17,11 @@ import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.core.MockBlockManager;
+import io.left.rightmesh.libdtn.core.MockExtensionManager;
 import io.left.rightmesh.libdtn.core.MockCore;
-import io.left.rightmesh.libdtn.core.api.BlockManagerAPI;
+import io.left.rightmesh.libdtn.core.api.ExtensionManagerAPI;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
-import io.left.rightmesh.libdtn.core.utils.Logger;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 
@@ -58,8 +57,8 @@ public class StorageTest {
             }
 
             @Override
-            public BlockManagerAPI getBlockManager() {
-                return new MockBlockManager() {
+            public ExtensionManagerAPI getExtensionManager() {
+                return new MockExtensionManager() {
                     @Override
                     public BlockDataSerializerFactory getBlockDataSerializerFactory() {
                         return new BaseBlockDataSerializerFactory();

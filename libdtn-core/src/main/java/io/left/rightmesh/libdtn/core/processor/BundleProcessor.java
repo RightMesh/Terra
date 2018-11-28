@@ -108,7 +108,7 @@ public class BundleProcessor implements BundleProcessorAPI {
                 .findOpenedChannelTowards(bundle.destination)
                 .concatMapMaybe(
                         claChannel ->
-                                claChannel.sendBundle(bundle, core.getBlockManager().getBlockDataSerializerFactory())  /* 5.4 - step 4 */
+                                claChannel.sendBundle(bundle, core.getExtensionManager().getBlockDataSerializerFactory())  /* 5.4 - step 4 */
                                         .doOnSubscribe((d) -> {
                                             core.getLogger().v(TAG, "5.4-4 "
                                                     + bundle.bid.getBIDString() + " -> "
@@ -117,7 +117,7 @@ public class BundleProcessor implements BundleProcessorAPI {
                                             /* call block-specific routine for transmission */
                                             for (CanonicalBlock block : bundle.getBlocks()) {
                                                 try {
-                                                    core.getBlockManager().getBlockProcessorFactory()
+                                                    core.getExtensionManager().getBlockProcessorFactory()
                                                             .create(block.type)
                                                             .onPrepareForTransmission(block, bundle, core.getLogger());
                                                 } catch (ProcessingException pe) {
@@ -198,6 +198,7 @@ public class BundleProcessor implements BundleProcessorAPI {
                         },
                         storageFailure -> {
                             /* 5.4.1 - step 2 -  Storage failed, abandon forwarding */
+                            core.getLogger().v(TAG, "5.4.1-2 storage failure: " + storageFailure.getMessage());
                             bundleForwardingFailed(bundle);
                         }
                 );
@@ -248,7 +249,7 @@ public class BundleProcessor implements BundleProcessorAPI {
         try {
             for (CanonicalBlock block : bundle.getBlocks()) {
                 try {
-                    core.getBlockManager().getBlockProcessorFactory().create(block.type)
+                    core.getExtensionManager().getBlockProcessorFactory().create(block.type)
                             .onReceptionProcessing(block, bundle, core.getLogger());
                 } catch (BlockProcessorFactory.ProcessorNotFoundException pe) {
                     if (block.getV7Flag(TRANSMIT_STATUSREPORT_IF_NOT_PROCESSED) && reporting()) {

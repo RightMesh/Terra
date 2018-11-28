@@ -21,6 +21,9 @@ public interface StorageAPI {
         public StorageFailedException() {
             super("storage failed");
         }
+        public StorageFailedException(String msg) {
+            super(msg);
+        }
     }
 
     class StorageCorruptedException extends StorageException {
@@ -45,11 +48,17 @@ public interface StorageAPI {
         public BundleAlreadyExistsException() {
             super("bundle already exists");
         }
+        public BundleAlreadyExistsException(BundleID bid) {
+            super("bundle already exists: "+bid);
+        }
     }
 
     class BundleNotFoundException extends StorageException {
         public BundleNotFoundException() {
             super("bundle not found");
+        }
+        public BundleNotFoundException(BundleID bid) {
+            super("bundle not found: "+bid);
         }
     }
 

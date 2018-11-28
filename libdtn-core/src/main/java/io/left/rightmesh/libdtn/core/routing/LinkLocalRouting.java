@@ -1,7 +1,8 @@
 package io.left.rightmesh.libdtn.core.routing;
 
+import io.left.rightmesh.libdtn.common.data.eid.CLAEID;
 import io.left.rightmesh.libdtn.core.BaseComponent;
-import io.left.rightmesh.libdtn.common.data.eid.CLA;
+import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
 import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.api.LinkLocalRoutingAPI;
 import io.left.rightmesh.libdtn.core.events.ChannelClosed;
@@ -58,10 +59,8 @@ public class LinkLocalRouting extends BaseComponent implements LinkLocalRoutingA
     private void channelOpened(CLAChannelSPI channel) {
         if(linkLocalTable.add(channel)) {
             channel.recvBundle(
-                    core.getBlockManager().getBlockFactory(),
-                    core.getBlockManager().getBlockDataParserFactory(),
-                    core.getStorage().getBlobFactory(),
-                    core.getBlockManager().getBlockProcessorFactory())
+                    core.getExtensionManager(),
+                    core.getStorage().getBlobFactory())
                     .subscribe(
                     b -> {
                         core.getLogger().i(TAG, "channel "
@@ -84,7 +83,7 @@ public class LinkLocalRouting extends BaseComponent implements LinkLocalRoutingA
     }
 
     @Override
-    public CLA isEIDLinkLocal(EID eid) {
+    public CLAEID isEIDLinkLocal(EID eid) {
         if(!isEnabled()) {
             return null;
         }

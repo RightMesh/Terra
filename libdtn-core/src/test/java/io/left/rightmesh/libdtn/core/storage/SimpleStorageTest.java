@@ -12,21 +12,26 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.left.rightmesh.libdtn.common.data.BaseBlockFactory;
+import io.left.rightmesh.libdtn.common.data.BlockFactory;
+import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BaseBlockDataParserFactory;
+import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BlockDataParserFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BaseBlockProcessorFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BaseBlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockDataSerializerFactory;
+import io.left.rightmesh.libdtn.common.data.eid.BaseEIDFactory;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
 import io.left.rightmesh.libdtn.core.DTNConfiguration;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 
-import io.left.rightmesh.libdtn.core.MockBlockManager;
+import io.left.rightmesh.libdtn.core.MockExtensionManager;
 import io.left.rightmesh.libdtn.core.MockCore;
-import io.left.rightmesh.libdtn.core.api.BlockManagerAPI;
+import io.left.rightmesh.libdtn.core.api.ExtensionManagerAPI;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
-import io.left.rightmesh.libdtn.core.utils.Logger;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
@@ -64,8 +69,23 @@ public class SimpleStorageTest {
             }
 
             @Override
-            public BlockManagerAPI getBlockManager() {
-                return new MockBlockManager() {
+            public ExtensionManagerAPI getExtensionManager() {
+                return new MockExtensionManager() {
+                    @Override
+                    public BlockDataParserFactory getBlockDataParserFactory() {
+                        return new BaseBlockDataParserFactory();
+                    }
+
+                    @Override
+                    public BlockFactory getBlockFactory() {
+                        return new BaseBlockFactory();
+                    }
+
+                    @Override
+                    public EIDFactory getEIDFactory() {
+                        return new BaseEIDFactory();
+                    }
+
                     @Override
                     public BlockDataSerializerFactory getBlockDataSerializerFactory() {
                         return new BaseBlockDataSerializerFactory();

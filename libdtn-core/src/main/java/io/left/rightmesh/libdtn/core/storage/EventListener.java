@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import io.left.rightmesh.libdtn.core.BaseComponent;
 import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.core.DTNCore;
+import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.events.BundleDeleted;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
@@ -78,9 +79,9 @@ public abstract class EventListener<T> extends BaseComponent  {
 
     private final Object lock = new Object();
     private Map<T, Set<BundleID>> watchList;
-    private DTNCore core;
+    private CoreAPI core;
 
-    public EventListener(DTNCore core) {
+    public EventListener(CoreAPI core) {
         this.core = core;
         watchList = new ConcurrentHashMap<>();
         initComponent(core.getConf(), COMPONENT_ENABLE_EVENT_PROCESSING, core.getLogger());

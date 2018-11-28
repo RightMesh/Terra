@@ -82,7 +82,7 @@ public class Storage implements StorageAPI {
     public Storage(CoreAPI core) {
         this.logger = core.getLogger();
         this.conf = core.getConf();
-        this.processorFactory = core.getBlockManager().getBlockProcessorFactory();
+        this.processorFactory = core.getExtensionManager().getBlockProcessorFactory();
         volatileStorage = new VolatileStorage(this, core);
         simpleStorage = new SimpleStorage(this, core);
         blobFactory = new CoreBLOBFactory();

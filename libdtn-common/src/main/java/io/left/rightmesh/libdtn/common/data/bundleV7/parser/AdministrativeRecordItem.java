@@ -5,6 +5,7 @@ import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.common.data.AdministrativeRecord;
 import io.left.rightmesh.libdtn.common.data.StatusReport;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 
 /**
@@ -14,13 +15,14 @@ public class AdministrativeRecordItem implements CborParser.ParseableItem {
 
     static final String TAG = "AdministrativeRecordItem";
 
-    public AdministrativeRecordItem(Log logger) {
+    public AdministrativeRecordItem(EIDFactory eidFactory, Log logger) {
         this.logger = logger;
     }
 
     public AdministrativeRecord record;
 
     private Log logger;
+    private EIDFactory eidFactory;
     private CborParser body;
 
     @Override
@@ -37,7 +39,7 @@ public class AdministrativeRecordItem implements CborParser.ParseableItem {
                     switch ((int) i) {
                         case StatusReport.type:
                             record = new StatusReport();
-                            body = StatusReportParser.getParser((StatusReport) record, logger);
+                            body = StatusReportParser.getParser((StatusReport) record, eidFactory, logger);
                             break;
                         default:
                             throw new RxParserException("administrative record type unknown: "+i);
