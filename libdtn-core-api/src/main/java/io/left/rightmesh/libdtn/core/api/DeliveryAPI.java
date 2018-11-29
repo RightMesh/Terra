@@ -9,7 +9,7 @@ import io.reactivex.Completable;
  *
  * @author Lucien Loiseau on 24/10/18.
  */
-public interface DeliveryAPI {
+public interface DeliveryAPI extends CoreComponentAPI {
 
     class DeliveryDisabled extends Exception {
     }
