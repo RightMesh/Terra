@@ -11,7 +11,6 @@ import io.left.rightmesh.libdtn.common.data.blob.UntrackedByteBufferBLOB;
 import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
 import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.AdministrativeRecordSerializer;
-import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.data.bundleV7.processor.ProcessingException;
@@ -19,6 +18,7 @@ import io.left.rightmesh.libdtn.common.data.eid.DTN;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.common.data.StatusReport;
 import io.left.rightmesh.libdtn.core.api.BundleProcessorAPI;
+import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.utils.ClockUtil;
 
 import static io.left.rightmesh.libdtn.common.data.StatusReport.ReasonCode.NoAdditionalInformation;
@@ -48,9 +48,9 @@ public class BundleProcessor implements BundleProcessorAPI {
 
     private static final String TAG = "BundleProcessor";
 
-    private DTNCore core;
+    private CoreAPI core;
 
-    public BundleProcessor(DTNCore core) {
+    public BundleProcessor(CoreAPI core) {
         this.core = core;
     }
 

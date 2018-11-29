@@ -1,7 +1,7 @@
 package io.left.rightmesh.libdtn.core.routing;
 
 import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
-import io.left.rightmesh.libdtn.core.DTNCore;
+import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.api.RoutingAPI;
 import io.left.rightmesh.libdtn.core.storage.EventListener;
 import io.left.rightmesh.libdtn.common.data.Bundle;
@@ -22,9 +22,9 @@ public class RoutingEngine implements RoutingAPI {
 
     public static final String TAG = "RoutingEngine";
 
-    private DTNCore core;
+    private CoreAPI core;
 
-    public RoutingEngine(DTNCore core) {
+    public RoutingEngine(CoreAPI core) {
         this.core = core;
         listener = new ForwardingListener(core);
     }
@@ -38,7 +38,7 @@ public class RoutingEngine implements RoutingAPI {
     }
 
     public class ForwardingListener extends EventListener<String> {
-        ForwardingListener(DTNCore core) {
+        ForwardingListener(CoreAPI core) {
             super(core);
         }
 

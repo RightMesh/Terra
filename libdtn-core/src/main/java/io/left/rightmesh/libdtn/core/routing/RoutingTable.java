@@ -7,7 +7,7 @@ import java.util.Set;
 
 import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
-import io.left.rightmesh.libdtn.core.DTNCore;
+import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.api.RoutingTableAPI;
 import io.reactivex.Observable;
 
@@ -29,7 +29,7 @@ public class RoutingTable implements RoutingTableAPI {
     private Set<TableEntry> staticRoutingTable;
     private Set<TableEntry> routingTable;
 
-    public RoutingTable(DTNCore core) {
+    public RoutingTable(CoreAPI core) {
         staticRoutingTable = new HashSet<>();
         routingTable = new HashSet<>();
         core.getConf().<Boolean>get(COMPONENT_ENABLE_STATIC_ROUTING).observe().subscribe(

@@ -7,10 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.eid.API;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
 import io.left.rightmesh.libdtn.core.BaseComponent;
-import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.api.DeliveryAPI;
 import io.left.rightmesh.libdtn.core.storage.EventListener;
@@ -277,7 +275,7 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
         return sb.toString();
     }
 
-    /* ------  DeliveryAPI is the contract facing DTNCore ------- */
+    /* ------  DeliveryAPI is the contract facing CoreAPI ------- */
 
     public class DeliveryListener extends EventListener<String> {
         DeliveryListener(CoreAPI core) {

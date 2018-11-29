@@ -10,7 +10,7 @@ public class DTN extends BaseEID {
     public static final int EID_DTN_IANA_VALUE = 1;
     public static final String EID_DTN_SCHEME = "dtn";
 
-    String ssp;
+    private String ssp;
 
     private DTN() {
     }

@@ -2,8 +2,7 @@ package io.left.rightmesh.libdtn.core.routing;
 
 import io.left.rightmesh.libdtn.common.data.eid.CLAEID;
 import io.left.rightmesh.libdtn.core.BaseComponent;
-import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
-import io.left.rightmesh.libdtn.core.DTNCore;
+import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.api.LinkLocalRoutingAPI;
 import io.left.rightmesh.libdtn.core.events.ChannelClosed;
 import io.left.rightmesh.libdtn.core.events.ChannelOpened;
@@ -32,14 +31,14 @@ public class LinkLocalRouting extends BaseComponent implements LinkLocalRoutingA
 
     private static final String TAG = "LinkLocalRouting";
 
-    public LinkLocalRouting(DTNCore core) {
+    private Set<CLAChannelSPI> linkLocalTable;
+    private CoreAPI core;
+
+    public LinkLocalRouting(CoreAPI core) {
         this.core = core;
         linkLocalTable = new HashSet<>();
         initComponent(core.getConf(), COMPONENT_ENABLE_LINKLOCAL_ROUTING, core.getLogger());
     }
-
-    private Set<CLAChannelSPI> linkLocalTable;
-    private DTNCore core;
 
     @Override
     public String getComponentName() {

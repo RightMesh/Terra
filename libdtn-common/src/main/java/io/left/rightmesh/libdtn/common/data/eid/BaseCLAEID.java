@@ -74,7 +74,7 @@ public class BaseCLAEID extends BaseEID implements CLAEID {
         if (other == null) {
             return false;
         }
-        if(other instanceof BaseCLAEID) {
+        if(other instanceof CLAEID) {
             return cl_specific.equals(((BaseCLAEID)other).cl_specific)
                     && cl_name.equals(((BaseCLAEID)other).cl_name);
         }

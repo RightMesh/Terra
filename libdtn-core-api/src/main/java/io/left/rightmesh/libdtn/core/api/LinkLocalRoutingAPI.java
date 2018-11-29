@@ -20,8 +20,17 @@ public interface LinkLocalRoutingAPI {
      */
     CLAEID isEIDLinkLocal(EID eid);
 
+    /**
+     * Find an open channel whose CLA EID matches the EID
+     * @param destination
+     * @return Maybe a CLAChannelSPI
+     */
     Maybe<CLAChannelSPI> findCLA(EID destination);
 
+    /**
+     * Dump all channel from the link local table
+     * @return Set of open channel
+     */
     Set<CLAChannelSPI> dumpTable();
 
 }

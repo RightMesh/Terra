@@ -173,6 +173,10 @@ public class SimpleStorage extends BaseComponent {
     }
 
     private void indexBundlesFromPath(File folder) {
+        if (!isEnabled()) {
+            return;
+        }
+
         for (final File file : folder.listFiles()) {
             /*
              * preparing the parser. We just parse the file header and the primary block of

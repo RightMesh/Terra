@@ -1,12 +1,10 @@
 package io.left.rightmesh.libdtn.core.routing;
 
-import io.left.rightmesh.libdtn.common.data.eid.API;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
-import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
+import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.api.LocalEIDAPI;
 
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -18,9 +16,9 @@ public class LocalEIDTable implements LocalEIDAPI {
 
     private static final String TAG = "LocalEIDTable";
 
-    private DTNCore core;
+    private CoreAPI core;
 
-    public LocalEIDTable(DTNCore core) {
+    public LocalEIDTable(CoreAPI core) {
         this.core = core;
         core.getLogger().i(TAG, "localEID="+localEID().getEIDString());
     }

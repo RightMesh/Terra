@@ -5,6 +5,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ServiceLoader;
 
+import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.api.ModuleLoaderAPI;
 import io.left.rightmesh.libdtn.core.spi.aa.ApplicationAgentAdapterSPI;
 import io.left.rightmesh.libdtn.core.spi.cla.ConvergenceLayerSPI;
@@ -24,9 +25,9 @@ public class ModuleLoader implements ModuleLoaderAPI  {
 
     private static final String TAG = "ModuleLoader";
 
-    private DTNCore core;
+    private CoreAPI core;
 
-    ModuleLoader(DTNCore core) {
+    ModuleLoader(CoreAPI core) {
         this.core = core;
         loadAAModulesFromDirectory();
         loadCLAModulesFromDirectory();
