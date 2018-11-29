@@ -8,7 +8,7 @@ import io.left.rightmesh.libdtn.common.data.eid.BaseEIDFactory;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
 import io.left.rightmesh.libdtn.common.utils.Log;
-import io.left.rightmesh.libdtn.core.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.CoreConfiguration;
 import io.left.rightmesh.libdtn.core.DTNCore;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import picocli.CommandLine;
@@ -123,7 +123,7 @@ public class Terra implements Callable<Void> {
 
     @Override
     public Void call() throws Exception {
-        DTNConfiguration conf = new DTNConfiguration();
+        CoreConfiguration conf = new CoreConfiguration();
 
         /* Terra configuration */
         if(localEID != null) {
@@ -197,6 +197,7 @@ public class Terra implements Callable<Void> {
         conf.getModuleConf("http","module_http_port", 8080).update(httpPort);
 
         CoreAPI core = new DTNCore(conf);
+        ((DTNCore) core).init();
         return null;
     }
 

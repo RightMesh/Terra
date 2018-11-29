@@ -12,14 +12,14 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Lucien Loiseau on 28/09/18.
  */
-public class DTNConfigurationTest {
+public class CoreConfigurationTest {
 
 
     @Test
     public void testLocalEIDConfiguration() {
         try {
             EID testEID = new DTN("test");
-            DTNConfiguration conf = new DTNConfiguration();
+            CoreConfiguration conf = new CoreConfiguration();
             conf.<EID>get(ConfigurationAPI.CoreEntry.LOCAL_EID).update(testEID);
             EID localEID = conf.<EID>get(ConfigurationAPI.CoreEntry.LOCAL_EID).value();
             assertEquals(testEID.getEIDString(), localEID.getEIDString());

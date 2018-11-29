@@ -147,10 +147,8 @@ public class ExtensionManager implements ExtensionManagerAPI {
                 return super.create(cl_name, cl_ssp, cl_sink);
             } catch (UnknownCLName ucn) {
                 if (extensionCLAEIDParser.containsKey(cl_name)) {
-                    System.out.println(">>>>>>> contain key: "+cl_name);
                     return extensionCLAEIDParser.get(cl_name).create(cl_name, cl_ssp, cl_sink);
                 } else {
-                    System.out.println(">>>>>>> no contain key: "+cl_name);
                     return new UnknownCLAEID(cl_name, cl_ssp, cl_sink);
                 }
             }

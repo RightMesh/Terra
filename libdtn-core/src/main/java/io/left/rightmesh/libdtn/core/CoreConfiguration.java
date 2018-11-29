@@ -19,7 +19,7 @@ import java.util.Set;
  *
  * @author Lucien Loiseau on 28/08/18.
  */
-public class DTNConfiguration implements ConfigurationAPI {
+public class CoreConfiguration implements ConfigurationAPI {
 
     private HashMap<String, ConfigurationEntry> entries = new HashMap<>();
 
@@ -141,7 +141,7 @@ public class DTNConfiguration implements ConfigurationAPI {
         return entry;
     }
 
-    public DTNConfiguration() {
+    public CoreConfiguration() {
         // default configuration
         this.createCoreEntry(CoreEntry.LOCAL_EID, DTN.generate());
         this.<EID>createCoreEntrySet(CoreEntry.ALIASES);
@@ -159,6 +159,7 @@ public class DTNConfiguration implements ConfigurationAPI {
         this.createCoreEntry(CoreEntry.AUTO_CONNECT_USE_WHITELIST, true);
         this.<String>createCoreEntrySet(CoreEntry.AUTO_CONNECT_WHITELIST);
         this.createCoreEntry(CoreEntry.EID_SINGLETON_ONLY, false);
+        this.createCoreEntry(CoreEntry.COMPONENT_ENABLE_MODULE_LOADER, true);
         this.createCoreEntry(CoreEntry.ENABLE_CLA_MODULES, false);
         this.createCoreEntry(CoreEntry.MODULES_CLA_PATH, "/etc/terra/modules/cla/");
         this.createCoreEntry(CoreEntry.ENABLE_AA_MODULES, false);
@@ -166,9 +167,11 @@ public class DTNConfiguration implements ConfigurationAPI {
         this.createCoreEntry(CoreEntry.ENABLE_CORE_MODULES, false);
         this.createCoreEntry(CoreEntry.MODULES_CORE_PATH, "/etc/terra/modules/core/");
         this.createCoreEntry(CoreEntry.COMPONENT_ENABLE_LINKLOCAL_ROUTING, true);
+        this.createCoreEntry(CoreEntry.COMPONENT_ENABLE_ROUTING, true);
         this.createCoreEntry(CoreEntry.COMPONENT_ENABLE_STATIC_ROUTING, true);
         this.createCoreEntry(CoreEntry.COMPONENT_ENABLE_SMART_ROUTING, false);
         this.<EID, EID>createCoreEntryMap(CoreEntry.STATIC_ROUTE_CONFIGURATION);
+        this.createCoreEntry(CoreEntry.COMPONENT_ENABLE_STORAGE, true);
         this.createCoreEntry(CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE, true);
         this.createCoreEntry(CoreEntry.VOLATILE_BLOB_STORAGE_MAX_CAPACITY, 10000000);
         this.createCoreEntry(CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE, false);

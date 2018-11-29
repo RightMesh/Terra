@@ -7,7 +7,7 @@ import io.left.rightmesh.libdtn.core.spi.core.CoreModuleSPI;
 /**
  * @author Lucien Loiseau on 19/11/18.
  */
-public interface ModuleLoaderAPI {
+public interface ModuleLoaderAPI extends CoreComponentAPI {
 
     /**
      * Load an Application Agent Adapter Module

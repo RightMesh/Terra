@@ -83,7 +83,7 @@ public class CoreModuleHello implements CoreModuleSPI {
             api.getRegistrar().register("/hello/", (bundle) -> {
                 if (bundle.getTagAttachment("cla-origin-iid") != null) {
                     coreAPI.getLogger().i(TAG, "received hello message from: " +
-                            bundle.source.getEIDString() +
+                            bundle.getSource().getEIDString() +
                             " on BaseCLAEID: " +
                             bundle.<EID>getTagAttachment("cla-origin-iid").getEIDString());
                     CborParser p = CBOR.parser()
@@ -109,7 +109,7 @@ public class CoreModuleHello implements CoreModuleSPI {
                             });
                 } else {
                     coreAPI.getLogger().i(TAG, "received hello message from: " +
-                            bundle.source.getEIDString() +
+                            bundle.getSource().getEIDString() +
                             " but the BaseCLAEID wasn't tagged - ignoring");
                 }
 
@@ -131,7 +131,7 @@ public class CoreModuleHello implements CoreModuleSPI {
         try {
             BaseCLAEID eid = ((BaseCLAEID) up.channel.channelEID().copy()).setPath("/hello/");
             coreAPI.getLogger().i(TAG, "sending hello message to: " + eid.getEIDString());
-            helloBundle.destination = eid;
+            helloBundle.setDestination(eid);
             up.channel.sendBundle(helloBundle,
                     coreAPI.getExtensionManager().getBlockDataSerializerFactory()
             ).subscribe(

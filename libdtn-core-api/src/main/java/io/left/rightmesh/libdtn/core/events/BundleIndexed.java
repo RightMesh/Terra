@@ -14,6 +14,6 @@ public class BundleIndexed implements DTNEvent {
 
     @Override
     public String toString() {
-        return "Bundle indexed: bid="+bundle.bid.getBIDString()+" to: "+bundle.destination.getEIDString();
+        return "Bundle indexed: bid="+bundle.bid.getBIDString()+" to: "+bundle.getDestination().getEIDString();
     }
 }

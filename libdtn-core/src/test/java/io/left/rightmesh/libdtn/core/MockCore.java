@@ -36,6 +36,10 @@ import io.left.rightmesh.libdtn.core.api.StorageAPI;
  */
 public class MockCore implements CoreAPI  {
     @Override
+    public void init() {
+    }
+
+    @Override
     public ConfigurationAPI getConf() {
         return null;
     }

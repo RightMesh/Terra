@@ -62,8 +62,8 @@ public class BundleProcessor implements BundleProcessorAPI {
     public void bundleTransmission(Bundle bundle) {
         /* 5.2 - step 1 */
         core.getLogger().v(TAG, "5.2-1 " + bundle.bid.getBIDString());
-        if (!bundle.source.equals(DTN.NullEID()) && !core.getLocalEID().isLocal(bundle.source)) {
-            bundle.source = core.getLocalEID().localEID();
+        if (!bundle.getSource().equals(DTN.NullEID()) && !core.getLocalEID().isLocal(bundle.getSource())) {
+            bundle.setSource(core.getLocalEID().localEID());
         }
         bundle.tag("dispatch_pending");
 
@@ -74,11 +74,11 @@ public class BundleProcessor implements BundleProcessorAPI {
 
     /* 5.3 */
     public void bundleDispatching(Bundle bundle) {
-        core.getLogger().i(TAG, "dispatching bundle: " + bundle.bid.getBIDString() + " to EID: " + bundle.destination.getEIDString());
+        core.getLogger().i(TAG, "dispatching bundle: " + bundle.bid.getBIDString() + " to EID: " + bundle.getDestination().getEIDString());
 
         /* 5.3 - step 1 */
         core.getLogger().v(TAG, "5.3-1: " + bundle.bid.getBIDString());
-        if (core.getLocalEID().isLocal(bundle.destination)) {
+        if (core.getLocalEID().isLocal(bundle.getDestination())) {
             bundleLocalDelivery(bundle);
             return;
         }
@@ -105,7 +105,7 @@ public class BundleProcessor implements BundleProcessorAPI {
         /* 5.4 - step 2 */
         core.getLogger().v(TAG, "5.4-2 " + bundle.bid.getBIDString());
         core.getRoutingEngine()
-                .findOpenedChannelTowards(bundle.destination)
+                .findOpenedChannelTowards(bundle.getDestination())
                 .concatMapMaybe(
                         claChannel ->
                                 claChannel.sendBundle(bundle, core.getExtensionManager().getBlockDataSerializerFactory())  /* 5.4 - step 4 */
@@ -216,7 +216,7 @@ public class BundleProcessor implements BundleProcessorAPI {
 
         /* 5.4.2 - step 2 */
         core.getLogger().v(TAG, "5.4.2-2 " + bundle.bid.getBIDString());
-        if (core.getLocalEID().isLocal(bundle.destination)) {
+        if (core.getLocalEID().isLocal(bundle.getDestination())) {
             bundle.removeTag("forward_pending");
             bundleDiscarding(bundle);
         } else {
@@ -283,9 +283,9 @@ public class BundleProcessor implements BundleProcessorAPI {
 
         /* 5.7 - step 2 */
         core.getLogger().v(TAG, "5.7-2 " + bundle.bid.getBIDString());
-        EID localMatch = core.getLocalEID().matchLocal(bundle.destination);
+        EID localMatch = core.getLocalEID().matchLocal(bundle.getDestination());
         if (localMatch != null) {
-            String sink = bundle.destination.getEIDString().replaceFirst(localMatch.getEIDString(), "");
+            String sink = bundle.getDestination().getEIDString().replaceFirst(localMatch.getEIDString(), "");
             core.getDelivery().deliver(sink, bundle).subscribe(
                     () -> bundleLocalDeliverySuccessful(bundle),
                     deliveryFailure -> bundleLocalDeliveryFailure(sink, bundle));
@@ -370,8 +370,8 @@ public class BundleProcessor implements BundleProcessorAPI {
         if (bundle.isTagged("status-reports")) {
             List<Bundle> reports = bundle.getTagAttachment("status-reports");
             for (Bundle report : reports) {
-                core.getLogger().i(TAG, "sending status report to: " + report.destination.getEIDString());
-                report.source = core.getLocalEID().localEID();
+                core.getLogger().i(TAG, "sending status report to: " + report.getDestination().getEIDString());
+                report.setSource(core.getLocalEID().localEID());
                 bundleDispatching(report);
             }
         }
@@ -379,13 +379,13 @@ public class BundleProcessor implements BundleProcessorAPI {
 
     /* create status report */
     public void createStatusReport(StatusReport.StatusAssertion assertion, Bundle bundle, StatusReport.ReasonCode reasonCode) {
-        if (bundle.reportto.equals(DTN.NullEID())) {
+        if (bundle.getReportto().equals(DTN.NullEID())) {
             return;
         }
 
         StatusReport statusReport = new StatusReport(reasonCode);
-        statusReport.source = bundle.source;
-        statusReport.creationTimestamp = bundle.creationTimestamp;
+        statusReport.source = bundle.getSource();
+        statusReport.creationTimestamp = bundle.getCreationTimestamp();
         if (assertion.equals(ReportingNodeDeletedBundle)
                 && bundle.getV7Flag(PrimaryBlock.BundleV7Flags.DELETION_REPORT)) {
             statusReport.statusInformation.put(ReportingNodeDeletedBundle, ClockUtil.getCurrentTime());
@@ -403,7 +403,7 @@ public class BundleProcessor implements BundleProcessorAPI {
         }
 
         /* create the bundle that will carry this status report back to the reporting node */
-        Bundle report = new Bundle(bundle.reportto);
+        Bundle report = new Bundle(bundle.getReportto());
 
         /* get size of status report for the payload */
         CborEncoder enc = AdministrativeRecordSerializer.encode(statusReport);

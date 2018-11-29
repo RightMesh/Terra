@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.eid.API;
 import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
-import io.left.rightmesh.libdtn.core.BaseComponent;
+import io.left.rightmesh.libdtn.core.CoreComponent;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.api.DeliveryAPI;
 import io.left.rightmesh.libdtn.core.storage.EventListener;
@@ -29,7 +29,7 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPO
  *
  * @author Lucien Loiseau on 24/08/18.
  */
-public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAPI {
+public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAPI {
 
     private static final String TAG = "Registrar";
 
@@ -57,7 +57,6 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
         this.core = core;
         registrations = new ConcurrentHashMap<>();
         listener = new DeliveryListener(core);
-        initComponent(core.getConf(), COMPONENT_ENABLE_AA_REGISTRATION, core.getLogger());
     }
 
     @Override
@@ -113,20 +112,20 @@ public class Registrar extends BaseComponent implements RegistrarAPI, DeliveryAP
 
     private void replaceApiMe(Bundle bundle) throws BundleMalformed {
         try {
-            if (bundle.source.matches(API.me())) {
-                bundle.source = core.getExtensionManager().getEIDFactory().create(
+            if (bundle.getSource().matches(API.me())) {
+                bundle.setSource(core.getExtensionManager().getEIDFactory().create(
                         core.getLocalEID().localEID().getEIDString()
-                        + ((API)bundle.source).getPath());
+                        + ((API)bundle.getSource()).getPath()));
             }
-            if (bundle.reportto.matches(API.me())) {
-                bundle.reportto = core.getExtensionManager().getEIDFactory().create(
+            if (bundle.getReportto().matches(API.me())) {
+                bundle.setReportto(core.getExtensionManager().getEIDFactory().create(
                         core.getLocalEID().localEID().getEIDString()
-                        + ((API)bundle.reportto).getPath());
+                        + ((API)bundle.getReportto()).getPath()));
             }
-            if (bundle.destination.matches(API.me())) {
-                bundle.destination = core.getExtensionManager().getEIDFactory().create(
+            if (bundle.getDestination().matches(API.me())) {
+                bundle.setDestination(core.getExtensionManager().getEIDFactory().create(
                         core.getLocalEID().localEID().getEIDString()
-                        + ((API)bundle.destination).getPath());
+                        + ((API)bundle.getDestination()).getPath()));
             }
         } catch(EIDFormatException efe) {
             throw new BundleMalformed(efe.getMessage());

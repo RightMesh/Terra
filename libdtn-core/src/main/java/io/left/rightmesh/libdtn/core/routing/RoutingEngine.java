@@ -50,26 +50,35 @@ public class RoutingEngine implements RoutingAPI {
         @Subscribe
         public void onEvent(LinkLocalEntryUp event) {
             /* deliver every bundle of interest */
+            core.getLogger().i(TAG, "step 1: pull bundleOfInterest key=" + event.channel.channelEID().getCLASpecificPart());
             getBundlesOfInterest(event.channel.channelEID().getCLASpecificPart()).subscribe(
                     bundleID -> {
                         /* retrieve the bundle */
+                        core.getLogger().v(TAG, "step 1.1: pull from storage " + bundleID.getBIDString());
                         core.getStorage().get(bundleID).subscribe(
                                 /* deliver it */
-                                bundle -> event.channel.sendBundle(
-                                        bundle,
-                                        core.getExtensionManager().getBlockDataSerializerFactory()
-                                ).ignoreElements().subscribe(
-                                        () -> {
-                                            listener.unwatch(bundle.bid);
-                                            core.getBundleProcessor()
-                                                    .bundleForwardingSuccessful(bundle);
-                                        },
-                                        e -> {
-                                            bundle.tag("reason_code", TransmissionCancelled);
-                                            core.getBundleProcessor()
-                                                    .bundleForwardingContraindicated(bundle);
-                                        }),
-                                e -> { /* should we delete it ? */});
+                                bundle -> {
+                                    core.getLogger().v(TAG, "step 1.2-1: forward bundle " + bundleID.getBIDString());
+                                    event.channel.sendBundle(
+                                            bundle,
+                                            core.getExtensionManager().getBlockDataSerializerFactory()
+                                    ).ignoreElements().subscribe(
+                                            () -> {
+                                                core.getLogger().v(TAG, "step 1.3: forward successful, resume processing " + bundleID.getBIDString());
+                                                listener.unwatch(bundle.bid);
+                                                core.getBundleProcessor()
+                                                        .bundleForwardingSuccessful(bundle);
+                                            },
+                                            e -> {
+                                                core.getLogger().v(TAG, "step 1.3: forward failed, resume processing " + bundleID.getBIDString());
+                                                bundle.tag("reason_code", TransmissionCancelled);
+                                                core.getBundleProcessor()
+                                                        .bundleForwardingContraindicated(bundle);
+                                            });
+                                },
+                                e -> {
+                                    core.getLogger().w(TAG, "step 1.2-2: failed to pull bundle from storage " + bundleID.getBIDString());
+                                });
                     });
         }
     }
@@ -89,7 +98,7 @@ public class RoutingEngine implements RoutingAPI {
         /* register a listener that will listen for ChannelOpened event
          * and pull the bundle from storage if there is a match */
         final BundleID bid = bundle.bid;
-        final EID destination = bundle.destination;
+        final EID destination = bundle.getDestination();
         Observable<BaseCLAEID> potentialCLAs = core.getRoutingTable().resolveEID(destination);
 
         // watch bundle for all potential BaseCLAEID

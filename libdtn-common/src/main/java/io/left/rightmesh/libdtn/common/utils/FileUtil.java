@@ -8,6 +8,8 @@ import java.io.IOException;
  */
 public class FileUtil {
 
+    static String fileSeparator = System.getProperty("file.separator");
+
     public static File createNewFile(String prefix, String suffix, String path) throws IOException {
         File f = new File(path);
         if (f.exists() && f.canRead() && f.canWrite()) {
@@ -15,6 +17,17 @@ public class FileUtil {
         } else {
             throw new IOException();
         }
+    }
+
+    public static File createFile(String filename, String path) throws IOException {
+        File p = new File(path);
+        if (p.exists() && p.canRead() && p.canWrite()) {
+            File f = new File(path + fileSeparator + filename);
+            if(f.createNewFile()) {
+                return f;
+            }
+        }
+        throw new IOException();
     }
 
     public static long spaceLeft(String path) {

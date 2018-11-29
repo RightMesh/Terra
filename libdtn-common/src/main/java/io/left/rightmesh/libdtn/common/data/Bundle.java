@@ -44,7 +44,7 @@ public class Bundle extends PrimaryBlock {
      */
     public Bundle(EID destination) {
         super();
-        this.destination = destination;
+        this.setDestination(destination);
     }
 
 

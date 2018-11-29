@@ -24,9 +24,9 @@ public class TestBundle {
 
     public static Bundle testBundle0() {
         Bundle bundle = new Bundle();
-        bundle.destination = new IPN(5, 12);
-        bundle.source = DTN.unsafe("source");
-        bundle.reportto = DTN.NullEID();
+        bundle.setDestination(new IPN(5, 12));
+        bundle.setSource(DTN.unsafe("source"));
+        bundle.setReportto(DTN.NullEID());
         bundle.bid = BundleID.create(bundle);
         return bundle;
     }
@@ -64,13 +64,13 @@ public class TestBundle {
         bundle.addBlock(new AgeBlock());
         bundle.addBlock(new ScopeControlHopLimitBlock());
         bundle.addBlock(new PreviousNodeBlock(DTN.generate()));
-        bundle.crcType = PrimaryBlock.CRCFieldType.CRC_32;
+        bundle.setCrcType(PrimaryBlock.CRCFieldType.CRC_32);
         return bundle;
     }
 
     public static Bundle testBundle6() {
         Bundle bundle = testBundle0();
-        bundle.crcType = PrimaryBlock.CRCFieldType.CRC_32;
+        bundle.setCrcType(PrimaryBlock.CRCFieldType.CRC_32);
 
         CanonicalBlock age = new AgeBlock();
         CanonicalBlock scope = new ScopeControlHopLimitBlock();

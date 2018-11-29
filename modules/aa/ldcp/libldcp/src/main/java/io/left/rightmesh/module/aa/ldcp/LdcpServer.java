@@ -5,7 +5,6 @@ import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
-import io.left.rightmesh.libdtn.common.utils.NullLogger;
 import io.left.rightmesh.librxtcp.RxTCP;
 import io.left.rightmesh.module.aa.ldcp.messages.RequestMessage;
 import io.left.rightmesh.module.aa.ldcp.messages.ResponseMessage;
@@ -21,10 +20,6 @@ public class LdcpServer {
 
     public int getPort() {
         return server.getPort();
-    }
-
-    public void start(int port, ExtensionToolbox toolbox, BLOBFactory factory, RequestHandler action) {
-        start(port, toolbox, factory, new NullLogger(), action);
     }
 
     public void start(int port, ExtensionToolbox toolbox, BLOBFactory factory, Log logger, RequestHandler action) {

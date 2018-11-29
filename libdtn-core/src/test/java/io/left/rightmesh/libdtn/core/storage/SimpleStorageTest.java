@@ -24,7 +24,7 @@ import io.left.rightmesh.libdtn.common.data.eid.BaseEIDFactory;
 import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
-import io.left.rightmesh.libdtn.core.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.CoreConfiguration;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 
 import io.left.rightmesh.libdtn.core.MockExtensionManager;
@@ -37,6 +37,7 @@ import io.reactivex.Flowable;
 import io.reactivex.Observable;
 
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_STORAGE;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.SIMPLE_STORAGE_PATH;
 import static org.junit.Assert.assertArrayEquals;
@@ -50,15 +51,17 @@ public class SimpleStorageTest {
 
     public static final AtomicReference<CountDownLatch> waitLock = new AtomicReference<>(new CountDownLatch(1));
     private Set<String> paths = new HashSet<>();
-    private DTNConfiguration conf = new DTNConfiguration();
+    private CoreConfiguration conf = new CoreConfiguration();
     private File dir = new File(System.getProperty("path") + "/bundle/");
     private Storage storage;
+    private CoreAPI mockCore = mockCore();
 
     /* mocking the core */
     public CoreAPI mockCore() {
         return new MockCore() {
             @Override
             public ConfigurationAPI getConf() {
+                conf.<Boolean>get(COMPONENT_ENABLE_STORAGE).update(true);
                 conf.<Boolean>get(COMPONENT_ENABLE_VOLATILE_STORAGE).update(false);
                 conf.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(true);
 
@@ -109,7 +112,8 @@ public class SimpleStorageTest {
     public void testSimpleStoreBundle() {
         synchronized (StorageTest.lock) {
             System.out.println("[+] SimpleStorage");
-            storage = new Storage(mockCore());
+            storage = new Storage(mockCore);
+            storage.initComponent(mockCore.getConf(), COMPONENT_ENABLE_STORAGE, mockCore.getLogger());
 
             Bundle[] bundles = {
                     TestBundle.testBundle1(),

@@ -9,7 +9,7 @@ import io.reactivex.Observable;
 /**
  * @author Lucien Loiseau on 27/11/18.
  */
-public interface RoutingTableAPI {
+public interface RoutingTableAPI extends CoreComponentAPI {
 
     class TableEntry {
         public EID to;

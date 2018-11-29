@@ -10,7 +10,7 @@ import io.reactivex.Maybe;
 /**
  * @author Lucien Loiseau on 27/11/18.
  */
-public interface LinkLocalRoutingAPI {
+public interface LinkLocalRoutingAPI extends CoreComponentAPI {
 
     /**
      * Check if an EID is a local link-local EID.

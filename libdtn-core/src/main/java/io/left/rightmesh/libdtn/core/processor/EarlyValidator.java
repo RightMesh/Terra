@@ -49,28 +49,28 @@ public class EarlyValidator {
      * @throws RejectedException if the bundle is to be rejected
      */
     public void onDeserialized(PrimaryBlock block) throws RejectedException {
-        if (ClockUtil.isExpired(block.creationTimestamp, block.lifetime)) {
+        if (ClockUtil.isExpired(block.getCreationTimestamp(), block.getLifetime())) {
             throw new RejectedException("bundle is expired");
         }
 
         if (!core.getConf().<Boolean>get(ConfigurationAPI.CoreEntry.ALLOW_RECEIVE_ANONYMOUS_BUNDLE).value()
-                && block.source.equals(DTN.NullEID())) {
+                && block.getSource().equals(DTN.NullEID())) {
             throw new RejectedException("forbidden anonnymous source");
         }
 
-        if (!core.getLocalEID().isLocal(block.destination)
+        if (!core.getLocalEID().isLocal(block.getDestination())
                 && !core.getConf().<Boolean>get(ConfigurationAPI.CoreEntry.ENABLE_FORWARDING).value()) {
             throw new RejectedException("forward isn't enabled and bundle is not local");
         }
 
         long max_lifetime = core.getConf().<Long>get(ConfigurationAPI.CoreEntry.MAX_LIFETIME).value();
-        if (block.lifetime > max_lifetime) {
-            throw new RejectedException("lifetime="+block.lifetime+" max="+max_lifetime);
+        if (block.getLifetime() > max_lifetime) {
+            throw new RejectedException("lifetime="+block.getLifetime()+" max="+max_lifetime);
         }
 
         long max_timestamp_futur = core.getConf().<Long>get(ConfigurationAPI.CoreEntry.MAX_TIMESTAMP_FUTURE).value();
         if (max_timestamp_futur > 0
-                && (block.creationTimestamp > ClockUtil.getCurrentTime() + max_timestamp_futur)) {
+                && (block.getCreationTimestamp() > ClockUtil.getCurrentTime() + max_timestamp_futur)) {
             throw new RejectedException("timestamp too far in the future");
         }
     }

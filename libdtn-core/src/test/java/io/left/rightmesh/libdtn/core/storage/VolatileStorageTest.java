@@ -8,7 +8,7 @@ import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BaseBlockDataSer
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
-import io.left.rightmesh.libdtn.core.DTNConfiguration;
+import io.left.rightmesh.libdtn.core.CoreConfiguration;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.core.MockExtensionManager;
 import io.left.rightmesh.libdtn.core.MockCore;
@@ -17,6 +17,7 @@ import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_STORAGE;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -26,12 +27,15 @@ import static org.junit.Assert.fail;
  */
 public class VolatileStorageTest {
 
+    private CoreAPI mockCore = mockCore();
+
     /* mocking the core */
     public CoreAPI mockCore() {
         return new MockCore() {
             @Override
             public ConfigurationAPI getConf() {
-                DTNConfiguration conf = new DTNConfiguration();
+                CoreConfiguration conf = new CoreConfiguration();
+                conf.<Boolean>get(COMPONENT_ENABLE_STORAGE).update(true);
                 conf.<Boolean>get(COMPONENT_ENABLE_VOLATILE_STORAGE).update(true);
                 conf.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(false);
                 return conf;
@@ -58,12 +62,12 @@ public class VolatileStorageTest {
         };
     }
 
-
     @Test
     public void testVolatileStoreBundle() {
         synchronized (StorageTest.lock) {
             System.out.println("[+] Volatile Storage");
-            Storage storage = new Storage(mockCore());
+            Storage storage = new Storage(mockCore);
+            storage.initComponent(mockCore.getConf(), COMPONENT_ENABLE_STORAGE, mockCore.getLogger());
 
             Bundle[] bundles = {
                     TestBundle.testBundle1(),

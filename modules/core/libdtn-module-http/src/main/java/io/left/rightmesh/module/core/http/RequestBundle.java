@@ -163,7 +163,7 @@ public class RequestBundle {
         }
 
         Bundle bundle = new Bundle(destination, lifetime);
-        bundle.reportto = reportTo;
+        bundle.setReportto(reportTo);
         return bundle;
     }
 

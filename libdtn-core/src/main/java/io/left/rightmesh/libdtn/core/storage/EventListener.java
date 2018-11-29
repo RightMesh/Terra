@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.left.rightmesh.libdtn.core.BaseComponent;
+import io.left.rightmesh.libdtn.core.CoreComponent;
 import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.events.BundleDeleted;
@@ -20,11 +20,11 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPO
  * ChannelOpenned may represent an opportunity to transmit a bundle, or a RegistrationActive
  * event may trigger multiple bundle to be deliver to the application agent.
  * <p>
- * In order to prevent iterating over the entire bundle index every time there's an event, we allow
- * other component to "register" a bundle to a specific event. The idea is thus that for each
- * event that fires, we can directly access a list of "Bundle of Interest" that will be function
- * of the event parameter. Take for exemple the event RegistrationActive that contains the "sink"
- * value of the registration, an EventListener would thus maintain a list as following:
+ * In order to prevent iterating over the entire bundle storage index every time there's an event,
+ * we allow other component to "register" a bundle to a specific event. The idea is thus that for
+ * each event that fires, we can directly access a list of "Bundle of Interest" that will be
+ * function of the event parameter. Take for example the event RegistrationActive that contains
+ * the "sink" value of the registration, an EventListener would thus maintain a list as following:
  *
  * <pre>
  *    Listener for Event RegistrationActive
@@ -70,9 +70,11 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPO
  * <p>now if a bundle is actually transmitted and deleted, we must clear the bundle from all those
  * list hold by the listener.
  *
+ * <p>Note that this component may be disabled if we use a fast database access for instance.
+ *
  * @author Lucien Loiseau on 14/10/18.
  */
-public abstract class EventListener<T> extends BaseComponent  {
+public abstract class EventListener<T> extends CoreComponent {
 
     private static final String TAG = "EventListener";
 

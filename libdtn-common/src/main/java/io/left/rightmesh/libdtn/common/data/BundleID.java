@@ -25,7 +25,7 @@ public class BundleID {
     }
 
     public static BundleID create(PrimaryBlock bundle) {
-        return create(bundle.source, bundle.creationTimestamp, bundle.sequenceNumber);
+        return create(bundle.getSource(), bundle.getCreationTimestamp(), bundle.getSequenceNumber());
     }
 
     public static BundleID create(EID source, long timestamp, long sequence) {

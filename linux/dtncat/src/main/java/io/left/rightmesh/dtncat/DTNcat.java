@@ -82,11 +82,11 @@ public class DTNcat implements Callable<Void> {
         bundle.addBlock(new PayloadBlock(blob));
 
         if(crc16) {
-            bundle.crcType = PrimaryBlock.CRCFieldType.CRC_16;
+            bundle.setCrcType(PrimaryBlock.CRCFieldType.CRC_16);
             bundle.getPayloadBlock().crcType = BlockHeader.CRCFieldType.CRC_16;
         }
         if(crc32) {
-            bundle.crcType = PrimaryBlock.CRCFieldType.CRC_32;
+            bundle.setCrcType(PrimaryBlock.CRCFieldType.CRC_32);
             bundle.getPayloadBlock().crcType = BlockHeader.CRCFieldType.CRC_32;
         }
 
@@ -146,7 +146,7 @@ public class DTNcat implements Callable<Void> {
             Bundle bundle = new Bundle(destination, lifetime);
             if (report != null) {
                 EID reportTo = new BaseEIDFactory().create(report);
-                bundle.reportto = reportTo;
+                bundle.setReportto(reportTo);
             }
 
             agent = new LdcpApplicationAgent(dtnhost, dtnport, toolbox, null);

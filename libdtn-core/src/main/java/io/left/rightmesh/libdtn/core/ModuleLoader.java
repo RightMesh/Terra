@@ -21,21 +21,39 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODUL
 /**
  * @author Lucien Loiseau on 25/10/18.
  */
-public class ModuleLoader implements ModuleLoaderAPI  {
+public class ModuleLoader extends CoreComponent implements ModuleLoaderAPI  {
 
     private static final String TAG = "ModuleLoader";
 
     private CoreAPI core;
 
-    ModuleLoader(CoreAPI core) {
+    public ModuleLoader(CoreAPI core) {
         this.core = core;
+    }
+
+    @Override
+    public String getComponentName() {
+        return TAG;
+    }
+
+    @Override
+    protected void componentUp() {
         loadAAModulesFromDirectory();
         loadCLAModulesFromDirectory();
         loadCoreModulesFromDirectory();
     }
 
     @Override
+    protected void componentDown() {
+        // todo unlod all modules
+    }
+
+    @Override
     public void loadAAModule(ApplicationAgentAdapterSPI aa) {
+        if(!isEnabled()) {
+            return;
+        }
+
         aa.init(core.getRegistrar(),
                 core.getConf(),
                 core.getLogger(),
@@ -46,12 +64,20 @@ public class ModuleLoader implements ModuleLoaderAPI  {
 
     @Override
     public void loadCLAModule(ConvergenceLayerSPI cla) {
+        if(!isEnabled()) {
+            return;
+        }
+
         core.getClaManager().addCLA(cla);
         core.getLogger().i(TAG, "CLA module loaded: " + cla.getModuleName()+" - UP");
     }
 
     @Override
     public void loadCoreModule(CoreModuleSPI cm) {
+        if(!isEnabled()) {
+            return;
+        }
+
         cm.init(core);
         core.getLogger().i(TAG, "CORE module loaded: " + cm.getModuleName()+" - UP");
     }

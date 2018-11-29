@@ -9,7 +9,7 @@ import io.reactivex.Single;
 /**
  * @author Lucien Loiseau on 24/10/18.
  */
-public interface StorageAPI {
+public interface StorageAPI extends CoreComponentAPI {
 
     class StorageException extends Exception {
         public StorageException(String msg) {

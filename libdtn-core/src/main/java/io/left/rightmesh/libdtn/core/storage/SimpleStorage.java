@@ -29,7 +29,8 @@ import io.left.rightmesh.libdtn.common.data.MetaBundle;
 import io.left.rightmesh.libdtn.common.data.blob.BLOB;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BundleV7Serializer;
 import io.left.rightmesh.libdtn.common.data.blob.NullBLOB;
-import io.left.rightmesh.libdtn.core.BaseComponent;
+import io.left.rightmesh.libdtn.common.utils.Log;
+import io.left.rightmesh.libdtn.core.CoreComponent;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.events.BundleIndexed;
@@ -46,9 +47,9 @@ import io.reactivex.Single;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
+import static io.left.rightmesh.libdtn.common.utils.FileUtil.createFile;
 import static io.left.rightmesh.libdtn.common.utils.FileUtil.createNewFile;
 import static io.left.rightmesh.libdtn.common.utils.FileUtil.spaceLeft;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
 
 /**
  * SimpleStorage stores bundle in files but keep an index in memory of all the bundles in storage.
@@ -69,7 +70,7 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPO
  *
  * @author Lucien Loiseau on 20/09/18.
  */
-public class SimpleStorage extends BaseComponent {
+public class SimpleStorage extends CoreComponent {
 
     private static final String TAG = "SimpleStorage";
 
@@ -84,7 +85,16 @@ public class SimpleStorage extends BaseComponent {
                          CoreAPI core) {
         this.metaStorage = metaStorage;
         this.core = core;
-        initComponent(core.getConf(), COMPONENT_ENABLE_SIMPLE_STORAGE, core.getLogger());
+    }
+
+    @Override
+    public String getComponentName() {
+        return TAG;
+    }
+
+    @Override
+    public void initComponent(ConfigurationAPI conf, ConfigurationAPI.CoreEntry entry, Log logger) {
+        super.initComponent(conf, entry, logger);
         core.getConf().<Set<String>>get(ConfigurationAPI.CoreEntry.SIMPLE_STORAGE_PATH).observe()
                 .subscribe(
                         updated_paths -> {
@@ -113,11 +123,6 @@ public class SimpleStorage extends BaseComponent {
 
     @Override
     protected void componentDown() {
-    }
-
-    @Override
-    public String getComponentName() {
-        return TAG;
     }
 
     private LinkedList<String> storage_paths = new LinkedList<>();
@@ -290,8 +295,7 @@ public class SimpleStorage extends BaseComponent {
             if (spaceLeft(path + BUNDLE_FOLDER) > expectedSize) {
                 try {
                     String safeBID = bid.getBIDString().replaceAll("/", "_");
-                    File fbundle = createNewFile("bundle-", ".bundle", path + BUNDLE_FOLDER);
-                    return fbundle;
+                    return createFile("bundle-"+safeBID+ ".bundle", path + BUNDLE_FOLDER);
                 } catch (IOException io) {
                     System.out.println("IOException createNewFile: " + io.getMessage() + " : " + path + BUNDLE_FOLDER + "bid=" + bid.getBIDString() + ".bundle");
                 }

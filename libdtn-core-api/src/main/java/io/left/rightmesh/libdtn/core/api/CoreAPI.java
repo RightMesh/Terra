@@ -7,6 +7,11 @@ import io.left.rightmesh.libdtn.common.utils.Log;
  */
 public interface CoreAPI {
 
+    /**
+     * init the core.
+     */
+    void init();
+
     ConfigurationAPI getConf();
 
     Log getLogger();

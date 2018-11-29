@@ -25,26 +25,26 @@ public class PrimaryBlockSerializer {
         CborEncoder enc = CBOR.encoder()
                 .cbor_start_array(getItemCount(block))
                 .cbor_encode_int(BUNDLE_VERSION_7)
-                .cbor_encode_int(block.procV7Flags)
-                .cbor_encode_int(block.crcType.ordinal())
-                .merge(EIDSerializer.encode(block.destination))
-                .merge(EIDSerializer.encode(block.source))
-                .merge(EIDSerializer.encode(block.reportto))
+                .cbor_encode_int(block.getProcV7Flags())
+                .cbor_encode_int(block.getCrcType().ordinal())
+                .merge(EIDSerializer.encode(block.getDestination()))
+                .merge(EIDSerializer.encode(block.getSource()))
+                .merge(EIDSerializer.encode(block.getReportto()))
                 .cbor_start_array(2)
-                .cbor_encode_int(block.creationTimestamp)
-                .cbor_encode_int(block.sequenceNumber)
-                .cbor_encode_int(block.lifetime);
+                .cbor_encode_int(block.getCreationTimestamp())
+                .cbor_encode_int(block.getSequenceNumber())
+                .cbor_encode_int(block.getLifetime());
 
         if (block.getV7Flag(PrimaryBlock.BundleV7Flags.FRAGMENT)) {
-            enc.cbor_encode_int(block.fragmentOffset);
+            enc.cbor_encode_int(block.getFragmentOffset());
         }
 
-        return enc.merge(encodeCRC(enc.observe(1000), block.crcType));
+        return enc.merge(encodeCRC(enc.observe(1000), block.getCrcType()));
     }
 
     static int getItemCount(PrimaryBlock block) {
         int length = 8;
-        if (block.crcType != PrimaryBlock.CRCFieldType.NO_CRC) {
+        if (block.getCrcType() != PrimaryBlock.CRCFieldType.NO_CRC) {
             length++;
         }
         if (block.getV7Flag(PrimaryBlock.BundleV7Flags.FRAGMENT)) {

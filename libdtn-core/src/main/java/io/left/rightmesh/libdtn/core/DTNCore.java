@@ -34,8 +34,14 @@ import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.RxThread;
 import io.left.rightmesh.librxbus.Subscribe;
 
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_AA_REGISTRATION;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_LINKLOCAL_ROUTING;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_MODULE_LOADER;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_ROUTING;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_STORAGE;
+
 /**
- * DTNCore registers all the DTN Core BaseComponent.
+ * DTNCore registers all the DTN Core CoreComponent.
  *
  * @author Lucien Loiseau on 24/08/18.
  */
@@ -56,7 +62,7 @@ public class DTNCore implements CoreAPI {
     private CLAManagerAPI claManager;
     private ModuleLoaderAPI moduleLoader;
 
-    public DTNCore(DTNConfiguration conf) {
+    public DTNCore(CoreConfiguration conf) {
         this.conf = conf;
 
         /* core */
@@ -79,18 +85,24 @@ public class DTNCore implements CoreAPI {
         this.claManager = new CLAManager(this);
 
         /* storage */
-        RxBus.register(this);
         this.storage = new Storage(this);
 
         /* runtime modules */
         this.moduleLoader = new ModuleLoader(this);
+    }
 
-        /* DTN core services (AA) */
-        List<ApplicationAgentSPI> dtnAAServices = new LinkedList<>();
-        dtnAAServices.add(new NullAA());
-        for(ApplicationAgentSPI aa : dtnAAServices) {
-            aa.init(this.registrar, this.logger);
-        }
+    @Override
+    public void init() {
+        RxBus.register(this);
+        linkLocalRouting.initComponent(getConf(), COMPONENT_ENABLE_LINKLOCAL_ROUTING, getLogger());
+        routingTable.initComponent(getConf(), COMPONENT_ENABLE_ROUTING, getLogger());
+        registrar.initComponent(getConf(), COMPONENT_ENABLE_AA_REGISTRATION, getLogger());
+        storage.initComponent(getConf(), COMPONENT_ENABLE_STORAGE, getLogger());
+        moduleLoader.initComponent(getConf(), COMPONENT_ENABLE_MODULE_LOADER, getLogger());
+
+        /* starts DTN core services (AA) */
+        ApplicationAgentSPI nullAA = new NullAA();
+        nullAA.init(this.registrar, this.logger);
     }
 
     @Override

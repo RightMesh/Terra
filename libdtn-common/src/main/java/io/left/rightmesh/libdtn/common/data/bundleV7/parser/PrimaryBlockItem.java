@@ -55,27 +55,27 @@ public class PrimaryBlockItem implements CborParser.ParseableItem {
                 })
                 .cbor_parse_int((__, ___, i) -> {
                     logger.v(TAG, ". version=" + i);
-                    b.version = (int) i;
+                    b.setVersion((int) i);
                 })
                 .cbor_parse_int((__, ___, i) -> {
                     logger.v(TAG, ". flags=" + i);
-                    b.procV7Flags = i;
+                    b.setProcV7Flags(i);
                 })
                 .cbor_parse_int((p, ___, i) -> {
                     logger.v(TAG, ". crc=" + i);
                     switch ((int) i) {
                         case 0:
-                            b.crcType = PrimaryBlock.CRCFieldType.NO_CRC;
+                            b.setCrcType(PrimaryBlock.CRCFieldType.NO_CRC);
                             p.undo_for_each_now("crc-16");
                             p.undo_for_each_now("crc-32");
                             break;
                         case 1:
-                            b.crcType = PrimaryBlock.CRCFieldType.CRC_16;
+                            b.setCrcType(PrimaryBlock.CRCFieldType.CRC_16);
                             p.undo_for_each_now("crc-32");
                             close_crc = crc16CloseParser();
                             break;
                         case 2:
-                            b.crcType = PrimaryBlock.CRCFieldType.CRC_32;
+                            b.setCrcType(PrimaryBlock.CRCFieldType.CRC_32);
                             p.undo_for_each_now("crc-16");
                             close_crc = crc32CloseParser();
                             break;
@@ -85,30 +85,29 @@ public class PrimaryBlockItem implements CborParser.ParseableItem {
                 })
                 .cbor_parse_custom_item(() -> new EIDItem(eidFactory, logger), (__, ___, item) -> {
                     logger.v(TAG, ". destination=" + item.eid.getEIDString());
-                    b.destination = item.eid;
+                    b.setDestination(item.eid);
                 })
                 .cbor_parse_custom_item(() -> new EIDItem(eidFactory, logger), (__, ___, item) -> {
                     logger.v(TAG, ". source=" + item.eid.getEIDString());
-                    b.source = item.eid;
+                    b.setSource(item.eid);
                 })
                 .cbor_parse_custom_item(() -> new EIDItem(eidFactory, logger), (__, ___, item) -> {
                     logger.v(TAG, ". reportto=" + item.eid.getEIDString());
-                    b.reportto = item.eid;
+                    b.setReportto(item.eid);
                 })
                 .cbor_open_array(2)
                 .cbor_parse_int((__, ___, i) -> {
                     logger.v(TAG, ". creationTimestamp=" + i);
-                    b.creationTimestamp = i;
+                    b.setCreationTimestamp(i);
                 })
                 .cbor_parse_int((__, ___, i) -> {
                     logger.v(TAG, ". sequenceNumber=" + i);
-                    b.sequenceNumber = i;
-                    b.bid = BundleID.create(b.source, b.creationTimestamp, b.sequenceNumber);
-                    logger.v(TAG, ". bid="+BundleID.create(b.source, b.creationTimestamp, b.sequenceNumber).getBIDString());
+                    b.setSequenceNumber(i);
+                    logger.v(TAG, ". bid="+b.getBid().getBIDString());
                 })
                 .cbor_parse_int((__, ___, i) -> {
                     logger.v(TAG, ". lifetime=" + i);
-                    b.lifetime = i;
+                    b.setLifetime(i);
                 })
                 .do_here(p -> p.insert_now(close_crc)) // validate close_crc
                 .do_here(p -> {

@@ -7,6 +7,7 @@ import java.util.Set;
 
 import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.core.CoreComponent;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.api.RoutingTableAPI;
 import io.reactivex.Observable;
@@ -20,18 +21,29 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.STATI
  *
  * @author Lucien Loiseau on 24/08/18.
  */
-public class RoutingTable implements RoutingTableAPI {
+public class RoutingTable extends CoreComponent implements RoutingTableAPI {
 
     private static final String TAG = "RoutingTable";
 
     // ---- RoutingTable ----
+    private CoreAPI core;
     private boolean staticIsEnabled;
     private Set<TableEntry> staticRoutingTable;
     private Set<TableEntry> routingTable;
 
     public RoutingTable(CoreAPI core) {
+        this.core = core;
         staticRoutingTable = new HashSet<>();
         routingTable = new HashSet<>();
+    }
+
+    @Override
+    public String getComponentName() {
+        return TAG;
+    }
+
+    @Override
+    protected void componentUp() {
         core.getConf().<Boolean>get(COMPONENT_ENABLE_STATIC_ROUTING).observe().subscribe(
                 b -> staticIsEnabled = b
         );
@@ -40,6 +52,10 @@ public class RoutingTable implements RoutingTableAPI {
                     staticRoutingTable.clear();
                     m.forEach((to, from) -> staticRoutingTable.add(new RoutingTableAPI.TableEntry(to, from)));
                 });
+    }
+
+    @Override
+    protected void componentDown() {
     }
 
     private Observable<TableEntry> compoundTableObservable() {
@@ -81,16 +97,27 @@ public class RoutingTable implements RoutingTableAPI {
 
     @Override
     public void addRoute(EID to, EID nextHop) {
+        if(!isEnabled()) {
+            return;
+        }
+
         routingTable.add(new TableEntry(to, nextHop));
     }
 
     @Override
     public Observable<BaseCLAEID> resolveEID(EID destination) {
+        if(!isEnabled()) {
+            return Observable.error(new ComponentIsDownException(getComponentName()));
+        }
         return resolveEID(destination, Observable.empty());
     }
 
     @Override
     public Set<TableEntry> dumpTable() {
+        if(!isEnabled()) {
+            return new HashSet<>();
+        }
+
         Set<TableEntry> ret = new HashSet<>();
         ret.addAll(staticRoutingTable);
         ret.addAll(routingTable);

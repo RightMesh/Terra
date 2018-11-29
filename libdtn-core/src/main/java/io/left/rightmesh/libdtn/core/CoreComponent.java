@@ -7,15 +7,17 @@ import java.util.Set;
 
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
+import io.left.rightmesh.libdtn.core.api.CoreComponentAPI;
 
 /**
  * @author Lucien Loiseau on 27/09/18.
  */
-public abstract class BaseComponent {
+public abstract class CoreComponent implements CoreComponentAPI {
 
     private boolean enabled = false;
-    private static final Set<BaseComponent> registeredComponents = new HashSet<>();
+    private static final Set<CoreComponent> registeredComponents = new HashSet<>();
 
+    @Override
     public void initComponent(ConfigurationAPI conf, ConfigurationAPI.CoreEntry entry, Log logger) {
         registeredComponents.add(this);
         conf.<Boolean>get(entry).observe()
@@ -39,7 +41,7 @@ public abstract class BaseComponent {
                         });
     }
 
-    public static Collection<BaseComponent> getAllComponents() {
+    public static Collection<CoreComponent> getAllComponents() {
         return Collections.unmodifiableCollection(registeredComponents);
     }
 
@@ -51,8 +53,6 @@ public abstract class BaseComponent {
 
     protected abstract void componentDown();
 
-    public abstract String getComponentName();
-
     @Override
     public int hashCode() {
         return getComponentName().hashCode();
@@ -63,8 +63,8 @@ public abstract class BaseComponent {
         if(o == null) {
             return false;
         }
-        if(o instanceof BaseComponent) {
-            return this.getComponentName().equals(((BaseComponent)o).getComponentName());
+        if(o instanceof CoreComponent) {
+            return this.getComponentName().equals(((CoreComponent)o).getComponentName());
         } else {
             return false;
         }

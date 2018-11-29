@@ -48,6 +48,9 @@ public class DTNPing implements Callable<Void> {
     @CommandLine.Option(names = {"-p", "--port"}, description = "connect to DTN daemon TCP port, (default: 4557)")
     private int dtnport = 4557;
 
+    @CommandLine.Option(names = {"-n", "--number"}, description = "number of echo request to send (default: indefinite)")
+    private int number = -1;
+
     @CommandLine.Option(names = {"-c", "--cookie"}, description = "cookie to reattach to a previous ping session")
     private String cookie;
 
@@ -72,7 +75,7 @@ public class DTNPing implements Callable<Void> {
     private void receiveEchoResponse() {
         ActiveLdcpRegistrationCallback cb = (recvbundle) ->
                 Completable.create(s -> {
-                    String dest = recvbundle.destination.getEIDString();
+                    String dest = recvbundle.getDestination().getEIDString();
 
                     final String regex = "(.*)/dtnping/([0-9a-fA-F]+)/([0-9]+)/([0-9]+)";
                     Pattern r = Pattern.compile(regex);
@@ -95,7 +98,7 @@ public class DTNPing implements Callable<Void> {
                     }
 
                     long timeElapsed = System.nanoTime() - timestamp;
-                    System.err.println("echo response from " + recvbundle.source.getEIDString() + " seq=" + seq + " time=" + round((timeElapsed/1000000.0f),2) +" ms");
+                    System.err.println("echo response from " + recvbundle.getSource().getEIDString() + " seq=" + seq + " time=" + round((timeElapsed/1000000.0f),2) +" ms");
 
                     s.onComplete();
                 });
@@ -153,18 +156,20 @@ public class DTNPing implements Callable<Void> {
         /* create ping bundle */
         EID destination = eidFactory.create(dtneid + "/null/");
         Bundle bundle = new Bundle(destination);
-        bundle.source = API.me();
+        bundle.setSource(API.me());
         bundle.setV7Flag(PrimaryBlock.BundleV7Flags.DELIVERY_REPORT, true);
         bundle.addBlock(new PayloadBlock(new NullBLOB()));
 
         /* send periodic echo request */
         AtomicInteger seq = new AtomicInteger(0);
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
         Runnable sendPing = () -> {
             try {
                 /* update ping seq number */
                 long timestamp = System.nanoTime();
-                String dest = "api:me" + sink + seq.get() + "/" + timestamp;
-                bundle.reportto = eidFactory.create(dest);
+                String reportto = "api:me" + sink + seq.get() + "/" + timestamp;
+                bundle.setReportto(eidFactory.create(reportto));
+                bundle.setCreationTimestamp(timestamp);
                 agent.send(bundle).subscribe(
                         b -> {
                             if (b) {
@@ -185,9 +190,12 @@ public class DTNPing implements Callable<Void> {
                 System.err.println("eid error: " + efe.getMessage());
                 System.exit(1);
             }
+            number--;
+            if(number <= 0) {
+                executor.shutdown();
+            }
         };
 
-        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
         executor.scheduleAtFixedRate(sendPing, 0, 1, TimeUnit.SECONDS);
 
         return null;

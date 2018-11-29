@@ -77,17 +77,17 @@ public class PrimaryBlock extends Block {
     }
 
     /** BPv6 and BPv7 fields */
-    public int version;
-    public long procV7Flags;
-    public CRCFieldType crcType;
-    public EID destination;
-    public EID source;
-    public EID reportto;
-    public long creationTimestamp;
-    public long sequenceNumber;
-    public long lifetime;
-    public Long appDataLength = null;
-    public Long fragmentOffset = null;
+    private int version;
+    private long procV7Flags;
+    private CRCFieldType crcType;
+    private EID destination;
+    private EID source;
+    private EID reportto;
+    private long creationTimestamp;
+    private long sequenceNumber;
+    private long lifetime;
+    private Long appDataLength = null;
+    private Long fragmentOffset = null;
 
     /** libdtn internal use **/
     public BundleID bid;
@@ -137,6 +137,14 @@ public class PrimaryBlock extends Block {
         this.bid = other.bid;
     }
 
+    public int getVersion() {
+        return version;
+    }
+
+    public long getProcV7Flags() {
+        return procV7Flags;
+    }
+
     /**
      * returns the sdnv_value of a specific {@link PrimaryBlock.BundleV7Flags} for this Bundle.
      *
@@ -145,6 +153,54 @@ public class PrimaryBlock extends Block {
      */
     public boolean getV7Flag(BundleV7Flags flag) {
         return ((0b1L << flag.getOffset()) & this.procV7Flags) > 0;
+    }
+
+    public CRCFieldType getCrcType() {
+        return crcType;
+    }
+
+    public EID getDestination() {
+        return destination;
+    }
+
+    public EID getSource() {
+        return source;
+    }
+
+    public EID getReportto() {
+        return reportto;
+    }
+
+    public long getCreationTimestamp() {
+        return creationTimestamp;
+    }
+
+    public long getSequenceNumber() {
+        return sequenceNumber;
+    }
+
+    public BundleID getBid() {
+        return bid;
+    }
+
+    public long getLifetime() {
+        return lifetime;
+    }
+
+    public Long getAppDataLength() {
+        return appDataLength;
+    }
+
+    public Long getFragmentOffset() {
+        return fragmentOffset;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
+    public void setProcV7Flags(long procV7Flags) {
+        this.procV7Flags = procV7Flags;
     }
 
     /**
@@ -161,4 +217,42 @@ public class PrimaryBlock extends Block {
         }
     }
 
+    public void setCrcType(CRCFieldType crcType) {
+        this.crcType = crcType;
+    }
+
+    public void setDestination(EID destination) {
+        this.destination = destination;
+    }
+
+    public void setSource(EID source) {
+        this.source = source;
+        this.bid = BundleID.create(this);
+    }
+
+    public void setReportto(EID reportto) {
+        this.reportto = reportto;
+    }
+
+    public void setCreationTimestamp(long creationTimestamp) {
+        this.creationTimestamp = creationTimestamp;
+        this.bid = BundleID.create(this);
+    }
+
+    public void setSequenceNumber(long sequenceNumber) {
+        this.sequenceNumber = sequenceNumber;
+        this.bid = BundleID.create(this);
+    }
+
+    public void setLifetime(long lifetime) {
+        this.lifetime = lifetime;
+    }
+
+    public void setAppDataLength(Long appDataLength) {
+        this.appDataLength = appDataLength;
+    }
+
+    public void setFragmentOffset(Long fragmentOffset) {
+        this.fragmentOffset = fragmentOffset;
+    }
 }
