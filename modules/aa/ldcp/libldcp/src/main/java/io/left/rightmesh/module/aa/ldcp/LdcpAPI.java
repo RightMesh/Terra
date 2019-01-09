@@ -7,6 +7,9 @@ import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.reactivex.Single;
 
 /**
+ * LdcpAPI exposes the public API that an Application Agent can use to interact with the DTN
+ * library over a TCP connection.
+ *
  * @author Lucien Loiseau on 26/10/18.
  */
 public interface LdcpAPI {
@@ -43,7 +46,7 @@ public interface LdcpAPI {
     }
 
     /**
-     * Check wether a sink is registered or not
+     * Check whether a sink is registered or not
      *
      * @param sink identifying this AA
      * @return true if the AA is registered, false otherwise
@@ -113,7 +116,7 @@ public interface LdcpAPI {
     Single<Bundle> get(String sink, String cookie, BundleID bundleID) throws RegistrarDisabled, SinkNotRegistered, BadCookie, BundleNotFound, NullArgument;
 
     /**
-     * get a specific bundle and mark it as delivered.
+     * fetch a specific bundle and mark it as delivered.
      *
      * @param sink to check
      * @param cookie that was returned upon registration.
@@ -123,7 +126,7 @@ public interface LdcpAPI {
 
     /**
      * Turn a registration active. If the registration was already active it does nothing,
-     * otherwise it set the active callbacks of the registration to the one provided as an
+     * otherwise it sets the active callbacks of the registration to the one provided as an
      * argument. Fail if the registration is passive but the cookie did not match or the cb is null.
      *
      * @param sink to the registration

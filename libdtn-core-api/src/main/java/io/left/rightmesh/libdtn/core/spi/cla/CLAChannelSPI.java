@@ -13,8 +13,8 @@ import io.reactivex.Flowable;
 import io.reactivex.Observable;
 
 /**
- * A CLAChannelSPI is an abstraction of the underlying transport protocol used by a BaseCLAEID and should be
- * able to receive and send DTN Bundles.
+ * A CLAChannelSPI is an abstraction of the underlying transport protocol used by a CLA
+ * and should be able to receive and send DTN Bundles.
  *
  * @author Lucien Loiseau on 04/09/18.
  */
@@ -49,8 +49,7 @@ public interface CLAChannelSPI {
     CLAEID localEID();
 
     /**
-     * Receive the deserialized stream of Bundle from this Convergence Layer.
-     * Use the given factory to create BLOB
+     * Receive a deserialized stream of Bundle from this Convergence Layer.
      *
      * @param toolbox to create new block, parse block data and extended eid
      * @param blobFactory to store blob

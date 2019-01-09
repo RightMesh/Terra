@@ -1,6 +1,8 @@
 package io.left.rightmesh.libdtn.common.data;
 
 /**
+ * A block factory instantiates a new CanonicalBlock based on its type.
+ *
  * @author Lucien Loiseau on 21/11/18.
  */
 public interface BlockFactory {

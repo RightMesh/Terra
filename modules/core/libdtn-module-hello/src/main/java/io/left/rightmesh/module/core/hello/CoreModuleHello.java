@@ -22,6 +22,12 @@ import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Completable;
 
 /**
+ * <p>CoreHelloModule is a Core Module that reacts to new peer event by sending hello message
+ * containing the local EID of the current node. </p>
+ *
+ * <p>When an Hello message is received by a peer, it updates the Routing Table and add an entry
+ * matching the received peer local EID with the CLAEID this hello message was received from.</p>
+ *
  * @author Lucien Loiseau on 13/11/18.
  */
 public class CoreModuleHello implements CoreModuleSPI {
@@ -45,10 +51,10 @@ public class CoreModuleHello implements CoreModuleSPI {
         return "hello";
     }
 
-    private void initHelloBundle() {
+    private void prepareHelloBundle() {
         HelloMessage hello = new HelloMessage(coreAPI.getExtensionManager().getEIDFactory());
 
-        /* add node main EID */
+        /* add node local EID */
         hello.eids.add(coreAPI.getLocalEID().localEID());
 
         /* add aliases */
@@ -60,7 +66,7 @@ public class CoreModuleHello implements CoreModuleSPI {
                 .reduce(0, (a, b) -> a + b)
                 .blockingGet();
 
-        /* serialize the hello message into a BLOB (for payload) */
+        /* serialize the hello message into a BLOB (for the payload) */
         UntrackedByteBufferBLOB blobHello = new UntrackedByteBufferBLOB((int) size);
         final WritableBLOB wblob = blobHello.getWritableBLOB();
         hello.encode().observe()
@@ -68,7 +74,7 @@ public class CoreModuleHello implements CoreModuleSPI {
                 .doOnComplete(wblob::close)
                 .subscribe();
 
-        /* create Hello Bundle */
+        /* create Hello Bundle Skeleton */
         helloBundle = new Bundle(DTN.NullEID());
         helloBundle.addBlock(new PayloadBlock(blobHello));
     }
@@ -77,7 +83,7 @@ public class CoreModuleHello implements CoreModuleSPI {
     public void init(CoreAPI api) {
         this.coreAPI = api;
 
-        initHelloBundle();
+        prepareHelloBundle();
 
         try {
             api.getRegistrar().register("/hello/", (bundle) -> {

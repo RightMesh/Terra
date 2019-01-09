@@ -1,6 +1,11 @@
 package io.left.rightmesh.libdtn.common.data.eid;
 
 /**
+ * CLAEID are a specific class of EID that maps directly to a convergence layer channel.
+ * The semantic of a CLA-EID is defined in the DTN draft written by Lucien Loiseau:
+ *
+ * https://tools.ietf.org/html/draft-loiseau-dtn-cla-eid-00
+ *
  * @author Lucien Loiseau on 28/11/18.
  */
 public interface CLAEID extends EID {

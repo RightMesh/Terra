@@ -5,6 +5,9 @@ import io.left.rightmesh.libdtn.common.data.security.BlockConfidentialityBlock;
 import io.left.rightmesh.libdtn.common.data.security.BlockIntegrityBlock;
 
 /**
+ * BaseBlockFactory implements the BlockFactory contract and can instantiate a new block
+ * granted that the block type provided is one of the basic CanonicalBlock.
+ *
  * @author Lucien Loiseau on 21/11/18.
  */
 public class BaseBlockFactory implements BlockFactory {

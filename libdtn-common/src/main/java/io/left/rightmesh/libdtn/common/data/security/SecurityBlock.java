@@ -1,12 +1,7 @@
 package io.left.rightmesh.libdtn.common.data.security;
 
-
-import io.left.rightmesh.libdtn.common.data.BlockFactory;
 import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BlockDataParserFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
-import io.left.rightmesh.libdtn.common.utils.Log;
 
 /**
  * @author Lucien Loiseau on 03/11/18.

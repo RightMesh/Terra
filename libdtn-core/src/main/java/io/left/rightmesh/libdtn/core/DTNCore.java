@@ -1,8 +1,5 @@
 package io.left.rightmesh.libdtn.core;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.api.ExtensionManagerAPI;
 import io.left.rightmesh.libdtn.core.api.BundleProcessorAPI;

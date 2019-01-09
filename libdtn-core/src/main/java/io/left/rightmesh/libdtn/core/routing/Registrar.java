@@ -163,7 +163,8 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
     }
 
     @Override
-    public boolean unregister(String sink, String cookie) throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument {
+    public boolean unregister(String sink, String cookie)
+            throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument {
         checkRegisteredSink(sink, cookie);
         if(registrations.remove(sink) == null) {
             throw new SinkNotRegistered();
@@ -183,7 +184,8 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
     }
 
     @Override
-    public boolean send(String sink, String cookie, Bundle bundle)  throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument, BundleMalformed {
+    public boolean send(String sink, String cookie, Bundle bundle)
+            throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument, BundleMalformed {
         checkRegisteredSink(sink, cookie);
         checkArgumentNotNull(bundle);
         replaceApiMe(bundle);
@@ -192,14 +194,16 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
     }
 
     @Override
-    public Set<BundleID> checkInbox(String sink, String cookie) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
+    public Set<BundleID> checkInbox(String sink, String cookie)
+            throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
         checkRegisteredSink(sink, cookie);
         // todo: call storage service
         return null;
     }
 
     @Override
-    public Bundle get(String sink, String cookie, String bundleID) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
+    public Bundle get(String sink, String cookie, String bundleID)
+            throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
         checkRegisteredSink(sink, cookie);
         checkArgumentNotNull(bundleID);
         // todo: call storage service
@@ -207,20 +211,23 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
     }
 
     @Override
-    public Bundle fetch(String sink, String cookie, String bundleID) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
+    public Bundle fetch(String sink, String cookie, String bundleID)
+            throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
         checkRegisteredSink(sink, cookie);
         checkArgumentNotNull(bundleID);
         return null;
     }
 
     @Override
-    public Flowable<Bundle> fetch(String sink, String cookie) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
+    public Flowable<Bundle> fetch(String sink, String cookie)
+            throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
         checkRegisteredSink(sink, cookie);
         return null;
     }
 
     @Override
-    public boolean setActive(String sink, String cookie, ActiveRegistrationCallback cb) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
+    public boolean setActive(String sink, String cookie, ActiveRegistrationCallback cb)
+            throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
         checkArgumentNotNull(cb);
         Registration registration = checkRegisteredSink(sink, cookie);
         registration.cb = cb;
@@ -230,7 +237,8 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
     }
 
     @Override
-    public boolean setPassive(String sink) throws RegistrarDisabled, SinkNotRegistered, NullArgument {
+    public boolean setPassive(String sink)
+            throws RegistrarDisabled, SinkNotRegistered, NullArgument {
         Registration registration = checkRegisteredSink(sink);
         registration.cb = passiveRegistration;
         core.getLogger().i(TAG, "registration passive: "+sink);
@@ -238,7 +246,8 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
     }
 
     @Override
-    public boolean setPassive(String sink, String cookie) throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
+    public boolean setPassive(String sink, String cookie)
+            throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
         Registration registration = checkRegisteredSink(sink, cookie);
         registration.cb = passiveRegistration;
         core.getLogger().i(TAG, "registration passive: "+sink);

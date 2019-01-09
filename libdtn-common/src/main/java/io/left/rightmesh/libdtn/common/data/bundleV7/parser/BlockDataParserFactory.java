@@ -18,7 +18,7 @@ public interface BlockDataParserFactory {
      * returns a parser for newly instantiated ExtensionBlock.
      *
      * @param type block type
-     * @param block extension block
+     * @param block extension block to parse
      * @param logger logger
      * @return CborParser
      * @throws UnknownBlockTypeException if type is unknown

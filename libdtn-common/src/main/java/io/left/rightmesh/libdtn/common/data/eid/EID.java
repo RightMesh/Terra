@@ -4,7 +4,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Class for manipulating RFC5050 Endpoint ID. EIDs are made of two parts:
+ * Class for manipulating Bundle Protocol Endpoint ID. EIDs are made of two parts:
  * a scheme and a scheme specific part (ssp).
  *
  * @author Lucien Loiseau on 20/07/18.

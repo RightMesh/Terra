@@ -9,7 +9,7 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 
 /**
- * A ConvergenceLayerSPI is an abstraction of the underlying protocol used as a BaseCLAEID.
+ * A ConvergenceLayerSPI is an abstraction of the underlying protocol used as a CLA.
  *
  * @author Lucien Loiseau on 16/10/18.
  */

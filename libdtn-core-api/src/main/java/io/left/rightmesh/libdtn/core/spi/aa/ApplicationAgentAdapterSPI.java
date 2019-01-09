@@ -8,7 +8,7 @@ import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
 import io.left.rightmesh.libdtn.core.spi.ModuleSPI;
 
 /**
- * Contract to be provided by an application agent adapter.
+ * Contract to be fulfilled by an Application Agent Adapter module.
  *
  * @author Lucien Loiseau on 23/10/18.
  */
@@ -22,6 +22,10 @@ public interface ApplicationAgentAdapterSPI extends ModuleSPI {
      * @param logger logger instance
      * @param factory to create new BLOB
      */
-    void init(RegistrarAPI api, ConfigurationAPI conf, Log logger, ExtensionToolbox toolbox, BLOBFactory factory);
+    void init(RegistrarAPI api,
+              ConfigurationAPI conf,
+              Log logger,
+              ExtensionToolbox toolbox,
+              BLOBFactory factory);
 
 }
