@@ -31,6 +31,7 @@ import io.left.rightmesh.librxtcp.RxTCP;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subscribers.DisposableSubscriber;
 
 import static io.left.rightmesh.core.module.cla.stcp.Configuration.CLA_STCP_LISTENING_PORT;
@@ -249,7 +250,7 @@ public class STCP implements ConvergenceLayerSPI {
             }
             */
 
-            return Observable.create(s -> {
+            return Observable.<Bundle>create(s -> {
                 CborParser pdu = CBOR.parser()
                         .cbor_open_array(2)
                         .cbor_parse_int((__, ___, i) -> {
@@ -284,7 +285,7 @@ public class STCP implements ConvergenceLayerSPI {
                             close();
                         }
                 );
-            });
+            }).observeOn(Schedulers.io());
         }
 
         Flowable<ByteBuffer> createBundleJob(Bundle b,

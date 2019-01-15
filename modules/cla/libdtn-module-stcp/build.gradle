@@ -17,6 +17,7 @@ jar {
         serviceInterface 'io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI'
         serviceInterface 'io.left.rightmesh.core.module.cla.stcp.STCP'
         serviceInterface 'io.left.rightmesh.core.module.cla.stcp.STCP$Channel'
+        serviceInterface 'io.left.rightmesh.core.module.cla.stcp.CLASTCP'
     }
 
     // fat jar dependency, exclude those already in libdtn-core

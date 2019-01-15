@@ -3,7 +3,7 @@ package io.left.rightmesh.libdtn.core.network;
 import java.util.LinkedList;
 import java.util.List;
 
-import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
+import io.left.rightmesh.libdtn.common.data.eid.CLAEID;
 import io.left.rightmesh.libdtn.core.api.CLAManagerAPI;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
@@ -52,7 +52,7 @@ public class CLAManager implements CLAManagerAPI {
     }
 
     @Override
-    public Single<CLAChannelSPI> createOpportunity(BaseCLAEID eid) {
+    public Single<CLAChannelSPI> createOpportunity(CLAEID eid) {
         if(!core.getConf().<Boolean>get(ConfigurationAPI.CoreEntry.ENABLE_AUTO_CONNECT_FOR_BUNDLE).value()) {
             return Single.error(new Throwable("AutoConnect is disabled"));
         }

@@ -4,6 +4,10 @@ import io.left.rightmesh.libdetect.ActionListener;
 import io.left.rightmesh.libdetect.LibDetect;
 import io.left.rightmesh.libdetect.PeerReachable;
 import io.left.rightmesh.libdetect.PeerUnreachable;
+import io.left.rightmesh.libdtn.common.data.eid.CLAEID;
+import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
+import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.spi.core.CoreModuleSPI;
 
@@ -15,6 +19,8 @@ public class CoreModuleIpDiscovery implements CoreModuleSPI {
 
     private static final String TAG = "IpDiscovery";
 
+    private CoreAPI core;
+
     @Override
     public String getModuleName() {
         return "ipdiscovery";
@@ -22,20 +28,27 @@ public class CoreModuleIpDiscovery implements CoreModuleSPI {
 
     @Override
     public void init(CoreAPI api) {
+        this.core = api;
         LibDetect.start(4000, new ActionListener() {
             @Override
             public void onPeerReachable(PeerReachable peer) {
                 api.getLogger().i(TAG, "peer detected :" + peer.address.getHostAddress());
-                /*
-                api.getConnectionAgent().createOpportunityLibDetect(peer.address.getHostAddress()).subscribe(
-                        channel -> {
-                            // ignore
-                        },
-                        e -> {
-                            // ignore
-                        }
-                );
-                */
+                if (core.getConf().<Boolean>get(ConfigurationAPI.CoreEntry.ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT).value()) {
+                    try {
+                        EID eid = api.getExtensionManager().getEIDFactory().create(
+                                "cla:stcp:" + peer.address.getHostAddress() + ":" + 4556 + "/");
+                        core.getClaManager().createOpportunity((CLAEID) eid).subscribe(
+                                channel -> {
+                                    // ignore
+                                },
+                                e -> {
+                                    // ignore
+                                }
+                        );
+                    } catch (EIDFormatException e) {
+                        // the stcp module is not up, so we cannot talk to a ip neighbour
+                    }
+                }
             }
 
             @Override
@@ -45,26 +58,4 @@ public class CoreModuleIpDiscovery implements CoreModuleSPI {
         }, true);
     }
 
-    /*
-    public Single<CLAChannelSPI> createOpportunityLibDetect(String host) {
-        if(!core.getConf().<Boolean>get(ConfigurationAPI.CoreEntry.ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT).value()) {
-            return Single.error(new Throwable("AutoConnect is disabled"));
-        }
-
-        final CLASTCP eid;
-        try { //todo create safe constructor
-            eid = new CLASTCP(host, 4556, "/");
-        } catch(EID.EIDFormatException efe) {
-            return Single.error(efe);
-        }
-        final String opp = "cla=" + eid.getCLAName() + " peer=" + eid.getCLASpecificPart();
-        core.getLogger().d(TAG, "trying to create an opportunity with "+opp+" "+Thread.currentThread().getName());
-        return core.getClaManager().openChannel(eid)
-                .doOnError(e -> core.getLogger().d(TAG, "opportunity creation failed " + opp +": "+e.getMessage()))
-                .doOnSuccess((c) -> {
-                    core.getLogger().d(TAG, "opportunity creation success: " + opp);
-                    RxBus.post(new ChannelOpened(c));
-                });
-    }
-    */
 }

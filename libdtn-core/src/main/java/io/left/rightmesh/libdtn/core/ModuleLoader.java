@@ -45,7 +45,7 @@ public class ModuleLoader extends CoreComponent implements ModuleLoaderAPI  {
 
     @Override
     protected void componentDown() {
-        // todo unlod all modules
+        // todo unload all modules
     }
 
     @Override

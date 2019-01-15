@@ -38,7 +38,6 @@ import picocli.CommandLine;
                 ""})
 public class DTNPing implements Callable<Void> {
 
-
     @CommandLine.Parameters(index = "0", description = "connect to the following DTN host.")
     private String dtneid;
 
@@ -49,7 +48,7 @@ public class DTNPing implements Callable<Void> {
     private int dtnport = 4557;
 
     @CommandLine.Option(names = {"-n", "--number"}, description = "number of echo request to send (default: indefinite)")
-    private int number = -1;
+    private int number = 10;
 
     @CommandLine.Option(names = {"-c", "--cookie"}, description = "cookie to reattach to a previous ping session")
     private String cookie;
@@ -153,8 +152,16 @@ public class DTNPing implements Callable<Void> {
         /* register echo response */
         receiveEchoResponse();
 
+        /* set ping destination eid */
+        final String regex = "^.*?/.*$";
+        Pattern r = Pattern.compile(regex);
+        Matcher m = r.matcher(dtneid);
+        if (!m.find()) {
+            dtneid += "/null/";
+        }
+
         /* create ping bundle */
-        EID destination = eidFactory.create(dtneid + "/null/");
+        EID destination = eidFactory.create(dtneid);
         Bundle bundle = new Bundle(destination);
         bundle.setSource(API.me());
         bundle.setV7Flag(PrimaryBlock.BundleV7Flags.DELIVERY_REPORT, true);
@@ -196,6 +203,7 @@ public class DTNPing implements Callable<Void> {
             }
         };
 
+        System.err.println("pinging " + dtneid);
         executor.scheduleAtFixedRate(sendPing, 0, 1, TimeUnit.SECONDS);
 
         return null;

@@ -54,7 +54,7 @@ public class BundleProcessor implements BundleProcessorAPI {
         this.core = core;
     }
 
-    public boolean reporting() {
+    private boolean reporting() {
         return core.getConf().<Boolean>get(ENABLE_STATUS_REPORTING).value();
     }
 
@@ -94,7 +94,7 @@ public class BundleProcessor implements BundleProcessorAPI {
     }
 
     /* 5.4 */
-    public void bundleForwarding(Bundle bundle) {
+    private void bundleForwarding(Bundle bundle) {
         core.getLogger().d(TAG, "forwarding bundle: " + bundle.bid.getBIDString());
 
         /* 5.4 - step 1 */
@@ -209,7 +209,7 @@ public class BundleProcessor implements BundleProcessorAPI {
     }
 
     /* 5.4.2 */
-    public void bundleForwardingFailed(Bundle bundle) {
+    private void bundleForwardingFailed(Bundle bundle) {
         /* 5.4.2 - step 1 */
         core.getLogger().v(TAG, "5.4.2-1 " + bundle.bid.getBIDString());
         // atm we never send the bundle back to the source
@@ -275,7 +275,7 @@ public class BundleProcessor implements BundleProcessorAPI {
     }
 
     /* 5.7 */
-    public void bundleLocalDelivery(Bundle bundle) {
+    private void bundleLocalDelivery(Bundle bundle) {
         bundle.tag("delivery_pending");
         /* 5.7 - step 1 */
         core.getLogger().v(TAG, "5.7-1 " + bundle.bid.getBIDString());
@@ -336,7 +336,7 @@ public class BundleProcessor implements BundleProcessorAPI {
     }
 
     /* 5.10 */
-    public void bundleDeletion(Bundle bundle) {
+    private void bundleDeletion(Bundle bundle) {
         core.getLogger().i(TAG, "deleting bundle (" + bundle.<StatusReport.ReasonCode>getTagAttachment("reason_code") + "): " + bundle.bid.getBIDString());
 
         /* 5.10 - step 1 */
@@ -354,7 +354,7 @@ public class BundleProcessor implements BundleProcessorAPI {
     }
 
     /* 5.11 */
-    public void bundleDiscarding(Bundle bundle) {
+    private void bundleDiscarding(Bundle bundle) {
         core.getLogger().i(TAG, "discarding bundle: " + bundle.bid.getBIDString());
         core.getStorage().remove(bundle.bid).subscribe(
                 bundle::clearBundle,
@@ -366,7 +366,7 @@ public class BundleProcessor implements BundleProcessorAPI {
     }
 
     /* not in RFC - end processing for this bundle, send all status report if any */
-    public void endProcessing(Bundle bundle) {
+    private void endProcessing(Bundle bundle) {
         if (bundle.isTagged("status-reports")) {
             List<Bundle> reports = bundle.getTagAttachment("status-reports");
             for (Bundle report : reports) {
@@ -378,7 +378,7 @@ public class BundleProcessor implements BundleProcessorAPI {
     }
 
     /* create status report */
-    public void createStatusReport(StatusReport.StatusAssertion assertion, Bundle bundle, StatusReport.ReasonCode reasonCode) {
+    private void createStatusReport(StatusReport.StatusAssertion assertion, Bundle bundle, StatusReport.ReasonCode reasonCode) {
         if (bundle.getReportto().equals(DTN.NullEID())) {
             return;
         }

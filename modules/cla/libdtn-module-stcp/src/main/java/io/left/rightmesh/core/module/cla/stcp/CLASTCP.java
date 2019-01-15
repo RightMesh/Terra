@@ -23,7 +23,7 @@ public class CLASTCP extends BaseCLAEID {
         return new CLASTCP(host, port);
     }
 
-    CLASTCP(String host, int port, String sink) throws EIDFormatException {
+    public CLASTCP(String host, int port, String sink) throws EIDFormatException {
         super("stcp", host+":"+port, sink);
         this.host = host;
         this.port = port;

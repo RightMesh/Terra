@@ -1,6 +1,6 @@
 package io.left.rightmesh.libdtn.core.api;
 
-import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
+import io.left.rightmesh.libdtn.common.data.eid.CLAEID;
 import io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI;
 import io.left.rightmesh.libdtn.core.spi.cla.ConvergenceLayerSPI;
 import io.reactivex.Single;
@@ -18,10 +18,10 @@ public interface CLAManagerAPI {
     void addCLA(ConvergenceLayerSPI cla);
 
     /**
-     * Try to create an opportunity for a certain BaseCLAEID-EID.
+     * Try to create an opportunity for a certain CLAEID.
      *
      * @param eid to create an opportunity to
      */
-    Single<CLAChannelSPI> createOpportunity(BaseCLAEID eid);
+    Single<CLAChannelSPI> createOpportunity(CLAEID eid);
 
 }
