@@ -26,14 +26,11 @@ dependencies {
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    // libdtn-common for bundle
+    // ldcp request / response protocol
+    implementation project(path: ':libldcp')
+
+    // Bundle data
     implementation project(path: ':libdtn-common')
-
-    // CBOR for encoding/parsing
-    implementation 'com.github.RightMesh:libcbor:6e5ca8868f'
-
-    // RxTCP for communication between daemon/api
-    implementation 'com.github.RightMesh:librxtcp:65e2cb0ab8'
 
     // RxJava library for reactive programming
     implementation 'io.reactivex.rxjava2:rxjava:2.2.3'

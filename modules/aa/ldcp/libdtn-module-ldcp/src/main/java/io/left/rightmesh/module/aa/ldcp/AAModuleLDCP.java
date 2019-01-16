@@ -14,16 +14,16 @@ import io.left.rightmesh.module.aa.ldcp.messages.RequestMessage;
 import io.left.rightmesh.module.aa.ldcp.messages.ResponseMessage;
 import io.reactivex.Completable;
 
+import static io.left.rightmesh.aa.ldcp.api.APIPaths.DELIVER;
+import static io.left.rightmesh.aa.ldcp.api.APIPaths.DISPATCH;
+import static io.left.rightmesh.aa.ldcp.api.APIPaths.FETCHBUNDLE;
+import static io.left.rightmesh.aa.ldcp.api.APIPaths.GETBUNDLE;
+import static io.left.rightmesh.aa.ldcp.api.APIPaths.ISREGISTERED;
+import static io.left.rightmesh.aa.ldcp.api.APIPaths.REGISTER;
+import static io.left.rightmesh.aa.ldcp.api.APIPaths.UNREGISTER;
+import static io.left.rightmesh.aa.ldcp.api.APIPaths.UPDATE;
 import static io.left.rightmesh.module.aa.ldcp.Configuration.LDCP_TCP_PORT;
 import static io.left.rightmesh.module.aa.ldcp.Configuration.LDCP_TCP_PORT_DEFAULT;
-import static io.left.rightmesh.module.aa.ldcp.Paths.DELIVER;
-import static io.left.rightmesh.module.aa.ldcp.Paths.DISPATCH;
-import static io.left.rightmesh.module.aa.ldcp.Paths.FETCHBUNDLE;
-import static io.left.rightmesh.module.aa.ldcp.Paths.GETBUNDLE;
-import static io.left.rightmesh.module.aa.ldcp.Paths.ISREGISTERED;
-import static io.left.rightmesh.module.aa.ldcp.Paths.REGISTER;
-import static io.left.rightmesh.module.aa.ldcp.Paths.UNREGISTER;
-import static io.left.rightmesh.module.aa.ldcp.Paths.UPDATE;
 
 /**
  * @author Lucien Loiseau on 25/10/18.

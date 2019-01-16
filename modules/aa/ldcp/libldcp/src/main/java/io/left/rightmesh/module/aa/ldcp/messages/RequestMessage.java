@@ -8,25 +8,20 @@ import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
-import io.left.rightmesh.libdtn.common.data.BlockFactory;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BlockDataParserFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item;
-import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BaseBlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BundleV7Serializer;
-import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.reactivex.Flowable;
-
-import static io.left.rightmesh.module.aa.ldcp.LdcpAPI.LDCP_VERSION;
-
 
 /**
  * @author Lucien Loiseau on 12/10/18.
  */
 public class RequestMessage {
+
+    private static final int LDCP_VERSION = 0x01;
 
     public enum RequestCode {
         GET(0),

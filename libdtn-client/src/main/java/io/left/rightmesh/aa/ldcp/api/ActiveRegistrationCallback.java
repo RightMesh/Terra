@@ -1,4 +1,4 @@
-package io.left.rightmesh.module.aa.ldcp;
+package io.left.rightmesh.aa.ldcp.api;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.reactivex.Completable;
@@ -6,7 +6,7 @@ import io.reactivex.Completable;
 /**
  * @author Lucien Loiseau on 26/10/18.
  */
-public interface ActiveLdcpRegistrationCallback {
+public interface ActiveRegistrationCallback {
 
     /**
      * recv is called whenever some data are available to the current active registration.

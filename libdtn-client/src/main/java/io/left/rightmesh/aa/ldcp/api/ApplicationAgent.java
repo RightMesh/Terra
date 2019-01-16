@@ -1,4 +1,4 @@
-package io.left.rightmesh.module.aa.ldcp;
+package io.left.rightmesh.aa.ldcp.api;
 
 import java.util.Set;
 
@@ -8,24 +8,27 @@ import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
+import io.left.rightmesh.module.aa.ldcp.LdcpRequest;
+import io.left.rightmesh.module.aa.ldcp.LdcpServer;
+import io.left.rightmesh.module.aa.ldcp.Router;
 import io.left.rightmesh.module.aa.ldcp.messages.ResponseMessage;
 import io.reactivex.Single;
 
-import static io.left.rightmesh.module.aa.ldcp.Paths.DELIVER;
-import static io.left.rightmesh.module.aa.ldcp.Paths.DISPATCH;
-import static io.left.rightmesh.module.aa.ldcp.Paths.FETCHBUNDLE;
-import static io.left.rightmesh.module.aa.ldcp.Paths.GETBUNDLE;
-import static io.left.rightmesh.module.aa.ldcp.Paths.ISREGISTERED;
-import static io.left.rightmesh.module.aa.ldcp.Paths.REGISTER;
-import static io.left.rightmesh.module.aa.ldcp.Paths.UNREGISTER;
-import static io.left.rightmesh.module.aa.ldcp.Paths.UPDATE;
+import static io.left.rightmesh.aa.ldcp.api.APIPaths.DELIVER;
+import static io.left.rightmesh.aa.ldcp.api.APIPaths.DISPATCH;
+import static io.left.rightmesh.aa.ldcp.api.APIPaths.FETCHBUNDLE;
+import static io.left.rightmesh.aa.ldcp.api.APIPaths.GETBUNDLE;
+import static io.left.rightmesh.aa.ldcp.api.APIPaths.ISREGISTERED;
+import static io.left.rightmesh.aa.ldcp.api.APIPaths.REGISTER;
+import static io.left.rightmesh.aa.ldcp.api.APIPaths.UNREGISTER;
+import static io.left.rightmesh.aa.ldcp.api.APIPaths.UPDATE;
 
 /**
  * @author Lucien Loiseau on 25/10/18.
  */
-public class LdcpApplicationAgent implements LdcpAPI {
+public class ApplicationAgent implements ApplicationAgentAPI {
 
-    private static final String TAG = "ldcp-client";
+    private static final String TAG = "ldcp-api";
 
     private String host;
     private int port;
@@ -33,13 +36,13 @@ public class LdcpApplicationAgent implements LdcpAPI {
     private BLOBFactory factory;
     private ExtensionToolbox toolbox;
     private Log logger;
-    ActiveLdcpRegistrationCallback cb;
+    ActiveRegistrationCallback cb;
 
-    public LdcpApplicationAgent(String host, int port, ExtensionToolbox toolbox, BLOBFactory factory) {
+    public ApplicationAgent(String host, int port, ExtensionToolbox toolbox, BLOBFactory factory) {
         this(host, port, toolbox, factory, new NullLogger());
     }
 
-    public LdcpApplicationAgent(String host, int port, ExtensionToolbox toolbox, BLOBFactory factory, Log logger) {
+    public ApplicationAgent(String host, int port, ExtensionToolbox toolbox, BLOBFactory factory, Log logger) {
         this.host = host;
         this.port = port;
         this.toolbox = toolbox;
@@ -47,7 +50,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
         this.logger = logger;
     }
 
-    private boolean startServer(ActiveLdcpRegistrationCallback cb) {
+    private boolean startServer(ActiveRegistrationCallback cb) {
         if (server != null) {
             return false;
         }
@@ -84,7 +87,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
     }
 
     @Override
-    public Single<String> register(String sink, ActiveLdcpRegistrationCallback cb) {
+    public Single<String> register(String sink, ActiveRegistrationCallback cb) {
         if (startServer(cb)) {
             return LdcpRequest.POST(REGISTER)
                     .setHeader("sink", sink)
@@ -175,7 +178,7 @@ public class LdcpApplicationAgent implements LdcpAPI {
     }
 
     @Override
-    public Single<Boolean> reAttach(String sink, String cookie, ActiveLdcpRegistrationCallback cb) {
+    public Single<Boolean> reAttach(String sink, String cookie, ActiveRegistrationCallback cb) {
         if (startServer(cb)) {
             return LdcpRequest.POST(UPDATE)
                     .setHeader("sink", sink)

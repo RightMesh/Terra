@@ -39,7 +39,7 @@ public class RequestBundle {
     }
 
     /**
-     * Fetch a bundle and deliver it to the client but don't mark the bundle as delivered
+     * Fetch a bundle and deliver it to the api but don't mark the bundle as delivered
      */
     private Action aaActionGet = (params, req, res) -> {
         System.out.println("coucou");
@@ -82,7 +82,7 @@ public class RequestBundle {
     }
 
     /**
-     * Fetch a bundle and deliver it to the client then mark the bundle as delivered
+     * Fetch a bundle and deliver it to the api then mark the bundle as delivered
      * (remove from storage, send report
      */
     private Action aaActionFetch = (params, req, res) -> {

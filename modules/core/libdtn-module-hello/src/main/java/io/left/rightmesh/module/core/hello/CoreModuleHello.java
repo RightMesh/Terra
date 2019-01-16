@@ -97,7 +97,7 @@ public class CoreModuleHello implements CoreModuleSPI {
                                     () -> new HelloMessage(api.getExtensionManager().getEIDFactory()),
                                     (__, ___, item) -> {
                                         for (EID eid : item.eids) {
-                                            coreAPI.getRoutingEngine().addRoute(
+                                            api.getRoutingTable().addRoute(
                                                     eid,
                                                     bundle.getTagAttachment("cla-origin-iid"));
                                         }

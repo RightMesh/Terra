@@ -61,7 +61,7 @@ public class STCPTest {
 
     @Test
     public void testServerOneClient() {
-        System.out.println("[+] stcp: testing one server and one client");
+        System.out.println("[+] stcp: testing one server and one api");
 
         CountDownLatch lock = new CountDownLatch(1);
 

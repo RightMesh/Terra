@@ -1,5 +1,5 @@
 // core
-include ':libdtn-core', ':libdtn-common', ':libdtn-core-api'
+include ':libdtn-core', ':libdtn-common', ':libdtn-core-api', ':libdtn-client'
 
 // modules STCP
 include ':libdtn-module-stcp' // convergence layer adapter module

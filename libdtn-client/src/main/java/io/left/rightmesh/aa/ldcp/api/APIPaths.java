@@ -1,11 +1,11 @@
-package io.left.rightmesh.module.aa.ldcp;
+package io.left.rightmesh.aa.ldcp.api;
 
 /**
  * @author Lucien Loiseau on 01/11/18.
  */
-public interface Paths {
+public interface APIPaths {
 
-    /* client to registrar */
+    /* LDCP request from api to libdtn registrar */
     String ISREGISTERED = "/isregistered/";
     String REGISTER = "/register/";
     String UPDATE = "/register/update/";
@@ -14,6 +14,6 @@ public interface Paths {
     String FETCHBUNDLE = "/fetch/bundle/";
     String DISPATCH = "/dispatch/";
 
-    /* registrar to client */
+    /* LDCP request from libdtn registrar to api */
     String DELIVER = "/deliver/";
 }

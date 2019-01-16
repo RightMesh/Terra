@@ -16,7 +16,7 @@ dependencies {
 
     implementation project(path: ':libdtn-common')
 
-    implementation project(path: ':libldcp')
+    implementation project(path: ':libdtn-client')
 
     // RxJava library for reactive programming
     implementation 'io.reactivex.rxjava2:rxjava:2.2.3'

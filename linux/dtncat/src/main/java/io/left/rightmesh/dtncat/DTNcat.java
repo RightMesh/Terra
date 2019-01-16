@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.Callable;
 
+import io.left.rightmesh.aa.ldcp.api.ActiveRegistrationCallback;
+import io.left.rightmesh.aa.ldcp.api.ApplicationAgent;
 import io.left.rightmesh.libdtn.common.BaseExtensionToolbox;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.BlockHeader;
@@ -19,8 +21,6 @@ import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
 import io.left.rightmesh.libdtn.common.data.eid.BaseEIDFactory;
 import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
-import io.left.rightmesh.module.aa.ldcp.ActiveLdcpRegistrationCallback;
-import io.left.rightmesh.module.aa.ldcp.LdcpApplicationAgent;
 import io.reactivex.Completable;
 import picocli.CommandLine;
 
@@ -64,7 +64,7 @@ public class DTNcat implements Callable<Void> {
     @CommandLine.Option(names = {"--crc-32"},  description = "use CRC-32")
     private boolean crc32 = false;
 
-    private LdcpApplicationAgent agent;
+    private ApplicationAgent agent;
     private ExtensionToolbox toolbox;
     private BLOBFactory factory;
 
@@ -94,7 +94,7 @@ public class DTNcat implements Callable<Void> {
     }
 
     private void listenBundle() {
-        ActiveLdcpRegistrationCallback cb = (recvbundle) ->
+        ActiveRegistrationCallback cb = (recvbundle) ->
                 Completable.create(s -> {
                     try {
                         BufferedOutputStream bos = new BufferedOutputStream(System.out);
@@ -116,7 +116,7 @@ public class DTNcat implements Callable<Void> {
                     }
                 });
 
-        agent = new LdcpApplicationAgent(dtnhost, dtnport, toolbox, factory);
+        agent = new ApplicationAgent(dtnhost, dtnport, toolbox, factory);
         if(cookie == null) {
             agent.register(sink, cb).subscribe(
                     cookie -> {
@@ -127,7 +127,7 @@ public class DTNcat implements Callable<Void> {
                         System.exit(1);
                     });
         } else {
-            agent = new LdcpApplicationAgent(dtnhost, dtnport, toolbox, factory);
+            agent = new ApplicationAgent(dtnhost, dtnport, toolbox, factory);
             agent.reAttach(sink, cookie, cb).subscribe(
                     b -> System.err.println("re-attach to registered sink"),
                     e -> {
@@ -149,7 +149,7 @@ public class DTNcat implements Callable<Void> {
                 bundle.setReportto(reportTo);
             }
 
-            agent = new LdcpApplicationAgent(dtnhost, dtnport, toolbox, null);
+            agent = new ApplicationAgent(dtnhost, dtnport, toolbox, null);
             agent.send(createBundleFromSTDIN(bundle)).subscribe(
                     b -> {
                         if (b) {

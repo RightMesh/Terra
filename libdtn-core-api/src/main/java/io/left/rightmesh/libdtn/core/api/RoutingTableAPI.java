@@ -1,5 +1,6 @@
 package io.left.rightmesh.libdtn.core.api;
 
+import java.util.Comparator;
 import java.util.Set;
 
 import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
@@ -52,7 +53,6 @@ public interface RoutingTableAPI extends CoreComponentAPI {
      * @param nextHop EID of Next-Hop
      */
     void addRoute(EID to, EID nextHop);
-
 
     /**
      * Resolve an EID using this Routing Table.

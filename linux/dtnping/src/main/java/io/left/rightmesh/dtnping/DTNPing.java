@@ -8,6 +8,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.left.rightmesh.aa.ldcp.api.ActiveRegistrationCallback;
+import io.left.rightmesh.aa.ldcp.api.ApplicationAgent;
 import io.left.rightmesh.libdtn.common.BaseExtensionToolbox;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.Bundle;
@@ -23,8 +25,6 @@ import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
 import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
-import io.left.rightmesh.module.aa.ldcp.ActiveLdcpRegistrationCallback;
-import io.left.rightmesh.module.aa.ldcp.LdcpApplicationAgent;
 import io.reactivex.Completable;
 import picocli.CommandLine;
 
@@ -59,7 +59,7 @@ public class DTNPing implements Callable<Void> {
     @CommandLine.Option(names = {"-v", "--verbose"}, description = "set the log level to debug (-v -vv -vvv).")
     private boolean[] verbose = new boolean[0];
 
-    private LdcpApplicationAgent agent;
+    private ApplicationAgent agent;
     private String sink;
     private Log logger;
 
@@ -72,7 +72,7 @@ public class DTNPing implements Callable<Void> {
     }
 
     private void receiveEchoResponse() {
-        ActiveLdcpRegistrationCallback cb = (recvbundle) ->
+        ActiveRegistrationCallback cb = (recvbundle) ->
                 Completable.create(s -> {
                     String dest = recvbundle.getDestination().getEIDString();
 
@@ -105,7 +105,7 @@ public class DTNPing implements Callable<Void> {
         ExtensionToolbox toolbox = new BaseExtensionToolbox();
         BLOBFactory factory = new BaseBLOBFactory().enableVolatile(10000);
         if (cookie == null) {
-            agent = new LdcpApplicationAgent(dtnhost, dtnport, toolbox, factory, logger);
+            agent = new ApplicationAgent(dtnhost, dtnport, toolbox, factory, logger);
             agent.register(sink, cb).subscribe(
                     cookie -> {
                         System.err.println("sink registered. cookie: " + cookie);
@@ -115,7 +115,7 @@ public class DTNPing implements Callable<Void> {
                         System.exit(1);
                     });
         } else {
-            agent = new LdcpApplicationAgent(dtnhost, dtnport, toolbox, factory);
+            agent = new ApplicationAgent(dtnhost, dtnport, toolbox, factory);
             agent.reAttach(sink, cookie, cb).subscribe(
                     b -> System.err.println("re-attach to registered sink"),
                     e -> {

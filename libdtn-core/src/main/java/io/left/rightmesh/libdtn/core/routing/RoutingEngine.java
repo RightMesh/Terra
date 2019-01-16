@@ -31,12 +31,6 @@ public class RoutingEngine implements RoutingAPI {
 
     private ForwardingListener listener;
 
-    @Override
-    public void addRoute(EID to, EID nextHop) {
-        core.getLogger().i(TAG, "adding a new Route: " + to.getEIDString() + " -> " + nextHop.getEIDString());
-        core.getRoutingTable().addRoute(to, nextHop);
-    }
-
     public class ForwardingListener extends EventListener<String> {
         ForwardingListener(CoreAPI core) {
             super(core);

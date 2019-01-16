@@ -1,4 +1,4 @@
-package io.left.rightmesh.module.aa.ldcp;
+package io.left.rightmesh.aa.ldcp.api;
 
 import java.util.Set;
 
@@ -7,12 +7,12 @@ import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.reactivex.Single;
 
 /**
- * LdcpAPI exposes the public API that an Application Agent can use to interact with the DTN
+ * ApplicationAgentAPI exposes the public API that an Application Agent can use to interact with the DTN
  * library over a TCP connection.
  *
  * @author Lucien Loiseau on 26/10/18.
  */
-public interface LdcpAPI {
+public interface ApplicationAgentAPI {
 
     int LDCP_VERSION = 1;
 
@@ -68,7 +68,7 @@ public interface LdcpAPI {
      * @param sink to register
      * @return a RegistrationHandler if registered, nu
      */
-    Single<String> register(String sink, ActiveLdcpRegistrationCallback cb) throws RegistrarDisabled, SinkAlreadyRegistered, NullArgument;
+    Single<String> register(String sink, ActiveRegistrationCallback cb) throws RegistrarDisabled, SinkAlreadyRegistered, NullArgument;
 
     /**
      * Unregister an application agent
@@ -134,7 +134,7 @@ public interface LdcpAPI {
      * @param cb the callback for the active registration
      * @return true if the registration was successfully activated, false otherwise.
      */
-    Single<Boolean> reAttach(String sink, String cookie, ActiveLdcpRegistrationCallback cb) throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument;
+    Single<Boolean> reAttach(String sink, String cookie, ActiveRegistrationCallback cb) throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument;
 
     /**
      * Turn a registration passive. If the registration was already passive it does nothing,

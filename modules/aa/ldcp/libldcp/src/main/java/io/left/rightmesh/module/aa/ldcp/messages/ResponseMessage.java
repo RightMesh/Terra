@@ -16,12 +16,12 @@ import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BundleV7Serializ
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.reactivex.Flowable;
 
-import static io.left.rightmesh.module.aa.ldcp.LdcpAPI.LDCP_VERSION;
-
 /**
  * @author Lucien Loiseau on 12/10/18.
  */
 public class ResponseMessage {
+
+    private static final int LDCP_VERSION = 0x01;
 
     public enum ResponseCode {
         OK(0),

@@ -1,6 +1,7 @@
 package io.left.rightmesh.libdtn.core.routing;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +31,7 @@ public class RoutingTable extends CoreComponent implements RoutingTableAPI {
     private boolean staticIsEnabled;
     private Set<TableEntry> staticRoutingTable;
     private Set<TableEntry> routingTable;
+
 
     public RoutingTable(CoreAPI core) {
         this.core = core;
@@ -101,6 +103,7 @@ public class RoutingTable extends CoreComponent implements RoutingTableAPI {
             return;
         }
 
+        core.getLogger().i(TAG, "adding a new Route: " + to.getEIDString() + " -> " + nextHop.getEIDString());
         routingTable.add(new TableEntry(to, nextHop));
     }
 
