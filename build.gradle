@@ -21,6 +21,35 @@ allprojects {
     }
 }
 
+task bundle(type: Exec) {
+    dependsOn(':libldcp:jar')
+    dependsOn(':libdtn-client:jar')
+    dependsOn(':libdtn-common:jar')
+    dependsOn(':libdtn-core-api:jar')
+    dependsOn(':libdtn-core:jar')
+    dependsOn(':libdtn-module-hello:jar')
+    dependsOn(':libdtn-module-ipdiscovery:jar')
+    dependsOn(':libdtn-module-ldcp:jar')
+    dependsOn(':libdtn-module-stcp:jar')
+    dependsOn(':dtncat:distTar')
+    dependsOn(':dtnping:distTar')
+    dependsOn(':terra:distTar')
+    commandLine './package.sh'
+
+}
+
 task clean(type: Delete) {
+    dependsOn(':libldcp:clean')
+    dependsOn(':libdtn-client:clean')
+    dependsOn(':libdtn-common:clean')
+    dependsOn(':libdtn-core-api:clean')
+    dependsOn(':libdtn-core:clean')
+    dependsOn(':libdtn-module-hello:clean')
+    dependsOn(':libdtn-module-ipdiscovery:clean')
+    dependsOn(':libdtn-module-ldcp:clean')
+    dependsOn(':libdtn-module-stcp:clean')
+    dependsOn(':dtncat:clean')
+    dependsOn(':dtnping:clean')
+    dependsOn(':terra:clean')
     delete rootProject.buildDir
 }

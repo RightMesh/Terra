@@ -8,3 +8,5 @@ build/
 /captures
 .externalNativeBuild
 /modules-link
+deploy.sh
+linux-dtn.tar.gz
