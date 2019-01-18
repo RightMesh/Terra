@@ -72,13 +72,13 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
     /* ---- helper method ---- */
 
     private void checkEnable() throws RegistrarDisabled {
-        if(!isEnabled()) {
+        if (!isEnabled()) {
             throw new RegistrarDisabled();
         }
     }
 
     private void checkArgumentNotNull(Object obj) throws NullArgument {
-        if(obj == null) {
+        if (obj == null) {
             throw new NullArgument();
         }
     }
@@ -87,7 +87,7 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
         checkEnable();
         checkArgumentNotNull(sink);
         Registration registration = registrations.get(sink);
-        if(registration == null) {
+        if (registration == null) {
             throw new SinkNotRegistered();
         }
         return registration;
@@ -98,10 +98,10 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
         checkArgumentNotNull(sink);
         checkArgumentNotNull(cookie);
         Registration registration = registrations.get(sink);
-        if(registration == null) {
+        if (registration == null) {
             throw new SinkNotRegistered();
         }
-        if(!registration.cookie.equals(cookie)) {
+        if (!registration.cookie.equals(cookie)) {
             throw new BadCookie();
         }
         return registration;
@@ -112,19 +112,19 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
             if (bundle.getSource().matches(ApiEid.me())) {
                 bundle.setSource(core.getExtensionManager().getEidFactory().create(
                         core.getLocalEID().localEID().getEidString()
-                        + ((ApiEid)bundle.getSource()).getPath()));
+                                + ((ApiEid) bundle.getSource()).getPath()));
             }
             if (bundle.getReportto().matches(ApiEid.me())) {
                 bundle.setReportto(core.getExtensionManager().getEidFactory().create(
                         core.getLocalEID().localEID().getEidString()
-                        + ((ApiEid)bundle.getReportto()).getPath()));
+                                + ((ApiEid) bundle.getReportto()).getPath()));
             }
             if (bundle.getDestination().matches(ApiEid.me())) {
                 bundle.setDestination(core.getExtensionManager().getEidFactory().create(
                         core.getLocalEID().localEID().getEidString()
-                        + ((ApiEid)bundle.getDestination()).getPath()));
+                                + ((ApiEid) bundle.getDestination()).getPath()));
             }
-        } catch(EidFormatException efe) {
+        } catch (EidFormatException efe) {
             throw new BundleMalformed(efe.getMessage());
         }
     }
@@ -146,15 +146,15 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
 
     @Override
     public String register(String sink, ActiveRegistrationCallback cb)
-            throws RegistrarDisabled, SinkAlreadyRegistered, NullArgument{
+            throws RegistrarDisabled, SinkAlreadyRegistered, NullArgument {
         checkEnable();
         checkArgumentNotNull(sink);
         checkArgumentNotNull(cb);
 
         Registration registration = new Registration(sink, cb);
         if (registrations.putIfAbsent(sink, registration) == null) {
-            core.getLogger().i(TAG, "sink registered: "+sink+" (cookie="+registration.cookie+") - "
-                    +(cb==passiveRegistration ? "passive" : "active"));
+            core.getLogger().i(TAG, "sink registered: " + sink + " (cookie=" + registration.cookie + ") - "
+                    + (cb == passiveRegistration ? "passive" : "active"));
             RxBus.post(new RegistrationActive(sink, registration.cb));
             return registration.cookie;
         }
@@ -166,16 +166,16 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
     public boolean unregister(String sink, String cookie)
             throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument {
         checkRegisteredSink(sink, cookie);
-        if(registrations.remove(sink) == null) {
+        if (registrations.remove(sink) == null) {
             throw new SinkNotRegistered();
         }
-        core.getLogger().i(TAG, "sink unregistered: "+sink);
+        core.getLogger().i(TAG, "sink unregistered: " + sink);
         return true;
     }
 
 
     @Override
-    public boolean send(Bundle bundle)  throws RegistrarDisabled, NullArgument, BundleMalformed {
+    public boolean send(Bundle bundle) throws RegistrarDisabled, NullArgument, BundleMalformed {
         checkEnable();
         checkArgumentNotNull(bundle);
         replaceApiMe(bundle);
@@ -231,7 +231,7 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
         checkArgumentNotNull(cb);
         Registration registration = checkRegisteredSink(sink, cookie);
         registration.cb = cb;
-        core.getLogger().i(TAG, "registration active: "+sink);
+        core.getLogger().i(TAG, "registration active: " + sink);
         RxBus.post(new RegistrationActive(sink, registration.cb));
         return true;
     }
@@ -241,7 +241,7 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
             throws RegistrarDisabled, SinkNotRegistered, NullArgument {
         Registration registration = checkRegisteredSink(sink);
         registration.cb = passiveRegistration;
-        core.getLogger().i(TAG, "registration passive: "+sink);
+        core.getLogger().i(TAG, "registration passive: " + sink);
         return true;
     }
 
@@ -250,7 +250,7 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
             throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
         Registration registration = checkRegisteredSink(sink, cookie);
         registration.cb = passiveRegistration;
-        core.getLogger().i(TAG, "registration passive: "+sink);
+        core.getLogger().i(TAG, "registration passive: " + sink);
         return true;
     }
 
@@ -266,7 +266,7 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
             registrations.forEach(
                     (sink, reg) -> {
                         sb.append(sink).append(" ");
-                        if(reg.isActive()){
+                        if (reg.isActive()) {
                             sb.append("ACTIVE\n");
                         } else {
                             sb.append("PASSIVE\n");
@@ -306,7 +306,8 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
                                             core.getBundleProcessor().bundleLocalDeliverySuccessful(bundle);
                                         },
                                         e -> core.getBundleProcessor().bundleLocalDeliveryFailure(event.sink, bundle)),
-                                e -> {});
+                                e -> {
+                                });
                     });
         }
     }
@@ -324,8 +325,8 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
         }
 
         /* first prefix matching strategy */
-        for(String registeredSink : registrations.keySet()) {
-            if(sink.startsWith(registeredSink)) {
+        for (String registeredSink : registrations.keySet()) {
+            if (sink.startsWith(registeredSink)) {
                 Registration registration = registrations.get(registeredSink);
                 if (registration == null) {
                     return Completable.error(new UnregisteredSink());

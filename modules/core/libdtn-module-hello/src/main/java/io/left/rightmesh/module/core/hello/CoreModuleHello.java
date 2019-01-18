@@ -1,7 +1,5 @@
 package io.left.rightmesh.module.core.hello;
 
-import java.nio.ByteBuffer;
-
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
@@ -21,12 +19,15 @@ import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Completable;
 
+import java.nio.ByteBuffer;
+
 /**
- * <p>CoreHelloModule is a Core Module that reacts to new peer event by sending hello message
- * containing the local Eid of the current node. </p>
+ * <p>CoreHelloModule is a Core Module that reacts to new peer event. For each new peer, it sends
+ * an hello message containing all the local Eids of the current node. </p>
  *
- * <p>When an Hello message is received by a peer, it updates the Routing Table and add an entry
- * matching the received peer local Eid with the ClaEid this hello message was received from.</p>
+ * <p>When an Hello message is received by a peer, it updates the Routing Table and adds an entry
+ * matching the received peer local Eid with the ClaEid  of the ClaChannel this hello message
+ * was received from.</p>
  *
  * @author Lucien Loiseau on 13/11/18.
  */

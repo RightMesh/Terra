@@ -1,7 +1,7 @@
-package io.left.rightmesh.module.aa.ldcp;
+package io.left.rightmesh.ldcp;
 
-import io.left.rightmesh.module.aa.ldcp.messages.RequestMessage;
-import io.left.rightmesh.module.aa.ldcp.messages.ResponseMessage;
+import io.left.rightmesh.ldcp.messages.RequestMessage;
+import io.left.rightmesh.ldcp.messages.ResponseMessage;
 import io.reactivex.Completable;
 
 /**

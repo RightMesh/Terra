@@ -1,6 +1,12 @@
-package io.left.rightmesh.module.aa.ldcp;
+package io.left.rightmesh.core.module.aa.ldcp;
 
 import io.left.rightmesh.aa.ldcp.ApiPaths;
+import io.left.rightmesh.ldcp.LdcpRequest;
+import io.left.rightmesh.ldcp.LdcpServer;
+import io.left.rightmesh.ldcp.RequestHandler;
+import io.left.rightmesh.ldcp.Router;
+import io.left.rightmesh.ldcp.messages.RequestMessage;
+import io.left.rightmesh.ldcp.messages.ResponseMessage;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
@@ -11,12 +17,7 @@ import io.left.rightmesh.libdtn.core.api.DeliveryAPI;
 import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
 import io.left.rightmesh.libdtn.core.spi.aa.ActiveRegistrationCallback;
 import io.left.rightmesh.libdtn.core.spi.aa.ApplicationAgentAdapterSPI;
-import io.left.rightmesh.module.aa.ldcp.messages.RequestMessage;
-import io.left.rightmesh.module.aa.ldcp.messages.ResponseMessage;
 import io.reactivex.Completable;
-
-import static io.left.rightmesh.module.aa.ldcp.Configuration.LDCP_TCP_PORT;
-import static io.left.rightmesh.module.aa.ldcp.Configuration.LDCP_TCP_PORT_DEFAULT;
 
 /**
  * @author Lucien Loiseau on 25/10/18.
@@ -45,7 +46,7 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
 
     @Override
     public void init(RegistrarAPI api, ConfigurationAPI conf, Log logger, ExtensionToolbox toolbox, BlobFactory factory) {
-        int port = conf.getModuleConf(getModuleName(), LDCP_TCP_PORT, LDCP_TCP_PORT_DEFAULT).value();
+        int port = conf.getModuleConf(getModuleName(), Configuration.LDCP_TCP_PORT, Configuration.LDCP_TCP_PORT_DEFAULT).value();
         this.registrar = api;
         this.logger = logger;
         this.toolbox = toolbox;

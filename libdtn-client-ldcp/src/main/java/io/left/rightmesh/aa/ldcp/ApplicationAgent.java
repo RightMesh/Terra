@@ -8,10 +8,10 @@ import io.left.rightmesh.libdtn.common.data.BundleId;
 import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
-import io.left.rightmesh.module.aa.ldcp.LdcpRequest;
-import io.left.rightmesh.module.aa.ldcp.LdcpServer;
-import io.left.rightmesh.module.aa.ldcp.Router;
-import io.left.rightmesh.module.aa.ldcp.messages.ResponseMessage;
+import io.left.rightmesh.ldcp.LdcpRequest;
+import io.left.rightmesh.ldcp.LdcpServer;
+import io.left.rightmesh.ldcp.Router;
+import io.left.rightmesh.ldcp.messages.ResponseMessage;
 import io.reactivex.Single;
 
 import java.util.Set;
@@ -31,7 +31,6 @@ public class ApplicationAgent implements ApplicationAgentAPI {
     private BlobFactory factory;
     private ExtensionToolbox toolbox;
     private Log logger;
-    ActiveRegistrationCallback cb;
 
     public ApplicationAgent(String host, int port, ExtensionToolbox toolbox, BlobFactory factory) {
         this(host, port, toolbox, factory, new NullLogger());

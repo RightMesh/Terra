@@ -1,4 +1,4 @@
-package io.left.rightmesh.module.aa.ldcp.messages;
+package io.left.rightmesh.ldcp.messages;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -19,22 +19,22 @@ import io.reactivex.Flowable;
 /**
  * @author Lucien Loiseau on 12/10/18.
  */
-public class RequestMessage {
+public class ResponseMessage {
 
     private static final int LDCP_VERSION = 0x01;
 
-    public enum RequestCode {
-        GET(0),
-        POST(1);
+    public enum ResponseCode {
+        OK(0),
+        ERROR(1);
 
         int code;
 
-        RequestCode(int id) {
+        ResponseCode(int id) {
             this.code = id;
         }
 
-        public static RequestCode fromId(int id) {
-            for (RequestCode type : values()) {
+        public static ResponseCode fromId(int id) {
+            for (ResponseCode type : values()) {
                 if (type.code == id) {
                     return type;
                 }
@@ -43,14 +43,37 @@ public class RequestMessage {
         }
     }
 
-    public RequestCode code;
-    public String path;
+    public ResponseCode code;
     public HashMap<String, String> fields = new HashMap<>();
+
     public Bundle bundle;
     public String body = "";
 
-    public RequestMessage(RequestCode code) {
+    public ResponseMessage() {
+    }
+
+    public ResponseMessage(ResponseCode code) {
         this.code = code;
+    }
+
+    public ResponseMessage setCode(ResponseCode code) {
+        this.code = code;
+        return this;
+    }
+
+    public ResponseMessage setHeader(String field, String value) {
+        this.fields.put(field, value);
+        return this;
+    }
+
+    public ResponseMessage setBundle(Bundle bundle) {
+        this.bundle = bundle;
+        return this;
+    }
+
+    public ResponseMessage setBody(String body) {
+        this.body = body;
+        return this;
     }
 
     public Flowable<ByteBuffer> encode() {
@@ -58,9 +81,9 @@ public class RequestMessage {
             CborEncoder enc = CBOR.encoder()
                     .cbor_encode_int(LDCP_VERSION)
                     .cbor_encode_int(code.code)
-                    .cbor_encode_text_string(path)
                     .cbor_encode_map(fields);
 
+            // encode bundle if any
             if (bundle != null) {
                 enc.cbor_encode_boolean(true)
                         .merge(BundleV7Serializer.encode(bundle,
@@ -69,6 +92,7 @@ public class RequestMessage {
                 enc.cbor_encode_boolean(false);
             }
 
+            // encode body
             enc.cbor_encode_text_string(body);
 
             return enc.observe(1024);
@@ -77,50 +101,44 @@ public class RequestMessage {
         }
     }
 
-    public static CborParser getParser(Log logger,
-                                       ExtensionToolbox toolbox,
-                                       BlobFactory blobFactory) {
+    public static CborParser getParser(Log logger, ExtensionToolbox toolbox, BlobFactory factory) {
         return CBOR.parser()
                 .cbor_parse_int((__, ___, i) -> { /* version */
                 })
                 .cbor_parse_int((p, ___, i) -> {
-                    RequestMessage.RequestCode code = RequestMessage.RequestCode.fromId((int) i);
+                    ResponseMessage.ResponseCode code = ResponseMessage.ResponseCode.fromId((int) i);
                     if (code == null) {
                         throw new RxParserException("wrong request code");
                     }
-                    final RequestMessage message = new RequestMessage(code);
+                    final ResponseMessage message = new ResponseMessage(code);
                     p.setReg(0, message);
-                })
-                .cbor_parse_text_string_full((p, path) -> {
-                    RequestMessage req = p.getReg(0);
-                    req.path = path;
                 })
                 .cbor_parse_linear_map(
                         CBOR.TextStringItem::new,
                         CBOR.TextStringItem::new,
                         (p, ___, map) -> {
-                            RequestMessage req = p.getReg(0);
+                            ResponseMessage res = p.getReg(0);
                             for (CBOR.TextStringItem str : map.keySet()) {
-                                req.fields.put(str.value(), map.get(str).value());
+                                res.fields.put(str.value(), map.get(str).value());
                             }
                         })
                 .cbor_parse_boolean((p1, b) -> {
                     if (b) {
                         p1.insert_now(CBOR.parser().cbor_parse_custom_item(
-                                () -> new BundleV7Item(
-                                        logger,
-                                        toolbox,
-                                        blobFactory),
+                                () -> new BundleV7Item(logger, toolbox, factory),
                                 (p2, ___, item) -> {
-                                    RequestMessage req = p2.getReg(0);
-                                    req.bundle = item.bundle;
+                                    ResponseMessage res = p2.getReg(0);
+                                    res.bundle = item.bundle;
                                 }));
                     }
                 })
                 .cbor_parse_text_string_full(
                         (p, str) -> {
-                            RequestMessage req = p.getReg(0);
-                            req.body = str;
+                            ResponseMessage res = p.getReg(0);
+                            res.body = str;
                         });
+
     }
+
+
 }

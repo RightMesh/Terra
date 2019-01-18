@@ -15,7 +15,7 @@ jar {
     // META-INF/services to load module with ServiceLoader
     serviceLoader {
         serviceInterface 'io.left.rightmesh.libdtn.core.spi.aa.ApplicationAgentAdapterSPI'
-        serviceInterface 'io.left.rightmesh.module.aa.ldcp.AAModuleLDCP'
+        serviceInterface 'io.left.rightmesh.core.module.aa.ldcp.AAModuleLDCP'
     }
 
     // fat jar dependency, exclude those already in libdtn-core
@@ -40,17 +40,17 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     // protocol library
-    // note: we need to use compile keyword to add in the fatjar, implementation/api doesn't work
+    // note: we need to use compile keyword to add it in the fatjar, implementation/api doesn't work
     compile project(path: ':libldcp')
+
+    // libdtn client ldcp api path
+    compile project(path: ':libdtn-client-ldcp')
 
     // Bundle data
     implementation project(path: ':libdtn-common')
 
     // interface spi
     implementation project(path: ':libdtn-core-api')
-
-    // api to implement
-    implementation project(path: ':libdtn-client-ldcp')
 
     // RxJava library for reactive programming
     implementation 'io.reactivex.rxjava2:rxjava:2.2.3'

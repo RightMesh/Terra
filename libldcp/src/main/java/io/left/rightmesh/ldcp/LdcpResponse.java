@@ -1,8 +1,8 @@
-package io.left.rightmesh.module.aa.ldcp;
+package io.left.rightmesh.ldcp;
 
+import io.left.rightmesh.ldcp.messages.ResponseMessage;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.librxtcp.RxTCP;
-import io.left.rightmesh.module.aa.ldcp.messages.ResponseMessage;
 
 /**
  * @author Lucien Loiseau on 29/10/18.

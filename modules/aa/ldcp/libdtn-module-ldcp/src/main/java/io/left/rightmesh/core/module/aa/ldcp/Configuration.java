@@ -1,4 +1,4 @@
-package io.left.rightmesh.module.aa.ldcp;
+package io.left.rightmesh.core.module.aa.ldcp;
 
 /**
  * @author Lucien Loiseau on 26/10/18.

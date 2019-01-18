@@ -1,20 +1,5 @@
 package io.left.rightmesh.terra;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.Callable;
-
-import io.left.rightmesh.libdtn.common.data.eid.BaseEidFactory;
-import io.left.rightmesh.libdtn.common.data.eid.Eid;
-import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
-import io.left.rightmesh.libdtn.common.utils.Log;
-import io.left.rightmesh.libdtn.core.CoreConfiguration;
-import io.left.rightmesh.libdtn.core.DTNCore;
-import io.left.rightmesh.libdtn.core.api.CoreAPI;
-import picocli.CommandLine;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
-
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_AA_MODULES;
@@ -35,6 +20,21 @@ import static io.left.rightmesh.terra.Terra.StorageOption.BOTH;
 import static io.left.rightmesh.terra.Terra.StorageOption.NONE;
 import static io.left.rightmesh.terra.Terra.StorageOption.SIMPLE;
 import static io.left.rightmesh.terra.Terra.StorageOption.VOLATILE;
+
+import io.left.rightmesh.libdtn.common.data.eid.BaseEidFactory;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
+import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
+import io.left.rightmesh.libdtn.common.utils.Log;
+import io.left.rightmesh.libdtn.core.CoreConfiguration;
+import io.left.rightmesh.libdtn.core.DTNCore;
+import io.left.rightmesh.libdtn.core.api.CoreAPI;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.Callable;
 
 @Command(
         name = "terra", mixinStandardHelpOptions = true, version = "terra 1.0",
