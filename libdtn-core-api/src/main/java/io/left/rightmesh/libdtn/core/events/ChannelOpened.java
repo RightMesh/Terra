@@ -14,6 +14,6 @@ public class ChannelOpened implements DTNEvent {
 
     @Override
     public String toString() {
-        return "Channel opened: local="+channel.localEID().getEIDString()+" peer="+channel.channelEID().getEIDString();
+        return "Channel opened: local="+channel.localEID().getEidString()+" peer="+channel.channelEID().getEidString();
     }
 }

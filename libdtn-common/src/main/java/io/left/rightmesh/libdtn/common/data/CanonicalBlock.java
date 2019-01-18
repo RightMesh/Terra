@@ -19,15 +19,15 @@ public abstract class CanonicalBlock extends BlockHeader {
      * CanonicalBlock Factory.
      *
      * @param type of the block to create
-     * @return an instance of a block for the given type
+     * @return an instance of a block for the given PAYLOAD_BLOCK_TYPE
      */
     public static CanonicalBlock create(int type) {
         switch (type) {
-            case PayloadBlock.type:
+            case PayloadBlock.PAYLOAD_BLOCK_TYPE:
                 return new PayloadBlock();
-            case AgeBlock.type:
+            case AgeBlock.AGE_BLOCK_TYPE:
                 return new AgeBlock();
-            case ScopeControlHopLimitBlock.type:
+            case ScopeControlHopLimitBlock.SCOPE_CONTROL_HOP_LIMIT_BLOCK_TYPE:
                 return new ScopeControlHopLimitBlock();
             default:
                 return new UnknownExtensionBlock(type);

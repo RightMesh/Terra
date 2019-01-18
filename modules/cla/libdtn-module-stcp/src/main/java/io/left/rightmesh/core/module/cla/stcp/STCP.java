@@ -8,19 +8,14 @@ import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
-import io.left.rightmesh.libdtn.common.data.BlockFactory;
 import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BlockDataParserFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item;
-import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockDataSerializerFactory;
-import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
-import io.left.rightmesh.libdtn.common.data.eid.CLAEID;
-import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BundleV7Serializer;
-import io.left.rightmesh.libdtn.common.data.eid.CLAEIDParser;
-import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
-import io.left.rightmesh.libdtn.common.data.eid.UnknownCLAEID;
+import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.parser.BundleV7Item;
+import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BlockDataSerializerFactory;
+import io.left.rightmesh.libdtn.common.data.eid.BaseClaEid;
+import io.left.rightmesh.libdtn.common.data.eid.ClaEid;
+import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BundleV7Serializer;
+import io.left.rightmesh.libdtn.common.data.eid.ClaEidParser;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI;
@@ -38,7 +33,7 @@ import static io.left.rightmesh.core.module.cla.stcp.Configuration.CLA_STCP_LIST
 import static io.left.rightmesh.core.module.cla.stcp.Configuration.CLA_STCP_LISTENING_PORT_DEFAULT;
 
 /**
- * Simple TCP (CLASTCP) is a TCP Convergence Layer Adapter (BaseCLAEID) for the Bundle Protocol. it was
+ * Simple TCP (CLASTCP) is a TCP Convergence Layer Adapter (BaseClaEid) for the Bundle Protocol. it was
  * introduced by Scott Burleigh in 2018 as an alternative to the quite complicated TCPCLv4.
  * As per the author's own words:
  *
@@ -79,7 +74,7 @@ public class STCP implements ConvergenceLayerSPI {
     }
 
     @Override
-    public CLAEIDParser getCLAEIDParser() {
+    public ClaEidParser getCLAEIDParser() {
         return new CLASTCPParser();
     }
 
@@ -112,7 +107,7 @@ public class STCP implements ConvergenceLayerSPI {
                 });
     }
 
-    public Single<CLAChannelSPI> open(CLAEID peer) {
+    public Single<CLAChannelSPI> open(ClaEid peer) {
         if (peer instanceof CLASTCP) {
             return open(((CLASTCP) peer).host, ((CLASTCP) peer).port);
         } else {
@@ -123,8 +118,8 @@ public class STCP implements ConvergenceLayerSPI {
     public class Channel implements CLAChannelSPI {
 
         RxTCP.Connection tcpcon;
-        BaseCLAEID channelEID;
-        BaseCLAEID localEID;
+        BaseClaEid channelEID;
+        BaseClaEid localEID;
         boolean initiator;
 
         /**
@@ -137,7 +132,7 @@ public class STCP implements ConvergenceLayerSPI {
             this.initiator = initiator;
             channelEID = CLASTCP.unsafe(tcpcon.getRemoteHost(), tcpcon.getRemotePort());
             localEID = CLASTCP.unsafe(tcpcon.getLocalHost(), tcpcon.getLocalPort());
-            logger.i(TAG, "new CLASTCP CLA channel openned (initiated=" + initiator + "): " + channelEID.getEIDString());
+            logger.i(TAG, "new CLASTCP CLA channel openned (initiated=" + initiator + "): " + channelEID.getEidString());
         }
 
         @Override
@@ -153,12 +148,12 @@ public class STCP implements ConvergenceLayerSPI {
         }
 
         @Override
-        public BaseCLAEID channelEID() {
+        public BaseClaEid channelEID() {
             return channelEID;
         }
 
         @Override
-        public BaseCLAEID localEID() {
+        public BaseClaEid localEID() {
             return localEID;
         }
 
@@ -231,7 +226,7 @@ public class STCP implements ConvergenceLayerSPI {
 
         @Override
         public Observable<Bundle> recvBundle(ExtensionToolbox toolbox,
-                                             BLOBFactory blobFactory) {
+                                             BlobFactory blobFactory) {
             /*
             if (initiator) {
                 return Observable.create(s ->

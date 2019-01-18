@@ -13,11 +13,23 @@ buildscript {
     }
 }
 
+plugins {
+    id "checkstyle"
+}
+
 allprojects {
     repositories {
         mavenCentral()
         google()
         jcenter()
+    }
+
+    apply plugin: 'checkstyle'
+    checkstyle {
+        toolVersion = "8.7"
+        configFile = file("$rootProject.projectDir/config/checkstyle/checkstyle.xml")
+        //sourceSets = [] // To avoid automatically running during check/build
+        //maxWarnings = 0 // To fail on warnings, for use in lint checks.
     }
 }
 
@@ -35,7 +47,6 @@ task bundle(type: Exec) {
     dependsOn(':dtnping:distTar')
     dependsOn(':terra:distTar')
     commandLine './package.sh'
-
 }
 
 task clean(type: Delete) {

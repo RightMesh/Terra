@@ -1,8 +1,10 @@
 package io.left.rightmesh.libdtn.common.data.security;
 
-import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
 
 /**
+ * SecurityAssociation describes a cipher as described in BPSec.
+ *
  * @author Lucien Loiseau on 03/11/18.
  */
 public class SecurityAssociation {
@@ -17,10 +19,10 @@ public class SecurityAssociation {
 
     int securityAssociationId;
     int securityAssociationFlag;
-    EID[] eidScope;
+    Eid[] eidScope;
     int[] blockTypeScope;
     int cipherSuiteId;
-    EID securitySource;
+    Eid securitySource;
     SecurityAssociationParameter[] securityAssociationParameters;
 
 
@@ -30,7 +32,7 @@ public class SecurityAssociation {
      * @param flag to query
      * @return true if the flag is set, false otherwise
      */
-    public boolean getSAFlag(SecurityAssociationFlags flag) {
+    public boolean getSaFlag(SecurityAssociationFlags flag) {
         return ((securityAssociationFlag >> flag.ordinal()) & 0x1) == 0x1;
     }
 
@@ -40,7 +42,7 @@ public class SecurityAssociation {
      * @param flag  the flag to be set/clear
      * @param state true to set, false to clear
      */
-    public void setSAFlag(SecurityAssociationFlags flag, boolean state) {
+    public void setSaFlag(SecurityAssociationFlags flag, boolean state) {
         if (state) {
             securityAssociationFlag |= (1 << flag.ordinal());
         } else {
@@ -49,13 +51,13 @@ public class SecurityAssociation {
     }
 
     /**
-     * set the security source for this Security Block
+     * set the security source for this Security Block.
      *
-     * @param source EID of the security source
+     * @param source Eid of the security source
      */
-    public void setSecuritySource(EID source) {
+    public void setSecuritySource(Eid source) {
         this.securitySource = source;
-        setSAFlag(SecurityAssociationFlags.SECURITY_SOURCE_PRESENT, true);
+        setSaFlag(SecurityAssociationFlags.SECURITY_SOURCE_PRESENT, true);
     }
 
 }

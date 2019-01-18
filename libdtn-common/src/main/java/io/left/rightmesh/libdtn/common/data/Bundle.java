@@ -1,8 +1,8 @@
 package io.left.rightmesh.libdtn.common.data;
 
-import java.util.LinkedList;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
 
-import io.left.rightmesh.libdtn.common.data.eid.EID;
+import java.util.LinkedList;
 
 /**
  * The format of a bundle and its specifications are described in RFC 5050.
@@ -19,7 +19,7 @@ import io.left.rightmesh.libdtn.common.data.eid.EID;
 public class Bundle extends PrimaryBlock {
 
     public LinkedList<CanonicalBlock> blocks = new LinkedList<>();
-    private int block_number = 1;
+    private int blockNumber = 1;
 
     /**
      * Default Constructor.
@@ -42,7 +42,7 @@ public class Bundle extends PrimaryBlock {
      *
      * @param destination of the bundle
      */
-    public Bundle(EID destination) {
+    public Bundle(Eid destination) {
         super();
         this.setDestination(destination);
     }
@@ -52,17 +52,17 @@ public class Bundle extends PrimaryBlock {
      * Constructor: creates a Bundle out of a PrimaryBlock.
      *
      * @param destination of the bundle
-     * @param lifetime of the bundle
+     * @param lifetime    of the bundle
      */
-    public Bundle(EID destination, long lifetime) {
+    public Bundle(Eid destination, long lifetime) {
         super(destination, lifetime);
     }
 
     /**
-     * clear all extension of this bundle
+     * clear all extension from this bundle.
      */
     public void clearBundle() {
-        for(Block block : blocks) {
+        for (Block block : blocks) {
             block.clearBlock();
         }
         blocks.clear();
@@ -80,12 +80,12 @@ public class Bundle extends PrimaryBlock {
     /**
      * Get a specific block by its block number.
      *
-     * @param block_number of the block to query.
+     * @param blockNumber of the block to query.
      * @return a Block if found, null otherwise.
      */
-    public CanonicalBlock getBlock(int block_number) {
-        for(CanonicalBlock block : blocks) {
-            if(block.number == block_number) {
+    public CanonicalBlock getBlock(int blockNumber) {
+        for (CanonicalBlock block : blocks) {
+            if (block.number == blockNumber) {
                 return block;
             }
         }
@@ -95,19 +95,19 @@ public class Bundle extends PrimaryBlock {
     /**
      * Replace a specific block with another.
      *
-     * @param block_number of the block to query.
-     * @return a Block if found, null otherwise.
+     * @param blockNumber of the block to query.
+     * @param block replacement block.
      */
-    public void updateBlock(int block_number, CanonicalBlock block) {
+    public void updateBlock(int blockNumber, CanonicalBlock block) {
         int nb = -1;
         boolean found = false;
-        while(!found && (nb < blocks.size())) {
-            if(blocks.get(++nb).number == block_number) {
+        while (!found && (nb < blocks.size())) {
+            if (blocks.get(++nb).number == blockNumber) {
                 found = true;
             }
         }
 
-        if(found) {
+        if (found) {
             blocks.get(nb).clearBlock();
             blocks.set(nb, block);
         }
@@ -120,15 +120,15 @@ public class Bundle extends PrimaryBlock {
      */
     public void addBlock(CanonicalBlock block) {
         // there can be only one payload block
-        if ((getPayloadBlock() != null) && (block.type == PayloadBlock.type)) {
+        if ((getPayloadBlock() != null) && (block.type == PayloadBlock.PAYLOAD_BLOCK_TYPE)) {
             return;
         }
 
         // v7
-        if(block.type == PayloadBlock.type) {
+        if (block.type == PayloadBlock.PAYLOAD_BLOCK_TYPE) {
             block.number = 0;
         } else {
-            block.number = block_number++;
+            block.number = blockNumber++;
         }
 
         blocks.add(block);
@@ -151,7 +151,7 @@ public class Bundle extends PrimaryBlock {
      */
     public PayloadBlock getPayloadBlock() {
         for (CanonicalBlock block : blocks) {
-            if (block.type == PayloadBlock.type) {
+            if (block.type == PayloadBlock.PAYLOAD_BLOCK_TYPE) {
                 return (PayloadBlock) block;
             }
         }

@@ -4,14 +4,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.common.data.BundleID;
+import io.left.rightmesh.libdtn.common.data.BundleId;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
-import io.left.rightmesh.libdtn.common.data.blob.NullBLOB;
-import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.processor.ProcessingException;
-import io.left.rightmesh.libdtn.common.data.blob.BLOB;
-import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
-import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
+import io.left.rightmesh.libdtn.common.data.blob.BaseBlobFactory;
+import io.left.rightmesh.libdtn.common.data.blob.Blob;
+import io.left.rightmesh.libdtn.common.data.blob.NullBlob;
+import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BlockProcessorFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.processor.ProcessingException;
+import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.CoreComponent;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
@@ -33,8 +33,8 @@ public class Storage extends CoreComponent implements StorageAPI {
 
     private static final String TAG = "Storage";
 
-    private class CoreBLOBFactory extends BaseBLOBFactory {
-        CoreBLOBFactory() {
+    private class CoreBlobFactory extends BaseBlobFactory {
+        CoreBlobFactory() {
             enableVolatile(conf.<Integer>get(VOLATILE_BLOB_STORAGE_MAX_CAPACITY).value());
             enablePersistent("");
         }
@@ -50,11 +50,11 @@ public class Storage extends CoreComponent implements StorageAPI {
         }
 
         @Override
-        public BLOB createFileBLOB(int expectedSize) throws BLOBFactoryException {
+        public Blob createFileBlob(int expectedSize) throws BlobFactoryException {
             try {
                 return simpleStorage.createBLOB(expectedSize);
             } catch(StorageAPI.StorageException se) {
-                throw new BLOBFactoryException();
+                throw new BlobFactoryException();
             }
         }
     }
@@ -63,7 +63,7 @@ public class Storage extends CoreComponent implements StorageAPI {
     private CoreAPI core;
     private VolatileStorage volatileStorage;
     private SimpleStorage simpleStorage;
-    private CoreBLOBFactory blobFactory;
+    private CoreBlobFactory blobFactory;
     private BlockProcessorFactory processorFactory;
     private Log logger;
 
@@ -80,7 +80,7 @@ public class Storage extends CoreComponent implements StorageAPI {
         boolean has_blob;   /* true if payload is also a file */
         String blob_path;   /* path to the payload */
     }
-    Map<BundleID, IndexEntry> index = new ConcurrentHashMap<>();
+    Map<BundleId, IndexEntry> index = new ConcurrentHashMap<>();
 
     public Storage(CoreAPI core) {
         this.logger = core.getLogger();
@@ -89,7 +89,7 @@ public class Storage extends CoreComponent implements StorageAPI {
         this.processorFactory = core.getExtensionManager().getBlockProcessorFactory();
         volatileStorage = new VolatileStorage(this, core);
         simpleStorage = new SimpleStorage(this, core);
-        blobFactory = new CoreBLOBFactory();
+        blobFactory = new CoreBlobFactory();
     }
 
     @Override
@@ -113,9 +113,9 @@ public class Storage extends CoreComponent implements StorageAPI {
     }
 
     @Override
-    public BLOBFactory getBlobFactory() {
+    public BlobFactory getBlobFactory() {
         if(!isEnabled()) {
-            return NullBLOB::new;
+            return NullBlob::new;
         }
         return blobFactory;
     }
@@ -128,25 +128,25 @@ public class Storage extends CoreComponent implements StorageAPI {
         return simpleStorage;
     }
 
-    IndexEntry addEntry(BundleID bid, Bundle bundle) {
+    IndexEntry addEntry(BundleId bid, Bundle bundle) {
         IndexEntry entry = new IndexEntry(bundle);
         index.put(bid, entry);
         bundle.tag("in_storage");
         return entry;
     }
 
-    IndexEntry getEntryOrCreate(BundleID bid, Bundle bundle) {
+    IndexEntry getEntryOrCreate(BundleId bid, Bundle bundle) {
         if (contains(bid)) {
             return index.get(bid);
         } else {
-            logger.d(TAG, "new entry: " + bid.getBIDString());
+            logger.d(TAG, "new entry: " + bid.getBidString());
             return addEntry(bid, bundle);
         }
     }
 
-    void removeEntry(BundleID bid, IndexEntry entry) {
+    void removeEntry(BundleId bid, IndexEntry entry) {
         if (index.containsKey(bid)) {
-            logger.i(TAG, "deleting from storage: " + bid.getBIDString());
+            logger.i(TAG, "deleting from storage: " + bid.getBidString());
             index.remove(bid, entry);
         }
     }
@@ -161,7 +161,7 @@ public class Storage extends CoreComponent implements StorageAPI {
     }
 
     @Override
-    public boolean contains(BundleID bid) {
+    public boolean contains(BundleId bid) {
         if(!isEnabled()) {
             return false;
         }
@@ -175,7 +175,7 @@ public class Storage extends CoreComponent implements StorageAPI {
      * @param bid of the bundle
      * @return true if the Bundle is stored in volatile storage, false otherwise
      */
-    public boolean containsVolatile(BundleID bid) {
+    public boolean containsVolatile(BundleId bid) {
         return index.containsKey(bid) && index.get(bid).isVolatile;
     }
 
@@ -185,7 +185,7 @@ public class Storage extends CoreComponent implements StorageAPI {
      * @param bid of the bundle
      * @return true if the Bundle is stored in persistent storage, false otherwise
      */
-    public boolean containsPersistent(BundleID bid) {
+    public boolean containsPersistent(BundleId bid) {
         return index.containsKey(bid) && index.get(bid).isPersistent;
     }
 
@@ -224,7 +224,7 @@ public class Storage extends CoreComponent implements StorageAPI {
     }
 
     @Override
-    public Single<Bundle> getMeta(BundleID id) {
+    public Single<Bundle> getMeta(BundleId id) {
         if(!isEnabled()) {
             return Single.error(new ComponentIsDownException(getComponentName()));
         }
@@ -237,7 +237,7 @@ public class Storage extends CoreComponent implements StorageAPI {
     }
 
     @Override
-    public Single<Bundle> get(BundleID id) {
+    public Single<Bundle> get(BundleId id) {
         if(!isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
@@ -265,7 +265,7 @@ public class Storage extends CoreComponent implements StorageAPI {
     }
 
     @Override
-    public Completable remove(BundleID id) {
+    public Completable remove(BundleId id) {
         if(!isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
@@ -295,10 +295,10 @@ public class Storage extends CoreComponent implements StorageAPI {
         StringBuilder sb = new StringBuilder("current cache:\n");
         sb.append("--------------\n\n");
         index.forEach((bid, entry) -> {
-            String dest = entry.bundle.getDestination().getEIDString();
+            String dest = entry.bundle.getDestination().getEidString();
             String vol = entry.isVolatile ? "V" : "";
             String per = entry.isPersistent ? "P=" + entry.bundle_path : "";
-            sb.append(bid.getBIDString() + "  -  " + dest + "  -  " + vol + " " + per + "\n");
+            sb.append(bid.getBidString() + "  -  " + dest + "  -  " + vol + " " + per + "\n");
         });
         sb.append("\n");
         return sb.toString();

@@ -1,16 +1,20 @@
 package io.left.rightmesh.libdtn.common.data;
 
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import io.left.rightmesh.libdtn.common.data.eid.EID;
-
 /**
+ * StatusReport is a special class of {@link AdministrativeRecord} whose purpose is to provide
+ * status information report for a specific bundle such as delivery, forwarding, deletion or
+ * reception notification.
+ *
  * @author Lucien Loiseau on 28/09/18.
  */
 public class StatusReport extends AdministrativeRecord {
 
-    public static final int type = 1;
+    public static final int STATUS_REPORT_ADM_TYPE = 1;
 
     public enum StatusAssertion {
         ReportingNodeReceivedBundle,
@@ -35,7 +39,7 @@ public class StatusReport extends AdministrativeRecord {
 
     public Map<StatusAssertion, Long> statusInformation;
     public ReasonCode code;
-    public EID source;
+    public Eid source;
     public Long creationTimestamp;
 
     public boolean subjectBundleIsFragment = false;
@@ -43,12 +47,17 @@ public class StatusReport extends AdministrativeRecord {
     public Long appDataLength = null;
 
     public StatusReport() {
-        super(type);
+        super(STATUS_REPORT_ADM_TYPE);
         statusInformation = new HashMap<>();
     }
 
+    /**
+     * Constructor.
+     *
+     * @param code reason code
+     */
     public StatusReport(ReasonCode code) {
-        super(type);
+        super(STATUS_REPORT_ADM_TYPE);
         statusInformation = new HashMap<>();
         this.code = code;
     }

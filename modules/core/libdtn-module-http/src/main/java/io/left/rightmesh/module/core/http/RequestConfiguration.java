@@ -2,7 +2,7 @@ package io.left.rightmesh.module.core.http;
 
 import java.util.Set;
 
-import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.module.core.http.nettyrouter.Router;
 import io.netty.buffer.ByteBuf;
@@ -24,16 +24,16 @@ public class RequestConfiguration {
     }
 
     private Action confLocalEID = (params, req, res) -> {
-        final String localeid = core.getLocalEID().localEID().getEIDString();
+        final String localeid = core.getLocalEID().localEID().getEidString();
         return res.setStatus(HttpResponseStatus.OK).writeString(just("localeid=" + localeid));
     };
 
     private Action confAliases = (params, req, res) -> {
-        final Set<EID> aliases = core.getLocalEID().aliases();
+        final Set<Eid> aliases = core.getLocalEID().aliases();
 
         return res.setStatus(HttpResponseStatus.OK).writeString(
                 Observable.from(aliases)
-                        .flatMap((a) -> just(a.getEIDString() + "\n")));
+                        .flatMap((a) -> just(a.getEidString() + "\n")));
     };
 
     private Action dumpConfiguration = (params, req, res) ->

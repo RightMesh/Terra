@@ -14,13 +14,13 @@ import io.left.rightmesh.libdtn.common.data.BlockHeader;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
-import io.left.rightmesh.libdtn.common.data.blob.BLOB;
-import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
-import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
-import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
-import io.left.rightmesh.libdtn.common.data.eid.BaseEIDFactory;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
-import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
+import io.left.rightmesh.libdtn.common.data.blob.Blob;
+import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
+import io.left.rightmesh.libdtn.common.data.blob.BaseBlobFactory;
+import io.left.rightmesh.libdtn.common.data.blob.WritableBlob;
+import io.left.rightmesh.libdtn.common.data.eid.BaseEidFactory;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
+import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
 import io.reactivex.Completable;
 import picocli.CommandLine;
 
@@ -30,17 +30,17 @@ import picocli.CommandLine;
         description = {
                 "",
                 "dtncat is a simple Unix utility which reads and writes data across network " +
-                        "connections over DTN protocol. dtncat is an application agent and so " +
-                        "requires a full DTN node to connect to.",},
+                        "connections over DtnEid protocol. dtncat is an application agent and so " +
+                        "requires a full DtnEid node to connect to.",},
         optionListHeading = "@|bold %nOptions|@:%n",
         footer = {
                 ""})
 public class DTNcat implements Callable<Void> {
 
-    @CommandLine.Parameters(index = "0", description = "connect to the following DTN host.")
+    @CommandLine.Parameters(index = "0", description = "connect to the following DtnEid host.")
     private String dtnhost;
 
-    @CommandLine.Parameters(index = "1", description = "connect to the following DTN host.")
+    @CommandLine.Parameters(index = "1", description = "connect to the following DtnEid host.")
     private int dtnport;
 
     @CommandLine.Option(names = {"-l", "--listen"}, description = "register to a sink and wait for bundles.")
@@ -49,45 +49,45 @@ public class DTNcat implements Callable<Void> {
     @CommandLine.Option(names = {"-c", "--cookie"}, description = "register to a sink and wait for bundles.")
     private String cookie;
 
-    @CommandLine.Option(names = {"-R", "--report-to"}, description = "report-to Endpoint-ID (EID)")
+    @CommandLine.Option(names = {"-R", "--report-to"}, description = "report-to Endpoint-ID (Eid)")
     private String report;
 
     @CommandLine.Option(names = {"-L", "--lifetime"}, description = "Lifetime of the bundle")
     private int lifetime;
 
-    @CommandLine.Option(names = {"-D", "--destination"},  description = "Destination Endpoint-ID (EID)")
+    @CommandLine.Option(names = {"-D", "--destination"},  description = "Destination Endpoint-ID (Eid)")
     private String deid;
 
-    @CommandLine.Option(names = {"--crc-16"},  description = "use CRC-16")
+    @CommandLine.Option(names = {"--crc-16"},  description = "use Crc-16")
     private boolean crc16 = false;
 
-    @CommandLine.Option(names = {"--crc-32"},  description = "use CRC-32")
+    @CommandLine.Option(names = {"--crc-32"},  description = "use Crc-32")
     private boolean crc32 = false;
 
     private ApplicationAgent agent;
     private ExtensionToolbox toolbox;
-    private BLOBFactory factory;
+    private BlobFactory factory;
 
-    private Bundle createBundleFromSTDIN(Bundle bundle) throws IOException, WritableBLOB.BLOBOverflowException {
-        BLOB blob;
+    private Bundle createBundleFromSTDIN(Bundle bundle) throws IOException, WritableBlob.BlobOverflowException {
+        Blob blob;
         try {
-            blob = factory.createBLOB(-1);
-        } catch(BLOBFactory.BLOBFactoryException boe) {
-            throw new WritableBLOB.BLOBOverflowException();
+            blob = factory.createBlob(-1);
+        } catch(BlobFactory.BlobFactoryException boe) {
+            throw new WritableBlob.BlobOverflowException();
         }
-        WritableBLOB wb = blob.getWritableBLOB();
+        WritableBlob wb = blob.getWritableBlob();
         InputStream isr = new BufferedInputStream(System.in);
         wb.write(isr);
         wb.close();
         bundle.addBlock(new PayloadBlock(blob));
 
         if(crc16) {
-            bundle.setCrcType(PrimaryBlock.CRCFieldType.CRC_16);
-            bundle.getPayloadBlock().crcType = BlockHeader.CRCFieldType.CRC_16;
+            bundle.setCrcType(PrimaryBlock.CrcFieldType.CRC_16);
+            bundle.getPayloadBlock().crcType = BlockHeader.CrcFieldType.CRC_16;
         }
         if(crc32) {
-            bundle.setCrcType(PrimaryBlock.CRCFieldType.CRC_32);
-            bundle.getPayloadBlock().crcType = BlockHeader.CRCFieldType.CRC_32;
+            bundle.setCrcType(PrimaryBlock.CrcFieldType.CRC_32);
+            bundle.getPayloadBlock().crcType = BlockHeader.CrcFieldType.CRC_32;
         }
 
         return bundle;
@@ -142,10 +142,10 @@ public class DTNcat implements Callable<Void> {
             if(deid == null) {
                 throw new IOException("destination must be set");
             }
-            EID destination = new BaseEIDFactory().create(deid);
+            Eid destination = new BaseEidFactory().create(deid);
             Bundle bundle = new Bundle(destination, lifetime);
             if (report != null) {
-                EID reportTo = new BaseEIDFactory().create(report);
+                Eid reportTo = new BaseEidFactory().create(report);
                 bundle.setReportto(reportTo);
             }
 
@@ -167,7 +167,7 @@ public class DTNcat implements Callable<Void> {
                         System.err.println("error: " + e.getMessage());
                         System.exit(1);
                     });
-        } catch (IOException | WritableBLOB.BLOBOverflowException | EIDFormatException e) {
+        } catch (IOException | WritableBlob.BlobOverflowException | EidFormatException e) {
             /* ignore */
             System.err.println("error: "+e.getMessage());
         }
@@ -176,7 +176,7 @@ public class DTNcat implements Callable<Void> {
     @Override
     public Void call() throws Exception {
         toolbox = new BaseExtensionToolbox();
-        factory = new BaseBLOBFactory().enableVolatile(1000000).enablePersistent("./");
+        factory = new BaseBlobFactory().enableVolatile(1000000).enablePersistent("./");
         if(sink != null) {
             listenBundle();
         } else {

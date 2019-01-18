@@ -1,13 +1,13 @@
 package io.left.rightmesh.core.module.cla.stcp;
 
-import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
-import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
+import io.left.rightmesh.libdtn.common.data.eid.BaseClaEid;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
+import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
 
 /**
  * @author Lucien Loiseau on 17/10/18.
  */
-public class CLASTCP extends BaseCLAEID {
+public class CLASTCP extends BaseClaEid {
 
     String host;
     int port;
@@ -23,26 +23,26 @@ public class CLASTCP extends BaseCLAEID {
         return new CLASTCP(host, port);
     }
 
-    public CLASTCP(String host, int port, String sink) throws EIDFormatException {
+    public CLASTCP(String host, int port, String sink) throws EidFormatException {
         super("stcp", host+":"+port, sink);
         this.host = host;
         this.port = port;
     }
 
     @Override
-    public int IANA() {
+    public int ianaNumber() {
         return EID_CLA_IANA_VALUE;
     }
 
     @Override
-    public EID copy() {
+    public Eid copy() {
         CLASTCP ret = new CLASTCP(host, port);
-        ret.cl_sink = this.cl_sink;
+        ret.claSink = this.claSink;
         return ret;
     }
 
     @Override
-    public boolean matches(EID other) {
+    public boolean matches(Eid other) {
         if (other == null) {
             return false;
         }

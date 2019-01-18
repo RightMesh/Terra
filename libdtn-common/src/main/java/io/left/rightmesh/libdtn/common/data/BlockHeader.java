@@ -1,9 +1,5 @@
 package io.left.rightmesh.libdtn.common.data;
 
-import java.util.HashSet;
-
-import io.left.rightmesh.libdtn.common.data.eid.EID;
-
 /**
  * Generic block header object. It is the super class of {@link CanonicalBlock}.
  *
@@ -11,7 +7,7 @@ import io.left.rightmesh.libdtn.common.data.eid.EID;
  */
 public class BlockHeader extends Block {
 
-    public enum CRCFieldType {
+    public enum CrcFieldType {
         NO_CRC,
         CRC_16,
         CRC_32
@@ -45,22 +41,22 @@ public class BlockHeader extends Block {
     public int type;
     public int number;
     public long procV7flags = 0;
-    public CRCFieldType crcType;
+    public CrcFieldType crcType;
     public long dataSize;
 
 
     /**
-     * Constructor creates a BlockHeader of the following type.
+     * Constructor creates a BlockHeader of the following PAYLOAD_BLOCK_TYPE.
      *
      * @param type of the current BlockHeader
      */
     public BlockHeader(int type) {
         this.type = type;
-        crcType = CRCFieldType.NO_CRC;
+        crcType = CrcFieldType.NO_CRC;
     }
 
     /**
-     * BlockHeader copy constructor
+     * BlockHeader copy constructor.
      *
      * @param header to copy
      */

@@ -3,11 +3,11 @@ package io.left.rightmesh.aa.ldcp.api;
 import java.util.Set;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.common.data.BundleID;
+import io.left.rightmesh.libdtn.common.data.BundleId;
 import io.reactivex.Single;
 
 /**
- * ApplicationAgentAPI exposes the public API that an Application Agent can use to interact with the DTN
+ * ApplicationAgentAPI exposes the public ApiEid that an Application Agent can use to interact with the DtnEid
  * library over a TCP connection.
  *
  * @author Lucien Loiseau on 26/10/18.
@@ -104,7 +104,7 @@ public interface ApplicationAgentAPI {
      * @param cookie that was returned upon registration.
      * @return a list with all the bundle ids.
      */
-    Set<BundleID> checkInbox(String sink, String cookie) throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument;
+    Set<BundleId> checkInbox(String sink, String cookie) throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument;
 
     /**
      * get a specific bundle but does not mark it as delivered.
@@ -113,7 +113,7 @@ public interface ApplicationAgentAPI {
      * @param cookie that was returned upon registration.
      * @return number of data waiting to be retrieved
      */
-    Single<Bundle> get(String sink, String cookie, BundleID bundleID) throws RegistrarDisabled, SinkNotRegistered, BadCookie, BundleNotFound, NullArgument;
+    Single<Bundle> get(String sink, String cookie, BundleId bundleID) throws RegistrarDisabled, SinkNotRegistered, BadCookie, BundleNotFound, NullArgument;
 
     /**
      * fetch a specific bundle and mark it as delivered.
@@ -122,7 +122,7 @@ public interface ApplicationAgentAPI {
      * @param cookie that was returned upon registration.
      * @return number of data waiting to be retrieved
      */
-    Single<Bundle> fetch(String sink, String cookie, BundleID bundleID) throws RegistrarDisabled, SinkNotRegistered, BadCookie, BundleNotFound, NullArgument;
+    Single<Bundle> fetch(String sink, String cookie, BundleId bundleID) throws RegistrarDisabled, SinkNotRegistered, BadCookie, BundleNotFound, NullArgument;
 
     /**
      * Turn a registration active. If the registration was already active it does nothing,

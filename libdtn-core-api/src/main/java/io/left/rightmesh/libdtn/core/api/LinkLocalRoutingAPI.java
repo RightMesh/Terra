@@ -2,8 +2,8 @@ package io.left.rightmesh.libdtn.core.api;
 
 import java.util.Set;
 
-import io.left.rightmesh.libdtn.common.data.eid.CLAEID;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.eid.ClaEid;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI;
 import io.reactivex.Maybe;
 
@@ -13,19 +13,19 @@ import io.reactivex.Maybe;
 public interface LinkLocalRoutingAPI extends CoreComponentAPI {
 
     /**
-     * Check if an EID is a local link-local EID.
+     * Check if an Eid is a local link-local Eid.
      *
      * @param eid to check
-     * @return the BaseCLAEID-EID matching this EID, null otherwise.
+     * @return the BaseClaEid-Eid matching this Eid, null otherwise.
      */
-    CLAEID isEIDLinkLocal(EID eid);
+    ClaEid isEIDLinkLocal(Eid eid);
 
     /**
-     * Find an open channel whose CLA EID matches the EID
+     * Find an open channel whose CLA Eid matches the Eid
      * @param destination
      * @return Maybe a CLAChannelSPI
      */
-    Maybe<CLAChannelSPI> findCLA(EID destination);
+    Maybe<CLAChannelSPI> findCLA(Eid destination);
 
     /**
      * Dump all channel from the link local table

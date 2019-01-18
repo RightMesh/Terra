@@ -1,11 +1,13 @@
 package io.left.rightmesh.libdtn.common.data.security;
 
+import io.left.rightmesh.libdtn.common.data.ExtensionBlock;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
+
 import java.util.LinkedList;
 
-import io.left.rightmesh.libdtn.common.data.ExtensionBlock;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
-
 /**
+ * AbstractSecurityBlock is an ExtensionBlock for the bpsec extension.
+ *
  * @author Lucien Loiseau on 03/11/18.
  */
 public abstract class AbstractSecurityBlock extends ExtensionBlock implements SecurityBlock {
@@ -13,7 +15,7 @@ public abstract class AbstractSecurityBlock extends ExtensionBlock implements Se
     public LinkedList<Integer> securityTargets;
     public int cipherSuiteId;
     public int securityBlockFlag;
-    public EID securitySource;
+    public Eid securitySource;
     public LinkedList<LinkedList<SecurityResult>> securityResults;
 
 
@@ -31,7 +33,7 @@ public abstract class AbstractSecurityBlock extends ExtensionBlock implements Se
         securityTargets = new LinkedList<>();
         securityTargets.addAll(block.securityTargets);
         securityResults = new LinkedList<>();
-        for(LinkedList<SecurityResult> lsr : block.securityResults) {
+        for (LinkedList<SecurityResult> lsr : block.securityResults) {
             LinkedList lsrcopy = new LinkedList<>();
             lsrcopy.addAll(lsr);
             securityResults.add(lsrcopy);
@@ -39,12 +41,12 @@ public abstract class AbstractSecurityBlock extends ExtensionBlock implements Se
     }
 
     @Override
-    public EID getSecuritySource() {
+    public Eid getSecuritySource() {
         return securitySource;
     }
 
     @Override
-    public boolean getSAFlag(SecurityBlockFlags flag) {
+    public boolean getSaFlag(SecurityBlockFlags flag) {
         return ((securityBlockFlag >> flag.ordinal()) & 0x1) == 0x1;
     }
 
@@ -53,13 +55,18 @@ public abstract class AbstractSecurityBlock extends ExtensionBlock implements Se
         return cipherSuiteId;
     }
 
-    public void setSecuritySource(EID source) {
+    public void setSecuritySource(Eid source) {
         this.securitySource = source;
-        setSAFlag(SecurityBlockFlags.SECURITY_SOURCE_PRESENT, true);
+        setSaFlag(SecurityBlockFlags.SECURITY_SOURCE_PRESENT, true);
     }
 
+    /**
+     * add a target block for this SecurityBlock.
+     *
+     * @param number of the targeted block.
+     */
     public void addTarget(int number) {
-        if(!securityTargets.contains(number)) {
+        if (!securityTargets.contains(number)) {
             securityTargets.add(number);
         }
     }
@@ -70,7 +77,7 @@ public abstract class AbstractSecurityBlock extends ExtensionBlock implements Se
      * @param flag  the flag to be set/clear
      * @param state true to set, false to clear
      */
-    void setSAFlag(SecurityBlockFlags flag, boolean state) {
+    void setSaFlag(SecurityBlockFlags flag, boolean state) {
         if (state) {
             securityBlockFlag |= (1 << flag.ordinal());
         } else {

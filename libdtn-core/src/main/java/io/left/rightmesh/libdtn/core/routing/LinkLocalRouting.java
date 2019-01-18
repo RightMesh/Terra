@@ -1,6 +1,7 @@
 package io.left.rightmesh.libdtn.core.routing;
 
-import io.left.rightmesh.libdtn.common.data.eid.CLAEID;
+import io.left.rightmesh.libdtn.common.data.eid.ClaEid;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.left.rightmesh.libdtn.core.CoreComponent;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.api.LinkLocalRoutingAPI;
@@ -9,7 +10,6 @@ import io.left.rightmesh.libdtn.core.events.ChannelOpened;
 import io.left.rightmesh.libdtn.core.events.LinkLocalEntryDown;
 import io.left.rightmesh.libdtn.core.events.LinkLocalEntryUp;
 import io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Maybe;
@@ -20,7 +20,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * LinkLocalRouting is the link-local routing linkLocalTable. It contains all the linklocal EID
+ * LinkLocalRouting is the link-local routing linkLocalTable. It contains all the linklocal Eid
  * associated with their CLAChannelSPI.
  *
  * @author Lucien Loiseau on 24/08/18.
@@ -60,9 +60,9 @@ public class LinkLocalRouting extends CoreComponent implements LinkLocalRoutingA
                     .subscribe(
                     b -> {
                         core.getLogger().i(TAG, "channel "
-                                + channel.channelEID().getEIDString()
+                                + channel.channelEID().getEidString()
                                 + " received a new bundle from "
-                                + b.getSource().getEIDString());
+                                + b.getSource().getEidString());
                         b.tag("cla-origin-iid", channel.channelEID());
                         core.getBundleProcessor().bundleReception(b);
                     },
@@ -79,7 +79,7 @@ public class LinkLocalRouting extends CoreComponent implements LinkLocalRoutingA
     }
 
     @Override
-    public CLAEID isEIDLinkLocal(EID eid) {
+    public ClaEid isEIDLinkLocal(Eid eid) {
         if(!isEnabled()) {
             return null;
         }
@@ -93,7 +93,7 @@ public class LinkLocalRouting extends CoreComponent implements LinkLocalRoutingA
     }
 
     @Override
-    public Maybe<CLAChannelSPI> findCLA(EID destination) {
+    public Maybe<CLAChannelSPI> findCLA(Eid destination) {
         if(!isEnabled()) {
             return Maybe.error(new ComponentIsDownException(TAG));
         }

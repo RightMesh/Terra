@@ -1,14 +1,13 @@
 package io.left.rightmesh.libdtn.common.data;
 
-
-import io.left.rightmesh.libdtn.common.data.eid.API;
-import io.left.rightmesh.libdtn.common.data.eid.DTN;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.eid.ApiEid;
+import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
 
 /**
- * PrimaryBlock is the first block of a Bundle (RFC5050), there can be only one per Bundle.
+ * PrimaryBlock is the first block of a {@link Bundle}, there can be only one per Bundle.
  * The primary bundle block contains the basic information needed to route bundles
- * to their destinations. It is a super class of {@link Bundle}
+ * to their destinations.
  *
  * @author Lucien Loiseau on 20/07/18.
  */
@@ -20,7 +19,7 @@ public class PrimaryBlock extends Block {
         EXPEDITED
     }
 
-    public enum CRCFieldType {
+    public enum CrcFieldType {
         NO_CRC,
         CRC_16,
         CRC_32
@@ -76,44 +75,44 @@ public class PrimaryBlock extends Block {
         }
     }
 
-    /** BPv6 and BPv7 fields */
+    /* BPv6 and BPv7 fields */
     private int version;
     private long procV7Flags;
-    private CRCFieldType crcType;
-    private EID destination;
-    private EID source;
-    private EID reportto;
+    private CrcFieldType crcType;
+    private Eid destination;
+    private Eid source;
+    private Eid reportto;
     private long creationTimestamp;
     private long sequenceNumber;
     private long lifetime;
     private Long appDataLength = null;
     private Long fragmentOffset = null;
 
-    /** libdtn internal use **/
-    public BundleID bid;
+    /* libdtn internal use */
+    public BundleId bid;
 
     /**
      * Constructor: creates an empty PrimaryBlock, should probably not be used.
      */
     public PrimaryBlock() {
         this.procV7Flags = 0;
-        this.crcType = CRCFieldType.NO_CRC;
-        this.destination = DTN.NullEID();
-        this.source = API.me();
-        this.reportto = DTN.NullEID();
+        this.crcType = CrcFieldType.NO_CRC;
+        this.destination = DtnEid.nullEid();
+        this.source = ApiEid.me();
+        this.reportto = DtnEid.nullEid();
         this.creationTimestamp = System.currentTimeMillis();
         this.sequenceNumber = sequence_counter++;
-        bid = BundleID.create(this);
+        bid = BundleId.create(this);
         this.lifetime = 10000;
     }
 
     /**
      * Constructor: creates a PrimaryBlock with minimum information.
      *
-     * @param destination EID of this Bundle
+     * @param destination Eid of this Bundle
      * @param lifetime    of this Bundle
      */
-    public PrimaryBlock(EID destination, long lifetime) {
+    public PrimaryBlock(Eid destination, long lifetime) {
         this();
         this.lifetime = lifetime;
         this.destination = destination;
@@ -155,19 +154,19 @@ public class PrimaryBlock extends Block {
         return ((0b1L << flag.getOffset()) & this.procV7Flags) > 0;
     }
 
-    public CRCFieldType getCrcType() {
+    public CrcFieldType getCrcType() {
         return crcType;
     }
 
-    public EID getDestination() {
+    public Eid getDestination() {
         return destination;
     }
 
-    public EID getSource() {
+    public Eid getSource() {
         return source;
     }
 
-    public EID getReportto() {
+    public Eid getReportto() {
         return reportto;
     }
 
@@ -179,7 +178,7 @@ public class PrimaryBlock extends Block {
         return sequenceNumber;
     }
 
-    public BundleID getBid() {
+    public BundleId getBid() {
         return bid;
     }
 
@@ -217,31 +216,31 @@ public class PrimaryBlock extends Block {
         }
     }
 
-    public void setCrcType(CRCFieldType crcType) {
+    public void setCrcType(CrcFieldType crcType) {
         this.crcType = crcType;
     }
 
-    public void setDestination(EID destination) {
+    public void setDestination(Eid destination) {
         this.destination = destination;
     }
 
-    public void setSource(EID source) {
+    public void setSource(Eid source) {
         this.source = source;
-        this.bid = BundleID.create(this);
+        this.bid = BundleId.create(this);
     }
 
-    public void setReportto(EID reportto) {
+    public void setReportto(Eid reportto) {
         this.reportto = reportto;
     }
 
     public void setCreationTimestamp(long creationTimestamp) {
         this.creationTimestamp = creationTimestamp;
-        this.bid = BundleID.create(this);
+        this.bid = BundleId.create(this);
     }
 
     public void setSequenceNumber(long sequenceNumber) {
         this.sequenceNumber = sequenceNumber;
-        this.bid = BundleID.create(this);
+        this.bid = BundleId.create(this);
     }
 
     public void setLifetime(long lifetime) {

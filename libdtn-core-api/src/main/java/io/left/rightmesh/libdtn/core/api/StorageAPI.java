@@ -1,8 +1,8 @@
 package io.left.rightmesh.libdtn.core.api;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.common.data.BundleID;
-import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
+import io.left.rightmesh.libdtn.common.data.BundleId;
+import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
 import io.reactivex.Completable;
 import io.reactivex.Single;
 
@@ -48,7 +48,7 @@ public interface StorageAPI extends CoreComponentAPI {
         public BundleAlreadyExistsException() {
             super("bundle already exists");
         }
-        public BundleAlreadyExistsException(BundleID bid) {
+        public BundleAlreadyExistsException(BundleId bid) {
             super("bundle already exists: "+bid);
         }
     }
@@ -57,17 +57,17 @@ public interface StorageAPI extends CoreComponentAPI {
         public BundleNotFoundException() {
             super("bundle not found");
         }
-        public BundleNotFoundException(BundleID bid) {
+        public BundleNotFoundException(BundleId bid) {
             super("bundle not found: "+bid);
         }
     }
 
     /**
-     * Return a BLOB factory.
+     * Return a Blob factory.
      *
-     * @return BLOBFactory
+     * @return BlobFactory
      */
-    BLOBFactory getBlobFactory();
+    BlobFactory getBlobFactory();
 
     /**
      * count the total number of bundle indexed, whether in persistant or volatile storage
@@ -82,7 +82,7 @@ public interface StorageAPI extends CoreComponentAPI {
      * @param bid of the bundle
      * @return true if the Bundle is stored in volatile storage, false otherwise
      */
-    boolean contains(BundleID bid);
+    boolean contains(BundleId bid);
 
     /**
      * Try to store in volatile storage first and then copy in persistent storage whatever happens
@@ -104,7 +104,7 @@ public interface StorageAPI extends CoreComponentAPI {
      * @param id of the bundle to pull from storage
      * @return a Bundle, either a real one or a MetaBundle
      */
-    Single<Bundle> getMeta(BundleID id);
+    Single<Bundle> getMeta(BundleId id);
 
     /**
      * Pull a Bundle from StorageAPI. It will try to pull it from Volatile if it exists, or from
@@ -113,7 +113,7 @@ public interface StorageAPI extends CoreComponentAPI {
      * @param id of the bundle to pull from storage
      * @return a Single that completes if the Bundle was successfully pulled, onError otherwise
      */
-    Single<Bundle> get(BundleID id);
+    Single<Bundle> get(BundleId id);
 
     /**
      * Delete a Bundle from all storage and removes all event registration to it.
@@ -121,7 +121,7 @@ public interface StorageAPI extends CoreComponentAPI {
      * @param id of the bundle to delete
      * @return Completable
      */
-    Completable remove(BundleID id);
+    Completable remove(BundleId id);
 
     /**
      * Clear all bundles

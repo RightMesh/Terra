@@ -38,7 +38,7 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPO
 import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_STORAGE;
 
 /**
- * DTNCore registers all the DTN Core CoreComponent.
+ * DTNCore registers all the DtnEid Core CoreComponent.
  *
  * @author Lucien Loiseau on 24/08/18.
  */
@@ -97,7 +97,7 @@ public class DTNCore implements CoreAPI {
         storage.initComponent(getConf(), COMPONENT_ENABLE_STORAGE, getLogger());
         moduleLoader.initComponent(getConf(), COMPONENT_ENABLE_MODULE_LOADER, getLogger());
 
-        /* starts DTN core services (AA) */
+        /* starts DtnEid core services (AA) */
         ApplicationAgentSPI nullAA = new NullAA();
         nullAA.init(this.registrar, this.logger);
     }

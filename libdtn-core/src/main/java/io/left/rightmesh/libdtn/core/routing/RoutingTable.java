@@ -1,13 +1,12 @@
 package io.left.rightmesh.libdtn.core.routing;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.eid.BaseClaEid;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.left.rightmesh.libdtn.core.CoreComponent;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.api.RoutingTableAPI;
@@ -49,7 +48,7 @@ public class RoutingTable extends CoreComponent implements RoutingTableAPI {
         core.getConf().<Boolean>get(COMPONENT_ENABLE_STATIC_ROUTING).observe().subscribe(
                 b -> staticIsEnabled = b
         );
-        core.getConf().<Map<EID, EID>>get(STATIC_ROUTE_CONFIGURATION).observe().subscribe(
+        core.getConf().<Map<Eid, Eid>>get(STATIC_ROUTE_CONFIGURATION).observe().subscribe(
                 m -> {
                     staticRoutingTable.clear();
                     m.forEach((to, from) -> staticRoutingTable.add(new RoutingTableAPI.TableEntry(to, from)));
@@ -69,21 +68,21 @@ public class RoutingTable extends CoreComponent implements RoutingTableAPI {
         }
     }
 
-    private Observable<EID> lookupPotentialNextHops(EID destination) {
+    private Observable<Eid> lookupPotentialNextHops(Eid destination) {
         return Observable.concat(Observable.just(destination)
-                        .filter(eid -> destination instanceof BaseCLAEID),
+                        .filter(eid -> destination instanceof BaseClaEid),
                 compoundTableObservable()
                         .filter(entry -> destination.matches(entry.to))
                         .map(entry -> entry.next));
     }
 
-    private Observable<BaseCLAEID> resolveEID(EID destination, Observable<EID> path) {
+    private Observable<BaseClaEid> resolveEID(Eid destination, Observable<Eid> path) {
         return Observable.concat(
                 lookupPotentialNextHops(destination)
-                        .filter(eid -> eid instanceof BaseCLAEID)
-                        .map(eid -> (BaseCLAEID)eid),
+                        .filter(eid -> eid instanceof BaseClaEid)
+                        .map(eid -> (BaseClaEid)eid),
                 lookupPotentialNextHops(destination)
-                        .filter(eid -> !(eid instanceof BaseCLAEID))
+                        .filter(eid -> !(eid instanceof BaseClaEid))
                         .flatMap(candidate ->
                                 path.contains(candidate)
                                         .toObservable()
@@ -98,17 +97,17 @@ public class RoutingTable extends CoreComponent implements RoutingTableAPI {
     }
 
     @Override
-    public void addRoute(EID to, EID nextHop) {
+    public void addRoute(Eid to, Eid nextHop) {
         if(!isEnabled()) {
             return;
         }
 
-        core.getLogger().i(TAG, "adding a new Route: " + to.getEIDString() + " -> " + nextHop.getEIDString());
+        core.getLogger().i(TAG, "adding a new Route: " + to.getEidString() + " -> " + nextHop.getEidString());
         routingTable.add(new TableEntry(to, nextHop));
     }
 
     @Override
-    public Observable<BaseCLAEID> resolveEID(EID destination) {
+    public Observable<BaseClaEid> resolveEID(Eid destination) {
         if(!isEnabled()) {
             return Observable.error(new ComponentIsDownException(getComponentName()));
         }

@@ -43,7 +43,7 @@ public class Dispatch<I, O> implements RequestHandler<I, O> {
     }
 
     /**
-     * provides a lambda friendly API for defining a Route
+     * provides a lambda friendly ApiEid for defining a Route
      *
      * @param route
      */

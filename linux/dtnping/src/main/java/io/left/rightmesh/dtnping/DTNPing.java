@@ -15,14 +15,14 @@ import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
-import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
-import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
-import io.left.rightmesh.libdtn.common.data.blob.NullBLOB;
-import io.left.rightmesh.libdtn.common.data.eid.API;
-import io.left.rightmesh.libdtn.common.data.eid.BaseEIDFactory;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
-import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
-import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
+import io.left.rightmesh.libdtn.common.data.blob.BaseBlobFactory;
+import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
+import io.left.rightmesh.libdtn.common.data.blob.NullBlob;
+import io.left.rightmesh.libdtn.common.data.eid.ApiEid;
+import io.left.rightmesh.libdtn.common.data.eid.BaseEidFactory;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
+import io.left.rightmesh.libdtn.common.data.eid.EidFactory;
+import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
 import io.reactivex.Completable;
@@ -38,13 +38,13 @@ import picocli.CommandLine;
                 ""})
 public class DTNPing implements Callable<Void> {
 
-    @CommandLine.Parameters(index = "0", description = "connect to the following DTN host.")
+    @CommandLine.Parameters(index = "0", description = "connect to the following DtnEid host.")
     private String dtneid;
 
-    @CommandLine.Option(names = {"-t", "--connect-to"}, description = "connect to DTN daemon host IP address (defaut: localhost)")
+    @CommandLine.Option(names = {"-t", "--connect-to"}, description = "connect to DtnEid daemon host IP address (defaut: localhost)")
     private String dtnhost = "127.0.0.1";
 
-    @CommandLine.Option(names = {"-p", "--port"}, description = "connect to DTN daemon TCP port, (default: 4557)")
+    @CommandLine.Option(names = {"-p", "--port"}, description = "connect to DtnEid daemon TCP port, (default: 4557)")
     private int dtnport = 4557;
 
     @CommandLine.Option(names = {"-n", "--number"}, description = "number of echo request to send (default: indefinite)")
@@ -74,7 +74,7 @@ public class DTNPing implements Callable<Void> {
     private void receiveEchoResponse() {
         ActiveRegistrationCallback cb = (recvbundle) ->
                 Completable.create(s -> {
-                    String dest = recvbundle.getDestination().getEIDString();
+                    String dest = recvbundle.getDestination().getEidString();
 
                     final String regex = "(.*)/dtnping/([0-9a-fA-F]+)/([0-9]+)/([0-9]+)";
                     Pattern r = Pattern.compile(regex);
@@ -97,13 +97,13 @@ public class DTNPing implements Callable<Void> {
                     }
 
                     long timeElapsed = System.nanoTime() - timestamp;
-                    System.err.println("echo response from " + recvbundle.getSource().getEIDString() + " seq=" + seq + " time=" + round((timeElapsed/1000000.0f),2) +" ms");
+                    System.err.println("echo response from " + recvbundle.getSource().getEidString() + " seq=" + seq + " time=" + round((timeElapsed/1000000.0f),2) +" ms");
 
                     s.onComplete();
                 });
 
         ExtensionToolbox toolbox = new BaseExtensionToolbox();
-        BLOBFactory factory = new BaseBLOBFactory().enableVolatile(10000);
+        BlobFactory factory = new BaseBlobFactory().enableVolatile(10000);
         if (cookie == null) {
             agent = new ApplicationAgent(dtnhost, dtnport, toolbox, factory, logger);
             agent.register(sink, cb).subscribe(
@@ -127,7 +127,7 @@ public class DTNPing implements Callable<Void> {
 
     @Override
     public Void call() throws Exception {
-        EIDFactory eidFactory = new BaseEIDFactory();
+        EidFactory eidFactory = new BaseEidFactory();
 
         if (sessionID == null) {
             sessionID = Long.toHexString(Double.doubleToLongBits(Math.random()));
@@ -137,16 +137,16 @@ public class DTNPing implements Callable<Void> {
         logger = new SimpleLogger();
         switch(verbose.length) {
             case 0:
-                ((SimpleLogger) logger).set(Log.LOGLevel.WARN);
+                ((SimpleLogger) logger).set(Log.LogLevel.WARN);
                 break;
             case 1:
-                ((SimpleLogger) logger).set(Log.LOGLevel.INFO);
+                ((SimpleLogger) logger).set(Log.LogLevel.INFO);
                 break;
             case 2:
-                ((SimpleLogger) logger).set(Log.LOGLevel.DEBUG);
+                ((SimpleLogger) logger).set(Log.LogLevel.DEBUG);
                 break;
             default:
-                ((SimpleLogger) logger).set(Log.LOGLevel.VERBOSE);
+                ((SimpleLogger) logger).set(Log.LogLevel.VERBOSE);
         }
 
         /* register echo response */
@@ -161,11 +161,11 @@ public class DTNPing implements Callable<Void> {
         }
 
         /* create ping bundle */
-        EID destination = eidFactory.create(dtneid);
+        Eid destination = eidFactory.create(dtneid);
         Bundle bundle = new Bundle(destination);
-        bundle.setSource(API.me());
+        bundle.setSource(ApiEid.me());
         bundle.setV7Flag(PrimaryBlock.BundleV7Flags.DELIVERY_REPORT, true);
-        bundle.addBlock(new PayloadBlock(new NullBLOB()));
+        bundle.addBlock(new PayloadBlock(new NullBlob()));
 
         /* send periodic echo request */
         AtomicInteger seq = new AtomicInteger(0);
@@ -192,7 +192,7 @@ public class DTNPing implements Callable<Void> {
                             System.err.println("error: " + e.getMessage());
                             System.exit(1);
                         });
-            } catch (EIDFormatException efe) {
+            } catch (EidFormatException efe) {
                 /* ignore */
                 System.err.println("eid error: " + efe.getMessage());
                 System.exit(1);

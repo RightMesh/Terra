@@ -9,22 +9,22 @@ import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libdtn.common.data.BaseBlockFactory;
 import io.left.rightmesh.libdtn.common.data.BlockFactory;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
-import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BaseBlockDataParserFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BlockDataParserFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BaseBlockProcessorFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessor;
-import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BaseBlockDataSerializerFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockDataSerializerFactory;
-import io.left.rightmesh.libdtn.common.data.eid.BaseEIDFactory;
-import io.left.rightmesh.libdtn.common.data.eid.CLAEID;
-import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
-import io.left.rightmesh.libdtn.common.data.eid.CLAEIDParser;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
-import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
-import io.left.rightmesh.libdtn.common.data.eid.EIDSspParser;
-import io.left.rightmesh.libdtn.common.data.eid.UnknownCLAEID;
+import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.parser.BaseBlockDataParserFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.parser.BlockDataParserFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BaseBlockProcessorFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BlockProcessor;
+import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BlockProcessorFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BaseBlockDataSerializerFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BlockDataSerializerFactory;
+import io.left.rightmesh.libdtn.common.data.eid.BaseEidFactory;
+import io.left.rightmesh.libdtn.common.data.eid.ClaEid;
+import io.left.rightmesh.libdtn.common.data.eid.ClaEidParser;
+import io.left.rightmesh.libdtn.common.data.eid.EidFactory;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
+import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
+import io.left.rightmesh.libdtn.common.data.eid.EidSspParser;
+import io.left.rightmesh.libdtn.common.data.eid.UnknownClaEid;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.api.ExtensionManagerAPI;
 
@@ -41,10 +41,10 @@ public class ExtensionManager implements ExtensionManagerAPI {
     private Map<Integer, Supplier<CborEncoder>> extensionBlockSerializerFactory = new HashMap<>();
     private Map<Integer, Supplier<BlockProcessor>> extensionBlockProcessorFactory = new HashMap<>();
 
-    /* extension EID */
+    /* extension Eid */
     private Map<Integer, String> extensionEIDSchemeIana = new HashMap<>();
-    private Map<String, EIDSspParser> extensionEIDParser = new HashMap<>();
-    private Map<String, CLAEIDParser> extensionCLAEIDParser = new HashMap<>();
+    private Map<String, EidSspParser> extensionEIDParser = new HashMap<>();
+    private Map<String, ClaEidParser> extensionCLAEIDParser = new HashMap<>();
 
     private Log logger;
 
@@ -72,7 +72,7 @@ public class ExtensionManager implements ExtensionManagerAPI {
         BaseBlockDataParserFactory baseBlockParserFactory = new BaseBlockDataParserFactory();
 
         @Override
-        public CborParser create(int type, CanonicalBlock block, BLOBFactory blobFactory, EIDFactory eidFactory, Log logger) throws UnknownBlockTypeException {
+        public CborParser create(int type, CanonicalBlock block, BlobFactory blobFactory, EidFactory eidFactory, Log logger) throws UnknownBlockTypeException {
             try {
                 return baseBlockParserFactory.create(type, block, blobFactory, eidFactory, logger);
             } catch (UnknownBlockTypeException ubte) {
@@ -116,40 +116,40 @@ public class ExtensionManager implements ExtensionManagerAPI {
         }
     };
 
-    private EIDFactory eidFactory = new BaseEIDFactory(true) {
+    private EidFactory eidFactory = new BaseEidFactory(true) {
         @Override
-        public String getIANAScheme(int iana_scheme) throws UnknownIanaNumber {
+        public String getIanaScheme(int ianaScheme) throws UnknownIanaNumber {
             try {
-                return super.getIANAScheme(iana_scheme);
+                return super.getIanaScheme(ianaScheme);
             } catch (UnknownIanaNumber uin) {
-                if (extensionEIDSchemeIana.containsKey(iana_scheme)) {
-                    return extensionEIDSchemeIana.get(iana_scheme);
+                if (extensionEIDSchemeIana.containsKey(ianaScheme)) {
+                    return extensionEIDSchemeIana.get(ianaScheme);
                 }
             }
-            throw new UnknownIanaNumber(iana_scheme);
+            throw new UnknownIanaNumber(ianaScheme);
         }
 
         @Override
-        public EID create(String scheme, String ssp) throws EIDFormatException {
+        public Eid create(String scheme, String ssp) throws EidFormatException {
             try {
                 return super.create(scheme, ssp);
-            } catch (UnknownEIDScheme ues) {
+            } catch (UnknownEidScheme ues) {
                 if (extensionEIDParser.containsKey(scheme)) {
                     return extensionEIDParser.get(scheme).create(ssp);
                 }
             }
-            throw new UnknownEIDScheme(scheme);
+            throw new UnknownEidScheme(scheme);
         }
 
         @Override
-        public CLAEID create(String cl_name, String cl_ssp, String cl_sink) throws EIDFormatException {
+        public ClaEid create(String claName, String claSpecific, String claSink) throws EidFormatException {
             try {
-                return super.create(cl_name, cl_ssp, cl_sink);
-            } catch (UnknownCLName ucn) {
-                if (extensionCLAEIDParser.containsKey(cl_name)) {
-                    return extensionCLAEIDParser.get(cl_name).create(cl_name, cl_ssp, cl_sink);
+                return super.create(claName, claSpecific, claSink);
+            } catch (UnknownClaName ucn) {
+                if (extensionCLAEIDParser.containsKey(claName)) {
+                    return extensionCLAEIDParser.get(claName).create(claName, claSpecific, claSink);
                 } else {
-                    return new UnknownCLAEID(cl_name, cl_ssp, cl_sink);
+                    return new UnknownClaEid(claName, claSpecific, claSink);
                 }
             }
         }
@@ -171,7 +171,7 @@ public class ExtensionManager implements ExtensionManagerAPI {
     }
 
     @Override
-    public EIDFactory getEIDFactory() {
+    public EidFactory getEidFactory() {
         return eidFactory;
     }
 
@@ -196,17 +196,17 @@ public class ExtensionManager implements ExtensionManagerAPI {
     }
 
     @Override
-    public void addExtensionEID(int iana_number, String scheme, EIDSspParser parser) throws EIDSchemeAlreadyManaged {
+    public void addExtensionEID(int iana_number, String scheme, EidSspParser parser) throws EIDSchemeAlreadyManaged {
         if (extensionEIDParser.containsKey(scheme)) {
             throw new EIDSchemeAlreadyManaged();
         }
         extensionEIDSchemeIana.put(iana_number, scheme);
         extensionEIDParser.put(scheme, parser);
-        logger.v(TAG, "new EID added: " + scheme + " (iana = " + iana_number + ")");
+        logger.v(TAG, "new Eid added: " + scheme + " (iana = " + iana_number + ")");
     }
 
     @Override
-    public void addExtensionCLA(String cl_name, CLAEIDParser parser) throws CLNameAlreadyManaged {
+    public void addExtensionCLA(String cl_name, ClaEidParser parser) throws CLNameAlreadyManaged {
         if (extensionCLAEIDParser.containsKey(cl_name)) {
             throw new CLNameAlreadyManaged();
         }

@@ -1,11 +1,11 @@
 package io.left.rightmesh.libdtn.core.processor;
 
-import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BlockProcessorFactory;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.data.BlockHeader;
-import io.left.rightmesh.libdtn.common.data.bundleV7.processor.ProcessingException;
-import io.left.rightmesh.libdtn.common.data.eid.DTN;
+import io.left.rightmesh.libdtn.common.data.bundlev7.processor.ProcessingException;
+import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
 import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.utils.ClockUtil;
@@ -54,7 +54,7 @@ public class EarlyValidator {
         }
 
         if (!core.getConf().<Boolean>get(ConfigurationAPI.CoreEntry.ALLOW_RECEIVE_ANONYMOUS_BUNDLE).value()
-                && block.getSource().equals(DTN.NullEID())) {
+                && block.getSource().equals(DtnEid.nullEid())) {
             throw new RejectedException("forbidden anonnymous source");
         }
 

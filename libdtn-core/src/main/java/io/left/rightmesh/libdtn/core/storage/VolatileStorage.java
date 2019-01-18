@@ -1,8 +1,8 @@
 package io.left.rightmesh.libdtn.core.storage;
 
+import io.left.rightmesh.libdtn.common.data.BundleId;
 import io.left.rightmesh.libdtn.core.CoreComponent;
 import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.common.data.MetaBundle;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.api.StorageAPI.BundleAlreadyExistsException;
@@ -10,8 +10,6 @@ import io.left.rightmesh.libdtn.core.api.StorageAPI.StorageUnavailableException;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
-
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
 
 /**
  * VolatileStorage holds all the Bundle in memory.
@@ -74,7 +72,7 @@ public class VolatileStorage extends CoreComponent {
     }
 
 
-    private Completable remove(BundleID bid, Storage.IndexEntry entry) {
+    private Completable remove(BundleId bid, Storage.IndexEntry entry) {
         return Completable.create(s -> {
             if(!entry.isPersistent) {
                 metaStorage.removeEntry(bid, entry);
@@ -92,7 +90,7 @@ public class VolatileStorage extends CoreComponent {
      * @param bid bundle id of te bundle to remove
      * @return Completable that completes once the bundle is removed
      */
-    Completable remove(BundleID bid) {
+    Completable remove(BundleId bid) {
         Storage.IndexEntry entry = metaStorage.index.get(bid);
         return remove(bid, entry);
     }

@@ -14,14 +14,14 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import io.left.rightmesh.libdtn.common.data.BaseBlockFactory;
 import io.left.rightmesh.libdtn.common.data.BlockFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BaseBlockDataParserFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BlockDataParserFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BaseBlockProcessorFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BaseBlockDataSerializerFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockDataSerializerFactory;
-import io.left.rightmesh.libdtn.common.data.eid.BaseEIDFactory;
-import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.parser.BaseBlockDataParserFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.parser.BlockDataParserFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BaseBlockProcessorFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BlockProcessorFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BaseBlockDataSerializerFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BlockDataSerializerFactory;
+import io.left.rightmesh.libdtn.common.data.eid.BaseEidFactory;
+import io.left.rightmesh.libdtn.common.data.eid.EidFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
 import io.left.rightmesh.libdtn.core.CoreConfiguration;
@@ -85,8 +85,8 @@ public class SimpleStorageTest {
                     }
 
                     @Override
-                    public EIDFactory getEIDFactory() {
-                        return new BaseEIDFactory();
+                    public EidFactory getEidFactory() {
+                        return new BaseEidFactory();
                     }
 
                     @Override
@@ -171,7 +171,7 @@ public class SimpleStorageTest {
             for (Bundle bundle : pulledBundles) {
                 boolean found = false;
                 for (int j = 0; j < bundles.length; j++) {
-                    if (bundles[j].bid.getBIDString().equals(bundle.bid.getBIDString())) {
+                    if (bundles[j].bid.getBidString().equals(bundle.bid.getBidString())) {
                         found = true;
                         assertArrayEquals(
                                 flowableToByteArray(bundles[j].getPayloadBlock().data.observe()),

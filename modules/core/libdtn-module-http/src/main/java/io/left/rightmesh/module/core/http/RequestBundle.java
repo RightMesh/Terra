@@ -1,15 +1,14 @@
 package io.left.rightmesh.module.core.http;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.common.data.BundleID;
-import io.left.rightmesh.libdtn.common.data.blob.BLOB;
-import io.left.rightmesh.libdtn.common.data.blob.UntrackedByteBufferBLOB;
-import io.left.rightmesh.libdtn.common.data.eid.BaseEIDFactory;
-import io.left.rightmesh.libdtn.common.data.eid.DTN;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.BundleId;
+import io.left.rightmesh.libdtn.common.data.blob.Blob;
+import io.left.rightmesh.libdtn.common.data.blob.UntrackedByteBufferBlob;
+import io.left.rightmesh.libdtn.common.data.eid.BaseEidFactory;
+import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
-import io.left.rightmesh.libdtn.common.data.blob.ByteBufferBLOB;
-import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
+import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.module.core.http.nettyrouter.Router;
 import io.netty.buffer.ByteBuf;
@@ -46,11 +45,11 @@ public class RequestBundle {
         String param = params.get("*");
         if(param == null) {
             return res.setStatus(HttpResponseStatus.BAD_REQUEST)
-                    .writeStringAndFlushOnEach(just("incorrect BundleID"));
+                    .writeStringAndFlushOnEach(just("incorrect BundleId"));
         }
-        BundleID bid = BundleID.create(param);
+        BundleId bid = BundleId.create(param);
         if (core.getStorage().contains(bid)) {
-            core.getLogger().i(TAG, "delivering payload: "+bid.getBIDString());
+            core.getLogger().i(TAG, "delivering payload: "+bid.getBidString());
             return Observable.<Bundle>create(s ->
                     core.getStorage().get(bid).subscribe(
                             bundle -> {
@@ -71,7 +70,7 @@ public class RequestBundle {
      *
      * @return Flowable of ByteBuffer
      */
-    public Observable<ByteBuf> nettyBLOB(BLOB blob) {
+    public Observable<ByteBuf> nettyBLOB(Blob blob) {
         return Observable.create(s -> {
             blob.observe().toObservable().subscribe(
                     byteBuffer -> s.onNext(Unpooled.wrappedBuffer(byteBuffer)),
@@ -87,9 +86,9 @@ public class RequestBundle {
      */
     private Action aaActionFetch = (params, req, res) -> {
         String param = params.get("*");
-        BundleID bid = BundleID.create(param);
+        BundleId bid = BundleId.create(param);
         if (core.getStorage().contains(bid)) {
-            core.getLogger().i(TAG, "delivering payload: "+bid.getBIDString());
+            core.getLogger().i(TAG, "delivering payload: "+bid.getBidString());
             return Observable.<Bundle>create(s ->
                     core.getStorage().get(bid).subscribe(
                             bundle -> {
@@ -114,9 +113,9 @@ public class RequestBundle {
 
         try {
             final Bundle bundle = createBundleSkeletonFromHTTPHeaders(destEID, reportToEID, lifetime);
-            final UntrackedByteBufferBLOB blob = new UntrackedByteBufferBLOB((int) req.getContentLength());
+            final UntrackedByteBufferBlob blob = new UntrackedByteBufferBlob((int) req.getContentLength());
             return req.getContent()
-                    .reduce(blob.getWritableBLOB(), (wblob, buff) -> {
+                    .reduce(blob.getWritableBlob(), (wblob, buff) -> {
                         try {
                             wblob.write(buff.nioBuffer());
                         } catch (Exception e) {
@@ -131,7 +130,7 @@ public class RequestBundle {
                         core.getBundleProcessor().bundleDispatching(bundle);
                         return res;
                     });
-        } catch (BadRequestException | EIDFormatException | NumberFormatException bre) {
+        } catch (BadRequestException | EidFormatException | NumberFormatException bre) {
             core.getLogger().i(TAG, req.getDecodedPath() + " - bad request: " + bre.getMessage());
             return res.setStatus(HttpResponseStatus.BAD_REQUEST);
         }
@@ -140,20 +139,20 @@ public class RequestBundle {
     private Bundle createBundleSkeletonFromHTTPHeaders(String destinationstr,
                                                       String reporttostr,
                                                       String lifetimestr)
-            throws BadRequestException, EIDFormatException, NumberFormatException {
-        EID destination;
-        EID reportTo;
+            throws BadRequestException, EidFormatException, NumberFormatException {
+        Eid destination;
+        Eid reportTo;
         long lifetime;
 
         if (destinationstr == null) {
             throw new BadRequestException("DestinationEID is null");
         }
 
-        destination = new BaseEIDFactory().create(destinationstr);
+        destination = new BaseEidFactory().create(destinationstr);
         if (reporttostr == null) {
-            reportTo = DTN.NullEID();
+            reportTo = DtnEid.nullEid();
         } else {
-            reportTo = new BaseEIDFactory().create(reporttostr);
+            reportTo = new BaseEidFactory().create(reporttostr);
         }
 
         if (lifetimestr == null) {

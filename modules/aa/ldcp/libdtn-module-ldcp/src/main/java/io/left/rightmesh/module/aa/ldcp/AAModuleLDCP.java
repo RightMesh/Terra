@@ -2,8 +2,8 @@ package io.left.rightmesh.module.aa.ldcp;
 
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
-import io.left.rightmesh.libdtn.common.data.blob.NullBLOB;
+import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
+import io.left.rightmesh.libdtn.common.data.blob.NullBlob;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.DeliveryAPI;
@@ -51,7 +51,7 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
     }
 
     @Override
-    public void init(RegistrarAPI api, ConfigurationAPI conf, Log logger, ExtensionToolbox toolbox, BLOBFactory factory) {
+    public void init(RegistrarAPI api, ConfigurationAPI conf, Log logger, ExtensionToolbox toolbox, BlobFactory factory) {
         int port = conf.getModuleConf(getModuleName(), LDCP_TCP_PORT, LDCP_TCP_PORT_DEFAULT).value();
         this.registrar = api;
         this.logger = logger;
@@ -81,7 +81,7 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
         return (bundle) ->
                 LdcpRequest.POST(DELIVER)
                         .setBundle(bundle)
-                        .send(host, port, toolbox, NullBLOB::new, logger)
+                        .send(host, port, toolbox, NullBlob::new, logger)
                         .doOnError(d -> {
                             try {
                                 /* connection fail - remote is no longer active */

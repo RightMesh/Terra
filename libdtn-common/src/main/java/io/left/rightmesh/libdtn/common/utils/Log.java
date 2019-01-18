@@ -1,13 +1,13 @@
 package io.left.rightmesh.libdtn.common.utils;
 
 /**
- * Simple Logger
+ * Simple Logger.
  *
  * @author Lucien Loiseau on 15/09/18.
  */
 public interface Log {
 
-    enum LOGLevel {
+    enum LogLevel {
         VERBOSE("VERBOSE"),
         DEBUG("DEBUG"),
         INFO("INFO"),
@@ -16,7 +16,7 @@ public interface Log {
 
         private String level;
 
-        LOGLevel(String level) {
+        LogLevel(String level) {
             this.level = level;
         }
 
@@ -26,6 +26,7 @@ public interface Log {
         }
     }
 
+    // CHECKSTYLE IGNORE MethodName
     void v(String tag, String msg);
 
     void d(String tag, String msg);
@@ -35,4 +36,5 @@ public interface Log {
     void w(String tag, String msg);
 
     void e(String tag, String msg);
+    //CHECKSTYLE END IGNORE
 }

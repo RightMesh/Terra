@@ -7,12 +7,12 @@ import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
-import io.left.rightmesh.libdtn.common.data.blob.UntrackedByteBufferBLOB;
-import io.left.rightmesh.libdtn.common.data.blob.WritableBLOB;
-import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
-import io.left.rightmesh.libdtn.common.data.eid.DTN;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
-import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
+import io.left.rightmesh.libdtn.common.data.blob.UntrackedByteBufferBlob;
+import io.left.rightmesh.libdtn.common.data.blob.WritableBlob;
+import io.left.rightmesh.libdtn.common.data.eid.BaseClaEid;
+import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
+import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
 import io.left.rightmesh.libdtn.core.events.LinkLocalEntryUp;
@@ -23,10 +23,10 @@ import io.reactivex.Completable;
 
 /**
  * <p>CoreHelloModule is a Core Module that reacts to new peer event by sending hello message
- * containing the local EID of the current node. </p>
+ * containing the local Eid of the current node. </p>
  *
  * <p>When an Hello message is received by a peer, it updates the Routing Table and add an entry
- * matching the received peer local EID with the CLAEID this hello message was received from.</p>
+ * matching the received peer local Eid with the ClaEid this hello message was received from.</p>
  *
  * @author Lucien Loiseau on 13/11/18.
  */
@@ -52,9 +52,9 @@ public class CoreModuleHello implements CoreModuleSPI {
     }
 
     private void prepareHelloBundle() {
-        HelloMessage hello = new HelloMessage(coreAPI.getExtensionManager().getEIDFactory());
+        HelloMessage hello = new HelloMessage(coreAPI.getExtensionManager().getEidFactory());
 
-        /* add node local EID */
+        /* add node local Eid */
         hello.eids.add(coreAPI.getLocalEID().localEID());
 
         /* add aliases */
@@ -66,16 +66,16 @@ public class CoreModuleHello implements CoreModuleSPI {
                 .reduce(0, (a, b) -> a + b)
                 .blockingGet();
 
-        /* serialize the hello message into a BLOB (for the payload) */
-        UntrackedByteBufferBLOB blobHello = new UntrackedByteBufferBLOB((int) size);
-        final WritableBLOB wblob = blobHello.getWritableBLOB();
+        /* serialize the hello message into a Blob (for the payload) */
+        UntrackedByteBufferBlob blobHello = new UntrackedByteBufferBlob((int) size);
+        final WritableBlob wblob = blobHello.getWritableBlob();
         hello.encode().observe()
                 .map(wblob::write)
                 .doOnComplete(wblob::close)
                 .subscribe();
 
         /* create Hello Bundle Skeleton */
-        helloBundle = new Bundle(DTN.NullEID());
+        helloBundle = new Bundle(DtnEid.nullEid());
         helloBundle.addBlock(new PayloadBlock(blobHello));
     }
 
@@ -89,14 +89,14 @@ public class CoreModuleHello implements CoreModuleSPI {
             api.getRegistrar().register("/hello/", (bundle) -> {
                 if (bundle.getTagAttachment("cla-origin-iid") != null) {
                     coreAPI.getLogger().i(TAG, "received hello message from: " +
-                            bundle.getSource().getEIDString() +
-                            " on BaseCLAEID: " +
-                            bundle.<EID>getTagAttachment("cla-origin-iid").getEIDString());
+                            bundle.getSource().getEidString() +
+                            " on BaseClaEid: " +
+                            bundle.<Eid>getTagAttachment("cla-origin-iid").getEidString());
                     CborParser p = CBOR.parser()
                             .cbor_parse_custom_item(
-                                    () -> new HelloMessage(api.getExtensionManager().getEIDFactory()),
+                                    () -> new HelloMessage(api.getExtensionManager().getEidFactory()),
                                     (__, ___, item) -> {
-                                        for (EID eid : item.eids) {
+                                        for (Eid eid : item.eids) {
                                             api.getRoutingTable().addRoute(
                                                     eid,
                                                     bundle.getTagAttachment("cla-origin-iid"));
@@ -115,8 +115,8 @@ public class CoreModuleHello implements CoreModuleSPI {
                             });
                 } else {
                     coreAPI.getLogger().i(TAG, "received hello message from: " +
-                            bundle.getSource().getEIDString() +
-                            " but the BaseCLAEID wasn't tagged - ignoring");
+                            bundle.getSource().getEidString() +
+                            " but the BaseClaEid wasn't tagged - ignoring");
                 }
 
                 return Completable.complete();
@@ -135,8 +135,8 @@ public class CoreModuleHello implements CoreModuleSPI {
     @Subscribe
     public void onEvent(LinkLocalEntryUp up) {
         try {
-            BaseCLAEID eid = ((BaseCLAEID) up.channel.channelEID().copy()).setPath("/hello/");
-            coreAPI.getLogger().i(TAG, "sending hello message to: " + eid.getEIDString());
+            BaseClaEid eid = ((BaseClaEid) up.channel.channelEID().copy()).setPath("/hello/");
+            coreAPI.getLogger().i(TAG, "sending hello message to: " + eid.getEidString());
             helloBundle.setDestination(eid);
             up.channel.sendBundle(helloBundle,
                     coreAPI.getExtensionManager().getBlockDataSerializerFactory()
@@ -144,10 +144,10 @@ public class CoreModuleHello implements CoreModuleSPI {
                     i -> {/* ignore */},
                     e -> coreAPI.getLogger().i(
                             TAG, "fail to send hello message: " +
-                                    eid.getEIDString()),
+                                    eid.getEidString()),
                     () -> {/* ignore */}
             );
-        } catch (EIDFormatException efe) {
+        } catch (EidFormatException efe) {
             coreAPI.getLogger().e(TAG, "Cannot append /hello/ to IID: " + up.channel.channelEID() + " reason=" + efe.getMessage());
         }
     }

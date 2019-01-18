@@ -11,7 +11,7 @@ public interface ConfigurationAPI {
     /**
      * An observable configuration entry.
      *
-     * @param <T> type of entry
+     * @param <T> PAYLOAD_BLOCK_TYPE of entry
      */
     interface EntryInterface<T> {
         /**
@@ -55,8 +55,8 @@ public interface ConfigurationAPI {
     /**
      * An observable configuration entry holding a Map.
      *
-     * @param <T> type of Map key0
-     * @param <U> type of Map value
+     * @param <T> PAYLOAD_BLOCK_TYPE of Map key0
+     * @param <U> PAYLOAD_BLOCK_TYPE of Map value
      */
     interface EntryMapInterface<T,U> extends EntryInterface {
         /**
@@ -132,7 +132,7 @@ public interface ConfigurationAPI {
      * get a core configuration entry
      *
      * @param key of the entry to query
-     * @param <T> type of the entry
+     * @param <T> PAYLOAD_BLOCK_TYPE of the entry
      * @return the queried configuration entry.
      */
     <T> EntryInterface<T> get(CoreEntry key);
@@ -152,7 +152,7 @@ public interface ConfigurationAPI {
      * @param moduleName name of the module
      * @param entry name of the entry
      * @param default_value set the default value if not set already
-     * @param <T> type of the entry
+     * @param <T> PAYLOAD_BLOCK_TYPE of the entry
      * @return queried entry.
      */
     <T> EntryInterface<T> getModuleConf(String moduleName, String entry, T default_value);

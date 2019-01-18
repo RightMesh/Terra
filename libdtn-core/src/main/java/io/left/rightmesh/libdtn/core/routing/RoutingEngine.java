@@ -1,12 +1,12 @@
 package io.left.rightmesh.libdtn.core.routing;
 
-import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
+import io.left.rightmesh.libdtn.common.data.BundleId;
+import io.left.rightmesh.libdtn.common.data.eid.BaseClaEid;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.api.RoutingAPI;
 import io.left.rightmesh.libdtn.core.storage.EventListener;
 import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.common.data.BundleID;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.left.rightmesh.libdtn.core.events.LinkLocalEntryUp;
 import io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI;
 import io.left.rightmesh.librxbus.Subscribe;
@@ -44,40 +44,40 @@ public class RoutingEngine implements RoutingAPI {
         @Subscribe
         public void onEvent(LinkLocalEntryUp event) {
             /* deliver every bundle of interest */
-            core.getLogger().i(TAG, "step 1: pull bundleOfInterest key=" + event.channel.channelEID().getCLASpecificPart());
-            getBundlesOfInterest(event.channel.channelEID().getCLASpecificPart()).subscribe(
+            core.getLogger().i(TAG, "step 1: pull bundleOfInterest key=" + event.channel.channelEID().getClaSpecificPart());
+            getBundlesOfInterest(event.channel.channelEID().getClaSpecificPart()).subscribe(
                     bundleID -> {
                         /* retrieve the bundle */
-                        core.getLogger().v(TAG, "step 1.1: pull from storage " + bundleID.getBIDString());
+                        core.getLogger().v(TAG, "step 1.1: pull from storage " + bundleID.getBidString());
                         core.getStorage().get(bundleID).subscribe(
                                 /* deliver it */
                                 bundle -> {
-                                    core.getLogger().v(TAG, "step 1.2-1: forward bundle " + bundleID.getBIDString());
+                                    core.getLogger().v(TAG, "step 1.2-1: forward bundle " + bundleID.getBidString());
                                     event.channel.sendBundle(
                                             bundle,
                                             core.getExtensionManager().getBlockDataSerializerFactory()
                                     ).ignoreElements().subscribe(
                                             () -> {
-                                                core.getLogger().v(TAG, "step 1.3: forward successful, resume processing " + bundleID.getBIDString());
+                                                core.getLogger().v(TAG, "step 1.3: forward successful, resume processing " + bundleID.getBidString());
                                                 listener.unwatch(bundle.bid);
                                                 core.getBundleProcessor()
                                                         .bundleForwardingSuccessful(bundle);
                                             },
                                             e -> {
-                                                core.getLogger().v(TAG, "step 1.3: forward failed, resume processing " + bundleID.getBIDString());
+                                                core.getLogger().v(TAG, "step 1.3: forward failed, resume processing " + bundleID.getBidString());
                                                 bundle.tag("reason_code", TransmissionCancelled);
                                                 core.getBundleProcessor()
                                                         .bundleForwardingContraindicated(bundle);
                                             });
                                 },
                                 e -> {
-                                    core.getLogger().w(TAG, "step 1.2-2: failed to pull bundle from storage " + bundleID.getBIDString());
+                                    core.getLogger().w(TAG, "step 1.2-2: failed to pull bundle from storage " + bundleID.getBidString());
                                 });
                     });
         }
     }
 
-    public Observable<CLAChannelSPI> findOpenedChannelTowards(EID destination) {
+    public Observable<CLAChannelSPI> findOpenedChannelTowards(Eid destination) {
         return Observable.concat(
                 core.getLinkLocalRouting().findCLA(destination)
                         .toObservable(),
@@ -91,13 +91,13 @@ public class RoutingEngine implements RoutingAPI {
     public void forwardLater(final Bundle bundle) {
         /* register a listener that will listen for ChannelOpened event
          * and pull the bundle from storage if there is a match */
-        final BundleID bid = bundle.bid;
-        final EID destination = bundle.getDestination();
-        Observable<BaseCLAEID> potentialCLAs = core.getRoutingTable().resolveEID(destination);
+        final BundleId bid = bundle.bid;
+        final Eid destination = bundle.getDestination();
+        Observable<BaseClaEid> potentialCLAs = core.getRoutingTable().resolveEID(destination);
 
-        // watch bundle for all potential BaseCLAEID
+        // watch bundle for all potential BaseClaEid
         potentialCLAs
-                .map(claeid -> listener.watch(claeid.getCLASpecificPart(), bid))
+                .map(claeid -> listener.watch(claeid.getClaSpecificPart(), bid))
                 .subscribe();
 
         // then try to force an opportunity
@@ -127,8 +127,8 @@ public class RoutingEngine implements RoutingAPI {
         StringBuilder sb = new StringBuilder("Link-Local Table:\n");
         sb.append("--------------\n\n");
         core.getLinkLocalRouting().dumpTable().forEach((entry) -> {
-            String remote = entry.channelEID().getEIDString();
-            String local = entry.localEID().getEIDString();
+            String remote = entry.channelEID().getEidString();
+            String local = entry.localEID().getEidString();
             String mode;
             if (entry.getMode().equals(CLAChannelSPI.ChannelMode.InUnidirectional)) {
                 mode = " <-- ";
@@ -150,7 +150,7 @@ public class RoutingEngine implements RoutingAPI {
         sb.append("--------------\n\n");
         core.getRoutingTable().dumpTable().forEach(
                 tableEntry -> {
-                    sb.append(tableEntry.getTo().getEIDString() + " --> " + tableEntry.getNext().getEIDString() + "\n");
+                    sb.append(tableEntry.getTo().getEidString() + " --> " + tableEntry.getNext().getEidString() + "\n");
                 }
         );
         sb.append("\n");

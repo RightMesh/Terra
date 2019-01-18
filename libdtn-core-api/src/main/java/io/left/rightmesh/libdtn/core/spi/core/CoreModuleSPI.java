@@ -14,7 +14,7 @@ public interface CoreModuleSPI  extends ModuleSPI {
     /**
      * Initialize this module.
      *
-     * @param api core API
+     * @param api core ApiEid
      */
     void init(CoreAPI api);
 

@@ -1,44 +1,43 @@
 package io.left.rightmesh.libdtn.common.data;
 
-import java.nio.ByteBuffer;
+import io.left.rightmesh.libdtn.common.data.blob.Blob;
+import io.left.rightmesh.libdtn.common.data.blob.UntrackedByteBufferBlob;
 
-import io.left.rightmesh.libdtn.common.data.blob.BLOB;
-import io.left.rightmesh.libdtn.common.data.blob.ByteBufferBLOB;
-import io.left.rightmesh.libdtn.common.data.blob.UntrackedByteBufferBLOB;
+import java.nio.ByteBuffer;
 
 /**
  * PayloadBlock is a CanonicalBlock that holds the payload of the Bundle.
- * It inherits the class {@link BlockBLOB}.
+ * It inherits the class {@link BlockBlob}.
  *
  * @author Lucien Loiseau on 20/07/18.
  */
-public class PayloadBlock extends BlockBLOB {
+public class PayloadBlock extends BlockBlob {
 
-    public static final int type = 1;
+    public static final int PAYLOAD_BLOCK_TYPE = 1;
 
     /**
      * Constructor: creates an empty PayloadBlock.
      */
     public PayloadBlock() {
-        super(type);
+        super(PAYLOAD_BLOCK_TYPE);
     }
 
     /**
-     * Constructor: creates a PayloadBlock with a BLOB as data.
+     * Constructor: creates a PayloadBlock with a Blob as data.
      *
      * @param data payload
      */
-    public PayloadBlock(BLOB data) {
-        super(type, data);
+    public PayloadBlock(Blob data) {
+        super(PAYLOAD_BLOCK_TYPE, data);
     }
 
     /**
-     * Constructor: creates a PayloadBlock with a BLOB as data.
+     * Constructor: creates a PayloadBlock with a Blob as data.
      *
      * @param data payload
      */
     public PayloadBlock(String data) {
-        super(type, new UntrackedByteBufferBLOB(data.getBytes()));
+        super(PAYLOAD_BLOCK_TYPE, new UntrackedByteBufferBlob(data.getBytes()));
     }
 
 
@@ -48,7 +47,7 @@ public class PayloadBlock extends BlockBLOB {
      * @param data payload
      */
     public PayloadBlock(byte[] data) {
-        super(type, new UntrackedByteBufferBLOB(data));
+        super(PAYLOAD_BLOCK_TYPE, new UntrackedByteBufferBlob(data));
     }
 
 
@@ -58,7 +57,7 @@ public class PayloadBlock extends BlockBLOB {
      * @param data payload
      */
     public PayloadBlock(ByteBuffer data) {
-        super(type, new UntrackedByteBufferBLOB(data));
+        super(PAYLOAD_BLOCK_TYPE, new UntrackedByteBufferBlob(data));
     }
 
 

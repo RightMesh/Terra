@@ -1,23 +1,25 @@
 package io.left.rightmesh.libdtn.common.data;
 
-import io.left.rightmesh.libdtn.common.data.eid.DTN;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
 
 /**
+ * PreviousNodeBlock holds information about the previous node holding this bundle.
+ *
  * @author Lucien Loiseau on 17/09/18.
  */
 public class PreviousNodeBlock extends CanonicalBlock {
 
-    public static final int type = 7;
+    public static final int PREVIOUS_NODE_BLOCK_TYPE = 7;
 
-    public EID previous;
+    public Eid previous;
 
     public PreviousNodeBlock() {
-        super(type);
-        previous = DTN.NullEID();
+        super(PREVIOUS_NODE_BLOCK_TYPE);
+        previous = DtnEid.nullEid();
     }
 
-    public PreviousNodeBlock(EID previous) {
+    public PreviousNodeBlock(Eid previous) {
         super(7);
         this.previous = previous;
     }
@@ -25,8 +27,8 @@ public class PreviousNodeBlock extends CanonicalBlock {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("PreviousNodeBlock");
-        if(previous != null) {
-            sb.append(": previous node=").append(previous.getEIDString());
+        if (previous != null) {
+            sb.append(": previous node=").append(previous.getEidString());
         } else {
             sb.append(": previous node is unset");
         }

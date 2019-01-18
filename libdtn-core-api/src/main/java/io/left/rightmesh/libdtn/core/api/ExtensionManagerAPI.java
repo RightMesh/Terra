@@ -6,9 +6,9 @@ import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
-import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessor;
-import io.left.rightmesh.libdtn.common.data.eid.CLAEIDParser;
-import io.left.rightmesh.libdtn.common.data.eid.EIDSspParser;
+import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BlockProcessor;
+import io.left.rightmesh.libdtn.common.data.eid.ClaEidParser;
+import io.left.rightmesh.libdtn.common.data.eid.EidSspParser;
 
 /**
  * @author Lucien Loiseau on 22/11/18.
@@ -27,7 +27,7 @@ public interface ExtensionManagerAPI extends ExtensionToolbox {
     /**
      * Add a new ExtensionBlock.
      *
-     * @param type block type
+     * @param type block PAYLOAD_BLOCK_TYPE
      * @param block block supplier
      * @param parser parser supplier
      * @param serializer serializer supplier
@@ -40,24 +40,24 @@ public interface ExtensionManagerAPI extends ExtensionToolbox {
                            Supplier<BlockProcessor> processor) throws BlockTypeAlreadyManaged;
 
     /**
-     * Add a new EID family.
+     * Add a new Eid family.
      *
-     * @param schemeId the IANA number for this EID scheme
-     * @param schemeStr EID scheme
+     * @param schemeId the ianaNumber number for this Eid scheme
+     * @param schemeStr Eid scheme
      * @param ssPparser scheme specific parser
-     * @throws EIDSchemeAlreadyManaged if the EID is already managed
+     * @throws EIDSchemeAlreadyManaged if the Eid is already managed
      */
     void addExtensionEID(int schemeId,
                          String schemeStr,
-                         EIDSspParser ssPparser) throws EIDSchemeAlreadyManaged;
+                         EidSspParser ssPparser) throws EIDSchemeAlreadyManaged;
 
     /**
-     * Add a new EID BaseCLAEID family.
+     * Add a new Eid BaseClaEid family.
      *
-     * @param cl_name EID scheme
+     * @param cl_name Eid scheme
      * @param parser scheme specific parser
-     * @throws CLNameAlreadyManaged if the EID is already managed
+     * @throws CLNameAlreadyManaged if the Eid is already managed
      */
     void addExtensionCLA(String cl_name,
-                         CLAEIDParser parser) throws CLNameAlreadyManaged;
+                         ClaEidParser parser) throws CLNameAlreadyManaged;
 }

@@ -2,7 +2,7 @@ package io.left.rightmesh.libdtn.core.api;
 
 import java.util.Set;
 
-import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
 
 /**
  * @author Lucien Loiseau on 26/10/18.
@@ -10,33 +10,33 @@ import io.left.rightmesh.libdtn.common.data.eid.EID;
 public interface LocalEIDAPI {
 
     /**
-     * Return the configured local EID for current node.
+     * Return the configured local Eid for current node.
      *
-     * @return local EID
+     * @return local Eid
      */
-    EID localEID();
+    Eid localEID();
 
     /**
      * Return the set of all aliases for current node.
      *
-     * @return Set of EID
+     * @return Set of Eid
      */
-    Set<EID> aliases();
+    Set<Eid> aliases();
 
     /**
-     * check if an EID is local or foreign.
+     * check if an Eid is local or foreign.
      *
      * @param eid to check
-     * @return true if EID match a local EID or an alias, false otherwise
+     * @return true if Eid match a local Eid or an alias, false otherwise
      */
-    boolean isLocal(EID eid);
+    boolean isLocal(Eid eid);
 
     /**
-     * return the matching EID.
+     * return the matching Eid.
      *
      * @param eid to check
-     * @return the EID that matches this EID, null otherwise
+     * @return the Eid that matches this Eid, null otherwise
      */
-    EID matchLocal(EID eid);
+    Eid matchLocal(Eid eid);
 
 }

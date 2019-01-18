@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.left.rightmesh.libdtn.common.data.BundleId;
 import io.left.rightmesh.libdtn.core.CoreComponent;
-import io.left.rightmesh.libdtn.common.data.BundleID;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.events.BundleDeleted;
 import io.left.rightmesh.librxbus.RxBus;
@@ -79,7 +79,7 @@ public abstract class EventListener<T> extends CoreComponent {
     private static final String TAG = "EventListener";
 
     private final Object lock = new Object();
-    private Map<T, Set<BundleID>> watchList;
+    private Map<T, Set<BundleId>> watchList;
     private CoreAPI core;
 
     public EventListener(CoreAPI core) {
@@ -98,7 +98,7 @@ public abstract class EventListener<T> extends CoreComponent {
         RxBus.unregister(this);
         synchronized (lock) {
             for (T key : watchList.keySet()) {
-                Set<BundleID> set = watchList.get(key);
+                Set<BundleId> set = watchList.get(key);
                 if (set != null) {
                     set.clear();
                 }
@@ -107,26 +107,26 @@ public abstract class EventListener<T> extends CoreComponent {
         }
     }
 
-    public boolean watch(T key, BundleID bid) {
+    public boolean watch(T key, BundleId bid) {
         if (!isEnabled()) {
             return false;
         }
 
         synchronized (lock) {
-            core.getLogger().d(getComponentName(), "add bundle to a watchlist: " + bid.getBIDString() + " key=" + key.toString());
+            core.getLogger().d(getComponentName(), "add bundle to a watchlist: " + bid.getBidString() + " key=" + key.toString());
             return watchList.computeIfAbsent(key, k -> new HashSet<>()).add(bid);
         }
     }
 
-    public void unwatch(BundleID bid) {
+    public void unwatch(BundleId bid) {
         if (!isEnabled()) {
             return;
         }
 
         synchronized (lock) {
-            core.getLogger().d(getComponentName(), "remove bundle from a watchlist: " + bid.getBIDString());
+            core.getLogger().d(getComponentName(), "remove bundle from a watchlist: " + bid.getBidString());
             for (T key : watchList.keySet()) {
-                Set<BundleID> set = watchList.get(key);
+                Set<BundleId> set = watchList.get(key);
                 if (set != null) {
                     set.remove(bid);
                 }
@@ -134,13 +134,13 @@ public abstract class EventListener<T> extends CoreComponent {
         }
     }
 
-    public boolean unwatch(T key, BundleID bid) {
+    public boolean unwatch(T key, BundleId bid) {
         if (!isEnabled()) {
             return false;
         }
 
         synchronized (lock) {
-            Set<BundleID> set = watchList.get(key);
+            Set<BundleId> set = watchList.get(key);
             if (set != null) {
                 set.remove(bid);
                 return true;
@@ -150,13 +150,13 @@ public abstract class EventListener<T> extends CoreComponent {
         }
     }
 
-    public Observable<BundleID> getBundlesOfInterest(T key) {
+    public Observable<BundleId> getBundlesOfInterest(T key) {
         if (!isEnabled()) {
             return Observable.empty();
         }
 
         synchronized (lock) {
-            Set<BundleID> set = watchList.get(key);
+            Set<BundleId> set = watchList.get(key);
             if(set == null) {
                 return Observable.empty();
             }

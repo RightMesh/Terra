@@ -6,16 +6,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import io.left.rightmesh.libdtn.common.BaseExtensionToolbox;
-import io.left.rightmesh.libdtn.common.data.BaseBlockFactory;
 import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.common.data.blob.BaseBLOBFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BaseBlockDataParserFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BaseBlockProcessorFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BaseBlockDataSerializerFactory;
-import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
-import io.left.rightmesh.libdtn.common.data.eid.BaseEIDFactory;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
-import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
+import io.left.rightmesh.libdtn.common.data.blob.BaseBlobFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BaseBlockDataSerializerFactory;
+import io.left.rightmesh.libdtn.common.data.eid.BaseClaEid;
+import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.reactivex.Flowable;
@@ -68,10 +63,10 @@ public class STCPTest {
         Bundle[] recv = {null, null, null, null, null, null};
         int[] i = {0};
 
-        BaseCLAEID eid = null;
+        BaseClaEid eid = null;
         try {
             eid = new CLASTCP("127.0.0.1", 4591, "/test");
-        } catch (EIDFormatException efe) {
+        } catch (EidFormatException efe) {
             fail();
         }
         new STCP()
@@ -81,7 +76,7 @@ public class STCPTest {
                         channel -> {
                             channel.recvBundle(
                                     new BaseExtensionToolbox(),
-                                    new BaseBLOBFactory().enableVolatile(1000000)).subscribe(
+                                    new BaseBlobFactory().enableVolatile(1000000)).subscribe(
                                     b -> {
                                         recv[i[0]++] = b;
                                     },
@@ -145,10 +140,10 @@ public class STCPTest {
 
         CountDownLatch lock = new CountDownLatch(10);
 
-        BaseCLAEID eid = null;
+        BaseClaEid eid = null;
         try {
             eid = new CLASTCP("127.0.0.1", 4592, "/test");
-        } catch (EIDFormatException efe) {
+        } catch (EidFormatException efe) {
             fail();
         }
         new STCP()
@@ -158,7 +153,7 @@ public class STCPTest {
                         channel -> {
                             channel.recvBundle(
                                     new BaseExtensionToolbox(),
-                                    new BaseBLOBFactory().enableVolatile(1000000)).subscribe(
+                                    new BaseBlobFactory().enableVolatile(1000000)).subscribe(
                                     TestBundle::checkBundlePayload,
                                     e -> {
                                         lock.countDown();

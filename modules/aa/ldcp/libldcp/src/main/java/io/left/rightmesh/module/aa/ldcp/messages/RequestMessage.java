@@ -9,10 +9,10 @@ import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BundleV7Item;
-import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BaseBlockDataSerializerFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BundleV7Serializer;
+import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.parser.BundleV7Item;
+import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BaseBlockDataSerializerFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BundleV7Serializer;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.reactivex.Flowable;
 
@@ -79,7 +79,7 @@ public class RequestMessage {
 
     public static CborParser getParser(Log logger,
                                        ExtensionToolbox toolbox,
-                                       BLOBFactory blobFactory) {
+                                       BlobFactory blobFactory) {
         return CBOR.parser()
                 .cbor_parse_int((__, ___, i) -> { /* version */
                 })

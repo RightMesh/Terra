@@ -4,9 +4,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import io.left.rightmesh.libdtn.common.data.eid.BaseEIDFactory;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
-import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
+import io.left.rightmesh.libdtn.common.data.eid.BaseEidFactory;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
+import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.CoreConfiguration;
 import io.left.rightmesh.libdtn.core.DTNCore;
@@ -54,7 +54,7 @@ import static io.left.rightmesh.terra.Terra.StorageOption.VOLATILE;
                 "@|green    |             /_/   /____/ /_/  |_| /_/  |_| /_/   |_|      .           |@",
                 "@|green   -*-                                                                *     |@",
                 "@|green    |     .           ---========================---             .          |@",
-                "@|green       .                 Terrestrial DTN - v1.0     .                    .  |@",
+                "@|green       .                 Terrestrial DtnEid - v1.0     .                    .  |@",
                 "@|green           .    .             *                    .             .          |@",
                 "@|green                                  .                         .               |@",
                 "@|green ____ /\\__________/\\____ ______________/\\/\\___/\\____________________________|@",
@@ -65,7 +65,7 @@ import static io.left.rightmesh.terra.Terra.StorageOption.VOLATILE;
         //descriptionHeading = "@|bold %nDescription|@:%n",
         description = {
                 "",
-                "Terra is a full node DTN implementation for Terrestrial DTN",},
+                "Terra is a full node DtnEid implementation for Terrestrial DtnEid",},
         optionListHeading = "@|bold %nOptions|@:%n",
         footer = {
                 ""})
@@ -128,9 +128,9 @@ public class Terra implements Callable<Void> {
         /* Terra configuration */
         if(localEID != null) {
             try {
-                EID eid = new BaseEIDFactory().create(localEID);
+                Eid eid = new BaseEidFactory().create(localEID);
                 conf.get(LOCAL_EID).update(eid);
-            } catch(EIDFormatException efe) {
+            } catch(EidFormatException efe) {
                 throw new Exception("localEID is not a valid Endpoint ID: "+efe.getMessage());
             }
         }
@@ -173,16 +173,16 @@ public class Terra implements Callable<Void> {
 
         switch(verbose.length) {
             case 0:
-                conf.get(LOG_LEVEL).update(Log.LOGLevel.WARN);
+                conf.get(LOG_LEVEL).update(Log.LogLevel.WARN);
                 break;
             case 1:
-                conf.get(LOG_LEVEL).update(Log.LOGLevel.INFO);
+                conf.get(LOG_LEVEL).update(Log.LogLevel.INFO);
                 break;
             case 2:
-                conf.get(LOG_LEVEL).update(Log.LOGLevel.DEBUG);
+                conf.get(LOG_LEVEL).update(Log.LogLevel.DEBUG);
                 break;
             default:
-                conf.get(LOG_LEVEL).update(Log.LOGLevel.VERBOSE);
+                conf.get(LOG_LEVEL).update(Log.LogLevel.VERBOSE);
         }
 
         /* module configuration */

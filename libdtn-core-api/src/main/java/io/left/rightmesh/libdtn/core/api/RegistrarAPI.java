@@ -3,12 +3,12 @@ package io.left.rightmesh.libdtn.core.api;
 import java.util.Set;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.common.data.BundleID;
+import io.left.rightmesh.libdtn.common.data.BundleId;
 import io.left.rightmesh.libdtn.core.spi.aa.ActiveRegistrationCallback;
 import io.reactivex.Flowable;
 
 /**
- * API to access the services of the Bundle Protocol from an Application Agent.
+ * ApiEid to access the services of the Bundle Protocol from an Application Agent.
  *
  * @author Lucien Loiseau on 23/10/18.
  */
@@ -145,7 +145,7 @@ public interface RegistrarAPI {
      * @throws BadCookie if the cookie provided does not match registration cookie
      * @throws NullArgument if one of the argument is null
      */
-    Set<BundleID> checkInbox(String sink, String cookie) throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument;
+    Set<BundleId> checkInbox(String sink, String cookie) throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument;
 
     /**
      * get a specific bundle but does not mark it as delivered.
@@ -182,7 +182,7 @@ public interface RegistrarAPI {
      *
      * @param sink to check
      * @param cookie that was returned upon registration.
-     * @return Flowable of BLOB
+     * @return Flowable of Blob
      * @throws RegistrarDisabled if the registrar is disabled
      * @throws SinkNotRegistered if the sink is not register
      * @throws BadCookie if the cookie provided does not match registration cookie

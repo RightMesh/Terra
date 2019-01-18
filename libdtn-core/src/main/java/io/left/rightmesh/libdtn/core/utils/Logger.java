@@ -19,8 +19,8 @@ public class Logger extends CoreComponent implements Log {
     private static final String TAG = "Logger";
 
     public Logger(CoreConfiguration conf) {
-        level = LOGLevel.INFO;
-        conf.<LOGLevel>get(LOG_LEVEL).observe().subscribe(l -> level = l);
+        level = LogLevel.INFO;
+        conf.<LogLevel>get(LOG_LEVEL).observe().subscribe(l -> level = l);
         initComponent(conf, COMPONENT_ENABLE_LOGGING, null);
     }
 
@@ -39,9 +39,9 @@ public class Logger extends CoreComponent implements Log {
         RxBus.unregister(this);
     }
 
-    private static LOGLevel level;
+    private static LogLevel level;
 
-    private void log(LOGLevel l, String tag, String msg) {
+    private void log(LogLevel l, String tag, String msg) {
         if (isEnabled()) {
             if (l.ordinal() >= level.ordinal()) {
                 System.out.println(System.currentTimeMillis()+" "+Thread.currentThread().getName()+" "+l + " - " + tag + ": " + msg);
@@ -49,31 +49,31 @@ public class Logger extends CoreComponent implements Log {
         }
     }
 
-    public void set(LOGLevel level) { Logger.level = level; }
+    public void set(LogLevel level) { Logger.level = level; }
 
     @Override
     public void v(String tag, String msg) {
-        log(LOGLevel.VERBOSE, tag, msg);
+        log(LogLevel.VERBOSE, tag, msg);
     }
 
     @Override
     public void d(String tag, String msg) {
-        log(LOGLevel.DEBUG, tag, msg);
+        log(LogLevel.DEBUG, tag, msg);
     }
 
     @Override
     public void i(String tag, String msg) {
-        log(LOGLevel.INFO, tag, msg);
+        log(LogLevel.INFO, tag, msg);
     }
 
     @Override
     public void w(String tag, String msg) {
-        log(LOGLevel.WARN, tag, msg);
+        log(LogLevel.WARN, tag, msg);
     }
 
     @Override
     public void e(String tag, String msg) {
-        log(LOGLevel.ERROR, tag, msg);
+        log(LogLevel.ERROR, tag, msg);
     }
 
     @Subscribe

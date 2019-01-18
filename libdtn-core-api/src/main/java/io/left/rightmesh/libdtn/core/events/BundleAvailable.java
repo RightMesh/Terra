@@ -17,6 +17,6 @@ public class BundleAvailable implements DTNEvent {
 
     @Override
     public String toString() {
-        return "New bundle: bid="+bundle.bid.getBIDString()+" to: "+bundle.getDestination().getEIDString();
+        return "New bundle: bid="+bundle.bid.getBidString()+" to: "+bundle.getDestination().getEidString();
     }
 }

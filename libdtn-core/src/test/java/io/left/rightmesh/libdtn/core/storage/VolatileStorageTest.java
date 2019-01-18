@@ -2,10 +2,10 @@ package io.left.rightmesh.libdtn.core.storage;
 
 import org.junit.Test;
 
-import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BaseBlockProcessorFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BaseBlockDataSerializerFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockDataSerializerFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BaseBlockProcessorFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BlockProcessorFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BaseBlockDataSerializerFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
 import io.left.rightmesh.libdtn.core.CoreConfiguration;

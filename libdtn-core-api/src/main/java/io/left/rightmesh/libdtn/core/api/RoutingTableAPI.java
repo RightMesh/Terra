@@ -1,10 +1,9 @@
 package io.left.rightmesh.libdtn.core.api;
 
-import java.util.Comparator;
 import java.util.Set;
 
-import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.eid.BaseClaEid;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.reactivex.Observable;
 
 /**
@@ -13,10 +12,10 @@ import io.reactivex.Observable;
 public interface RoutingTableAPI extends CoreComponentAPI {
 
     class TableEntry {
-        public EID to;
-        public EID next;
+        public Eid to;
+        public Eid next;
 
-        public TableEntry(EID to, EID next) {
+        public TableEntry(Eid to, Eid next) {
             this.to = to;
             this.next = next;
         }
@@ -32,35 +31,35 @@ public interface RoutingTableAPI extends CoreComponentAPI {
             return false;
         }
 
-        public EID getTo() {
+        public Eid getTo() {
             return to;
         }
 
-        public EID getNext() {
+        public Eid getNext() {
             return next;
         }
 
         @Override
         public int hashCode() {
-            return next.getEIDString().concat(to.getEIDString()).hashCode();
+            return next.getEidString().concat(to.getEidString()).hashCode();
         }
     }
 
     /**
      * Add a route to this routing table.
      *
-     * @param to EID of destination
-     * @param nextHop EID of Next-Hop
+     * @param to Eid of destination
+     * @param nextHop Eid of Next-Hop
      */
-    void addRoute(EID to, EID nextHop);
+    void addRoute(Eid to, Eid nextHop);
 
     /**
-     * Resolve an EID using this Routing Table.
+     * Resolve an Eid using this Routing Table.
      *
-     * @param destination EID of destination
-     * @return Observable of BaseCLAEID-EID that can make forward progress toward destination
+     * @param destination Eid of destination
+     * @return Observable of BaseClaEid-Eid that can make forward progress toward destination
      */
-    Observable<BaseCLAEID> resolveEID(EID destination);
+    Observable<BaseClaEid> resolveEID(Eid destination);
 
     /**
      * Dump all entries from the Routing Table.

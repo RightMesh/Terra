@@ -3,16 +3,15 @@ package io.left.rightmesh.libdtn.core.storage;
 import io.left.rightmesh.libdtn.common.data.AgeBlock;
 import io.left.rightmesh.libdtn.common.data.BlockHeader;
 import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.common.data.BundleID;
+import io.left.rightmesh.libdtn.common.data.BundleId;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.PreviousNodeBlock;
 import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
 import io.left.rightmesh.libdtn.common.data.ScopeControlHopLimitBlock;
-import io.left.rightmesh.libdtn.common.data.eid.DTN;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
-import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
-import io.left.rightmesh.libdtn.common.data.eid.IPN;
+import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
+import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
+import io.left.rightmesh.libdtn.common.data.eid.EidIpn;
 
 import static org.junit.Assert.assertEquals;
 
@@ -26,14 +25,14 @@ public class TestBundle {
     public static Bundle testBundle0() {
         try {
             Bundle bundle = new Bundle();
-            bundle.setDestination(new IPN(5, 12));
-            bundle.setSource(new DTN("source"));
-            bundle.setReportto(DTN.NullEID());
-            bundle.bid = BundleID.create(bundle);
+            bundle.setDestination(new EidIpn(5, 12));
+            bundle.setSource(new DtnEid("source"));
+            bundle.setReportto(DtnEid.nullEid());
+            bundle.bid = BundleId.create(bundle);
             return bundle;
-        } catch(EIDFormatException ignore) {
+        } catch(EidFormatException ignore) {
             // should not happen
-            //todo: create a safe EID constructor by encoding URI
+            //todo: create a safe Eid constructor by encoding URI
             return null;
         }
     }
@@ -61,7 +60,7 @@ public class TestBundle {
         Bundle bundle = testBundle1();
         bundle.addBlock(new AgeBlock());
         bundle.addBlock(new ScopeControlHopLimitBlock());
-        bundle.addBlock(new PreviousNodeBlock(DTN.generate()));
+        bundle.addBlock(new PreviousNodeBlock(DtnEid.generate()));
         return bundle;
     }
 
@@ -70,24 +69,24 @@ public class TestBundle {
         Bundle bundle = testBundle1();
         bundle.addBlock(new AgeBlock());
         bundle.addBlock(new ScopeControlHopLimitBlock());
-        bundle.addBlock(new PreviousNodeBlock(DTN.generate()));
-        bundle.setCrcType(PrimaryBlock.CRCFieldType.CRC_32);
+        bundle.addBlock(new PreviousNodeBlock(DtnEid.generate()));
+        bundle.setCrcType(PrimaryBlock.CrcFieldType.CRC_32);
         return bundle;
     }
 
     public static Bundle testBundle6() {
         Bundle bundle = testBundle0();
-        bundle.setCrcType(PrimaryBlock.CRCFieldType.CRC_32);
+        bundle.setCrcType(PrimaryBlock.CrcFieldType.CRC_32);
 
         CanonicalBlock age = new AgeBlock();
         CanonicalBlock scope = new ScopeControlHopLimitBlock();
         CanonicalBlock payload = new PayloadBlock(testPayload);
         CanonicalBlock previous = new PreviousNodeBlock();
 
-        age.crcType = BlockHeader.CRCFieldType.CRC_16;
-        scope.crcType = BlockHeader.CRCFieldType.CRC_16;
-        payload.crcType = BlockHeader.CRCFieldType.CRC_32;
-        previous.crcType = BlockHeader.CRCFieldType.CRC_32;
+        age.crcType = BlockHeader.CrcFieldType.CRC_16;
+        scope.crcType = BlockHeader.CrcFieldType.CRC_16;
+        payload.crcType = BlockHeader.CrcFieldType.CRC_32;
+        previous.crcType = BlockHeader.CrcFieldType.CRC_32;
 
         bundle.addBlock(age);
         bundle.addBlock(scope);

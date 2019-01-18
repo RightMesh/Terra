@@ -4,9 +4,9 @@ import io.left.rightmesh.libdetect.ActionListener;
 import io.left.rightmesh.libdetect.LibDetect;
 import io.left.rightmesh.libdetect.PeerReachable;
 import io.left.rightmesh.libdetect.PeerUnreachable;
-import io.left.rightmesh.libdtn.common.data.eid.CLAEID;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
-import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
+import io.left.rightmesh.libdtn.common.data.eid.ClaEid;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
+import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.spi.core.CoreModuleSPI;
@@ -35,9 +35,9 @@ public class CoreModuleIpDiscovery implements CoreModuleSPI {
                 api.getLogger().i(TAG, "peer detected :" + peer.address.getHostAddress());
                 if (core.getConf().<Boolean>get(ConfigurationAPI.CoreEntry.ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT).value()) {
                     try {
-                        EID eid = api.getExtensionManager().getEIDFactory().create(
+                        Eid eid = api.getExtensionManager().getEidFactory().create(
                                 "cla:stcp:" + peer.address.getHostAddress() + ":" + 4556 + "/");
-                        core.getClaManager().createOpportunity((CLAEID) eid).subscribe(
+                        core.getClaManager().createOpportunity((ClaEid) eid).subscribe(
                                 channel -> {
                                     // ignore
                                 },
@@ -45,7 +45,7 @@ public class CoreModuleIpDiscovery implements CoreModuleSPI {
                                     // ignore
                                 }
                         );
-                    } catch (EIDFormatException e) {
+                    } catch (EidFormatException e) {
                         // the stcp module is not up, so we cannot talk to a ip neighbour
                     }
                 }

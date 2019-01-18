@@ -26,7 +26,7 @@ public interface ModuleSPI {
     /**
      * The name for this ModuleSPI.
      *
-     * @return a String with the name of this BaseCLAEID.
+     * @return a String with the name of this BaseClaEid.
      */
     String getModuleName();
 

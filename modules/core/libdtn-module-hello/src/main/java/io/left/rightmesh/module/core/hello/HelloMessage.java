@@ -6,10 +6,10 @@ import java.util.List;
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
-import io.left.rightmesh.libdtn.common.data.bundleV7.parser.EIDItem;
-import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.EIDSerializer;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
-import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.parser.EidItem;
+import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.EidSerializer;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
+import io.left.rightmesh.libdtn.common.data.eid.EidFactory;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
 
 /**
@@ -17,20 +17,20 @@ import io.left.rightmesh.libdtn.common.utils.NullLogger;
  */
 public class HelloMessage implements CborParser.ParseableItem {
 
-    public List<EID> eids;
+    public List<Eid> eids;
 
-    HelloMessage(EIDFactory eidFactory) {
+    HelloMessage(EidFactory eidFactory) {
         this.eidFactory = eidFactory;
         eids = new LinkedList<>();
     }
 
-    private EIDFactory eidFactory;
+    private EidFactory eidFactory;
 
     @Override
     public CborParser getItemParser() {
         return CBOR.parser()
                 .cbor_parse_linear_array(
-                        () -> new EIDItem(eidFactory, new NullLogger()),
+                        () -> new EidItem(eidFactory, new NullLogger()),
                         (__, ___, size) -> {},
                         (__, ___, item) -> eids.add(item.eid),
                         (__, ___, ____) -> {});
@@ -40,8 +40,8 @@ public class HelloMessage implements CborParser.ParseableItem {
         CborEncoder enc = CBOR.encoder()
                 .cbor_start_array(eids.size());
 
-        for(EID eid : eids) {
-            enc.merge(EIDSerializer.encode(eid));
+        for(Eid eid : eids) {
+            enc.merge(EidSerializer.encode(eid));
         }
 
         return enc;

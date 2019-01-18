@@ -4,6 +4,8 @@ import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 
 /**
+ * SecurityAssociationParameter.
+ *
  * @author Lucien Loiseau on 03/11/18.
  */
 public interface SecurityAssociationParameter {
@@ -11,5 +13,6 @@ public interface SecurityAssociationParameter {
     int getParameterId();
 
     CborEncoder getValueEncoder();
+
     CborParser  getValueParser();
 }

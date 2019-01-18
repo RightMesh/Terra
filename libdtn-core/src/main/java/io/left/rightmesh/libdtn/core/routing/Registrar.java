@@ -5,9 +5,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.left.rightmesh.libdtn.common.data.BundleID;
-import io.left.rightmesh.libdtn.common.data.eid.API;
-import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
+import io.left.rightmesh.libdtn.common.data.BundleId;
+import io.left.rightmesh.libdtn.common.data.eid.ApiEid;
+import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
 import io.left.rightmesh.libdtn.core.CoreComponent;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
 import io.left.rightmesh.libdtn.core.api.DeliveryAPI;
@@ -109,22 +109,22 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
 
     private void replaceApiMe(Bundle bundle) throws BundleMalformed {
         try {
-            if (bundle.getSource().matches(API.me())) {
-                bundle.setSource(core.getExtensionManager().getEIDFactory().create(
-                        core.getLocalEID().localEID().getEIDString()
-                        + ((API)bundle.getSource()).getPath()));
+            if (bundle.getSource().matches(ApiEid.me())) {
+                bundle.setSource(core.getExtensionManager().getEidFactory().create(
+                        core.getLocalEID().localEID().getEidString()
+                        + ((ApiEid)bundle.getSource()).getPath()));
             }
-            if (bundle.getReportto().matches(API.me())) {
-                bundle.setReportto(core.getExtensionManager().getEIDFactory().create(
-                        core.getLocalEID().localEID().getEIDString()
-                        + ((API)bundle.getReportto()).getPath()));
+            if (bundle.getReportto().matches(ApiEid.me())) {
+                bundle.setReportto(core.getExtensionManager().getEidFactory().create(
+                        core.getLocalEID().localEID().getEidString()
+                        + ((ApiEid)bundle.getReportto()).getPath()));
             }
-            if (bundle.getDestination().matches(API.me())) {
-                bundle.setDestination(core.getExtensionManager().getEIDFactory().create(
-                        core.getLocalEID().localEID().getEIDString()
-                        + ((API)bundle.getDestination()).getPath()));
+            if (bundle.getDestination().matches(ApiEid.me())) {
+                bundle.setDestination(core.getExtensionManager().getEidFactory().create(
+                        core.getLocalEID().localEID().getEidString()
+                        + ((ApiEid)bundle.getDestination()).getPath()));
             }
-        } catch(EIDFormatException efe) {
+        } catch(EidFormatException efe) {
             throw new BundleMalformed(efe.getMessage());
         }
     }
@@ -194,7 +194,7 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
     }
 
     @Override
-    public Set<BundleID> checkInbox(String sink, String cookie)
+    public Set<BundleId> checkInbox(String sink, String cookie)
             throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
         checkRegisteredSink(sink, cookie);
         // todo: call storage service

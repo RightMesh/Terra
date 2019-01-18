@@ -4,8 +4,8 @@ import java.util.Set;
 
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.common.data.BundleID;
-import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
+import io.left.rightmesh.libdtn.common.data.BundleId;
+import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
 import io.left.rightmesh.module.aa.ldcp.LdcpRequest;
@@ -33,16 +33,16 @@ public class ApplicationAgent implements ApplicationAgentAPI {
     private String host;
     private int port;
     private LdcpServer server;
-    private BLOBFactory factory;
+    private BlobFactory factory;
     private ExtensionToolbox toolbox;
     private Log logger;
     ActiveRegistrationCallback cb;
 
-    public ApplicationAgent(String host, int port, ExtensionToolbox toolbox, BLOBFactory factory) {
+    public ApplicationAgent(String host, int port, ExtensionToolbox toolbox, BlobFactory factory) {
         this(host, port, toolbox, factory, new NullLogger());
     }
 
-    public ApplicationAgent(String host, int port, ExtensionToolbox toolbox, BLOBFactory factory, Log logger) {
+    public ApplicationAgent(String host, int port, ExtensionToolbox toolbox, BlobFactory factory, Log logger) {
         this.host = host;
         this.port = port;
         this.toolbox = toolbox;
@@ -119,16 +119,16 @@ public class ApplicationAgent implements ApplicationAgentAPI {
     }
 
     @Override
-    public Set<BundleID> checkInbox(String sink, String cookie) {
+    public Set<BundleId> checkInbox(String sink, String cookie) {
         return null;
     }
 
     @Override
-    public Single<Bundle> get(String sink, String cookie, BundleID bundleID) {
+    public Single<Bundle> get(String sink, String cookie, BundleId bundleID) {
         return LdcpRequest.GET(GETBUNDLE)
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
-                .setHeader("bundle-id", bundleID.getBIDString())
+                .setHeader("bundle-id", bundleID.getBidString())
                 .send(host, port, toolbox, factory, logger)
                 .flatMap(res -> {
                     if (res.code == ResponseMessage.ResponseCode.ERROR) {
@@ -142,11 +142,11 @@ public class ApplicationAgent implements ApplicationAgentAPI {
     }
 
     @Override
-    public Single<Bundle> fetch(String sink, String cookie, BundleID bundleID) {
+    public Single<Bundle> fetch(String sink, String cookie, BundleId bundleID) {
         return LdcpRequest.GET(FETCHBUNDLE)
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
-                .setHeader("bundle-id", bundleID.getBIDString())
+                .setHeader("bundle-id", bundleID.getBidString())
                 .send(host, port, toolbox, factory, logger)
                 .flatMap(res -> {
                     if (res.code == ResponseMessage.ResponseCode.ERROR) {

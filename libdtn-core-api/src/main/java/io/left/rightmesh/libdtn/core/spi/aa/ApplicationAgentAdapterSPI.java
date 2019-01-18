@@ -1,7 +1,7 @@
 package io.left.rightmesh.libdtn.core.spi.aa;
 
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
-import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
+import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
@@ -20,12 +20,12 @@ public interface ApplicationAgentAdapterSPI extends ModuleSPI {
      * @param api registrar api
      * @param conf configuration
      * @param logger logger instance
-     * @param factory to create new BLOB
+     * @param factory to create new Blob
      */
     void init(RegistrarAPI api,
               ConfigurationAPI conf,
               Log logger,
               ExtensionToolbox toolbox,
-              BLOBFactory factory);
+              BlobFactory factory);
 
 }

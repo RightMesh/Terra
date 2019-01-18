@@ -1,11 +1,9 @@
 package io.left.rightmesh.libdtn.core;
 
-import io.left.rightmesh.libdtn.common.data.eid.DTN;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
-import io.left.rightmesh.libdtn.core.spi.ModuleSPI;
-import io.left.rightmesh.libdtn.core.utils.Logger;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 
@@ -87,11 +85,11 @@ public class CoreConfiguration implements ConfigurationAPI {
 
 
     /**
-     * Create a new ConfigurationEntry of type T.
+     * Create a new ConfigurationEntry of PAYLOAD_BLOCK_TYPE T.
      *
      * @param key       the key for this entry
      * @param initValue default value
-     * @param <T>       type of entry
+     * @param <T>       PAYLOAD_BLOCK_TYPE of entry
      * @return a new ConfigurationEntry
      */
     <T> ConfigurationEntry createCoreEntry(CoreEntry key, T initValue) {
@@ -101,10 +99,10 @@ public class CoreConfiguration implements ConfigurationAPI {
     }
 
     /**
-     * Create a new ConfigurationEntrySet of type T initialized with empty set.
+     * Create a new ConfigurationEntrySet of PAYLOAD_BLOCK_TYPE T initialized with empty set.
      *
      * @param key the key for this entry
-     * @param <T> Set of type T
+     * @param <T> Set of PAYLOAD_BLOCK_TYPE T
      * @return a new ConfigurationEntrySet
      */
     <T> ConfigurationEntrySet createCoreEntrySet(CoreEntry key) {
@@ -114,10 +112,10 @@ public class CoreConfiguration implements ConfigurationAPI {
     }
 
     /**
-     * Create a new ConfigurationEntryMap of type T.
+     * Create a new ConfigurationEntryMap of PAYLOAD_BLOCK_TYPE T.
      *
-     * @param <T> type of Map key
-     * @param <U> type of Map value
+     * @param <T> PAYLOAD_BLOCK_TYPE of Map key
+     * @param <U> PAYLOAD_BLOCK_TYPE of Map value
      * @param key the key for this entry
      * @return a new ConfigurationEntryMap
      */
@@ -128,11 +126,11 @@ public class CoreConfiguration implements ConfigurationAPI {
     }
 
     /**
-     * Create a new ConfigurationEntry of type T.
+     * Create a new ConfigurationEntry of PAYLOAD_BLOCK_TYPE T.
      *
      * @param key       the key for this entry
      * @param initValue default value
-     * @param <T>       type of entry
+     * @param <T>       PAYLOAD_BLOCK_TYPE of entry
      * @return a new ConfigurationEntry
      */
     <T> ConfigurationEntry createEntryCustom(String key, T initValue) {
@@ -143,8 +141,8 @@ public class CoreConfiguration implements ConfigurationAPI {
 
     public CoreConfiguration() {
         // default configuration
-        this.createCoreEntry(CoreEntry.LOCAL_EID, DTN.generate());
-        this.<EID>createCoreEntrySet(CoreEntry.ALIASES);
+        this.createCoreEntry(CoreEntry.LOCAL_EID, DtnEid.generate());
+        this.<Eid>createCoreEntrySet(CoreEntry.ALIASES);
         this.createCoreEntry(CoreEntry.MAX_LIFETIME, (long) 0);
         this.createCoreEntry(CoreEntry.MAX_TIMESTAMP_FUTURE, (long) 0);
         this.createCoreEntry(CoreEntry.ALLOW_RECEIVE_ANONYMOUS_BUNDLE, false);
@@ -170,7 +168,7 @@ public class CoreConfiguration implements ConfigurationAPI {
         this.createCoreEntry(CoreEntry.COMPONENT_ENABLE_ROUTING, true);
         this.createCoreEntry(CoreEntry.COMPONENT_ENABLE_STATIC_ROUTING, true);
         this.createCoreEntry(CoreEntry.COMPONENT_ENABLE_SMART_ROUTING, false);
-        this.<EID, EID>createCoreEntryMap(CoreEntry.STATIC_ROUTE_CONFIGURATION);
+        this.<Eid, Eid>createCoreEntryMap(CoreEntry.STATIC_ROUTE_CONFIGURATION);
         this.createCoreEntry(CoreEntry.COMPONENT_ENABLE_STORAGE, true);
         this.createCoreEntry(CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE, true);
         this.createCoreEntry(CoreEntry.VOLATILE_BLOB_STORAGE_MAX_CAPACITY, 10000000);
@@ -178,7 +176,7 @@ public class CoreConfiguration implements ConfigurationAPI {
         this.<String>createCoreEntrySet(CoreEntry.SIMPLE_STORAGE_PATH);
         this.createCoreEntry(CoreEntry.LIMIT_BLOCKSIZE, (long) 1000000000);
         this.createCoreEntry(CoreEntry.COMPONENT_ENABLE_LOGGING, true);
-        this.createCoreEntry(CoreEntry.LOG_LEVEL, Log.LOGLevel.VERBOSE);
+        this.createCoreEntry(CoreEntry.LOG_LEVEL, Log.LogLevel.VERBOSE);
         this.createCoreEntry(CoreEntry.ENABLE_LOG_FILE, false);
         this.createCoreEntry(CoreEntry.LOG_FILE_PATH, "");
     }

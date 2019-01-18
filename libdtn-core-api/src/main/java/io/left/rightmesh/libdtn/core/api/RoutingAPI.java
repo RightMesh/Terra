@@ -1,7 +1,7 @@
 package io.left.rightmesh.libdtn.core.api;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.common.data.eid.EID;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI;
 import io.reactivex.Observable;
 
@@ -17,11 +17,11 @@ public interface RoutingAPI {
      * @param destination endpoint
      * @return Observable of opened CLAChannelSPI
      */
-    Observable<CLAChannelSPI> findOpenedChannelTowards(EID destination);
+    Observable<CLAChannelSPI> findOpenedChannelTowards(Eid destination);
 
     /**
      * Take care of this bundle for a later forwarding opportunity.
-     * todo probably not an API of routing
+     * todo probably not an ApiEid of routing
      *
      * @param bundle to forward later
      */

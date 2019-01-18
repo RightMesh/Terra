@@ -39,7 +39,7 @@ dependencies {
     // RxJava library for reactive programming
     implementation 'io.reactivex.rxjava2:rxjava:2.2.3'
 
-    // lib rx netty for http API
+    // lib rx netty for http ApiEid
     // note: we need to use compile keyword to add in the fatjar, implementation/api doesn't work
     compile "io.reactivex:rxnetty-http:${rxnetty_version}"
     compile "tv.cntt:jauter:${jauter_version}"

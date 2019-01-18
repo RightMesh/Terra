@@ -36,7 +36,7 @@ public interface DeliveryAPI extends CoreComponentAPI {
 
     /**
      * take care of this bundle for later delivery.
-     * todo: probably not an API of delivery
+     * todo: probably not an ApiEid of delivery
      *
      * @param sink to deliver the bundle to
      * @param bundle to deliver

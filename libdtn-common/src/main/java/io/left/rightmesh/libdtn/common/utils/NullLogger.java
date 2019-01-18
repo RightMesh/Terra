@@ -1,6 +1,8 @@
 package io.left.rightmesh.libdtn.common.utils;
 
 /**
+ * NullLogger doesn't log anything.
+ *
  * @author Lucien Loiseau on 22/10/18.
  */
 public class NullLogger implements Log {

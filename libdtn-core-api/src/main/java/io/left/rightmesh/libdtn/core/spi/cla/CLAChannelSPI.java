@@ -1,20 +1,16 @@
 package io.left.rightmesh.libdtn.core.spi.cla;
 
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
-import io.left.rightmesh.libdtn.common.data.BlockFactory;
 import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.common.data.blob.BLOBFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.parser.BlockDataParserFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.processor.BlockProcessorFactory;
-import io.left.rightmesh.libdtn.common.data.bundleV7.serializer.BlockDataSerializerFactory;
-import io.left.rightmesh.libdtn.common.data.eid.CLAEID;
-import io.left.rightmesh.libdtn.common.data.eid.EIDFactory;
+import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BlockDataSerializerFactory;
+import io.left.rightmesh.libdtn.common.data.eid.ClaEid;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 
 /**
  * A CLAChannelSPI is an abstraction of the underlying transport protocol used by a CLA
- * and should be able to receive and send DTN Bundles.
+ * and should be able to receive and send DtnEid Bundles.
  *
  * @author Lucien Loiseau on 04/09/18.
  */
@@ -34,19 +30,19 @@ public interface CLAChannelSPI {
     ChannelMode getMode();
 
     /**
-     * return the EID specific for this Channel. It must be unique accross all channels.
+     * return the Eid specific for this Channel. It must be unique accross all channels.
      * It is used to identify this interface.
      *
-     * @return EID of this channel
+     * @return Eid of this channel
      */
-    CLAEID channelEID();
+    ClaEid channelEID();
 
     /**
-     * return the EID that represents the local host for this specific Channel.
+     * return the Eid that represents the local host for this specific Channel.
      *
-     * @return EID of this channel
+     * @return Eid of this channel
      */
-    CLAEID localEID();
+    ClaEid localEID();
 
     /**
      * Receive a deserialized stream of Bundle from this Convergence Layer.
@@ -56,7 +52,7 @@ public interface CLAChannelSPI {
      * @return Flowable of Bundle
      */
     Observable<Bundle> recvBundle(ExtensionToolbox toolbox,
-                                  BLOBFactory blobFactory);
+                                  BlobFactory blobFactory);
 
     /**
      * Send a Bundle.

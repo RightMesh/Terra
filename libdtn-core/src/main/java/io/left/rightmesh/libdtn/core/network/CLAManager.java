@@ -3,7 +3,7 @@ package io.left.rightmesh.libdtn.core.network;
 import java.util.LinkedList;
 import java.util.List;
 
-import io.left.rightmesh.libdtn.common.data.eid.CLAEID;
+import io.left.rightmesh.libdtn.common.data.eid.ClaEid;
 import io.left.rightmesh.libdtn.core.api.CLAManagerAPI;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.api.CoreAPI;
@@ -52,15 +52,15 @@ public class CLAManager implements CLAManagerAPI {
     }
 
     @Override
-    public Single<CLAChannelSPI> createOpportunity(CLAEID eid) {
+    public Single<CLAChannelSPI> createOpportunity(ClaEid eid) {
         if(!core.getConf().<Boolean>get(ConfigurationAPI.CoreEntry.ENABLE_AUTO_CONNECT_FOR_BUNDLE).value()) {
             return Single.error(new Throwable("AutoConnect is disabled"));
         }
 
-        final String opp = "cla=" + eid.getCLAName() + " peer=" + eid.getCLASpecificPart();
+        final String opp = "cla=" + eid.getClaName() + " peer=" + eid.getClaSpecificPart();
         core.getLogger().d(TAG, "trying to create an opportunity with "+opp);
         for (ConvergenceLayerSPI cla : clas) {
-            if (eid.getCLAName().equals(cla.getModuleName())) {
+            if (eid.getClaName().equals(cla.getModuleName())) {
                 return cla.open(eid)
                         .doOnError(e -> core.getLogger().d(TAG, "opportunity creation failed " + opp + ": "+e.getMessage()))
                         .doOnSuccess((c) -> {

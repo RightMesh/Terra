@@ -14,6 +14,6 @@ public class LinkLocalEntryDown {
 
     @Override
     public String toString() {
-        return "Delete link-local entry: local="+channel.localEID().getEIDString()+" peer="+channel.channelEID().getEIDString();
+        return "Delete link-local entry: local="+channel.localEID().getEidString()+" peer="+channel.channelEID().getEidString();
     }
 }

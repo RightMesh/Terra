@@ -3,22 +3,22 @@ package io.left.rightmesh.core.module.cla.stcp;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import io.left.rightmesh.libdtn.common.data.eid.BaseCLAEID;
-import io.left.rightmesh.libdtn.common.data.eid.CLAEIDParser;
-import io.left.rightmesh.libdtn.common.data.eid.EIDFormatException;
+import io.left.rightmesh.libdtn.common.data.eid.BaseClaEid;
+import io.left.rightmesh.libdtn.common.data.eid.ClaEidParser;
+import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
 
 /**
  * @author Lucien Loiseau on 28/11/18.
  */
-public class CLASTCPParser implements CLAEIDParser {
+public class CLASTCPParser implements ClaEidParser {
 
     @Override
-    public BaseCLAEID create(String cl_name, String cl_specific, String cl_sink) throws EIDFormatException {
+    public BaseClaEid create(String claName, String claSpecific, String cl_sink) throws EidFormatException {
         final String regex = "^([^:/?#]+):([0-9]+)";
         Pattern r = Pattern.compile(regex);
-        Matcher m = r.matcher(cl_specific);
+        Matcher m = r.matcher(claSpecific);
         if (!m.find()) {
-            throw new EIDFormatException("not an CLASTCP EID specific host: " + cl_specific);
+            throw new EidFormatException("not an CLASTCP Eid specific host: " + claSpecific);
         }
         String host = m.group(1);
         int port = Integer.valueOf(m.group(2));

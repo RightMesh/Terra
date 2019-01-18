@@ -1,7 +1,7 @@
 package io.left.rightmesh.libdtn.core.spi.cla;
 
-import io.left.rightmesh.libdtn.common.data.eid.CLAEID;
-import io.left.rightmesh.libdtn.common.data.eid.CLAEIDParser;
+import io.left.rightmesh.libdtn.common.data.eid.ClaEid;
+import io.left.rightmesh.libdtn.common.data.eid.ClaEidParser;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
 import io.left.rightmesh.libdtn.core.spi.ModuleSPI;
@@ -16,14 +16,14 @@ import io.reactivex.Single;
 public interface ConvergenceLayerSPI  extends ModuleSPI {
 
     /**
-     * get the CLA-EID parser for this convergence layer. The CL name for which
+     * get the CLA-Eid parser for this convergence layer. The CL name for which
      * this module is relevant MUST be the module name.
-     * @return CLAEIDParser
+     * @return ClaEidParser
      */
-    CLAEIDParser getCLAEIDParser();
+    ClaEidParser getCLAEIDParser();
 
     /**
-     * When a BaseCLAEID is started it should return an Observable of CLAChannelSPI used to actually send
+     * When a BaseClaEid is started it should return an Observable of CLAChannelSPI used to actually send
      * and receive bundles.
      *
      * @param api configuration
@@ -33,18 +33,18 @@ public interface ConvergenceLayerSPI  extends ModuleSPI {
     Observable<CLAChannelSPI> start(ConfigurationAPI api, Log logger);
 
     /**
-     * When a BaseCLAEID is stopped, it should stop creating any new CLAChannelSPI and terminate the
+     * When a BaseClaEid is stopped, it should stop creating any new CLAChannelSPI and terminate the
      * observable. It is an implementation specific decision wether or not to close all the
      * underlying CLAChannels that were previously openned.
      */
     void stop();
 
     /**
-     * Tries to open a channel to the given BaseCLAEID-specific EID.
+     * Tries to open a channel to the given BaseClaEid-specific Eid.
      *
-     * @param eid of the peer to open a channel too, must be BaseCLAEID-specific
+     * @param eid of the peer to open a channel too, must be BaseClaEid-specific
      * @return Single of CLAChannelSPI if successful, error otherwise
      */
-    Single<CLAChannelSPI> open(CLAEID eid);
+    Single<CLAChannelSPI> open(ClaEid eid);
 
 }
