@@ -33,9 +33,26 @@ allprojects {
     }
 }
 
+task build {
+    dependsOn(':libdtn-client-api:build')
+    dependsOn(':libldcp:build')
+    dependsOn(':libdtn-client-ldcp:build')
+    dependsOn(':libdtn-common:build')
+    dependsOn(':libdtn-core-api:build')
+    dependsOn(':libdtn-core:build')
+    dependsOn(':libdtn-module-hello:build')
+    dependsOn(':libdtn-module-ipdiscovery:build')
+    dependsOn(':libdtn-module-ldcp:build')
+    dependsOn(':libdtn-module-stcp:build')
+    dependsOn(':dtncat:build')
+    dependsOn(':dtnping:build')
+    dependsOn(':terra:build')
+}
+
 task bundle(type: Exec) {
     dependsOn(':libldcp:jar')
-    dependsOn(':libdtn-client:jar')
+    dependsOn(':libdtn-client-api:jar')
+    dependsOn(':libdtn-client-ldcp:jar')
     dependsOn(':libdtn-common:jar')
     dependsOn(':libdtn-core-api:jar')
     dependsOn(':libdtn-core:jar')
@@ -51,7 +68,8 @@ task bundle(type: Exec) {
 
 task clean(type: Delete) {
     dependsOn(':libldcp:clean')
-    dependsOn(':libdtn-client:clean')
+    dependsOn(':libdtn-client-api:clean')
+    dependsOn(':libdtn-client-ldcp:clean')
     dependsOn(':libdtn-common:clean')
     dependsOn(':libdtn-core-api:clean')
     dependsOn(':libdtn-core:clean')

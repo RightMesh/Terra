@@ -26,9 +26,6 @@ dependencies {
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    // ldcp request / response protocol
-    implementation project(path: ':libldcp')
-
     // Bundle data
     implementation project(path: ':libdtn-common')
 

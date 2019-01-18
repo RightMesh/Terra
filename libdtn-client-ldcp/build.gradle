@@ -1,0 +1,44 @@
+plugins {
+    id("java-library")
+    id("com.github.dcendents.android-maven")
+}
+
+group='com.github.RightMesh.Terra'
+
+task ApiDoc(type: Javadoc) {
+    source = sourceSets.main.allJava
+}
+
+jar {
+    manifest {
+        attributes 'Library-Version': '1.0'
+        attributes 'Build-Date': new Date()
+    }
+}
+
+repositories {
+    google()
+    jcenter()
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    // libdtn client API
+    api project(path: ':libdtn-client-api')
+
+    // ldcp request / response protocol
+    implementation project(path: ':libldcp')
+
+    // Bundle data
+    implementation project(path: ':libdtn-common')
+
+    // RxJava library for reactive programming
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.3'
+
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8

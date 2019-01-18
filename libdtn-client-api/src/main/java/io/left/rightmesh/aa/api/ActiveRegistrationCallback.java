@@ -1,4 +1,4 @@
-package io.left.rightmesh.aa.ldcp.api;
+package io.left.rightmesh.aa.api;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.reactivex.Completable;

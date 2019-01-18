@@ -1,20 +1,18 @@
-package io.left.rightmesh.aa.ldcp.api;
-
-import java.util.Set;
+package io.left.rightmesh.aa.api;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleId;
 import io.reactivex.Single;
 
+import java.util.Set;
+
 /**
- * ApplicationAgentAPI exposes the public ApiEid that an Application Agent can use to interact with the DtnEid
- * library over a TCP connection.
+ * ApplicationAgentAPI exposes the public API that the application layer can use to interact
+ * with the LibDTN library.
  *
  * @author Lucien Loiseau on 26/10/18.
  */
 public interface ApplicationAgentAPI {
-
-    int LDCP_VERSION = 1;
 
     class RegistrarException extends Exception {
         public RegistrarException() {
@@ -46,7 +44,7 @@ public interface ApplicationAgentAPI {
     }
 
     /**
-     * Check whether a sink is registered or not
+     * Check whether a sink is registered or not.
      *
      * @param sink identifying this AA
      * @return true if the AA is registered, false otherwise
@@ -71,7 +69,7 @@ public interface ApplicationAgentAPI {
     Single<String> register(String sink, ActiveRegistrationCallback cb) throws RegistrarDisabled, SinkAlreadyRegistered, NullArgument;
 
     /**
-     * Unregister an application agent
+     * Unregister an application agent.
      *
      * @param sink identifying the AA to be unregistered
      * @param cookie cookie for this registration

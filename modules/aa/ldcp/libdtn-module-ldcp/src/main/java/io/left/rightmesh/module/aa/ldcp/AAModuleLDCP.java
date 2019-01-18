@@ -1,5 +1,6 @@
 package io.left.rightmesh.module.aa.ldcp;
 
+import io.left.rightmesh.aa.ldcp.ApiPaths;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
@@ -14,14 +15,6 @@ import io.left.rightmesh.module.aa.ldcp.messages.RequestMessage;
 import io.left.rightmesh.module.aa.ldcp.messages.ResponseMessage;
 import io.reactivex.Completable;
 
-import static io.left.rightmesh.aa.ldcp.api.APIPaths.DELIVER;
-import static io.left.rightmesh.aa.ldcp.api.APIPaths.DISPATCH;
-import static io.left.rightmesh.aa.ldcp.api.APIPaths.FETCHBUNDLE;
-import static io.left.rightmesh.aa.ldcp.api.APIPaths.GETBUNDLE;
-import static io.left.rightmesh.aa.ldcp.api.APIPaths.ISREGISTERED;
-import static io.left.rightmesh.aa.ldcp.api.APIPaths.REGISTER;
-import static io.left.rightmesh.aa.ldcp.api.APIPaths.UNREGISTER;
-import static io.left.rightmesh.aa.ldcp.api.APIPaths.UPDATE;
 import static io.left.rightmesh.module.aa.ldcp.Configuration.LDCP_TCP_PORT;
 import static io.left.rightmesh.module.aa.ldcp.Configuration.LDCP_TCP_PORT_DEFAULT;
 
@@ -59,13 +52,13 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
         logger.i(TAG, "starting a ldcp server on port " + port);
         new LdcpServer().start(port, toolbox, factory, logger,
                 Router.create()
-                        .GET(ISREGISTERED, isregistered)
-                        .POST(REGISTER, register)
-                        .POST(UPDATE, update)
-                        .POST(UNREGISTER, unregister)
-                        .GET(GETBUNDLE, get)
-                        .GET(FETCHBUNDLE, fetch)
-                        .POST(DISPATCH, dispatch));
+                        .GET(ApiPaths.ClientToDaemonLdcpPathVersion1.ISREGISTERED.path, isregistered)
+                        .POST(ApiPaths.ClientToDaemonLdcpPathVersion1.REGISTER.path, register)
+                        .POST(ApiPaths.ClientToDaemonLdcpPathVersion1.UPDATE.path, update)
+                        .POST(ApiPaths.ClientToDaemonLdcpPathVersion1.UNREGISTER.path, unregister)
+                        .GET(ApiPaths.ClientToDaemonLdcpPathVersion1.GETBUNDLE.path, get)
+                        .GET(ApiPaths.ClientToDaemonLdcpPathVersion1.FETCHBUNDLE.path, fetch)
+                        .POST(ApiPaths.ClientToDaemonLdcpPathVersion1.DISPATCH.path, dispatch));
     }
 
     private String checkField(RequestMessage req, String key) throws RequestException {
@@ -79,7 +72,7 @@ public class AAModuleLDCP implements ApplicationAgentAdapterSPI {
 
     private ActiveRegistrationCallback deliverCallback(String sink, String host, int port) {
         return (bundle) ->
-                LdcpRequest.POST(DELIVER)
+                LdcpRequest.POST(ApiPaths.DaemonToClientLdcpPathVersion1.DELIVER.path)
                         .setBundle(bundle)
                         .send(host, port, toolbox, NullBlob::new, logger)
                         .doOnError(d -> {

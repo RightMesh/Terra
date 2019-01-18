@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.Callable;
 
-import io.left.rightmesh.aa.ldcp.api.ActiveRegistrationCallback;
-import io.left.rightmesh.aa.ldcp.api.ApplicationAgent;
+import io.left.rightmesh.aa.api.ActiveRegistrationCallback;
+import io.left.rightmesh.aa.ldcp.ApplicationAgent;
 import io.left.rightmesh.libdtn.common.BaseExtensionToolbox;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.BlockHeader;
@@ -151,8 +151,8 @@ public class DTNcat implements Callable<Void> {
 
             agent = new ApplicationAgent(dtnhost, dtnport, toolbox, null);
             agent.send(createBundleFromSTDIN(bundle)).subscribe(
-                    b -> {
-                        if (b) {
+                    isSent -> {
+                        if (isSent) {
                             bundle.clearBundle();
                             System.err.println("bundle successfully sent to " + dtnhost + ":" + dtnport);
                             System.exit(0);
@@ -162,9 +162,9 @@ public class DTNcat implements Callable<Void> {
                             System.exit(1);
                         }
                     },
-                    e -> {
+                    err -> {
                         bundle.clearBundle();
-                        System.err.println("error: " + e.getMessage());
+                        System.err.println("error: " + err.getMessage());
                         System.exit(1);
                     });
         } catch (IOException | WritableBlob.BlobOverflowException | EidFormatException e) {

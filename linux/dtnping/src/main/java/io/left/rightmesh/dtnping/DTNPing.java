@@ -8,8 +8,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import io.left.rightmesh.aa.ldcp.api.ActiveRegistrationCallback;
-import io.left.rightmesh.aa.ldcp.api.ApplicationAgent;
+import io.left.rightmesh.aa.api.ActiveRegistrationCallback;
+import io.left.rightmesh.aa.ldcp.ApplicationAgent;
 import io.left.rightmesh.libdtn.common.BaseExtensionToolbox;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.Bundle;

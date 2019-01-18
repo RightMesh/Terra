@@ -16,7 +16,7 @@ dependencies {
 
     implementation project(path: ':libdtn-common')
 
-    implementation project(path: ':libdtn-client')
+    implementation project(path: ':libdtn-client-ldcp')
 
     // CBOR for parsing StatusReport
     implementation 'com.github.RightMesh:libcbor:-SNAPSHOT'

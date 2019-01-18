@@ -1,15 +1,18 @@
 // core
-include ':libdtn-core', ':libdtn-common', ':libdtn-core-api', ':libdtn-client'
+include ':libdtn-core', ':libdtn-common', ':libdtn-core-api'
 
-// modules STCP
-include ':libdtn-module-stcp' // convergence layer adapter module
-project(":libdtn-module-stcp").projectDir = file("modules/cla/libdtn-module-stcp")
+// client
+include ':libdtn-client-api', ':libdtn-client-ldcp'
 
 // module LDCP
 include ':libldcp' // LibDtn Cbor Protocol (LDCP)
 project(":libldcp").projectDir = file("modules/aa/ldcp/libldcp")
 include ':libdtn-module-ldcp' // libdtn core module for ldcp
 project(":libdtn-module-ldcp").projectDir = file("modules/aa/ldcp/libdtn-module-ldcp")
+
+// modules STCP
+include ':libdtn-module-stcp' // convergence layer adapter module
+project(":libdtn-module-stcp").projectDir = file("modules/cla/libdtn-module-stcp")
 
 // module hello
 include ':libdtn-module-hello'

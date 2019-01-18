@@ -1,7 +1,7 @@
-package io.left.rightmesh.aa.ldcp.api;
+package io.left.rightmesh.aa.ldcp;
 
-import java.util.Set;
-
+import io.left.rightmesh.aa.api.ActiveRegistrationCallback;
+import io.left.rightmesh.aa.api.ApplicationAgentAPI;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleId;
@@ -14,16 +14,11 @@ import io.left.rightmesh.module.aa.ldcp.Router;
 import io.left.rightmesh.module.aa.ldcp.messages.ResponseMessage;
 import io.reactivex.Single;
 
-import static io.left.rightmesh.aa.ldcp.api.APIPaths.DELIVER;
-import static io.left.rightmesh.aa.ldcp.api.APIPaths.DISPATCH;
-import static io.left.rightmesh.aa.ldcp.api.APIPaths.FETCHBUNDLE;
-import static io.left.rightmesh.aa.ldcp.api.APIPaths.GETBUNDLE;
-import static io.left.rightmesh.aa.ldcp.api.APIPaths.ISREGISTERED;
-import static io.left.rightmesh.aa.ldcp.api.APIPaths.REGISTER;
-import static io.left.rightmesh.aa.ldcp.api.APIPaths.UNREGISTER;
-import static io.left.rightmesh.aa.ldcp.api.APIPaths.UPDATE;
+import java.util.Set;
 
 /**
+ * ApplicationAgent implements ApplicationAgentAPI and uses LDCP request over TCP.
+ *
  * @author Lucien Loiseau on 25/10/18.
  */
 public class ApplicationAgent implements ApplicationAgentAPI {
@@ -58,7 +53,7 @@ public class ApplicationAgent implements ApplicationAgentAPI {
         server = new LdcpServer();
         server.start(0, toolbox, factory, logger,
                 Router.create()
-                        .POST(DELIVER,
+                        .POST(ApiPaths.DaemonToClientLdcpPathVersion1.DELIVER.path,
                                 (req, res) -> cb.recv(req.bundle)
                                         .doOnComplete(() -> res.setCode(ResponseMessage.ResponseCode.OK))
                                         .doOnError(e -> res.setCode(ResponseMessage.ResponseCode.ERROR))));
@@ -75,7 +70,7 @@ public class ApplicationAgent implements ApplicationAgentAPI {
 
     @Override
     public Single<Boolean> isRegistered(String sink) {
-        return LdcpRequest.GET(ISREGISTERED)
+        return LdcpRequest.GET(ApiPaths.ClientToDaemonLdcpPathVersion1.ISREGISTERED.path)
                 .setHeader("sink", sink)
                 .send(host, port, toolbox, factory, logger)
                 .map(res -> res.code == ResponseMessage.ResponseCode.OK);
@@ -89,7 +84,7 @@ public class ApplicationAgent implements ApplicationAgentAPI {
     @Override
     public Single<String> register(String sink, ActiveRegistrationCallback cb) {
         if (startServer(cb)) {
-            return LdcpRequest.POST(REGISTER)
+            return LdcpRequest.POST(ApiPaths.ClientToDaemonLdcpPathVersion1.REGISTER.path)
                     .setHeader("sink", sink)
                     .setHeader("active", cb == null ? "false" : "true")
                     .setHeader("active-host", "127.0.0.1")
@@ -111,7 +106,7 @@ public class ApplicationAgent implements ApplicationAgentAPI {
 
     @Override
     public Single<Boolean> unregister(String sink, String cookie) {
-        return LdcpRequest.POST(UNREGISTER)
+        return LdcpRequest.POST(ApiPaths.ClientToDaemonLdcpPathVersion1.UNREGISTER.path)
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
                 .send(host, port, toolbox, factory, logger)
@@ -125,7 +120,7 @@ public class ApplicationAgent implements ApplicationAgentAPI {
 
     @Override
     public Single<Bundle> get(String sink, String cookie, BundleId bundleID) {
-        return LdcpRequest.GET(GETBUNDLE)
+        return LdcpRequest.GET(ApiPaths.ClientToDaemonLdcpPathVersion1.GETBUNDLE.path)
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
                 .setHeader("bundle-id", bundleID.getBidString())
@@ -143,7 +138,7 @@ public class ApplicationAgent implements ApplicationAgentAPI {
 
     @Override
     public Single<Bundle> fetch(String sink, String cookie, BundleId bundleID) {
-        return LdcpRequest.GET(FETCHBUNDLE)
+        return LdcpRequest.GET(ApiPaths.ClientToDaemonLdcpPathVersion1.FETCHBUNDLE.path)
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
                 .setHeader("bundle-id", bundleID.getBidString())
@@ -161,7 +156,7 @@ public class ApplicationAgent implements ApplicationAgentAPI {
 
     @Override
     public Single<Boolean> send(String sink, String cookie, Bundle bundle) {
-        return LdcpRequest.POST(DISPATCH)
+        return LdcpRequest.POST(ApiPaths.ClientToDaemonLdcpPathVersion1.DISPATCH.path)
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
                 .setBundle(bundle)
@@ -171,7 +166,7 @@ public class ApplicationAgent implements ApplicationAgentAPI {
 
     @Override
     public Single<Boolean> send(Bundle bundle) {
-        return LdcpRequest.POST(DISPATCH)
+        return LdcpRequest.POST(ApiPaths.ClientToDaemonLdcpPathVersion1.DISPATCH.path)
                 .setBundle(bundle)
                 .send(host, port, toolbox, factory, logger)
                 .map(res -> res.code == ResponseMessage.ResponseCode.OK);
@@ -180,7 +175,7 @@ public class ApplicationAgent implements ApplicationAgentAPI {
     @Override
     public Single<Boolean> reAttach(String sink, String cookie, ActiveRegistrationCallback cb) {
         if (startServer(cb)) {
-            return LdcpRequest.POST(UPDATE)
+            return LdcpRequest.POST(ApiPaths.ClientToDaemonLdcpPathVersion1.UPDATE.path)
                     .setHeader("sink", sink)
                     .setHeader("cookie", cookie)
                     .setHeader("active", "true")
@@ -201,7 +196,7 @@ public class ApplicationAgent implements ApplicationAgentAPI {
     @Override
     public Single<Boolean> setPassive(String sink, String cookie) {
         stopServer();
-        return LdcpRequest.POST(UPDATE)
+        return LdcpRequest.POST(ApiPaths.ClientToDaemonLdcpPathVersion1.UPDATE.path)
                 .setHeader("active", "false")
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
