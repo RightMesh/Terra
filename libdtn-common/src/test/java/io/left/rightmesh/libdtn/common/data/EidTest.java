@@ -1,23 +1,26 @@
 package io.left.rightmesh.libdtn.common.data;
 
-import org.junit.Test;
-
-import io.left.rightmesh.libdtn.common.data.eid.BaseEidFactory;
-import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
-import io.left.rightmesh.libdtn.common.data.eid.Eid;
-import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
-import io.left.rightmesh.libdtn.common.data.eid.EidIpn;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import io.left.rightmesh.libdtn.common.data.eid.BaseEidFactory;
+import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
+import io.left.rightmesh.libdtn.common.data.eid.EidFactory;
+import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
+import io.left.rightmesh.libdtn.common.data.eid.EidIpn;
+
+import org.junit.Test;
+
 /**
+ * Test class for Endpoint IDs.
+ *
  * @author Lucien Loiseau on 20/09/18.
  */
 public class EidTest {
 
-    io.left.rightmesh.libdtn.common.data.eid.EidFactory EidFactory = new BaseEidFactory();
+    EidFactory eidFactory = new BaseEidFactory();
 
     @Test
     public void testIpnEid() {
@@ -33,7 +36,7 @@ public class EidTest {
         assertEquals(32, eidIpn.serviceNumber);
 
         try {
-            Eid eid = EidFactory.create("ipn:0.0");
+            Eid eid = eidFactory.create("ipn:0.0");
             assertEquals("ipn:0.0", eid.getEidString());
         } catch (EidFormatException eid) {
             fail(eid.getMessage());
@@ -50,7 +53,7 @@ public class EidTest {
             assertEquals("dtn:marsOrbital/pingservice", dtnping.getEidString());
             assertTrue(dtnping.matches(dtn));
 
-            dtn = EidFactory.create("dtn:marsOrbital");
+            dtn = eidFactory.create("dtn:marsOrbital");
             assertEquals("dtn:marsOrbital", dtn.getEidString());
         } catch (EidFormatException efe) {
             fail();

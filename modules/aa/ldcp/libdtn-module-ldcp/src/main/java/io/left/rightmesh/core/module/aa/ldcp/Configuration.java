@@ -1,6 +1,8 @@
 package io.left.rightmesh.core.module.aa.ldcp;
 
 /**
+ * AaModuleLdcp configuration parameters.
+ *
  * @author Lucien Loiseau on 26/10/18.
  */
 public interface Configuration {

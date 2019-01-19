@@ -11,10 +11,10 @@ import io.left.rightmesh.libdtn.common.data.eid.BaseClaEid;
 import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
 import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
-import io.left.rightmesh.libdtn.core.api.CoreAPI;
-import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
+import io.left.rightmesh.libdtn.core.api.CoreApi;
+import io.left.rightmesh.libdtn.core.api.RegistrarApi;
 import io.left.rightmesh.libdtn.core.events.LinkLocalEntryUp;
-import io.left.rightmesh.libdtn.core.spi.core.CoreModuleSPI;
+import io.left.rightmesh.libdtn.core.spi.core.CoreModuleSpi;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Completable;
@@ -31,7 +31,7 @@ import java.nio.ByteBuffer;
  *
  * @author Lucien Loiseau on 13/11/18.
  */
-public class CoreModuleHello implements CoreModuleSPI {
+public class CoreModuleHello implements CoreModuleSpi {
 
     private static final String TAG = "HelloModule";
 
@@ -41,7 +41,7 @@ public class CoreModuleHello implements CoreModuleSPI {
         }
     }
 
-    private CoreAPI coreAPI;
+    private CoreApi coreApi;
     private Bundle helloBundle;
 
     public CoreModuleHello() {
@@ -53,13 +53,13 @@ public class CoreModuleHello implements CoreModuleSPI {
     }
 
     private void prepareHelloBundle() {
-        HelloMessage hello = new HelloMessage(coreAPI.getExtensionManager().getEidFactory());
+        HelloMessage hello = new HelloMessage(coreApi.getExtensionManager().getEidFactory());
 
         /* add node local Eid */
-        hello.eids.add(coreAPI.getLocalEID().localEID());
+        hello.eids.add(coreApi.getLocalEid().localEid());
 
         /* add aliases */
-        hello.eids.addAll(coreAPI.getLocalEID().aliases());
+        hello.eids.addAll(coreApi.getLocalEid().aliases());
 
         /* get size of hello message for the payload */
         long size = hello.encode().observe()
@@ -81,22 +81,23 @@ public class CoreModuleHello implements CoreModuleSPI {
     }
 
     @Override
-    public void init(CoreAPI api) {
-        this.coreAPI = api;
+    public void init(CoreApi api) {
+        this.coreApi = api;
 
         prepareHelloBundle();
 
         try {
             api.getRegistrar().register("/hello/", (bundle) -> {
                 if (bundle.getTagAttachment("cla-origin-iid") != null) {
-                    coreAPI.getLogger().i(TAG, "received hello message from: " +
-                            bundle.getSource().getEidString() +
-                            " on BaseClaEid: " +
-                            bundle.<Eid>getTagAttachment("cla-origin-iid").getEidString());
-                    CborParser p = CBOR.parser()
+                    coreApi.getLogger().i(TAG, "received hello message from: "
+                            + bundle.getSource().getEidString()
+                            + " on BaseClaEid: "
+                            + bundle.<Eid>getTagAttachment("cla-origin-iid").getEidString());
+                    CborParser parser = CBOR.parser()
                             .cbor_parse_custom_item(
-                                    () -> new HelloMessage(api.getExtensionManager().getEidFactory()),
-                                    (__, ___, item) -> {
+                                    () -> new HelloMessage(
+                                            api.getExtensionManager().getEidFactory()),
+                                    (p, t, item) -> {
                                         for (Eid eid : item.eids) {
                                             api.getRoutingTable().addRoute(
                                                     eid,
@@ -107,24 +108,25 @@ public class CoreModuleHello implements CoreModuleSPI {
                     bundle.getPayloadBlock().data.observe().subscribe(
                             b -> {
                                 try {
-                                    while (b.hasRemaining() && !p.isDone()) {
-                                        p.read(b);
+                                    while (b.hasRemaining() && !parser.isDone()) {
+                                        parser.read(b);
                                     }
                                 } catch (RxParserException rpe) {
-                                    api.getLogger().i(TAG, "malformed hello message: " + rpe.getMessage());
+                                    api.getLogger().i(TAG, "malformed hello message: "
+                                            + rpe.getMessage());
                                 }
                             });
                 } else {
-                    coreAPI.getLogger().i(TAG, "received hello message from: " +
-                            bundle.getSource().getEidString() +
-                            " but the BaseClaEid wasn't tagged - ignoring");
+                    coreApi.getLogger().i(TAG, "received hello message from: "
+                            + bundle.getSource().getEidString()
+                            + " but the BaseClaEid wasn't tagged - ignoring");
                 }
 
                 return Completable.complete();
             });
-        } catch (RegistrarAPI.SinkAlreadyRegistered |
-                RegistrarAPI.RegistrarDisabled |
-                RegistrarAPI.NullArgument re) {
+        } catch (RegistrarApi.SinkAlreadyRegistered
+                | RegistrarApi.RegistrarDisabled
+                | RegistrarApi.NullArgument re) {
             api.getLogger().e(TAG, "initialization failed: " + re.getMessage());
             return;
         }
@@ -132,24 +134,29 @@ public class CoreModuleHello implements CoreModuleSPI {
         RxBus.register(this);
     }
 
-    /* events are serialized */
+    /**
+     * For every new peer that is connected, we send a hello message.
+     *
+     * @param up event
+     */
     @Subscribe
     public void onEvent(LinkLocalEntryUp up) {
         try {
-            BaseClaEid eid = ((BaseClaEid) up.channel.channelEID().copy()).setPath("/hello/");
-            coreAPI.getLogger().i(TAG, "sending hello message to: " + eid.getEidString());
+            BaseClaEid eid = ((BaseClaEid) up.channel.channelEid().copy()).setPath("/hello/");
+            coreApi.getLogger().i(TAG, "sending hello message to: " + eid.getEidString());
             helloBundle.setDestination(eid);
             up.channel.sendBundle(helloBundle,
-                    coreAPI.getExtensionManager().getBlockDataSerializerFactory()
+                    coreApi.getExtensionManager().getBlockDataSerializerFactory()
             ).subscribe(
-                    i -> {/* ignore */},
-                    e -> coreAPI.getLogger().i(
-                            TAG, "fail to send hello message: " +
-                                    eid.getEidString()),
-                    () -> {/* ignore */}
+                    i -> { /* ignore */ },
+                    e -> coreApi.getLogger().i(
+                            TAG, "fail to send hello message: "
+                                    + eid.getEidString()),
+                    () -> { /* ignore */ }
             );
         } catch (EidFormatException efe) {
-            coreAPI.getLogger().e(TAG, "Cannot append /hello/ to IID: " + up.channel.channelEID() + " reason=" + efe.getMessage());
+            coreApi.getLogger().e(TAG, "Cannot append /hello/ to IID: "
+                    + up.channel.channelEid() + " reason=" + efe.getMessage());
         }
     }
 

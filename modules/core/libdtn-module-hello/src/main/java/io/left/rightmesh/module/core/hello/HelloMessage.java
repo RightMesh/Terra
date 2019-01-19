@@ -1,8 +1,5 @@
 package io.left.rightmesh.module.core.hello;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
@@ -12,7 +9,12 @@ import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.left.rightmesh.libdtn.common.data.eid.EidFactory;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
 
+import java.util.LinkedList;
+import java.util.List;
+
 /**
+ * HelloMessage is a CborParser.ParseableItem that carries a list of Eids.
+ *
  * @author Lucien Loiseau on 13/11/18.
  */
 public class HelloMessage implements CborParser.ParseableItem {
@@ -31,16 +33,21 @@ public class HelloMessage implements CborParser.ParseableItem {
         return CBOR.parser()
                 .cbor_parse_linear_array(
                         () -> new EidItem(eidFactory, new NullLogger()),
-                        (__, ___, size) -> {},
-                        (__, ___, item) -> eids.add(item.eid),
-                        (__, ___, ____) -> {});
+                        (p, t, size) -> { },
+                        (p, t, item) -> eids.add(item.eid),
+                        (p, t, a) -> { });
     }
 
+    /**
+     * encode a HelloMessage as a CBOR stream.
+     *
+     * @return CborEncoder
+     */
     public CborEncoder encode() {
         CborEncoder enc = CBOR.encoder()
                 .cbor_start_array(eids.size());
 
-        for(Eid eid : eids) {
+        for (Eid eid : eids) {
             enc.merge(EidSerializer.encode(eid));
         }
 

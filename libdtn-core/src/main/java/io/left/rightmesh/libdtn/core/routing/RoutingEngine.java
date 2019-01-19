@@ -1,30 +1,32 @@
 package io.left.rightmesh.libdtn.core.routing;
 
+import static io.left.rightmesh.libdtn.common.data.StatusReport.ReasonCode.TransmissionCancelled;
+
+import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleId;
 import io.left.rightmesh.libdtn.common.data.eid.BaseClaEid;
-import io.left.rightmesh.libdtn.core.api.CoreAPI;
-import io.left.rightmesh.libdtn.core.api.RoutingAPI;
-import io.left.rightmesh.libdtn.core.storage.EventListener;
-import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.eid.Eid;
+import io.left.rightmesh.libdtn.core.api.CoreApi;
+import io.left.rightmesh.libdtn.core.api.RoutingApi;
 import io.left.rightmesh.libdtn.core.events.LinkLocalEntryUp;
-import io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI;
+import io.left.rightmesh.libdtn.core.spi.cla.ClaChannelSpi;
+import io.left.rightmesh.libdtn.core.storage.EventListener;
 import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
 
-import static io.left.rightmesh.libdtn.common.data.StatusReport.ReasonCode.TransmissionCancelled;
-
 /**
+ * RoutingEngine forward bundles to next-hop connected neighbour.
+ *
  * @author Lucien Loiseau on 28/09/18.
  */
-public class RoutingEngine implements RoutingAPI {
+public class RoutingEngine implements RoutingApi {
 
     public static final String TAG = "RoutingEngine";
 
-    private CoreAPI core;
+    private CoreApi core;
 
-    public RoutingEngine(CoreAPI core) {
+    public RoutingEngine(CoreApi core) {
         this.core = core;
         listener = new ForwardingListener(core);
     }
@@ -32,7 +34,7 @@ public class RoutingEngine implements RoutingAPI {
     private ForwardingListener listener;
 
     public class ForwardingListener extends EventListener<String> {
-        ForwardingListener(CoreAPI core) {
+        ForwardingListener(CoreApi core) {
             super(core);
         }
 
@@ -41,18 +43,27 @@ public class RoutingEngine implements RoutingAPI {
             return "ForwardingListener";
         }
 
+        /**
+         * Listen for new peer event and forward relevent bundle accordingly.
+         *
+         * @param event new peer
+         */
+        // CHECKSTYLE IGNORE LineLength
         @Subscribe
         public void onEvent(LinkLocalEntryUp event) {
             /* deliver every bundle of interest */
-            core.getLogger().i(TAG, "step 1: pull bundleOfInterest key=" + event.channel.channelEID().getClaSpecificPart());
-            getBundlesOfInterest(event.channel.channelEID().getClaSpecificPart()).subscribe(
+            core.getLogger().i(TAG, "step 1: pull bundleOfInterest key="
+                    + event.channel.channelEid().getClaSpecificPart());
+            getBundlesOfInterest(event.channel.channelEid().getClaSpecificPart()).subscribe(
                     bundleID -> {
                         /* retrieve the bundle */
-                        core.getLogger().v(TAG, "step 1.1: pull from storage " + bundleID.getBidString());
+                        core.getLogger().v(TAG, "step 1.1: pull from storage "
+                                + bundleID.getBidString());
                         core.getStorage().get(bundleID).subscribe(
                                 /* deliver it */
                                 bundle -> {
-                                    core.getLogger().v(TAG, "step 1.2-1: forward bundle " + bundleID.getBidString());
+                                    core.getLogger().v(TAG, "step 1.2-1: forward bundle "
+                                            + bundleID.getBidString());
                                     event.channel.sendBundle(
                                             bundle,
                                             core.getExtensionManager().getBlockDataSerializerFactory()
@@ -75,33 +86,45 @@ public class RoutingEngine implements RoutingAPI {
                                 });
                     });
         }
+        // CHECKSTYLE END IGNORE LineLength
     }
 
-    public Observable<CLAChannelSPI> findOpenedChannelTowards(Eid destination) {
+    /**
+     * finds all the channels, actually opened, that are next-hop toward a certain destination.
+     *
+     * @param destination endpoint if of the destination
+     * @return an Observable of openned {@link ClaChannelSpi}
+     */
+    public Observable<ClaChannelSpi> findOpenedChannelTowards(Eid destination) {
         return Observable.concat(
-                core.getLinkLocalRouting().findCLA(destination)
+                core.getLinkLocalRouting().findCla(destination)
                         .toObservable(),
-                core.getRoutingTable().resolveEID(destination)
-                        .map(core.getLinkLocalRouting()::findCLA)
+                core.getRoutingTable().resolveEid(destination)
+                        .map(core.getLinkLocalRouting()::findCla)
                         .flatMap(Maybe::toObservable))
                 .distinct();
     }
 
-    /* not in RFC - store bundle and wait for an opportunity */
+    /**
+     * This method will track the event related to this bundle and tries to forward it later if
+     * an opportunity happened.
+     *
+     * @param bundle to forward later
+     */
     public void forwardLater(final Bundle bundle) {
         /* register a listener that will listen for ChannelOpened event
          * and pull the bundle from storage if there is a match */
         final BundleId bid = bundle.bid;
         final Eid destination = bundle.getDestination();
-        Observable<BaseClaEid> potentialCLAs = core.getRoutingTable().resolveEID(destination);
+        Observable<BaseClaEid> potentialClas = core.getRoutingTable().resolveEid(destination);
 
         // watch bundle for all potential BaseClaEid
-        potentialCLAs
+        potentialClas
                 .map(claeid -> listener.watch(claeid.getClaSpecificPart(), bid))
                 .subscribe();
 
         // then try to force an opportunity
-        potentialCLAs
+        potentialClas
                 .distinct()
                 .concatMapMaybe(claeid ->
                         Maybe.fromSingle(core.getClaManager()
@@ -117,22 +140,24 @@ public class RoutingEngine implements RoutingAPI {
                         },
                         () -> {
                             /* ignore */
-                        }
-                );
+                        });
     }
 
 
-    // todo remove this
+    /**
+     * dump the link-local table.
+     * @return human readable link-local table
+     */
     public String printLinkLocalTable() {
         StringBuilder sb = new StringBuilder("Link-Local Table:\n");
         sb.append("--------------\n\n");
         core.getLinkLocalRouting().dumpTable().forEach((entry) -> {
-            String remote = entry.channelEID().getEidString();
-            String local = entry.localEID().getEidString();
+            String remote = entry.channelEid().getEidString();
+            String local = entry.localEid().getEidString();
             String mode;
-            if (entry.getMode().equals(CLAChannelSPI.ChannelMode.InUnidirectional)) {
+            if (entry.getMode().equals(ClaChannelSpi.ChannelMode.InUnidirectional)) {
                 mode = " <-- ";
-            } else if (entry.getMode().equals(CLAChannelSPI.ChannelMode.OutUnidirectional)) {
+            } else if (entry.getMode().equals(ClaChannelSpi.ChannelMode.OutUnidirectional)) {
                 mode = " --> ";
             } else {
                 mode = " <-> ";
@@ -143,14 +168,17 @@ public class RoutingEngine implements RoutingAPI {
         return sb.toString();
     }
 
-
-    // todo remove this
+    /**
+     * dump the routing table.
+     * @return human readable routing table
+     */
     public String printRoutingTable() {
         final StringBuilder sb = new StringBuilder("Routing Table:\n");
         sb.append("--------------\n\n");
         core.getRoutingTable().dumpTable().forEach(
                 tableEntry -> {
-                    sb.append(tableEntry.getTo().getEidString() + " --> " + tableEntry.getNext().getEidString() + "\n");
+                    sb.append(tableEntry.getTo().getEidString() + " --> "
+                            + tableEntry.getNext().getEidString() + "\n");
                 }
         );
         sb.append("\n");

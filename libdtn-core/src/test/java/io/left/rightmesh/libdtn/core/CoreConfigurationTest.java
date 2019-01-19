@@ -5,7 +5,7 @@ import org.junit.Test;
 import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
 import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
-import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
+import io.left.rightmesh.libdtn.core.api.ConfigurationApi;
 
 import static org.junit.Assert.assertEquals;
 
@@ -20,8 +20,8 @@ public class CoreConfigurationTest {
         try {
             Eid testEid = new DtnEid("test");
             CoreConfiguration conf = new CoreConfiguration();
-            conf.<Eid>get(ConfigurationAPI.CoreEntry.LOCAL_EID).update(testEid);
-            Eid localEid = conf.<Eid>get(ConfigurationAPI.CoreEntry.LOCAL_EID).value();
+            conf.<Eid>get(ConfigurationApi.CoreEntry.LOCAL_EID).update(testEid);
+            Eid localEid = conf.<Eid>get(ConfigurationApi.CoreEntry.LOCAL_EID).value();
             assertEquals(testEid.getEidString(), localEid.getEidString());
         } catch(EidFormatException ignore) {
             // sould not happen

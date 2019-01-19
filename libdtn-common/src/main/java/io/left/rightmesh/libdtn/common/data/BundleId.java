@@ -38,7 +38,7 @@ public class BundleId {
     }
 
     /**
-     * create a BundleId.
+     * Creates a BundleId.
      *
      * @param source of the bundle
      * @param timestamp of the bundle

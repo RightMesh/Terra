@@ -1,27 +1,27 @@
 package io.left.rightmesh.aa.ldcp;
 
 import io.left.rightmesh.aa.api.ActiveRegistrationCallback;
-import io.left.rightmesh.aa.api.ApplicationAgentAPI;
+import io.left.rightmesh.aa.api.ApplicationAgentApi;
+import io.left.rightmesh.ldcp.LdcpRequest;
+import io.left.rightmesh.ldcp.LdcpServer;
+import io.left.rightmesh.ldcp.Router;
+import io.left.rightmesh.ldcp.messages.ResponseMessage;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleId;
 import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
-import io.left.rightmesh.ldcp.LdcpRequest;
-import io.left.rightmesh.ldcp.LdcpServer;
-import io.left.rightmesh.ldcp.Router;
-import io.left.rightmesh.ldcp.messages.ResponseMessage;
 import io.reactivex.Single;
 
 import java.util.Set;
 
 /**
- * ApplicationAgent implements ApplicationAgentAPI and uses LDCP request over TCP.
+ * ApplicationAgent implements ApplicationAgentApi and uses LDCP request over TCP.
  *
  * @author Lucien Loiseau on 25/10/18.
  */
-public class ApplicationAgent implements ApplicationAgentAPI {
+public class ApplicationAgent implements ApplicationAgentApi {
 
     private static final String TAG = "ldcp-api";
 
@@ -32,11 +32,26 @@ public class ApplicationAgent implements ApplicationAgentAPI {
     private ExtensionToolbox toolbox;
     private Log logger;
 
-    public ApplicationAgent(String host, int port, ExtensionToolbox toolbox, BlobFactory factory) {
+    public ApplicationAgent(String host,
+                            int port,
+                            ExtensionToolbox toolbox,
+                            BlobFactory factory) {
         this(host, port, toolbox, factory, new NullLogger());
     }
 
-    public ApplicationAgent(String host, int port, ExtensionToolbox toolbox, BlobFactory factory, Log logger) {
+    /**
+     * Constructor.
+     * @param host host of the LDCP server running on the registrar
+     * @param port port of the LDCP server running on the registrar
+     * @param toolbox Blocks and Eids factory
+     * @param factory Blob factory
+     * @param logger logging service
+     */
+    public ApplicationAgent(String host,
+                            int port,
+                            ExtensionToolbox toolbox,
+                            BlobFactory factory,
+                            Log logger) {
         this.host = host;
         this.port = port;
         this.toolbox = toolbox;
@@ -54,8 +69,10 @@ public class ApplicationAgent implements ApplicationAgentAPI {
                 Router.create()
                         .POST(ApiPaths.DaemonToClientLdcpPathVersion1.DELIVER.path,
                                 (req, res) -> cb.recv(req.bundle)
-                                        .doOnComplete(() -> res.setCode(ResponseMessage.ResponseCode.OK))
-                                        .doOnError(e -> res.setCode(ResponseMessage.ResponseCode.ERROR))));
+                                        .doOnComplete(() ->
+                                                res.setCode(ResponseMessage.ResponseCode.OK))
+                                        .doOnError(e ->
+                                                res.setCode(ResponseMessage.ResponseCode.ERROR))));
         return true;
     }
 
@@ -118,11 +135,11 @@ public class ApplicationAgent implements ApplicationAgentAPI {
     }
 
     @Override
-    public Single<Bundle> get(String sink, String cookie, BundleId bundleID) {
+    public Single<Bundle> get(String sink, String cookie, BundleId bundleId) {
         return LdcpRequest.GET(ApiPaths.ClientToDaemonLdcpPathVersion1.GETBUNDLE.path)
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
-                .setHeader("bundle-id", bundleID.getBidString())
+                .setHeader("bundle-id", bundleId.getBidString())
                 .send(host, port, toolbox, factory, logger)
                 .flatMap(res -> {
                     if (res.code == ResponseMessage.ResponseCode.ERROR) {
@@ -136,11 +153,11 @@ public class ApplicationAgent implements ApplicationAgentAPI {
     }
 
     @Override
-    public Single<Bundle> fetch(String sink, String cookie, BundleId bundleID) {
+    public Single<Bundle> fetch(String sink, String cookie, BundleId bundleId) {
         return LdcpRequest.GET(ApiPaths.ClientToDaemonLdcpPathVersion1.FETCHBUNDLE.path)
                 .setHeader("sink", sink)
                 .setHeader("cookie", cookie)
-                .setHeader("bundle-id", bundleID.getBidString())
+                .setHeader("bundle-id", bundleId.getBidString())
                 .send(host, port, toolbox, factory, logger)
                 .flatMap(res -> {
                     if (res.code == ResponseMessage.ResponseCode.ERROR) {

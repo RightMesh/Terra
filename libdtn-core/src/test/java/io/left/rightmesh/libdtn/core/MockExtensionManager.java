@@ -13,12 +13,12 @@ import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BlockDataSeriali
 import io.left.rightmesh.libdtn.common.data.eid.ClaEidParser;
 import io.left.rightmesh.libdtn.common.data.eid.EidFactory;
 import io.left.rightmesh.libdtn.common.data.eid.EidSspParser;
-import io.left.rightmesh.libdtn.core.api.ExtensionManagerAPI;
+import io.left.rightmesh.libdtn.core.api.ExtensionManagerApi;
 
 /**
  * @author Lucien Loiseau on 26/11/18.
  */
-public class MockExtensionManager implements ExtensionManagerAPI {
+public class MockExtensionManager implements ExtensionManagerApi {
     @Override
     public EidFactory getEidFactory() {
         return null;
@@ -53,10 +53,10 @@ public class MockExtensionManager implements ExtensionManagerAPI {
     }
 
     @Override
-    public void addExtensionCLA(String cl_name, ClaEidParser parser) {
+    public void addExtensionCla(String clName, ClaEidParser parser) {
     }
 
     @Override
-    public void addExtensionEID(int schemeId, String schemeStr, EidSspParser ssPparser) {
+    public void addExtensionEid(int schemeId, String schemeStr, EidSspParser ssPparser) {
     }
 }

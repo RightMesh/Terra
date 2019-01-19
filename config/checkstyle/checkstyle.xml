@@ -35,11 +35,6 @@
             <property name="influenceFormat" value="1"/>
         </module>
 
-        <!-- 100-line Sanity check for method length. -->
-        <module name="MethodLength">
-            <property name="max" value="100"/>
-        </module>
-
         <!-- Require "@Override" annotation when overriding. -->
         <module name="MissingOverride"/>
 
@@ -48,12 +43,6 @@
         <module name="EmptyCatchBlockCheck">
             <property name="commentFormat" value=".+"/>
         </module>
-        <!-- https://source.android.com/source/code-style.html#dont-catch-generic-exception -->
-        <module name="IllegalCatch">
-            <property name="illegalClassNames" value="java.lang.Exception, java.lang.Throwable"/>
-        </module>
-        <!-- https://source.android.com/source/code-style.html#dont-use-finalizers -->
-        <module name="NoFinalizer"/>
         <!-- https://source.android.com/source/code-style.html#fully-qualify-imports -->
         <module name="AvoidStarImport">
             <property name="excludes" value="java.io,java.util,junit.framework"/>

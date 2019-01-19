@@ -13,7 +13,7 @@ task ApiDoc(type: Javadoc) {
 jar {
     // META-INF/services to load module with ServiceLoader
     serviceLoader {
-        serviceInterface 'io.left.rightmesh.libdtn.core.spi.core.CoreModuleSPI'
+        serviceInterface 'io.left.rightmesh.libdtn.core.spi.core.CoreModuleSpi'
         serviceInterface 'io.left.rightmesh.module.core.ipdiscovery.CoreModuleIpDiscovery'
     }
 

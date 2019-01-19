@@ -1,5 +1,9 @@
 package io.left.rightmesh.libdtn.common.data.bundlev7;
 
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
+import io.left.rightmesh.libdtn.common.data.security.CipherSuites;
+import io.left.rightmesh.libdtn.common.data.security.SecurityContext;
+
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -11,16 +15,17 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import io.left.rightmesh.libdtn.common.data.eid.Eid;
-import io.left.rightmesh.libdtn.common.data.security.CipherSuites;
-import io.left.rightmesh.libdtn.common.data.security.SecurityContext;
-
 /**
+ * Test class to test SecurityContext.
  * @author Lucien Loiseau on 06/11/18.
  */
 public class SecurityContextTest {
 
 
+    /**
+     * Mock the SecurityContext to provide a single cipher, digest and mac.
+     * @return a new SecurityContext.
+     */
     public static SecurityContext mockSecurityContext() {
         return new SecurityContext() {
 
@@ -28,17 +33,22 @@ public class SecurityContextTest {
             String initVector = "testInitVector--";
 
             @Override
-            public MessageDigest initDigestForIntegrity(int cipherSuiteId, Eid securitySource) throws NoSuchAlgorithmException {
+            public MessageDigest initDigestForIntegrity(int cipherSuiteId, Eid securitySource)
+                    throws NoSuchAlgorithmException {
                 return CipherSuites.fromId(cipherSuiteId).getMessageDigest();
             }
 
             @Override
-            public MessageDigest initDigestForVerification(int cipherSuiteId, Eid securitySource) throws NoSuchAlgorithmException {
+            public MessageDigest initDigestForVerification(int cipherSuiteId, Eid securitySource)
+                    throws NoSuchAlgorithmException {
                 return CipherSuites.fromId(cipherSuiteId).getMessageDigest();
             }
 
             @Override
-            public Cipher initCipherForEncryption(int cipherSuiteId, Eid securitySource) throws NoSecurityContextFound, NoSuchAlgorithmException, NoSuchPaddingException {
+            public Cipher initCipherForEncryption(int cipherSuiteId, Eid securitySource) throws
+                    NoSecurityContextFound,
+                    NoSuchAlgorithmException,
+                    NoSuchPaddingException {
                 SecretKeySpec skeySpec;
                 IvParameterSpec ivParameterSpec;
 
@@ -62,7 +72,10 @@ public class SecurityContextTest {
             }
 
             @Override
-            public Cipher initCipherForDecryption(int cipherSuiteId, Eid securitySource) throws NoSecurityContextFound, NoSuchAlgorithmException, NoSuchPaddingException {
+            public Cipher initCipherForDecryption(int cipherSuiteId, Eid securitySource) throws
+                    NoSecurityContextFound,
+                    NoSuchAlgorithmException,
+                    NoSuchPaddingException {
                 SecretKeySpec skeySpec;
                 IvParameterSpec ivParameterSpec;
 

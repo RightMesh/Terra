@@ -1,32 +1,5 @@
 package io.left.rightmesh.libdtn.core.processor;
 
-import java.nio.ByteBuffer;
-import java.util.LinkedList;
-import java.util.List;
-
-import io.left.rightmesh.libcbor.CborEncoder;
-import io.left.rightmesh.libdtn.common.data.PayloadBlock;
-import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
-import io.left.rightmesh.libdtn.common.data.blob.UntrackedByteBufferBlob;
-import io.left.rightmesh.libdtn.common.data.blob.WritableBlob;
-import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BlockProcessorFactory;
-import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.AdministrativeRecordSerializer;
-import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
-import io.left.rightmesh.libdtn.common.data.bundlev7.processor.ProcessingException;
-import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
-import io.left.rightmesh.libdtn.common.data.eid.Eid;
-import io.left.rightmesh.libdtn.common.data.StatusReport;
-import io.left.rightmesh.libdtn.core.api.BundleProcessorAPI;
-import io.left.rightmesh.libdtn.core.api.CoreAPI;
-import io.left.rightmesh.libdtn.core.utils.ClockUtil;
-
-import static io.left.rightmesh.libdtn.common.data.StatusReport.ReasonCode.NoAdditionalInformation;
-import static io.left.rightmesh.libdtn.common.data.StatusReport.StatusAssertion.ReportingNodeDeletedBundle;
-import static io.left.rightmesh.libdtn.common.data.StatusReport.StatusAssertion.ReportingNodeDeliveredBundle;
-import static io.left.rightmesh.libdtn.common.data.StatusReport.StatusAssertion.ReportingNodeForwardedBundle;
-import static io.left.rightmesh.libdtn.common.data.StatusReport.StatusAssertion.ReportingNodeReceivedBundle;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_FORWARDING;
 import static io.left.rightmesh.libdtn.common.data.BlockHeader.BlockV7Flags.DELETE_BUNDLE_IF_NOT_PROCESSED;
 import static io.left.rightmesh.libdtn.common.data.BlockHeader.BlockV7Flags.DISCARD_IF_NOT_PROCESSED;
 import static io.left.rightmesh.libdtn.common.data.BlockHeader.BlockV7Flags.TRANSMIT_STATUSREPORT_IF_NOT_PROCESSED;
@@ -35,8 +8,35 @@ import static io.left.rightmesh.libdtn.common.data.PrimaryBlock.BundleV7Flags.DE
 import static io.left.rightmesh.libdtn.common.data.PrimaryBlock.BundleV7Flags.RECEPTION_REPORT;
 import static io.left.rightmesh.libdtn.common.data.StatusReport.ReasonCode.BlockUnintelligible;
 import static io.left.rightmesh.libdtn.common.data.StatusReport.ReasonCode.LifetimeExpired;
+import static io.left.rightmesh.libdtn.common.data.StatusReport.ReasonCode.NoAdditionalInformation;
 import static io.left.rightmesh.libdtn.common.data.StatusReport.ReasonCode.NoKnownRouteForDestination;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_STATUS_REPORTING;
+import static io.left.rightmesh.libdtn.common.data.StatusReport.StatusAssertion.ReportingNodeDeletedBundle;
+import static io.left.rightmesh.libdtn.common.data.StatusReport.StatusAssertion.ReportingNodeDeliveredBundle;
+import static io.left.rightmesh.libdtn.common.data.StatusReport.StatusAssertion.ReportingNodeForwardedBundle;
+import static io.left.rightmesh.libdtn.common.data.StatusReport.StatusAssertion.ReportingNodeReceivedBundle;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.ENABLE_FORWARDING;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.ENABLE_STATUS_REPORTING;
+
+import io.left.rightmesh.libcbor.CborEncoder;
+import io.left.rightmesh.libdtn.common.data.Bundle;
+import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
+import io.left.rightmesh.libdtn.common.data.PayloadBlock;
+import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
+import io.left.rightmesh.libdtn.common.data.StatusReport;
+import io.left.rightmesh.libdtn.common.data.blob.UntrackedByteBufferBlob;
+import io.left.rightmesh.libdtn.common.data.blob.WritableBlob;
+import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BlockProcessorFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.processor.ProcessingException;
+import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.AdministrativeRecordSerializer;
+import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
+import io.left.rightmesh.libdtn.core.api.BundleProcessorApi;
+import io.left.rightmesh.libdtn.core.api.CoreApi;
+import io.left.rightmesh.libdtn.core.utils.ClockUtil;
+
+import java.nio.ByteBuffer;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * BundleProcessor is the entry point of all Bundle (either from Application Agent or
@@ -44,13 +44,13 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABL
  *
  * @author Lucien Loiseau on 28/09/18.
  */
-public class BundleProcessor implements BundleProcessorAPI {
+public class BundleProcessor implements BundleProcessorApi {
 
     private static final String TAG = "BundleProcessor";
 
-    private CoreAPI core;
+    private CoreApi core;
 
-    public BundleProcessor(CoreAPI core) {
+    public BundleProcessor(CoreApi core) {
         this.core = core;
     }
 
@@ -59,11 +59,13 @@ public class BundleProcessor implements BundleProcessorAPI {
     }
 
     /* 5.2 */
+    @Override
     public void bundleTransmission(Bundle bundle) {
         /* 5.2 - step 1 */
         core.getLogger().v(TAG, "5.2-1 " + bundle.bid.getBidString());
-        if (!bundle.getSource().equals(DtnEid.nullEid()) && !core.getLocalEID().isLocal(bundle.getSource())) {
-            bundle.setSource(core.getLocalEID().localEID());
+        if (!bundle.getSource().equals(DtnEid.nullEid())
+                && !core.getLocalEid().isLocal(bundle.getSource())) {
+            bundle.setSource(core.getLocalEid().localEid());
         }
         bundle.tag("dispatch_pending");
 
@@ -73,12 +75,14 @@ public class BundleProcessor implements BundleProcessorAPI {
     }
 
     /* 5.3 */
+    @Override
     public void bundleDispatching(Bundle bundle) {
-        core.getLogger().i(TAG, "dispatching bundle: " + bundle.bid.getBidString() + " to Eid: " + bundle.getDestination().getEidString());
+        core.getLogger().i(TAG, "dispatching bundle: " + bundle.bid.getBidString()
+                + " to Eid: " + bundle.getDestination().getEidString());
 
         /* 5.3 - step 1 */
         core.getLogger().v(TAG, "5.3-1: " + bundle.bid.getBidString());
-        if (core.getLocalEID().isLocal(bundle.getDestination())) {
+        if (core.getLocalEid().isLocal(bundle.getDestination())) {
             bundleLocalDelivery(bundle);
             return;
         }
@@ -94,6 +98,7 @@ public class BundleProcessor implements BundleProcessorAPI {
     }
 
     /* 5.4 */
+    // CHECKSTYLE IGNORE LineLength
     private void bundleForwarding(Bundle bundle) {
         core.getLogger().d(TAG, "forwarding bundle: " + bundle.bid.getBidString());
 
@@ -112,7 +117,7 @@ public class BundleProcessor implements BundleProcessorAPI {
                                         .doOnSubscribe((d) -> {
                                             core.getLogger().v(TAG, "5.4-4 "
                                                     + bundle.bid.getBidString() + " -> "
-                                                    + claChannel.channelEID().getEidString());
+                                                    + claChannel.channelEid().getEidString());
 
                                             /* call block-specific routine for transmission */
                                             for (CanonicalBlock block : bundle.getBlocks()) {
@@ -145,11 +150,12 @@ public class BundleProcessor implements BundleProcessorAPI {
                             core.getLogger().v(TAG, "5.4-3 " + bundle.bid.getBidString());
                             bundle.tag("reason_code", NoKnownRouteForDestination);
                             bundleForwardingContraindicated(bundle);
-                        }
-                );
+                        });
     }
+    // CHECKSTYLE END IGNORE LineLength
 
     /* 5.4 - step 5 */
+    @Override
     public void bundleForwardingSuccessful(Bundle bundle) {
         core.getLogger().d(TAG, "forwarding successful: " + bundle.bid.getBidString());
         bundle.removeTag("forward_pending");
@@ -158,19 +164,22 @@ public class BundleProcessor implements BundleProcessorAPI {
     }
 
     /* 5.4.1 */
+    @Override
     public void bundleForwardingContraindicated(Bundle bundle) {
-        core.getLogger().d(TAG, "forwarding contraindicated (" + bundle.<StatusReport.ReasonCode>getTagAttachment("reason_code") + "): " + bundle.bid.getBidString());
+        core.getLogger().d(TAG, "forwarding contraindicated ("
+                + bundle.<StatusReport.ReasonCode>getTagAttachment("reason_code") + "): "
+                + bundle.bid.getBidString());
 
         /* 5.4.1 - step 1 */
         core.getLogger().v(TAG, "5.4.1-1 " + bundle.bid.getBidString());
-        boolean is_failure;
+        boolean isFailure;
         switch (bundle.<StatusReport.ReasonCode>getTagAttachment("reason_code")) {
             case DepletedStorage:
             case DestinationEIDUnintellegible:
             case BlockUnintelligible:
             case HopLimitExceeded:
             case LifetimeExpired:
-                is_failure = true;
+                isFailure = true;
                 break;
             case NoAdditionalInformation:
             case ForwardedOverUnidirectionalLink:
@@ -179,13 +188,13 @@ public class BundleProcessor implements BundleProcessorAPI {
             case NoTimelyContactWithNextNodeOnRoute:
             default:
                 bundle.removeTag("reason_code");
-                is_failure = false;
+                isFailure = false;
                 break;
         }
 
         /* 5.4.1 - step 2 */
         core.getLogger().v(TAG, "5.4.1-2 " + bundle.bid.getBidString());
-        if (is_failure) {
+        if (isFailure) {
             bundleForwardingFailed(bundle);
         } else {
             if (!bundle.isTagged("in_storage")) {
@@ -198,7 +207,8 @@ public class BundleProcessor implements BundleProcessorAPI {
                         },
                         storageFailure -> {
                             /* 5.4.1 - step 2 -  Storage failed, abandon forwarding */
-                            core.getLogger().v(TAG, "5.4.1-2 storage failure: " + storageFailure.getMessage());
+                            core.getLogger().v(TAG, "5.4.1-2 storage failure: "
+                                    + storageFailure.getMessage());
                             bundleForwardingFailed(bundle);
                         }
                 );
@@ -216,7 +226,7 @@ public class BundleProcessor implements BundleProcessorAPI {
 
         /* 5.4.2 - step 2 */
         core.getLogger().v(TAG, "5.4.2-2 " + bundle.bid.getBidString());
-        if (core.getLocalEID().isLocal(bundle.getDestination())) {
+        if (core.getLocalEid().isLocal(bundle.getDestination())) {
             bundle.removeTag("forward_pending");
             bundleDiscarding(bundle);
         } else {
@@ -226,6 +236,7 @@ public class BundleProcessor implements BundleProcessorAPI {
     }
 
     /* 5.5 */
+    @Override
     public void bundleExpired(Bundle bundle) {
         core.getLogger().v(TAG, "5.5 " + bundle.bid.getBidString());
         bundle.tag("reason_code", LifetimeExpired);
@@ -233,6 +244,7 @@ public class BundleProcessor implements BundleProcessorAPI {
     }
 
     /* 5.6 */
+    @Override
     public void bundleReception(Bundle bundle) {
         /* 5.6 - step 1 */
         core.getLogger().v(TAG, "5.6-1 " + bundle.bid.getBidString());
@@ -253,7 +265,10 @@ public class BundleProcessor implements BundleProcessorAPI {
                             .onReceptionProcessing(block, bundle, core.getLogger());
                 } catch (BlockProcessorFactory.ProcessorNotFoundException pe) {
                     if (block.getV7Flag(TRANSMIT_STATUSREPORT_IF_NOT_PROCESSED) && reporting()) {
-                        createStatusReport(ReportingNodeReceivedBundle, bundle, BlockUnintelligible);
+                        createStatusReport(
+                                ReportingNodeReceivedBundle,
+                                bundle,
+                                BlockUnintelligible);
                     }
                     if (block.getV7Flag(DELETE_BUNDLE_IF_NOT_PROCESSED)) {
                         bundle.tag("reason_code", BlockUnintelligible);
@@ -283,9 +298,10 @@ public class BundleProcessor implements BundleProcessorAPI {
 
         /* 5.7 - step 2 */
         core.getLogger().v(TAG, "5.7-2 " + bundle.bid.getBidString());
-        Eid localMatch = core.getLocalEID().matchLocal(bundle.getDestination());
+        Eid localMatch = core.getLocalEid().matchLocal(bundle.getDestination());
         if (localMatch != null) {
-            String sink = bundle.getDestination().getEidString().replaceFirst(localMatch.getEidString(), "");
+            String sink = bundle.getDestination().getEidString()
+                    .replaceFirst(localMatch.getEidString(), "");
             core.getDelivery().deliver(sink, bundle).subscribe(
                     () -> bundleLocalDeliverySuccessful(bundle),
                     deliveryFailure -> bundleLocalDeliveryFailure(sink, bundle));
@@ -298,6 +314,7 @@ public class BundleProcessor implements BundleProcessorAPI {
     }
 
     /* 5.7 - step 3 */
+    @Override
     public void bundleLocalDeliverySuccessful(Bundle bundle) {
         core.getLogger().i(TAG, "bundle successfully delivered: " + bundle.bid.getBidString());
         bundle.removeTag("delivery_pending");
@@ -308,8 +325,10 @@ public class BundleProcessor implements BundleProcessorAPI {
     }
 
     /* 5.7 - step 2 - delivery failure */
+    @Override
     public void bundleLocalDeliveryFailure(String sink, Bundle bundle) {
-        core.getLogger().i(TAG, "bundle could not be delivered sink=" + sink + " bundleID=" + bundle.bid.getBidString());
+        core.getLogger().i(TAG, "bundle could not be delivered sink=" + sink + " bundleID="
+                + bundle.bid.getBidString());
         if (!bundle.isTagged("in_storage")) {
             core.getStorage().store(bundle).subscribe(
                     b -> {
@@ -319,7 +338,8 @@ public class BundleProcessor implements BundleProcessorAPI {
                     },
                     storageFailure -> {
                         /* abandon delivery */
-                        core.getLogger().w(TAG, "storage failure: " + storageFailure.getMessage());
+                        core.getLogger().w(TAG, "storage failure: "
+                                + storageFailure.getMessage());
                         bundleDeletion(bundle);
                     }
             );
@@ -330,14 +350,16 @@ public class BundleProcessor implements BundleProcessorAPI {
     }
 
     /* 5.8 */
-    public void bundleFragmentation(Bundle bundle) {
+    private void bundleFragmentation(Bundle bundle) {
         // not supported atm
         core.getLogger().v(TAG, "5.8 " + bundle.bid.getBidString());
     }
 
     /* 5.10 */
     private void bundleDeletion(Bundle bundle) {
-        core.getLogger().i(TAG, "deleting bundle (" + bundle.<StatusReport.ReasonCode>getTagAttachment("reason_code") + "): " + bundle.bid.getBidString());
+        core.getLogger().i(TAG, "deleting bundle ("
+                + bundle.<StatusReport.ReasonCode>getTagAttachment("reason_code") + "): "
+                + bundle.bid.getBidString());
 
         /* 5.10 - step 1 */
         core.getLogger().v(TAG, "5.10-2 " + bundle.bid.getBidString());
@@ -370,15 +392,18 @@ public class BundleProcessor implements BundleProcessorAPI {
         if (bundle.isTagged("status-reports")) {
             List<Bundle> reports = bundle.getTagAttachment("status-reports");
             for (Bundle report : reports) {
-                core.getLogger().i(TAG, "sending status report to: " + report.getDestination().getEidString());
-                report.setSource(core.getLocalEID().localEID());
+                core.getLogger().i(TAG, "sending status report to: "
+                        + report.getDestination().getEidString());
+                report.setSource(core.getLocalEid().localEid());
                 bundleDispatching(report);
             }
         }
     }
 
     /* create status report */
-    private void createStatusReport(StatusReport.StatusAssertion assertion, Bundle bundle, StatusReport.ReasonCode reasonCode) {
+    private void createStatusReport(StatusReport.StatusAssertion assertion,
+                                    Bundle bundle,
+                                    StatusReport.ReasonCode reasonCode) {
         if (bundle.getReportto().equals(DtnEid.nullEid())) {
             return;
         }
@@ -388,16 +413,20 @@ public class BundleProcessor implements BundleProcessorAPI {
         statusReport.creationTimestamp = bundle.getCreationTimestamp();
         if (assertion.equals(ReportingNodeDeletedBundle)
                 && bundle.getV7Flag(PrimaryBlock.BundleV7Flags.DELETION_REPORT)) {
-            statusReport.statusInformation.put(ReportingNodeDeletedBundle, ClockUtil.getCurrentTime());
+            statusReport.statusInformation
+                    .put(ReportingNodeDeletedBundle, ClockUtil.getCurrentTime());
         } else if (assertion.equals(ReportingNodeForwardedBundle)
                 && bundle.getV7Flag(PrimaryBlock.BundleV7Flags.FORWARD_REPORT)) {
-            statusReport.statusInformation.put(ReportingNodeForwardedBundle, ClockUtil.getCurrentTime());
+            statusReport.statusInformation
+                    .put(ReportingNodeForwardedBundle, ClockUtil.getCurrentTime());
         } else if (assertion.equals(ReportingNodeReceivedBundle)
                 && bundle.getV7Flag(PrimaryBlock.BundleV7Flags.RECEPTION_REPORT)) {
-            statusReport.statusInformation.put(ReportingNodeReceivedBundle, ClockUtil.getCurrentTime());
+            statusReport.statusInformation
+                    .put(ReportingNodeReceivedBundle, ClockUtil.getCurrentTime());
         } else if (assertion.equals(ReportingNodeDeliveredBundle)
                 && bundle.getV7Flag(PrimaryBlock.BundleV7Flags.DELIVERY_REPORT)) {
-            statusReport.statusInformation.put(ReportingNodeDeliveredBundle, ClockUtil.getCurrentTime());
+            statusReport.statusInformation
+                    .put(ReportingNodeDeliveredBundle, ClockUtil.getCurrentTime());
         } else {
             return;
         }

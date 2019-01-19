@@ -3,7 +3,7 @@ package io.left.rightmesh.libdtn.core;
 import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
 import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.left.rightmesh.libdtn.common.utils.Log;
-import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
+import io.left.rightmesh.libdtn.core.api.ConfigurationApi;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 
@@ -13,14 +13,20 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * This node configuration.
+ * CoreConfiguration implements the ConfigurationAPI and provides a set of predefined configuration
+ * value for all the core components.
  *
  * @author Lucien Loiseau on 28/08/18.
  */
-public class CoreConfiguration implements ConfigurationAPI {
+public class CoreConfiguration implements ConfigurationApi {
 
     private HashMap<String, ConfigurationEntry> entries = new HashMap<>();
 
+    /**
+     * Configuration entry that stores a single value.
+     *
+     * @param <T> type of the value stored
+     */
     public static class ConfigurationEntry<T> implements EntryInterface<T> {
         BehaviorSubject<T> entry = BehaviorSubject.create();
 
@@ -41,7 +47,13 @@ public class CoreConfiguration implements ConfigurationAPI {
         }
     }
 
-    public static class ConfigurationEntrySet<T> extends ConfigurationEntry implements EntrySetInterface<T> {
+    /**
+     * Configuration entry that stores a list of value.
+     *
+     * @param <T> type of the values stored in the list
+     */
+    public static class ConfigurationEntrySet<T> extends ConfigurationEntry
+            implements EntrySetInterface<T> {
 
         private Set<T> set;
 
@@ -50,11 +62,21 @@ public class CoreConfiguration implements ConfigurationAPI {
             set = new HashSet<T>();
         }
 
+        /**
+         * Add a new value to the set.
+         *
+         * @param value to add
+         */
         public void add(T value) {
             set.add(value);
             update(set);
         }
 
+        /**
+         * remove a value from the set.
+         *
+         * @param value to delete
+         */
         public void del(T value) {
             if (set.remove(value)) {
                 update(set);
@@ -62,7 +84,14 @@ public class CoreConfiguration implements ConfigurationAPI {
         }
     }
 
-    public static class ConfigurationEntryMap<T, U> extends ConfigurationEntry implements EntryMapInterface<T,U> {
+    /**
+     * Configuration entry that stores a map of key-value.
+     *
+     * @param <T> type of the keys stored
+     * @param <U> type of the values mapped
+     */
+    public static class ConfigurationEntryMap<T, U> extends ConfigurationEntry
+            implements EntryMapInterface<T, U> {
 
         private Map<T, U> map;
 
@@ -71,11 +100,22 @@ public class CoreConfiguration implements ConfigurationAPI {
             map = new HashMap<T, U>();
         }
 
+        /**
+         * add a new key-value entry into the map.
+         *
+         * @param key   of the entry
+         * @param value of the entry
+         */
         public void add(T key, U value) {
             map.put(key, value);
             update(map);
         }
 
+        /**
+         * remove an entry from the map.
+         *
+         * @param key of the entry to delete
+         */
         public void del(T key) {
             if (map.remove(key) != null) {
                 update(map);
@@ -102,11 +142,12 @@ public class CoreConfiguration implements ConfigurationAPI {
      * Create a new ConfigurationEntrySet of PAYLOAD_BLOCK_TYPE T initialized with empty set.
      *
      * @param key the key for this entry
-     * @param <T> Set of PAYLOAD_BLOCK_TYPE T
+     * @param <T> Set of type T
      * @return a new ConfigurationEntrySet
      */
+    // CHECKSTYLE IGNORE GenericWhitespace
     <T> ConfigurationEntrySet createCoreEntrySet(CoreEntry key) {
-        ConfigurationEntrySet entry = new<T> ConfigurationEntrySet();
+        ConfigurationEntrySet entry = new <T>ConfigurationEntrySet();
         entries.put(key.toString(), entry);
         return entry;
     }
@@ -114,23 +155,24 @@ public class CoreConfiguration implements ConfigurationAPI {
     /**
      * Create a new ConfigurationEntryMap of PAYLOAD_BLOCK_TYPE T.
      *
-     * @param <T> PAYLOAD_BLOCK_TYPE of Map key
-     * @param <U> PAYLOAD_BLOCK_TYPE of Map value
+     * @param <T> type of Map key
+     * @param <U> type of Map value
      * @param key the key for this entry
      * @return a new ConfigurationEntryMap
      */
     <T, U> ConfigurationEntryMap createCoreEntryMap(CoreEntry key) {
-        ConfigurationEntryMap entry = new<T, U> ConfigurationEntryMap();
+        ConfigurationEntryMap entry = new <T, U>ConfigurationEntryMap();
         entries.put(key.toString(), entry);
         return entry;
     }
+    // CHECKSTYLE END IGNORE GenericWhitespace
 
     /**
      * Create a new ConfigurationEntry of PAYLOAD_BLOCK_TYPE T.
      *
      * @param key       the key for this entry
      * @param initValue default value
-     * @param <T>       PAYLOAD_BLOCK_TYPE of entry
+     * @param <T>       type of entry
      * @return a new ConfigurationEntry
      */
     <T> ConfigurationEntry createEntryCustom(String key, T initValue) {
@@ -139,6 +181,9 @@ public class CoreConfiguration implements ConfigurationAPI {
         return entry;
     }
 
+    /**
+     * Constructor.
+     */
     public CoreConfiguration() {
         // default configuration
         this.createCoreEntry(CoreEntry.LOCAL_EID, DtnEid.generate());
@@ -189,20 +234,20 @@ public class CoreConfiguration implements ConfigurationAPI {
 
     @SuppressWarnings("unchecked")
     @Override
-    public EntryInterface<Boolean> getModuleEnabled(String name, boolean default_value) {
-        EntryInterface ret = entries.get("module:"+name+":enable");
-        if(ret == null) {
-            ret = this.createEntryCustom("module:"+name+":enable", default_value);
+    public EntryInterface<Boolean> getModuleEnabled(String name, boolean defaultValue) {
+        EntryInterface ret = entries.get("module:" + name + ":enable");
+        if (ret == null) {
+            ret = this.createEntryCustom("module:" + name + ":enable", defaultValue);
         }
         return ret;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> EntryInterface<T> getModuleConf(String moduleName, String entry, T default_value) {
-        EntryInterface ret = entries.get(moduleName+":conf:"+entry);
-        if(ret == null) {
-            ret = this.createEntryCustom(moduleName+":conf:"+entry, default_value);
+    public <T> EntryInterface<T> getModuleConf(String moduleName, String entry, T defaultValue) {
+        EntryInterface ret = entries.get(moduleName + ":conf:" + entry);
+        if (ret == null) {
+            ret = this.createEntryCustom(moduleName + ":conf:" + entry, defaultValue);
         }
         return ret;
     }

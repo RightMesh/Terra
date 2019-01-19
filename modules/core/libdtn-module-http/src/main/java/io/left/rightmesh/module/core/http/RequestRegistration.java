@@ -2,8 +2,8 @@ package io.left.rightmesh.module.core.http;
 
 import java.nio.charset.Charset;
 
-import io.left.rightmesh.libdtn.core.api.CoreAPI;
-import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
+import io.left.rightmesh.libdtn.core.api.CoreApi;
+import io.left.rightmesh.libdtn.core.api.RegistrarApi;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.left.rightmesh.module.core.http.nettyrouter.Router;
@@ -16,9 +16,9 @@ import static rx.Observable.just;
  */
 public class RequestRegistration {
 
-    private CoreAPI core;
+    private CoreApi core;
 
-    RequestRegistration(CoreAPI core) {
+    RequestRegistration(CoreApi core) {
         this.core = core;
     }
 
@@ -44,7 +44,7 @@ public class RequestRegistration {
                                     .writeString(just("registration cookie: " + cookie))
                                     .writeString(just(core.getRegistrar().printTable()));
                         }
-                    } catch(RegistrarAPI.RegistrarException re) {
+                    } catch(RegistrarApi.RegistrarException re) {
                         return res.setStatus(HttpResponseStatus.BAD_REQUEST)
                                 .writeString(just("sink is not valid"));
                     }
@@ -60,7 +60,7 @@ public class RequestRegistration {
                         return res.setStatus(HttpResponseStatus.OK)
                                 .writeString(just("sink unregistered: " + sink))
                                 .writeString(just(core.getRegistrar().printTable()));
-                    } catch(RegistrarAPI.RegistrarException re) {
+                    } catch(RegistrarApi.RegistrarException re) {
                         return res.setStatus(HttpResponseStatus.BAD_REQUEST)
                                 .writeString(just("request not valid"));
                     }

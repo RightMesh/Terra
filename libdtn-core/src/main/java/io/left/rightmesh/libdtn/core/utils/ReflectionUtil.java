@@ -13,23 +13,30 @@ import java.util.Enumeration;
 import java.util.List;
 
 /**
+ * ReflectionUtil is a utility class providing helper method for reflection.
+ *
  * @author Lucien Loiseau on 22/10/18.
  */
 public class ReflectionUtil {
 
-    public static <T>  List<T> loadClass(String directory, String classpath, Class<T> parentClass) throws ClassNotFoundException {
+    static <T> List<T> loadClass(String directory, String classpath, Class<T> parentClass)
+            throws ClassNotFoundException {
         File pluginsDir = new File(System.getProperty("user.dir") + directory);
-        if(!pluginsDir.isDirectory()) {
-            throw new ClassNotFoundException("not a directory: "+System.getProperty("user.dir") + directory);
+        if (!pluginsDir.isDirectory()) {
+            throw new ClassNotFoundException("not a directory: "
+                    + System.getProperty("user.dir")
+                    + directory);
         }
-        if(pluginsDir.listFiles() == null) {
-            throw new ClassNotFoundException("jar not found in path: "+System.getProperty("user.dir") + directory);
+        if (pluginsDir.listFiles() == null) {
+            throw new ClassNotFoundException("jar not found in path: "
+                    + System.getProperty("user.dir")
+                    + directory);
         }
         List<T> classes = new ArrayList<>();
         for (File jar : pluginsDir.listFiles()) {
             try {
                 ClassLoader loader = URLClassLoader.newInstance(
-                        new URL[] { jar.toURI().toURL() },
+                        new URL[] {jar.toURI().toURL()},
                         Thread.currentThread().getClass().getClassLoader()
                 );
                 Class<?> clazz = Class.forName(classpath, true, loader);
@@ -56,7 +63,9 @@ public class ReflectionUtil {
         return classes;
     }
 
-    public static List<Class<?>> findClassesImplementing(final Class<?> interfaceClass, final Package fromPackage) {
+    static List<Class<?>> findClassesImplementing(
+            final Class<?> interfaceClass,
+            final Package fromPackage) {
         if (interfaceClass == null) {
             return null;
         }
@@ -67,32 +76,28 @@ public class ReflectionUtil {
         try {
             final Class<?>[] targets = getAllClassesFromPackage(fromPackage.getName());
             if (targets != null) {
-                for (Class<?> aTarget : targets) {
-                    if (aTarget == null) {
+                for (Class<?> targetClass : targets) {
+                    if (targetClass == null) {
                         continue;
-                    }
-                    else if (aTarget.equals(interfaceClass)) {
+                    } else if (targetClass.equals(interfaceClass)) {
                         continue;
-                    }
-                    else if (!interfaceClass.isAssignableFrom(aTarget)) {
+                    } else if (!interfaceClass.isAssignableFrom(targetClass)) {
                         continue;
-                    }
-                    else if( Modifier.isAbstract( aTarget.getModifiers() )) {
+                    } else if (Modifier.isAbstract(targetClass.getModifiers())) {
                         continue;
-                    }
-                    else {
-                        rVal.add(aTarget);
+                    } else {
+                        rVal.add(targetClass);
                     }
                 }
             }
-        }
-        catch (ClassNotFoundException | IOException e) {
+        } catch (ClassNotFoundException | IOException e) {
             /* ignore */
         }
         return rVal;
     }
 
-    public static Class[] getAllClassesFromPackage(final String packageName) throws ClassNotFoundException, IOException {
+    static Class[] getAllClassesFromPackage(final String packageName)
+            throws ClassNotFoundException, IOException {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         assert classLoader != null;
         String path = packageName.replace('.', '/');
@@ -109,7 +114,8 @@ public class ReflectionUtil {
         return classes.toArray(new Class[classes.size()]);
     }
 
-    public static List<Class<?>> findClasses(File directory, String packageName) throws ClassNotFoundException {
+    static List<Class<?>> findClasses(File directory, String packageName)
+            throws ClassNotFoundException {
         List<Class<?>> classes = new ArrayList<Class<?>>();
         if (!directory.exists()) {
             return classes;
@@ -119,9 +125,10 @@ public class ReflectionUtil {
             if (file.isDirectory()) {
                 assert !file.getName().contains(".");
                 classes.addAll(findClasses(file, packageName + "." + file.getName()));
-            }
-            else if (file.getName().endsWith(".class")) {
-                classes.add(Class.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6)));
+            } else if (file.getName().endsWith(".class")) {
+                classes.add(Class.forName(
+                        packageName + '.'
+                        + file.getName().substring(0, file.getName().length() - 6)));
             }
         }
         return classes;

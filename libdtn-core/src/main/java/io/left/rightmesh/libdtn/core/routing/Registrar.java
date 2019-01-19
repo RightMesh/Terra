@@ -1,32 +1,32 @@
 package io.left.rightmesh.libdtn.core.routing;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
+import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleId;
 import io.left.rightmesh.libdtn.common.data.eid.ApiEid;
 import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
 import io.left.rightmesh.libdtn.core.CoreComponent;
-import io.left.rightmesh.libdtn.core.api.CoreAPI;
-import io.left.rightmesh.libdtn.core.api.DeliveryAPI;
-import io.left.rightmesh.libdtn.core.storage.EventListener;
-import io.left.rightmesh.libdtn.common.data.Bundle;
+import io.left.rightmesh.libdtn.core.api.CoreApi;
+import io.left.rightmesh.libdtn.core.api.DeliveryApi;
+import io.left.rightmesh.libdtn.core.api.RegistrarApi;
 import io.left.rightmesh.libdtn.core.events.RegistrationActive;
 import io.left.rightmesh.libdtn.core.spi.aa.ActiveRegistrationCallback;
-import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
+import io.left.rightmesh.libdtn.core.storage.EventListener;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Registrar Routing keeps track of the registered application agent.
  *
  * @author Lucien Loiseau on 24/08/18.
  */
-public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAPI {
+public class Registrar extends CoreComponent implements RegistrarApi, DeliveryApi {
 
     private static final String TAG = "Registrar";
 
@@ -46,11 +46,15 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
         }
     }
 
-    private CoreAPI core;
+    private CoreApi core;
     private Map<String, Registration> registrations;
     private DeliveryListener listener;
 
-    public Registrar(CoreAPI core) {
+    /**
+     * Constructor.
+     * @param core reference to the core
+     */
+    public Registrar(CoreApi core) {
         this.core = core;
         registrations = new ConcurrentHashMap<>();
         listener = new DeliveryListener(core);
@@ -83,7 +87,8 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
         }
     }
 
-    private Registration checkRegisteredSink(String sink) throws RegistrarDisabled, SinkNotRegistered, NullArgument {
+    private Registration checkRegisteredSink(String sink)
+            throws RegistrarDisabled, SinkNotRegistered, NullArgument {
         checkEnable();
         checkArgumentNotNull(sink);
         Registration registration = registrations.get(sink);
@@ -93,7 +98,8 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
         return registration;
     }
 
-    private Registration checkRegisteredSink(String sink, String cookie) throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument {
+    private Registration checkRegisteredSink(String sink, String cookie)
+            throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument {
         checkEnable();
         checkArgumentNotNull(sink);
         checkArgumentNotNull(cookie);
@@ -111,17 +117,17 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
         try {
             if (bundle.getSource().matches(ApiEid.me())) {
                 bundle.setSource(core.getExtensionManager().getEidFactory().create(
-                        core.getLocalEID().localEID().getEidString()
+                        core.getLocalEid().localEid().getEidString()
                                 + ((ApiEid) bundle.getSource()).getPath()));
             }
             if (bundle.getReportto().matches(ApiEid.me())) {
                 bundle.setReportto(core.getExtensionManager().getEidFactory().create(
-                        core.getLocalEID().localEID().getEidString()
+                        core.getLocalEid().localEid().getEidString()
                                 + ((ApiEid) bundle.getReportto()).getPath()));
             }
             if (bundle.getDestination().matches(ApiEid.me())) {
                 bundle.setDestination(core.getExtensionManager().getEidFactory().create(
-                        core.getLocalEID().localEID().getEidString()
+                        core.getLocalEid().localEid().getEidString()
                                 + ((ApiEid) bundle.getDestination()).getPath()));
             }
         } catch (EidFormatException efe) {
@@ -129,7 +135,7 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
         }
     }
 
-    /* ------  RegistrarAPI  is the contract facing ApplicationAgentAdapter ------- */
+    /* ------  RegistrarApi  is the contract facing ApplicationAgentAdapter ------- */
 
     @Override
     public boolean isRegistered(String sink) throws RegistrarDisabled, NullArgument {
@@ -153,7 +159,8 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
 
         Registration registration = new Registration(sink, cb);
         if (registrations.putIfAbsent(sink, registration) == null) {
-            core.getLogger().i(TAG, "sink registered: " + sink + " (cookie=" + registration.cookie + ") - "
+            core.getLogger().i(TAG, "sink registered: " + sink
+                    + " (cookie=" + registration.cookie + ") - "
                     + (cb == passiveRegistration ? "passive" : "active"));
             RxBus.post(new RegistrationActive(sink, registration.cb));
             return registration.cookie;
@@ -202,19 +209,19 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
     }
 
     @Override
-    public Bundle get(String sink, String cookie, String bundleID)
+    public Bundle get(String sink, String cookie, String bundleId)
             throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
         checkRegisteredSink(sink, cookie);
-        checkArgumentNotNull(bundleID);
+        checkArgumentNotNull(bundleId);
         // todo: call storage service
         return null;
     }
 
     @Override
-    public Bundle fetch(String sink, String cookie, String bundleID)
+    public Bundle fetch(String sink, String cookie, String bundleId)
             throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument {
         checkRegisteredSink(sink, cookie);
-        checkArgumentNotNull(bundleID);
+        checkArgumentNotNull(bundleId);
         return null;
     }
 
@@ -255,7 +262,7 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
     }
 
     /**
-     * print the state of the registration table
+     * print the state of the registration table.
      *
      * @return String
      */
@@ -280,10 +287,13 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
         return sb.toString();
     }
 
-    /* ------  DeliveryAPI is the contract facing CoreAPI ------- */
+    /* ------  DeliveryApi is the contract facing CoreApi ------- */
 
+    /**
+     * DeliveryListener listen for active registration and forward matching undelivered bundle.
+     */
     public class DeliveryListener extends EventListener<String> {
-        DeliveryListener(CoreAPI core) {
+        DeliveryListener(CoreApi core) {
             super(core);
         }
 
@@ -292,6 +302,10 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
             return "DeliveryListener";
         }
 
+        /**
+         * React to RegistrationActive event and forward the relevent bundles.
+         * @param event active registration event
+         */
         @Subscribe
         public void onEvent(RegistrationActive event) {
             /* deliver every bundle of interest */
@@ -303,9 +317,11 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
                                 bundle -> event.cb.recv(bundle).subscribe(
                                         () -> {
                                             listener.unwatch(event.sink, bundle.bid);
-                                            core.getBundleProcessor().bundleLocalDeliverySuccessful(bundle);
+                                            core.getBundleProcessor()
+                                                    .bundleLocalDeliverySuccessful(bundle);
                                         },
-                                        e -> core.getBundleProcessor().bundleLocalDeliveryFailure(event.sink, bundle)),
+                                        e -> core.getBundleProcessor()
+                                                .bundleLocalDeliveryFailure(event.sink, bundle)),
                                 e -> {
                                 });
                     });
@@ -313,7 +329,7 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
     }
 
     /**
-     * Deliver a bundle to the registration
+     * Deliver a bundle to the registration.
      *
      * @param sink   registered
      * @param bundle to deliver
@@ -347,5 +363,6 @@ public class Registrar extends CoreComponent implements RegistrarAPI, DeliveryAP
     }
 
     /* passive registration */
-    private static ActiveRegistrationCallback passiveRegistration = (payload) -> Completable.error(new PassiveRegistration());
+    private static ActiveRegistrationCallback passiveRegistration
+            = (payload) -> Completable.error(new PassiveRegistration());
 }

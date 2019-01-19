@@ -1,14 +1,14 @@
 package io.left.rightmesh.module.core.http;
 
-import io.left.rightmesh.libdtn.core.api.CoreAPI;
+import io.left.rightmesh.libdtn.core.api.CoreApi;
 import io.left.rightmesh.module.core.http.nettyrouter.Router;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_AUTO_CONNECT_FOR_BUNDLE;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_COMPONENT_DETECT_PEER_ON_LAN;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_FORWARDING;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.ENABLE_AUTO_CONNECT_FOR_BUNDLE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.ENABLE_COMPONENT_DETECT_PEER_ON_LAN;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.ENABLE_FORWARDING;
 import static io.left.rightmesh.module.core.http.nettyrouter.Dispatch.using;
 import static rx.Observable.just;
 
@@ -18,9 +18,9 @@ import static rx.Observable.just;
 public class RequestNetwork {
 
 
-    private CoreAPI core;
+    private CoreApi core;
 
-    RequestNetwork(CoreAPI core) {
+    RequestNetwork(CoreApi core) {
         this.core = core;
     }
 

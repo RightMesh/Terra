@@ -1,6 +1,8 @@
 package io.left.rightmesh.core.module.cla.stcp;
 
 /**
+ * Module configuration for the STCP convergence layer.
+ *
  * @author Lucien Loiseau on 26/10/18.
  */
 public interface Configuration {

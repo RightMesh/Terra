@@ -1,6 +1,7 @@
 package io.left.rightmesh.libdtn.common.data.bundlev7;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
@@ -8,32 +9,37 @@ import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.common.BaseExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.AgeBlock;
-import io.left.rightmesh.libdtn.common.data.BundleId;
-import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.data.BlockHeader;
 import io.left.rightmesh.libdtn.common.data.Bundle;
+import io.left.rightmesh.libdtn.common.data.BundleId;
+import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
+import io.left.rightmesh.libdtn.common.data.PayloadBlock;
+import io.left.rightmesh.libdtn.common.data.PreviousNodeBlock;
+import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
+import io.left.rightmesh.libdtn.common.data.ScopeControlHopLimitBlock;
 import io.left.rightmesh.libdtn.common.data.blob.BaseBlobFactory;
 import io.left.rightmesh.libdtn.common.data.bundlev7.parser.BundleV7Item;
 import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BaseBlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BundleV7Serializer;
 import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
-import io.left.rightmesh.libdtn.common.data.PayloadBlock;
-import io.left.rightmesh.libdtn.common.data.PreviousNodeBlock;
-import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
-import io.left.rightmesh.libdtn.common.data.ScopeControlHopLimitBlock;
 import io.left.rightmesh.libdtn.common.data.eid.EidIpn;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import org.junit.Test;
 
 /**
+ * Test class to test serialization and parsing of a Bundle.
+ *
  * @author Lucien Loiseau on 20/09/18.
  */
 public class BundleV7Test {
 
     public static String testPayload = "This is a test for bundle serialization";
 
+    /**
+     * create a simple test Bundle with no payload.
+     * @return a Bundle
+     */
     public static Bundle testBundle0() {
         Bundle bundle = new Bundle();
         bundle.setDestination(new EidIpn(5, 12));
@@ -43,18 +49,30 @@ public class BundleV7Test {
         return bundle;
     }
 
+    /**
+     * create a simple test Bundle with a payload.
+     * @return a Bundle
+     */
     public static Bundle testBundle1() {
         Bundle bundle = testBundle0();
         bundle.addBlock(new PayloadBlock(testPayload));
         return bundle;
     }
 
+    /**
+     * create a simple test Bundle with payload and an ageblock.
+     * @return a Bundle
+     */
     public static Bundle testBundle2() {
         Bundle bundle = testBundle1();
         bundle.addBlock(new AgeBlock());
         return bundle;
     }
 
+    /**
+     * create a simple test Bundle with payload, an ageblock and a scopecontrolhoplimit.
+     * @return a Bundle.
+     */
     public static Bundle testBundle3() {
         Bundle bundle = testBundle1();
         bundle.addBlock(new AgeBlock());
@@ -62,6 +80,11 @@ public class BundleV7Test {
         return bundle;
     }
 
+    /**
+     * create a simple test Bundle with payload, an ageblock and a scopecontrolhoplimit
+     * and previous node block.
+     * @return a Bundle
+     */
     public static Bundle testBundle4() {
         Bundle bundle = testBundle1();
         bundle.addBlock(new AgeBlock());
@@ -70,7 +93,11 @@ public class BundleV7Test {
         return bundle;
     }
 
-
+    /**
+     * create a simple test Bundle with payload, an ageblock and a scopecontrolhoplimit,
+     * previous node block and enable crc on primary block.
+     * @return a Bundle
+     */
     public static Bundle testBundle5() {
         Bundle bundle = testBundle1();
         bundle.addBlock(new AgeBlock());
@@ -80,18 +107,25 @@ public class BundleV7Test {
         return bundle;
     }
 
+    /**
+     * create a simple test Bundle with payload, an ageblock and a scopecontrolhoplimit,
+     * previous node block and enable crc on all block.
+     * @return a Bundle
+     */
     public static Bundle testBundle6() {
         Bundle bundle = testBundle0();
         bundle.setCrcType(PrimaryBlock.CrcFieldType.CRC_32);
 
         CanonicalBlock age = new AgeBlock();
-        CanonicalBlock scope = new ScopeControlHopLimitBlock();
-        CanonicalBlock payload = new PayloadBlock(testPayload);
-        CanonicalBlock previous = new PreviousNodeBlock();
-
         age.crcType = BlockHeader.CrcFieldType.CRC_16;
+
+        CanonicalBlock scope = new ScopeControlHopLimitBlock();
         scope.crcType = BlockHeader.CrcFieldType.CRC_16;
+
+        CanonicalBlock payload = new PayloadBlock(testPayload);
         payload.crcType = BlockHeader.CrcFieldType.CRC_32;
+
+        CanonicalBlock previous = new PreviousNodeBlock();
         previous.crcType = BlockHeader.CrcFieldType.CRC_32;
 
         bundle.addBlock(age);
@@ -127,19 +161,19 @@ public class BundleV7Test {
                     new BaseExtensionToolbox(),
                     new BaseBlobFactory().enableVolatile(100000).disablePersistent());
 
-            CborParser p = CBOR.parser().cbor_parse_custom_item(
+            CborParser parser = CBOR.parser().cbor_parse_custom_item(
                     () -> new BundleV7Item(
                             new NullLogger(),
                             new BaseExtensionToolbox(),
                             new BaseBlobFactory().enableVolatile(100000).disablePersistent()),
-                    (__, ___, item) ->
+                    (p, t, item) ->
                             res[0] = item.bundle);
 
             // serialize and parse
             enc.observe(10).subscribe(
                     buf -> {
                         try {
-                            if (p.read(buf)) {
+                            if (parser.read(buf)) {
                                 assertEquals(false, buf.hasRemaining());
                             }
                         } catch (RxParserException rpe) {
@@ -158,6 +192,10 @@ public class BundleV7Test {
     }
 
 
+    /**
+     * check that the payload of the bundle is correct.
+     * @param bundle to check
+     */
     public static void checkBundlePayload(Bundle bundle) {
         // assert
         assertEquals(true, bundle != null);

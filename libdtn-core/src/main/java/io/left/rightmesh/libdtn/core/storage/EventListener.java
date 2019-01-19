@@ -1,19 +1,19 @@
 package io.left.rightmesh.libdtn.core.storage;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_EVENT_PROCESSING;
 
 import io.left.rightmesh.libdtn.common.data.BundleId;
 import io.left.rightmesh.libdtn.core.CoreComponent;
-import io.left.rightmesh.libdtn.core.api.CoreAPI;
+import io.left.rightmesh.libdtn.core.api.CoreApi;
 import io.left.rightmesh.libdtn.core.events.BundleDeleted;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 import io.reactivex.Observable;
 
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_EVENT_PROCESSING;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * When an Event is fired, it may trigger some operation to a bundle. For instance, a new
@@ -80,9 +80,14 @@ public abstract class EventListener<T> extends CoreComponent {
 
     private final Object lock = new Object();
     private Map<T, Set<BundleId>> watchList;
-    private CoreAPI core;
+    private CoreApi core;
 
-    public EventListener(CoreAPI core) {
+    /**
+     * Constructor.
+     *
+     * @param core reference for the core.
+     */
+    public EventListener(CoreApi core) {
         this.core = core;
         watchList = new ConcurrentHashMap<>();
         initComponent(core.getConf(), COMPONENT_ENABLE_EVENT_PROCESSING, core.getLogger());
@@ -107,24 +112,38 @@ public abstract class EventListener<T> extends CoreComponent {
         }
     }
 
+    /**
+     * Add bundle to a watchlist.
+     *
+     * @param key key identifying the bundle
+     * @param bid bundle id
+     * @return true if the bundle was added to the watchlist, false othewise
+     */
     public boolean watch(T key, BundleId bid) {
         if (!isEnabled()) {
             return false;
         }
 
         synchronized (lock) {
-            core.getLogger().d(getComponentName(), "add bundle to a watchlist: " + bid.getBidString() + " key=" + key.toString());
+            core.getLogger().d(getComponentName(), "add bundle to a watchlist: "
+                    + bid.getBidString() + " key=" + key.toString());
             return watchList.computeIfAbsent(key, k -> new HashSet<>()).add(bid);
         }
     }
 
+    /**
+     * remove bundle from all watchlist.
+     *
+     * @param bid bundle id
+     */
     public void unwatch(BundleId bid) {
         if (!isEnabled()) {
             return;
         }
 
         synchronized (lock) {
-            core.getLogger().d(getComponentName(), "remove bundle from a watchlist: " + bid.getBidString());
+            core.getLogger().d(getComponentName(), "remove bundle from a watchlist: "
+                    + bid.getBidString());
             for (T key : watchList.keySet()) {
                 Set<BundleId> set = watchList.get(key);
                 if (set != null) {
@@ -134,6 +153,13 @@ public abstract class EventListener<T> extends CoreComponent {
         }
     }
 
+    /**
+     * remove bundle from all watchlist, specifying the key.
+     *
+     * @param key key of the watchlist
+     * @param bid bundle id
+     * @return true if the bundle was successfully removed, false otherwise
+     */
     public boolean unwatch(T key, BundleId bid) {
         if (!isEnabled()) {
             return false;
@@ -150,6 +176,12 @@ public abstract class EventListener<T> extends CoreComponent {
         }
     }
 
+    /**
+     * get all the bundles that matches a key.
+     *
+     * @param key key of the watchlist
+     * @return an observable of bundle ids
+     */
     public Observable<BundleId> getBundlesOfInterest(T key) {
         if (!isEnabled()) {
             return Observable.empty();
@@ -157,7 +189,7 @@ public abstract class EventListener<T> extends CoreComponent {
 
         synchronized (lock) {
             Set<BundleId> set = watchList.get(key);
-            if(set == null) {
+            if (set == null) {
                 return Observable.empty();
             }
             return Observable.fromIterable(new HashSet<>(set));

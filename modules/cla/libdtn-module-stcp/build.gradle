@@ -13,11 +13,11 @@ task ApiDoc(type: Javadoc) {
 jar {
     // META-INF/services to load module with ServiceLoader
     serviceLoader {
-        serviceInterface 'io.left.rightmesh.libdtn.core.spi.cla.ConvergenceLayerSPI'
-        serviceInterface 'io.left.rightmesh.libdtn.core.spi.cla.CLAChannelSPI'
-        serviceInterface 'io.left.rightmesh.core.module.cla.stcp.STCP'
-        serviceInterface 'io.left.rightmesh.core.module.cla.stcp.STCP$Channel'
-        serviceInterface 'io.left.rightmesh.core.module.cla.stcp.CLASTCP'
+        serviceInterface 'io.left.rightmesh.libdtn.core.spi.cla.ConvergenceLayerSpi'
+        serviceInterface 'io.left.rightmesh.libdtn.core.spi.cla.ClaChannelSpi'
+        serviceInterface 'io.left.rightmesh.core.module.cla.stcp.ConvergenceLayerStcp'
+        serviceInterface 'io.left.rightmesh.core.module.cla.stcp.ConvergenceLayerStcp$Channel'
+        serviceInterface 'io.left.rightmesh.core.module.cla.stcp.ClaStcpEid'
     }
 
     // fat jar dependency, exclude those already in libdtn-core

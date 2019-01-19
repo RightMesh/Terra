@@ -17,30 +17,30 @@ import io.left.rightmesh.libdtn.common.data.eid.EidFactory;
 import io.left.rightmesh.libdtn.common.data.eid.EidSspParser;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
-import io.left.rightmesh.libdtn.core.api.ExtensionManagerAPI;
-import io.left.rightmesh.libdtn.core.api.BundleProcessorAPI;
-import io.left.rightmesh.libdtn.core.api.CLAManagerAPI;
-import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
-import io.left.rightmesh.libdtn.core.api.CoreAPI;
-import io.left.rightmesh.libdtn.core.api.DeliveryAPI;
-import io.left.rightmesh.libdtn.core.api.LinkLocalRoutingAPI;
-import io.left.rightmesh.libdtn.core.api.LocalEIDAPI;
-import io.left.rightmesh.libdtn.core.api.ModuleLoaderAPI;
-import io.left.rightmesh.libdtn.core.api.RegistrarAPI;
-import io.left.rightmesh.libdtn.core.api.RoutingAPI;
-import io.left.rightmesh.libdtn.core.api.RoutingTableAPI;
-import io.left.rightmesh.libdtn.core.api.StorageAPI;
+import io.left.rightmesh.libdtn.core.api.ClaManagerApi;
+import io.left.rightmesh.libdtn.core.api.CoreApi;
+import io.left.rightmesh.libdtn.core.api.DeliveryApi;
+import io.left.rightmesh.libdtn.core.api.ExtensionManagerApi;
+import io.left.rightmesh.libdtn.core.api.BundleProcessorApi;
+import io.left.rightmesh.libdtn.core.api.ConfigurationApi;
+import io.left.rightmesh.libdtn.core.api.LinkLocalRoutingApi;
+import io.left.rightmesh.libdtn.core.api.LocalEidApi;
+import io.left.rightmesh.libdtn.core.api.ModuleLoaderApi;
+import io.left.rightmesh.libdtn.core.api.RegistrarApi;
+import io.left.rightmesh.libdtn.core.api.RoutingApi;
+import io.left.rightmesh.libdtn.core.api.RoutingTableApi;
+import io.left.rightmesh.libdtn.core.api.StorageApi;
 
 /**
  * @author Lucien Loiseau on 26/11/18.
  */
-public class MockCore implements CoreAPI  {
+public class MockCore implements CoreApi {
     @Override
     public void init() {
     }
 
     @Override
-    public ConfigurationAPI getConf() {
+    public ConfigurationApi getConf() {
         return null;
     }
 
@@ -50,13 +50,13 @@ public class MockCore implements CoreAPI  {
     }
 
     @Override
-    public LocalEIDAPI getLocalEID() {
+    public LocalEidApi getLocalEid() {
         return null;
     }
 
     @Override
-    public ExtensionManagerAPI getExtensionManager() {
-        return new ExtensionManagerAPI() {
+    public ExtensionManagerApi getExtensionManager() {
+        return new ExtensionManagerApi() {
             @Override
             public EidFactory getEidFactory() {
                 return new BaseEidFactory();
@@ -87,57 +87,57 @@ public class MockCore implements CoreAPI  {
             }
 
             @Override
-            public void addExtensionCLA(String cl_name, ClaEidParser parser) {
+            public void addExtensionCla(String clName, ClaEidParser parser) {
             }
 
             @Override
-            public void addExtensionEID(int schemeId, String schemeStr, EidSspParser ssPparser) {
+            public void addExtensionEid(int schemeId, String schemeStr, EidSspParser ssPparser) {
             }
         };
     }
 
     @Override
-    public RoutingAPI getRoutingEngine() {
+    public RoutingApi getRoutingEngine() {
         return null;
     }
 
     @Override
-    public RegistrarAPI getRegistrar() {
+    public RegistrarApi getRegistrar() {
         return null;
     }
 
     @Override
-    public DeliveryAPI getDelivery() {
+    public DeliveryApi getDelivery() {
         return null;
     }
 
     @Override
-    public BundleProcessorAPI getBundleProcessor() {
+    public BundleProcessorApi getBundleProcessor() {
         return null;
     }
 
     @Override
-    public StorageAPI getStorage() {
+    public StorageApi getStorage() {
         return null;
     }
 
     @Override
-    public CLAManagerAPI getClaManager() {
+    public ClaManagerApi getClaManager() {
         return null;
     }
 
     @Override
-    public LinkLocalRoutingAPI getLinkLocalRouting() {
+    public LinkLocalRoutingApi getLinkLocalRouting() {
         return null;
     }
 
     @Override
-    public RoutingTableAPI getRoutingTable() {
+    public RoutingTableApi getRoutingTable() {
         return null;
     }
 
     @Override
-    public ModuleLoaderAPI getModuleLoader() {
+    public ModuleLoaderApi getModuleLoader() {
         return null;
     }
 }

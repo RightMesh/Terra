@@ -1,5 +1,42 @@
 package io.left.rightmesh.libdtn.core.storage;
 
+import static io.left.rightmesh.libdtn.common.utils.FileUtil.createFile;
+import static io.left.rightmesh.libdtn.common.utils.FileUtil.createNewFile;
+import static io.left.rightmesh.libdtn.common.utils.FileUtil.spaceLeft;
+
+import io.left.rightmesh.libcbor.CBOR;
+import io.left.rightmesh.libcbor.CborEncoder;
+import io.left.rightmesh.libcbor.CborParser;
+import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libdtn.common.data.Bundle;
+import io.left.rightmesh.libdtn.common.data.BundleId;
+import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
+import io.left.rightmesh.libdtn.common.data.MetaBundle;
+import io.left.rightmesh.libdtn.common.data.blob.Blob;
+import io.left.rightmesh.libdtn.common.data.blob.FileBlob;
+import io.left.rightmesh.libdtn.common.data.blob.NullBlob;
+import io.left.rightmesh.libdtn.common.data.bundlev7.parser.BundleV7Item;
+import io.left.rightmesh.libdtn.common.data.bundlev7.parser.PrimaryBlockItem;
+import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BlockProcessorFactory;
+import io.left.rightmesh.libdtn.common.data.bundlev7.processor.ProcessingException;
+import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BundleV7Serializer;
+import io.left.rightmesh.libdtn.common.utils.Log;
+import io.left.rightmesh.libdtn.core.CoreComponent;
+import io.left.rightmesh.libdtn.core.api.ConfigurationApi;
+import io.left.rightmesh.libdtn.core.api.CoreApi;
+import io.left.rightmesh.libdtn.core.api.StorageApi.BundleAlreadyExistsException;
+import io.left.rightmesh.libdtn.core.api.StorageApi.BundleNotFoundException;
+import io.left.rightmesh.libdtn.core.api.StorageApi.StorageFailedException;
+import io.left.rightmesh.libdtn.core.api.StorageApi.StorageFullException;
+import io.left.rightmesh.libdtn.core.api.StorageApi.StorageUnavailableException;
+import io.left.rightmesh.libdtn.core.events.BundleIndexed;
+import io.left.rightmesh.librxbus.RxBus;
+import io.reactivex.Completable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import io.reactivex.observers.DisposableObserver;
+import io.reactivex.schedulers.Schedulers;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,43 +51,6 @@ import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
-import io.left.rightmesh.libcbor.CBOR;
-import io.left.rightmesh.libcbor.CborEncoder;
-import io.left.rightmesh.libcbor.CborParser;
-import io.left.rightmesh.libcbor.rxparser.RxParserException;
-import io.left.rightmesh.libdtn.common.data.BundleId;
-import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
-import io.left.rightmesh.libdtn.common.data.blob.Blob;
-import io.left.rightmesh.libdtn.common.data.blob.FileBlob;
-import io.left.rightmesh.libdtn.common.data.blob.NullBlob;
-import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BlockProcessorFactory;
-import io.left.rightmesh.libdtn.common.data.bundlev7.processor.ProcessingException;
-import io.left.rightmesh.libdtn.common.data.bundlev7.parser.BundleV7Item;
-import io.left.rightmesh.libdtn.common.data.bundlev7.parser.PrimaryBlockItem;
-import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.common.data.MetaBundle;
-import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BundleV7Serializer;
-import io.left.rightmesh.libdtn.common.utils.Log;
-import io.left.rightmesh.libdtn.core.CoreComponent;
-import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
-import io.left.rightmesh.libdtn.core.api.CoreAPI;
-import io.left.rightmesh.libdtn.core.events.BundleIndexed;
-import io.left.rightmesh.libdtn.core.api.StorageAPI.BundleAlreadyExistsException;
-import io.left.rightmesh.libdtn.core.api.StorageAPI.BundleNotFoundException;
-import io.left.rightmesh.libdtn.core.api.StorageAPI.StorageFailedException;
-import io.left.rightmesh.libdtn.core.api.StorageAPI.StorageFullException;
-import io.left.rightmesh.libdtn.core.api.StorageAPI.StorageUnavailableException;
-import io.left.rightmesh.librxbus.RxBus;
-import io.reactivex.Observable;
-import io.reactivex.Completable;
-import io.reactivex.Single;
-import io.reactivex.observers.DisposableObserver;
-import io.reactivex.schedulers.Schedulers;
-
-import static io.left.rightmesh.libdtn.common.utils.FileUtil.createFile;
-import static io.left.rightmesh.libdtn.common.utils.FileUtil.createNewFile;
-import static io.left.rightmesh.libdtn.common.utils.FileUtil.spaceLeft;
-
 /**
  * SimpleStorage stores bundle in files but keep an index in memory of all the bundles in storage.
  * Each entry in the index contains a filesystem path to the bundle as well as a "MetaBundle" that
@@ -61,11 +61,11 @@ import static io.left.rightmesh.libdtn.common.utils.FileUtil.spaceLeft;
  * to it and will not serialize it within the bundle file. By so doing, a payload FileBlob need not
  * be copied multiple time.
  *
- * <p>The SimpleStorage is configurable through {@link ConfigurationAPI} by updating two values:
+ * <p>The SimpleStorage is configurable through {@link ConfigurationApi} by updating two values:
  * <ul>
  * <li>COMPONENT_ENABLE_SIMPLE_STORAGE: enable/disable SimpleStorage</li>
  * <li>SIMPLE_STORAGE_PATH: update the list of path to be used as storage.
- * StorageAPI priority follows the list order</li>
+ * StorageApi priority follows the list order</li>
  * </ul>
  *
  * @author Lucien Loiseau on 20/09/18.
@@ -79,10 +79,10 @@ public class SimpleStorage extends CoreComponent {
     private static final String BUNDLE_FOLDER = File.separator + "bundle" + File.separator;
 
     private Storage metaStorage;
-    private CoreAPI core;
+    private CoreApi core;
 
     public SimpleStorage(Storage metaStorage,
-                         CoreAPI core) {
+                         CoreApi core) {
         this.metaStorage = metaStorage;
         this.core = core;
     }
@@ -93,14 +93,14 @@ public class SimpleStorage extends CoreComponent {
     }
 
     @Override
-    public void initComponent(ConfigurationAPI conf, ConfigurationAPI.CoreEntry entry, Log logger) {
+    public void initComponent(ConfigurationApi conf, ConfigurationApi.CoreEntry entry, Log logger) {
         super.initComponent(conf, entry, logger);
-        core.getConf().<Set<String>>get(ConfigurationAPI.CoreEntry.SIMPLE_STORAGE_PATH).observe()
+        core.getConf().<Set<String>>get(ConfigurationApi.CoreEntry.SIMPLE_STORAGE_PATH).observe()
                 .subscribe(
                         updated_paths -> {
                             /* remove obsolete path */
                             LinkedList<String> pathsToRemove = new LinkedList<>();
-                            storage_paths.stream()
+                            storagePaths.stream()
                                     .filter(p -> !updated_paths.contains(p))
                                     .map(pathsToRemove::add)
                                     .count();
@@ -109,12 +109,11 @@ public class SimpleStorage extends CoreComponent {
                             /* add new path */
                             LinkedList<String> pathsToAdd = new LinkedList<>();
                             updated_paths.stream()
-                                    .filter(p -> !storage_paths.contains(p))
+                                    .filter(p -> !storagePaths.contains(p))
                                     .map(pathsToAdd::add)
                                     .count();
                             pathsToAdd.stream().map(this::addPath).count();
-                        }
-                );
+                        });
     }
 
     @Override
@@ -125,7 +124,7 @@ public class SimpleStorage extends CoreComponent {
     protected void componentDown() {
     }
 
-    private LinkedList<String> storage_paths = new LinkedList<>();
+    private LinkedList<String> storagePaths = new LinkedList<>();
 
     /**
      * Count the number of Persistent Bundle in Storage. This method iterates over the entire index.
@@ -137,24 +136,24 @@ public class SimpleStorage extends CoreComponent {
     }
 
     private boolean removePath(String path) {
-        if (storage_paths.contains(path)) {
+        if (storagePaths.contains(path)) {
             metaStorage.index.forEach(
                     (bid, entry) -> {
-                        if (entry.isPersistent && entry.bundle_path.startsWith(path)) {
+                        if (entry.isPersistent && entry.bundlePath.startsWith(path)) {
                             entry.isPersistent = false;
                             if (!entry.isVolatile) {
                                 metaStorage.removeEntry(bid, entry);
                             }
                         }
                     });
-            storage_paths.remove(path);
+            storagePaths.remove(path);
             return true;
         }
         return false;
     }
 
     private boolean addPath(String path) {
-        if (!storage_paths.contains(path)) {
+        if (!storagePaths.contains(path)) {
             File f = new File(path);
             if (f.exists() && f.canRead() && f.canWrite()) {
                 File ftmp = new File(path + TMP_FOLDER);
@@ -170,7 +169,7 @@ public class SimpleStorage extends CoreComponent {
                     return false;
                 }
                 indexBundlesFromPath(fbundle);
-                storage_paths.add(path);
+                storagePaths.add(path);
                 return true;
             }
         }
@@ -195,21 +194,22 @@ public class SimpleStorage extends CoreComponent {
                     .cbor_open_array(2)
                     .cbor_parse_custom_item(
                             FileHeaderItem::new,
-                            (p, ___, item) -> {
+                            (p, t, item) -> {
                                 p.setReg(0, item);
                             })
-                    .cbor_open_array((__, ___, ____) -> {
+                    .cbor_open_array((p, t, s) -> {
                     }) /* we are just parsing the primary block */
                     .cbor_parse_custom_item(
                             () -> new PrimaryBlockItem(
                                     core.getExtensionManager().getEidFactory(),
                                     core.getLogger()),
-                            (p, ___, item) -> {
+                            (p, t, item) -> {
                                 MetaBundle meta = new MetaBundle(item.bundle);
-                                Storage.IndexEntry entry = metaStorage.getEntryOrCreate(meta.bid, meta);
-                                entry.bundle_path = file.getAbsolutePath();
-                                entry.has_blob = p.<FileHeaderItem>getReg(0).has_blob;
-                                entry.blob_path = p.<FileHeaderItem>getReg(0).blob_path;
+                                Storage.IndexEntry entry
+                                        = metaStorage.getEntryOrCreate(meta.bid, meta);
+                                entry.bundlePath = file.getAbsolutePath();
+                                entry.hasBlob = p.<FileHeaderItem>getReg(0).hasBlob;
+                                entry.blobPath = p.<FileHeaderItem>getReg(0).blobPath;
                                 entry.isPersistent = true;
                                 RxBus.post(new BundleIndexed(meta));
                             });
@@ -245,15 +245,19 @@ public class SimpleStorage extends CoreComponent {
      * @throws StorageFullException        if there isn't enough space in SimpleStorage
      * @throws StorageUnavailableException if SimpleStorage is disabled
      */
-    FileBlob createBLOB(long expectedSize) throws StorageUnavailableException, StorageFullException {
+    FileBlob createBlob(long expectedSize)
+            throws StorageUnavailableException, StorageFullException {
         if (!isEnabled()) {
             throw new StorageUnavailableException();
         }
 
-        for (String path : storage_paths) {
+        for (String path : storagePaths) {
             if (spaceLeft(path + BLOB_FOLDER) > expectedSize) {
                 try {
-                    File fblob = createNewFile("blob-", ".blob", path + BLOB_FOLDER);
+                    File fblob = createNewFile(
+                            "blob-",
+                            ".blob",
+                            path + BLOB_FOLDER);
                     return new FileBlob(fblob);
                 } catch (IOException io) {
                     // ignore and try next path
@@ -271,13 +275,13 @@ public class SimpleStorage extends CoreComponent {
      * @throws StorageFullException        if there isn't enough space in SimpleStorage
      * @throws StorageUnavailableException if SimpleStorage is disabled
      */
-    FileBlob createBLOB() throws StorageUnavailableException, StorageFullException {
+    FileBlob createBlob() throws StorageUnavailableException, StorageFullException {
         if (!isEnabled()) {
             throw new StorageUnavailableException();
         }
 
         LinkedList<String> copy = new LinkedList<>();
-        copy.addAll(storage_paths);
+        copy.addAll(storagePaths);
         copy.sort(Comparator.comparing(p -> spaceLeft(p + BLOB_FOLDER)).reversed());
         for (String path : copy) {
             try {
@@ -291,13 +295,16 @@ public class SimpleStorage extends CoreComponent {
     }
 
     private File createBundleFile(BundleId bid, long expectedSize) throws StorageFullException {
-        for (String path : storage_paths) {
+        for (String path : storagePaths) {
             if (spaceLeft(path + BUNDLE_FOLDER) > expectedSize) {
                 try {
-                    String safeBID = bid.getBidString().replaceAll("/", "_");
-                    return createFile("bundle-"+safeBID+ ".bundle", path + BUNDLE_FOLDER);
+                    String safeBid = bid.getBidString().replaceAll("/", "_");
+                    return createFile(
+                            "bundle-" + safeBid + ".bundle",
+                            path + BUNDLE_FOLDER);
                 } catch (IOException io) {
-                    System.out.println("IOException createNewFile: " + io.getMessage() + " : " + path + BUNDLE_FOLDER + "bid=" + bid.getBidString() + ".bundle");
+                    System.out.println("IOException createNewFile: " + io.getMessage() + " : "
+                            + path + BUNDLE_FOLDER + "bid=" + bid.getBidString() + ".bundle");
                 }
             }
         }
@@ -323,13 +330,13 @@ public class SimpleStorage extends CoreComponent {
         return Single.<Bundle>create(
                 s -> {
                     /* prepare bundle: we do not serialize the payload if it is a fileBLOB */
-                    boolean has_blob = false;
-                    String blob_path = "";
+                    boolean hasBlob = false;
+                    String blobPath = "";
                     Blob blob = new NullBlob();
                     if (bundle.getPayloadBlock().data.isFileBlob()) {
                         blob = bundle.getPayloadBlock().data;
-                        has_blob = true;
-                        blob_path = blob.getFilePath();
+                        hasBlob = true;
+                        blobPath = blob.getFilePath();
 
                         /* temporary remove the blob from bundle for serialization */
                         bundle.getPayloadBlock().data = new NullBlob();
@@ -345,10 +352,10 @@ public class SimpleStorage extends CoreComponent {
                     CborEncoder enc = CBOR.encoder()
                             .cbor_start_array(2)  /* File = {header , bundle} */
                             .cbor_start_array(2)  /* File Header = { boolean, String }*/
-                            .cbor_encode_boolean(has_blob)
-                            .cbor_encode_text_string(blob_path)
+                            .cbor_encode_boolean(hasBlob)
+                            .cbor_encode_text_string(blobPath)
                             .merge(BundleV7Serializer.encode(bundle,
-                                    core.getExtensionManager().getBlockDataSerializerFactory())); /* bundle */
+                                    core.getExtensionManager().getBlockDataSerializerFactory()));
 
                     /* assess file size */
                     AtomicLong size = new AtomicLong();
@@ -364,7 +371,7 @@ public class SimpleStorage extends CoreComponent {
                     try {
                         fbundle = createBundleFile(bundle.bid, size.get());
                     } catch (StorageFullException sfe) {
-                        if (has_blob) {
+                        if (hasBlob) {
                             bundle.getPayloadBlock().data = blob;
                         }
                         s.onError(new Throwable("storage is full"));
@@ -373,7 +380,7 @@ public class SimpleStorage extends CoreComponent {
 
                     /* actual serialization of the bundle */
                     OutputStream out = new BufferedOutputStream(new FileOutputStream(fbundle));
-                    enc.observe().toObservable().subscribe( /* same thread */
+                    enc.observe().toObservable().subscribe(
                             new DisposableObserver<ByteBuffer>() {
                                 @Override
                                 public void onNext(ByteBuffer buffer) {
@@ -402,16 +409,17 @@ public class SimpleStorage extends CoreComponent {
                             });
 
                     /* post-serialization: we put back the blob into the bundle */
-                    if(has_blob) {
+                    if (hasBlob) {
                         bundle.getPayloadBlock().data = blob;
                     }
 
                     if (!meta.isTagged("serialization_failed")) {
-                        final Storage.IndexEntry entry = metaStorage.getEntryOrCreate(meta.bid, meta);
+                        final Storage.IndexEntry entry
+                                = metaStorage.getEntryOrCreate(meta.bid, meta);
                         entry.isPersistent = true;
-                        entry.bundle_path = fbundle.getAbsolutePath();
-                        entry.has_blob = has_blob;
-                        entry.blob_path = blob_path;
+                        entry.bundlePath = fbundle.getAbsolutePath();
+                        entry.hasBlob = hasBlob;
+                        entry.blobPath = blobPath;
                         bundle.tag("in_storage");
                         s.onSuccess(meta);
                     } else {
@@ -449,9 +457,10 @@ public class SimpleStorage extends CoreComponent {
 
             /* pulling entry from index */
             Storage.IndexEntry entry = metaStorage.index.get(id);
-            File fbundle = new File(entry.bundle_path);
+            File fbundle = new File(entry.bundlePath);
             if (!fbundle.exists() || !fbundle.canRead()) {
-                s.onError(new StorageFailedException("can't read bundle file in storage: " + entry.bundle_path));
+                s.onError(new StorageFailedException("can't read bundle file in storage: "
+                        + entry.bundlePath));
                 return;
             }
 
@@ -460,15 +469,15 @@ public class SimpleStorage extends CoreComponent {
                     .cbor_open_array(2)
                     .cbor_parse_custom_item(
                             FileHeaderItem::new,
-                            (p, ___, item) -> p.setReg(0, item))
+                            (p, t, item) -> p.setReg(0, item))
                     .cbor_parse_custom_item(
                             () -> new BundleV7Item(
                                     core.getLogger(),
                                     core.getExtensionManager(),
                                     metaStorage.getBlobFactory()),
-                            (p, ___, item) -> {
-                                if (p.<FileHeaderItem>getReg(0).has_blob) {
-                                    String path = p.<FileHeaderItem>getReg(0).blob_path;
+                            (p, t, item) -> {
+                                if (p.<FileHeaderItem>getReg(0).hasBlob) {
+                                    String path = p.<FileHeaderItem>getReg(0).blobPath;
                                     try {
                                         item.bundle.getPayloadBlock().data = new FileBlob(path);
                                     } catch (IOException io) {
@@ -481,7 +490,7 @@ public class SimpleStorage extends CoreComponent {
 
             /* extracting bundle from file */
             ByteBuffer buffer = ByteBuffer.allocate(2048);
-            FileChannel in = new FileInputStream(entry.bundle_path).getChannel();
+            FileChannel in = new FileInputStream(entry.bundlePath).getChannel();
             try {
                 boolean done = false;
                 while ((in.read(buffer) > 0) && !done) { // read buffer from file
@@ -543,26 +552,30 @@ public class SimpleStorage extends CoreComponent {
             String error = "";
             Storage.IndexEntry entry = metaStorage.index.get(id);
 
-            File fbundle = new File(entry.bundle_path);
-            core.getLogger().v(TAG, "deleting "+id.getBidString()+" bundle file: "+fbundle.getAbsolutePath());
+            File fbundle = new File(entry.bundlePath);
+            core.getLogger().v(TAG, "deleting " + id.getBidString()
+                    + " bundle file: "
+                    + fbundle.getAbsolutePath());
             if (fbundle.exists() && !fbundle.canWrite()) {
                 error += "can't access bundle file for deletion";
             } else {
                 fbundle.delete();
             }
 
-            if (entry.has_blob) {
-                File fblob = new File(entry.blob_path);
-                core.getLogger().v(TAG, "deleting  "+id.getBidString()+" blob file: "+fblob.getAbsolutePath());
+            if (entry.hasBlob) {
+                File fblob = new File(entry.blobPath);
+                core.getLogger().v(TAG, "deleting  " + id.getBidString()
+                        + " blob file: "
+                        + fblob.getAbsolutePath());
                 if (fblob.exists() && !fblob.canWrite()) {
                     error += "can't access payload blob file for deletion";
                 } else {
                     fblob.delete();
                 }
             }
-            entry.has_blob = false;
-            entry.bundle_path = "";
-            entry.blob_path = "";
+            entry.hasBlob = false;
+            entry.bundlePath = "";
+            entry.blobPath = "";
             entry.isPersistent = false;
 
             if (!entry.isVolatile) {
@@ -595,15 +608,15 @@ public class SimpleStorage extends CoreComponent {
 
     private static class FileHeaderItem implements CborParser.ParseableItem {
 
-        boolean has_blob;
-        String blob_path;
+        boolean hasBlob;
+        String blobPath;
 
         @Override
         public CborParser getItemParser() {
             return CBOR.parser()
                     .cbor_open_array(2)
-                    .cbor_parse_boolean((__, b) -> has_blob = b)
-                    .cbor_parse_text_string_full((__, str) -> blob_path = str);
+                    .cbor_parse_boolean((p, b) -> hasBlob = b)
+                    .cbor_parse_text_string_full((p, str) -> blobPath = str);
         }
     }
 }

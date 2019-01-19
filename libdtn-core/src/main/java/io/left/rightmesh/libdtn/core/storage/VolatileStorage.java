@@ -1,12 +1,12 @@
 package io.left.rightmesh.libdtn.core.storage;
 
-import io.left.rightmesh.libdtn.common.data.BundleId;
-import io.left.rightmesh.libdtn.core.CoreComponent;
 import io.left.rightmesh.libdtn.common.data.Bundle;
+import io.left.rightmesh.libdtn.common.data.BundleId;
 import io.left.rightmesh.libdtn.common.data.MetaBundle;
-import io.left.rightmesh.libdtn.core.api.CoreAPI;
-import io.left.rightmesh.libdtn.core.api.StorageAPI.BundleAlreadyExistsException;
-import io.left.rightmesh.libdtn.core.api.StorageAPI.StorageUnavailableException;
+import io.left.rightmesh.libdtn.core.CoreComponent;
+import io.left.rightmesh.libdtn.core.api.CoreApi;
+import io.left.rightmesh.libdtn.core.api.StorageApi.BundleAlreadyExistsException;
+import io.left.rightmesh.libdtn.core.api.StorageApi.StorageUnavailableException;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -21,9 +21,9 @@ public class VolatileStorage extends CoreComponent {
     private static final String TAG = "VolatileStorage";
 
     private Storage metaStorage;
-    private CoreAPI core;
+    private CoreApi core;
 
-    public VolatileStorage(Storage metaStorage, CoreAPI core) {
+    public VolatileStorage(Storage metaStorage, CoreApi core) {
         this.metaStorage = metaStorage;
         this.core = core;
     }
@@ -48,11 +48,11 @@ public class VolatileStorage extends CoreComponent {
      * @return number of volatile bundle in storage
      */
     int count() {
-        return (int)metaStorage.index.values().stream().filter(e -> e.isVolatile).count();
+        return (int) metaStorage.index.values().stream().filter(e -> e.isVolatile).count();
     }
 
     /**
-     * Stores a bundle into VolatileStorage
+     * Stores a bundle into VolatileStorage.
      *
      * @param bundle to store
      * @return Completable that completes once it is done
@@ -74,7 +74,7 @@ public class VolatileStorage extends CoreComponent {
 
     private Completable remove(BundleId bid, Storage.IndexEntry entry) {
         return Completable.create(s -> {
-            if(!entry.isPersistent) {
+            if (!entry.isPersistent) {
                 metaStorage.removeEntry(bid, entry);
             } else {
                 entry.bundle = new MetaBundle(entry.bundle);

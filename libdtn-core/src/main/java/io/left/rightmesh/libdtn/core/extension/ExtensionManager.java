@@ -1,9 +1,5 @@
 package io.left.rightmesh.libdtn.core.extension;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Supplier;
-
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libdtn.common.data.BaseBlockFactory;
@@ -20,18 +16,25 @@ import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BlockDataSeriali
 import io.left.rightmesh.libdtn.common.data.eid.BaseEidFactory;
 import io.left.rightmesh.libdtn.common.data.eid.ClaEid;
 import io.left.rightmesh.libdtn.common.data.eid.ClaEidParser;
-import io.left.rightmesh.libdtn.common.data.eid.EidFactory;
 import io.left.rightmesh.libdtn.common.data.eid.Eid;
+import io.left.rightmesh.libdtn.common.data.eid.EidFactory;
 import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
 import io.left.rightmesh.libdtn.common.data.eid.EidSspParser;
 import io.left.rightmesh.libdtn.common.data.eid.UnknownClaEid;
 import io.left.rightmesh.libdtn.common.utils.Log;
-import io.left.rightmesh.libdtn.core.api.ExtensionManagerAPI;
+import io.left.rightmesh.libdtn.core.api.ExtensionManagerApi;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
 
 /**
+ * ExtensionManager implements the ExtensionManagerAPI and provides entry point to add new
+ * extension blocks and eids into the core.
+ *
  * @author Lucien Loiseau on 22/11/18.
  */
-public class ExtensionManager implements ExtensionManagerAPI {
+public class ExtensionManager implements ExtensionManagerApi {
 
     public static final String TAG = "ExtensionManager";
 
@@ -42,9 +45,9 @@ public class ExtensionManager implements ExtensionManagerAPI {
     private Map<Integer, Supplier<BlockProcessor>> extensionBlockProcessorFactory = new HashMap<>();
 
     /* extension Eid */
-    private Map<Integer, String> extensionEIDSchemeIana = new HashMap<>();
-    private Map<String, EidSspParser> extensionEIDParser = new HashMap<>();
-    private Map<String, ClaEidParser> extensionCLAEIDParser = new HashMap<>();
+    private Map<Integer, String> extensionEidSchemeIana = new HashMap<>();
+    private Map<String, EidSspParser> extensionEidParser = new HashMap<>();
+    private Map<String, ClaEidParser> extensionClaEidParser = new HashMap<>();
 
     private Log logger;
 
@@ -72,7 +75,11 @@ public class ExtensionManager implements ExtensionManagerAPI {
         BaseBlockDataParserFactory baseBlockParserFactory = new BaseBlockDataParserFactory();
 
         @Override
-        public CborParser create(int type, CanonicalBlock block, BlobFactory blobFactory, EidFactory eidFactory, Log logger) throws UnknownBlockTypeException {
+        public CborParser create(int type,
+                                 CanonicalBlock block,
+                                 BlobFactory blobFactory,
+                                 EidFactory eidFactory,
+                                 Log logger) throws UnknownBlockTypeException {
             try {
                 return baseBlockParserFactory.create(type, block, blobFactory, eidFactory, logger);
             } catch (UnknownBlockTypeException ubte) {
@@ -122,8 +129,8 @@ public class ExtensionManager implements ExtensionManagerAPI {
             try {
                 return super.getIanaScheme(ianaScheme);
             } catch (UnknownIanaNumber uin) {
-                if (extensionEIDSchemeIana.containsKey(ianaScheme)) {
-                    return extensionEIDSchemeIana.get(ianaScheme);
+                if (extensionEidSchemeIana.containsKey(ianaScheme)) {
+                    return extensionEidSchemeIana.get(ianaScheme);
                 }
             }
             throw new UnknownIanaNumber(ianaScheme);
@@ -134,20 +141,21 @@ public class ExtensionManager implements ExtensionManagerAPI {
             try {
                 return super.create(scheme, ssp);
             } catch (UnknownEidScheme ues) {
-                if (extensionEIDParser.containsKey(scheme)) {
-                    return extensionEIDParser.get(scheme).create(ssp);
+                if (extensionEidParser.containsKey(scheme)) {
+                    return extensionEidParser.get(scheme).create(ssp);
                 }
             }
             throw new UnknownEidScheme(scheme);
         }
 
         @Override
-        public ClaEid create(String claName, String claSpecific, String claSink) throws EidFormatException {
+        public ClaEid create(String claName, String claSpecific, String claSink)
+                throws EidFormatException {
             try {
                 return super.create(claName, claSpecific, claSink);
             } catch (UnknownClaName ucn) {
-                if (extensionCLAEIDParser.containsKey(claName)) {
-                    return extensionCLAEIDParser.get(claName).create(claName, claSpecific, claSink);
+                if (extensionClaEidParser.containsKey(claName)) {
+                    return extensionClaEidParser.get(claName).create(claName, claSpecific, claSink);
                 } else {
                     return new UnknownClaEid(claName, claSpecific, claSink);
                 }
@@ -185,7 +193,8 @@ public class ExtensionManager implements ExtensionManagerAPI {
                                   Supplier<CanonicalBlock> block,
                                   Supplier<CborParser> parser,
                                   Supplier<CborEncoder> serializer,
-                                  Supplier<BlockProcessor> processor) throws BlockTypeAlreadyManaged {
+                                  Supplier<BlockProcessor> processor)
+            throws BlockTypeAlreadyManaged {
         if (extensionBlockFactory.containsKey(type)) {
             throw new BlockTypeAlreadyManaged();
         }
@@ -196,21 +205,22 @@ public class ExtensionManager implements ExtensionManagerAPI {
     }
 
     @Override
-    public void addExtensionEID(int iana_number, String scheme, EidSspParser parser) throws EIDSchemeAlreadyManaged {
-        if (extensionEIDParser.containsKey(scheme)) {
-            throw new EIDSchemeAlreadyManaged();
+    public void addExtensionEid(int ianaNumber, String scheme, EidSspParser parser)
+            throws EidSchemeAlreadyManaged {
+        if (extensionEidParser.containsKey(scheme)) {
+            throw new EidSchemeAlreadyManaged();
         }
-        extensionEIDSchemeIana.put(iana_number, scheme);
-        extensionEIDParser.put(scheme, parser);
-        logger.v(TAG, "new Eid added: " + scheme + " (iana = " + iana_number + ")");
+        extensionEidSchemeIana.put(ianaNumber, scheme);
+        extensionEidParser.put(scheme, parser);
+        logger.v(TAG, "new Eid added: " + scheme + " (iana = " + ianaNumber + ")");
     }
 
     @Override
-    public void addExtensionCLA(String cl_name, ClaEidParser parser) throws CLNameAlreadyManaged {
-        if (extensionCLAEIDParser.containsKey(cl_name)) {
-            throw new CLNameAlreadyManaged();
+    public void addExtensionCla(String clName, ClaEidParser parser) throws ClaNameAlreadyManaged {
+        if (extensionClaEidParser.containsKey(clName)) {
+            throw new ClaNameAlreadyManaged();
         }
-        extensionCLAEIDParser.put(cl_name, parser);
-        logger.v(TAG, "new CLA added: cla:" + cl_name);
+        extensionClaEidParser.put(clName, parser);
+        logger.v(TAG, "new CLA added: cla:" + clName);
     }
 }

@@ -1,16 +1,16 @@
 package io.left.rightmesh.libdtn.core.utils;
 
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_LOGGING;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.LOG_LEVEL;
+
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.CoreComponent;
 import io.left.rightmesh.libdtn.core.CoreConfiguration;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
 
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_LOGGING;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.LOG_LEVEL;
-
 /**
- * Simple Logger
+ * Simple Logger.
  *
  * @author Lucien Loiseau on 15/09/18.
  */
@@ -18,6 +18,11 @@ public class Logger extends CoreComponent implements Log {
 
     private static final String TAG = "Logger";
 
+    /**
+     * Constructor.
+     *
+     * @param conf reference to the core
+     */
     public Logger(CoreConfiguration conf) {
         level = LogLevel.INFO;
         conf.<LogLevel>get(LOG_LEVEL).observe().subscribe(l -> level = l);
@@ -44,12 +49,15 @@ public class Logger extends CoreComponent implements Log {
     private void log(LogLevel l, String tag, String msg) {
         if (isEnabled()) {
             if (l.ordinal() >= level.ordinal()) {
-                System.out.println(System.currentTimeMillis()+" "+Thread.currentThread().getName()+" "+l + " - " + tag + ": " + msg);
+                System.out.println(System.currentTimeMillis() + " "
+                        + Thread.currentThread().getName() + " " + l + " - " + tag + ": " + msg);
             }
         }
     }
 
-    public void set(LogLevel level) { Logger.level = level; }
+    public void set(LogLevel level) {
+        Logger.level = level;
+    }
 
     @Override
     public void v(String tag, String msg) {
@@ -78,7 +86,7 @@ public class Logger extends CoreComponent implements Log {
 
     @Subscribe
     public void onEvent(Object o) {
-        d(TAG, "EventReceived - "+o.toString());
+        d(TAG, "EventReceived - " + o.toString());
     }
 
 }

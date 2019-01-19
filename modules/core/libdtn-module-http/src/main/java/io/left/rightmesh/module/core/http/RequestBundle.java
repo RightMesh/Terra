@@ -9,7 +9,7 @@ import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
 import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
-import io.left.rightmesh.libdtn.core.api.CoreAPI;
+import io.left.rightmesh.libdtn.core.api.CoreApi;
 import io.left.rightmesh.module.core.http.nettyrouter.Router;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -25,9 +25,9 @@ import static rx.Observable.just;
 public class RequestBundle {
 
     private static final String TAG = "ApplicationAgentHTTP";
-    private CoreAPI core;
+    private CoreApi core;
 
-    RequestBundle(CoreAPI core) {
+    RequestBundle(CoreApi core) {
         this.core = core;
     }
 

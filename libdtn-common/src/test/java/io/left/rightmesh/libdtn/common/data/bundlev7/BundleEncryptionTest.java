@@ -1,6 +1,15 @@
 package io.left.rightmesh.libdtn.common.data.bundlev7;
 
-import org.junit.Test;
+import static io.left.rightmesh.libdtn.common.data.bundlev7.BundleV7Test.checkBundlePayload;
+import static io.left.rightmesh.libdtn.common.data.bundlev7.BundleV7Test.testBundle1;
+import static io.left.rightmesh.libdtn.common.data.bundlev7.BundleV7Test.testBundle2;
+import static io.left.rightmesh.libdtn.common.data.bundlev7.BundleV7Test.testBundle3;
+import static io.left.rightmesh.libdtn.common.data.bundlev7.BundleV7Test.testBundle4;
+import static io.left.rightmesh.libdtn.common.data.bundlev7.BundleV7Test.testBundle5;
+import static io.left.rightmesh.libdtn.common.data.bundlev7.BundleV7Test.testBundle6;
+import static io.left.rightmesh.libdtn.common.data.security.CipherSuites.BCB_AES128_CBC_PKCS5;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
@@ -19,18 +28,11 @@ import io.left.rightmesh.libdtn.common.data.security.SecurityContext;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
 
-import static io.left.rightmesh.libdtn.common.data.bundlev7.BundleV7Test.checkBundlePayload;
-import static io.left.rightmesh.libdtn.common.data.bundlev7.BundleV7Test.testBundle1;
-import static io.left.rightmesh.libdtn.common.data.bundlev7.BundleV7Test.testBundle2;
-import static io.left.rightmesh.libdtn.common.data.bundlev7.BundleV7Test.testBundle3;
-import static io.left.rightmesh.libdtn.common.data.bundlev7.BundleV7Test.testBundle4;
-import static io.left.rightmesh.libdtn.common.data.bundlev7.BundleV7Test.testBundle5;
-import static io.left.rightmesh.libdtn.common.data.bundlev7.BundleV7Test.testBundle6;
-import static io.left.rightmesh.libdtn.common.data.security.CipherSuites.BCB_AES128_CBC_PKCS5;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import org.junit.Test;
 
 /**
+ * Test class to test Bundle Encryption Block.
+ *
  * @author Lucien Loiseau on 06/11/18.
  */
 public class BundleEncryptionTest {
@@ -52,7 +54,7 @@ public class BundleEncryptionTest {
         /* create security context */
         SecurityContext context = SecurityContextTest.mockSecurityContext();
 
-        for(Bundle b : bundles) {
+        for (Bundle b : bundles) {
             /* encrypt the payload of the bundles */
             BlockConfidentialityBlock bcb = new BlockConfidentialityBlock();
             bcb.addTarget(0);
@@ -83,19 +85,19 @@ public class BundleEncryptionTest {
                     new BaseBlockDataSerializerFactory());
 
             // prepare parser
-            CborParser p = CBOR.parser().cbor_parse_custom_item(
+            CborParser parser = CBOR.parser().cbor_parse_custom_item(
                     () -> new BundleV7Item(
                             logger,
                             new BaseExtensionToolbox(),
                             new BaseBlobFactory().enableVolatile(100000).disablePersistent()),
-                    (__, ___, item) ->
+                    (p, t, item) ->
                             res[0] = item.bundle);
 
             // serialize and parse
             enc.observe(10).subscribe(
                     buf -> {
                         try {
-                            if (p.read(buf)) {
+                            if (parser.read(buf)) {
                                 assertEquals(false, buf.hasRemaining());
                             }
                         } catch (RxParserException rpe) {
@@ -116,7 +118,7 @@ public class BundleEncryptionTest {
                                 context,
                                 new BaseExtensionToolbox(),
                                 logger);
-                    } catch(SecurityBlock.SecurityOperationException e) {
+                    } catch (SecurityBlock.SecurityOperationException e) {
                         e.printStackTrace();
                         fail();
                     }

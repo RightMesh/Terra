@@ -35,12 +35,10 @@ public class ByteBufferBlob extends UntrackedByteBufferBlob {
         this.data.mark();
     }
 
-    // CHECKSTYLE IGNORE NoFinalizer
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
         memory.free(data.capacity());
     }
-    // CHECKSTYLE END IGNORE
 
 }

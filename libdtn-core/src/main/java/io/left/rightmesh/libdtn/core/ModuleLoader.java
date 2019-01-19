@@ -1,33 +1,41 @@
 package io.left.rightmesh.libdtn.core;
 
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.ENABLE_AA_MODULES;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.ENABLE_CLA_MODULES;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.ENABLE_CORE_MODULES;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.MODULES_AA_PATH;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.MODULES_CLA_PATH;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.MODULES_CORE_PATH;
+
+import io.left.rightmesh.libdtn.core.api.CoreApi;
+import io.left.rightmesh.libdtn.core.api.ModuleLoaderApi;
+import io.left.rightmesh.libdtn.core.spi.aa.ApplicationAgentAdapterSpi;
+import io.left.rightmesh.libdtn.core.spi.cla.ConvergenceLayerSpi;
+import io.left.rightmesh.libdtn.core.spi.core.CoreModuleSpi;
+
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ServiceLoader;
 
-import io.left.rightmesh.libdtn.core.api.CoreAPI;
-import io.left.rightmesh.libdtn.core.api.ModuleLoaderAPI;
-import io.left.rightmesh.libdtn.core.spi.aa.ApplicationAgentAdapterSPI;
-import io.left.rightmesh.libdtn.core.spi.cla.ConvergenceLayerSPI;
-import io.left.rightmesh.libdtn.core.spi.core.CoreModuleSPI;
-
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_AA_MODULES;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_CLA_MODULES;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_CORE_MODULES;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_AA_PATH;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_CLA_PATH;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_CORE_PATH;
-
 /**
+ * ModuleLoader implements the ModuleLoaderApi. It provides static method to load module as well
+ * as the ability to load module from a directory given as part of the configuration.
+ *
  * @author Lucien Loiseau on 25/10/18.
  */
-public class ModuleLoader extends CoreComponent implements ModuleLoaderAPI  {
+public class ModuleLoader extends CoreComponent implements ModuleLoaderApi {
 
     private static final String TAG = "ModuleLoader";
 
-    private CoreAPI core;
+    private CoreApi core;
 
-    public ModuleLoader(CoreAPI core) {
+    /**
+     * Constructor.
+     *
+     * @param core reference to the core
+     */
+    public ModuleLoader(CoreApi core) {
         this.core = core;
     }
 
@@ -38,8 +46,8 @@ public class ModuleLoader extends CoreComponent implements ModuleLoaderAPI  {
 
     @Override
     protected void componentUp() {
-        loadAAModulesFromDirectory();
-        loadCLAModulesFromDirectory();
+        loadAaModulesFromDirectory();
+        loadClaModulesFromDirectory();
         loadCoreModulesFromDirectory();
     }
 
@@ -49,8 +57,8 @@ public class ModuleLoader extends CoreComponent implements ModuleLoaderAPI  {
     }
 
     @Override
-    public void loadAAModule(ApplicationAgentAdapterSPI aa) {
-        if(!isEnabled()) {
+    public void loadAaModule(ApplicationAgentAdapterSpi aa) {
+        if (!isEnabled()) {
             return;
         }
 
@@ -59,40 +67,43 @@ public class ModuleLoader extends CoreComponent implements ModuleLoaderAPI  {
                 core.getLogger(),
                 core.getExtensionManager(),
                 core.getStorage().getBlobFactory());
-        core.getLogger().i(TAG, "AA module loaded: " + aa.getModuleName()+" - UP");
+        core.getLogger().i(TAG, "AA module loaded: " + aa.getModuleName() + " - UP");
     }
 
     @Override
-    public void loadCLAModule(ConvergenceLayerSPI cla) {
-        if(!isEnabled()) {
+    public void loadClaModule(ConvergenceLayerSpi cla) {
+        if (!isEnabled()) {
             return;
         }
 
-        core.getClaManager().addCLA(cla);
-        core.getLogger().i(TAG, "CLA module loaded: " + cla.getModuleName()+" - UP");
+        core.getClaManager().addCla(cla);
+        core.getLogger().i(TAG, "CLA module loaded: " + cla.getModuleName() + " - UP");
     }
 
     @Override
-    public void loadCoreModule(CoreModuleSPI cm) {
-        if(!isEnabled()) {
+    public void loadCoreModule(CoreModuleSpi cm) {
+        if (!isEnabled()) {
             return;
         }
 
         cm.init(core);
-        core.getLogger().i(TAG, "CORE module loaded: " + cm.getModuleName()+" - UP");
+        core.getLogger().i(TAG, "CORE module loaded: " + cm.getModuleName() + " - UP");
     }
 
-    private void loadAAModulesFromDirectory() {
+    private void loadAaModulesFromDirectory() {
         if (core.getConf().<Boolean>get(ENABLE_AA_MODULES).value()) {
             String path = core.getConf().<String>get(MODULES_AA_PATH).value();
             try {
-                URLClassLoader ucl = new URLClassLoader(pathToListOfJarURL(path));
-                ServiceLoader<ApplicationAgentAdapterSPI> sl = ServiceLoader.load(ApplicationAgentAdapterSPI.class, ucl);
-                for (ApplicationAgentAdapterSPI aa : sl) {
-                    if(core.getConf().<Boolean>getModuleEnabled(aa.getModuleName(), false).value()) {
-                        loadAAModule(aa);
+                URLClassLoader ucl = new URLClassLoader(pathToListOfJarUrl(path));
+                ServiceLoader<ApplicationAgentAdapterSpi> sl
+                        = ServiceLoader.load(ApplicationAgentAdapterSpi.class, ucl);
+                for (ApplicationAgentAdapterSpi aa : sl) {
+                    if (core.getConf().<Boolean>getModuleEnabled(aa.getModuleName(), false)
+                            .value()) {
+                        loadAaModule(aa);
                     } else {
-                        core.getLogger().i(TAG, "AA module loaded: " + aa.getModuleName()+" - DOWN");
+                        core.getLogger().i(TAG, "AA module loaded: " + aa.getModuleName()
+                                + " - DOWN");
                     }
                 }
             } catch (Exception e) {
@@ -101,17 +112,20 @@ public class ModuleLoader extends CoreComponent implements ModuleLoaderAPI  {
         }
     }
 
-    private void loadCLAModulesFromDirectory() {
+    private void loadClaModulesFromDirectory() {
         if (core.getConf().<Boolean>get(ENABLE_CLA_MODULES).value()) {
             String path = core.getConf().<String>get(MODULES_CLA_PATH).value();
             try {
-                URLClassLoader ucl = new URLClassLoader(pathToListOfJarURL(path));
-                ServiceLoader<ConvergenceLayerSPI> sl = ServiceLoader.load(ConvergenceLayerSPI.class, ucl);
-                for (ConvergenceLayerSPI cla : sl) {
-                    if(core.getConf().getModuleEnabled(cla.getModuleName(), false).value()) {
-                        loadCLAModule(cla);
+                URLClassLoader ucl = new URLClassLoader(pathToListOfJarUrl(path));
+                ServiceLoader<ConvergenceLayerSpi> sl
+                        = ServiceLoader.load(ConvergenceLayerSpi.class, ucl);
+                for (ConvergenceLayerSpi cla : sl) {
+                    if (core.getConf().getModuleEnabled(cla.getModuleName(), false)
+                            .value()) {
+                        loadClaModule(cla);
                     } else {
-                        core.getLogger().i(TAG, "CLA module loaded: " + cla.getModuleName()+" - DOWN");
+                        core.getLogger().i(TAG, "CLA module loaded: " + cla.getModuleName()
+                                + " - DOWN");
                     }
                 }
             } catch (Exception e) {
@@ -124,13 +138,15 @@ public class ModuleLoader extends CoreComponent implements ModuleLoaderAPI  {
         if (core.getConf().<Boolean>get(ENABLE_CORE_MODULES).value()) {
             String path = core.getConf().<String>get(MODULES_CORE_PATH).value();
             try {
-                URLClassLoader ucl = new URLClassLoader(pathToListOfJarURL(path));
-                ServiceLoader<CoreModuleSPI> sl = ServiceLoader.load(CoreModuleSPI.class, ucl);
-                for (CoreModuleSPI cm : sl) {
-                    if(core.getConf().getModuleEnabled(cm.getModuleName(), false).value()) {
+                URLClassLoader ucl = new URLClassLoader(pathToListOfJarUrl(path));
+                ServiceLoader<CoreModuleSpi> sl = ServiceLoader.load(CoreModuleSpi.class, ucl);
+                for (CoreModuleSpi cm : sl) {
+                    if (core.getConf().getModuleEnabled(cm.getModuleName(), false)
+                            .value()) {
                         loadCoreModule(cm);
                     } else {
-                        core.getLogger().i(TAG, "CORE module loaded: " + cm.getModuleName()+" - DOWN");
+                        core.getLogger().i(TAG, "CORE module loaded: " + cm.getModuleName()
+                                + " - DOWN");
                     }
                 }
             } catch (Exception e) {
@@ -139,7 +155,7 @@ public class ModuleLoader extends CoreComponent implements ModuleLoaderAPI  {
         }
     }
 
-    private URL[] pathToListOfJarURL(String path) throws Exception {
+    private URL[] pathToListOfJarUrl(String path) throws Exception {
         File loc = new File(path);
         File[] flist = loc.listFiles(f -> f.getPath().toLowerCase().endsWith(".jar"));
         if (flist == null) {

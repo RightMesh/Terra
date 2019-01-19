@@ -29,17 +29,17 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 
 import io.left.rightmesh.libdtn.core.MockExtensionManager;
 import io.left.rightmesh.libdtn.core.MockCore;
-import io.left.rightmesh.libdtn.core.api.ExtensionManagerAPI;
-import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
-import io.left.rightmesh.libdtn.core.api.CoreAPI;
+import io.left.rightmesh.libdtn.core.api.CoreApi;
+import io.left.rightmesh.libdtn.core.api.ExtensionManagerApi;
+import io.left.rightmesh.libdtn.core.api.ConfigurationApi;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_STORAGE;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.SIMPLE_STORAGE_PATH;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.SIMPLE_STORAGE_PATH;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -54,13 +54,13 @@ public class SimpleStorageTest {
     private CoreConfiguration conf = new CoreConfiguration();
     private File dir = new File(System.getProperty("path") + "/bundle/");
     private Storage storage;
-    private CoreAPI mockCore = mockCore();
+    private CoreApi mockCore = mockCore();
 
     /* mocking the core */
-    public CoreAPI mockCore() {
+    public CoreApi mockCore() {
         return new MockCore() {
             @Override
-            public ConfigurationAPI getConf() {
+            public ConfigurationApi getConf() {
                 conf.<Boolean>get(COMPONENT_ENABLE_STORAGE).update(true);
                 conf.<Boolean>get(COMPONENT_ENABLE_VOLATILE_STORAGE).update(false);
                 conf.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(true);
@@ -72,7 +72,7 @@ public class SimpleStorageTest {
             }
 
             @Override
-            public ExtensionManagerAPI getExtensionManager() {
+            public ExtensionManagerApi getExtensionManager() {
                 return new MockExtensionManager() {
                     @Override
                     public BlockDataParserFactory getBlockDataParserFactory() {

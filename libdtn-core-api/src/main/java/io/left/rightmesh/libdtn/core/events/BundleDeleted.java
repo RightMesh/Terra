@@ -3,6 +3,8 @@ package io.left.rightmesh.libdtn.core.events;
 import io.left.rightmesh.libdtn.common.data.BundleId;
 
 /**
+ * BundleDeleted event is thrown when a bundle is deleted.
+ *
  * @author Lucien Loiseau on 14/10/18.
  */
 public class BundleDeleted {
@@ -15,6 +17,6 @@ public class BundleDeleted {
 
     @Override
     public String toString() {
-        return "Bundle deleted: bid="+bid.getBidString();
+        return "Bundle deleted: bid=" + bid.getBidString();
     }
 }

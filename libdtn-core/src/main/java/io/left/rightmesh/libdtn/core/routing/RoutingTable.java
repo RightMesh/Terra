@@ -1,19 +1,19 @@
 package io.left.rightmesh.libdtn.core.routing;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_STATIC_ROUTING;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.STATIC_ROUTE_CONFIGURATION;
 
 import io.left.rightmesh.libdtn.common.data.eid.BaseClaEid;
 import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.left.rightmesh.libdtn.core.CoreComponent;
-import io.left.rightmesh.libdtn.core.api.CoreAPI;
-import io.left.rightmesh.libdtn.core.api.RoutingTableAPI;
+import io.left.rightmesh.libdtn.core.api.CoreApi;
+import io.left.rightmesh.libdtn.core.api.RoutingTableApi;
 import io.reactivex.Observable;
 
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_STATIC_ROUTING;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.STATIC_ROUTE_CONFIGURATION;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Static Routing is a routing component that uses the static route table to take
@@ -21,18 +21,23 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.STATI
  *
  * @author Lucien Loiseau on 24/08/18.
  */
-public class RoutingTable extends CoreComponent implements RoutingTableAPI {
+public class RoutingTable extends CoreComponent implements RoutingTableApi {
 
     private static final String TAG = "RoutingTable";
 
     // ---- RoutingTable ----
-    private CoreAPI core;
+    private CoreApi core;
     private boolean staticIsEnabled;
     private Set<TableEntry> staticRoutingTable;
     private Set<TableEntry> routingTable;
 
 
-    public RoutingTable(CoreAPI core) {
+    /**
+     * Constructor.
+     *
+     * @param core reference to the core
+     */
+    public RoutingTable(CoreApi core) {
         this.core = core;
         staticRoutingTable = new HashSet<>();
         routingTable = new HashSet<>();
@@ -51,7 +56,8 @@ public class RoutingTable extends CoreComponent implements RoutingTableAPI {
         core.getConf().<Map<Eid, Eid>>get(STATIC_ROUTE_CONFIGURATION).observe().subscribe(
                 m -> {
                     staticRoutingTable.clear();
-                    m.forEach((to, from) -> staticRoutingTable.add(new RoutingTableAPI.TableEntry(to, from)));
+                    m.forEach((to, from) -> staticRoutingTable.add(
+                            new RoutingTableApi.TableEntry(to, from)));
                 });
     }
 
@@ -60,7 +66,7 @@ public class RoutingTable extends CoreComponent implements RoutingTableAPI {
     }
 
     private Observable<TableEntry> compoundTableObservable() {
-        if(staticIsEnabled) {
+        if (staticIsEnabled) {
             return Observable.fromIterable(staticRoutingTable)
                     .concatWith(Observable.fromIterable(routingTable));
         } else {
@@ -76,11 +82,11 @@ public class RoutingTable extends CoreComponent implements RoutingTableAPI {
                         .map(entry -> entry.next));
     }
 
-    private Observable<BaseClaEid> resolveEID(Eid destination, Observable<Eid> path) {
+    private Observable<BaseClaEid> resolveEid(Eid destination, Observable<Eid> path) {
         return Observable.concat(
                 lookupPotentialNextHops(destination)
                         .filter(eid -> eid instanceof BaseClaEid)
-                        .map(eid -> (BaseClaEid)eid),
+                        .map(eid -> (BaseClaEid) eid),
                 lookupPotentialNextHops(destination)
                         .filter(eid -> !(eid instanceof BaseClaEid))
                         .flatMap(candidate ->
@@ -88,35 +94,37 @@ public class RoutingTable extends CoreComponent implements RoutingTableAPI {
                                         .toObservable()
                                         .flatMap((b) -> {
                                             if (!b) {
-                                                return resolveEID(
+                                                return resolveEid(
                                                         candidate,
-                                                        path.concatWith(Observable.just(candidate)));
+                                                        path.concatWith(
+                                                                Observable.just(candidate)));
                                             }
                                             return Observable.empty();
                                         })));
     }
 
     @Override
+    public Observable<BaseClaEid> resolveEid(Eid destination) {
+        if (!isEnabled()) {
+            return Observable.error(new ComponentIsDownException(getComponentName()));
+        }
+        return resolveEid(destination, Observable.empty());
+    }
+
+    @Override
     public void addRoute(Eid to, Eid nextHop) {
-        if(!isEnabled()) {
+        if (!isEnabled()) {
             return;
         }
 
-        core.getLogger().i(TAG, "adding a new Route: " + to.getEidString() + " -> " + nextHop.getEidString());
+        core.getLogger().i(TAG, "adding a new Route: " + to.getEidString() + " -> "
+                + nextHop.getEidString());
         routingTable.add(new TableEntry(to, nextHop));
     }
 
     @Override
-    public Observable<BaseClaEid> resolveEID(Eid destination) {
-        if(!isEnabled()) {
-            return Observable.error(new ComponentIsDownException(getComponentName()));
-        }
-        return resolveEID(destination, Observable.empty());
-    }
-
-    @Override
     public Set<TableEntry> dumpTable() {
-        if(!isEnabled()) {
+        if (!isEnabled()) {
             return new HashSet<>();
         }
 

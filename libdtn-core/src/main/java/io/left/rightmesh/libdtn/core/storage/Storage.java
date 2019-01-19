@@ -1,35 +1,37 @@
 package io.left.rightmesh.libdtn.core.storage;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.VOLATILE_BLOB_STORAGE_MAX_CAPACITY;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleId;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.data.blob.BaseBlobFactory;
 import io.left.rightmesh.libdtn.common.data.blob.Blob;
+import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
 import io.left.rightmesh.libdtn.common.data.blob.NullBlob;
 import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BlockProcessorFactory;
 import io.left.rightmesh.libdtn.common.data.bundlev7.processor.ProcessingException;
-import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.CoreComponent;
-import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
-import io.left.rightmesh.libdtn.core.api.CoreAPI;
-import io.left.rightmesh.libdtn.core.api.StorageAPI;
+import io.left.rightmesh.libdtn.core.api.ConfigurationApi;
+import io.left.rightmesh.libdtn.core.api.CoreApi;
+import io.left.rightmesh.libdtn.core.api.StorageApi;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.VOLATILE_BLOB_STORAGE_MAX_CAPACITY;
-
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * Storage class implements StorageAPI and provides both volatile and peristent storage operation
+ * based on the node configuration.
+ *
  * @author Lucien Loiseau on 29/09/18.
  */
-public class Storage extends CoreComponent implements StorageAPI {
+public class Storage extends CoreComponent implements StorageApi {
 
     private static final String TAG = "Storage";
 
@@ -52,15 +54,15 @@ public class Storage extends CoreComponent implements StorageAPI {
         @Override
         public Blob createFileBlob(int expectedSize) throws BlobFactoryException {
             try {
-                return simpleStorage.createBLOB(expectedSize);
-            } catch(StorageAPI.StorageException se) {
+                return simpleStorage.createBlob(expectedSize);
+            } catch (StorageApi.StorageException se) {
                 throw new BlobFactoryException();
             }
         }
     }
 
-    private ConfigurationAPI conf;
-    private CoreAPI core;
+    private ConfigurationApi conf;
+    private CoreApi core;
     private VolatileStorage volatileStorage;
     private SimpleStorage simpleStorage;
     private CoreBlobFactory blobFactory;
@@ -76,13 +78,19 @@ public class Storage extends CoreComponent implements StorageAPI {
 
         boolean isVolatile = false;
         boolean isPersistent = false;
-        String bundle_path; /* path to persistent bundle */
-        boolean has_blob;   /* true if payload is also a file */
-        String blob_path;   /* path to the payload */
+        String bundlePath; /* path to persistent bundle */
+        boolean hasBlob;   /* true if payload is also a file */
+        String blobPath;   /* path to the payload */
     }
+
     Map<BundleId, IndexEntry> index = new ConcurrentHashMap<>();
 
-    public Storage(CoreAPI core) {
+    /**
+     * Constructor.
+     *
+     * @param core reference to the core
+     */
+    public Storage(CoreApi core) {
         this.logger = core.getLogger();
         this.conf = core.getConf();
         this.core = core;
@@ -98,10 +106,12 @@ public class Storage extends CoreComponent implements StorageAPI {
     }
 
     @Override
-    public void initComponent(ConfigurationAPI conf, ConfigurationAPI.CoreEntry entry, Log logger) {
+    public void initComponent(ConfigurationApi conf, ConfigurationApi.CoreEntry entry, Log logger) {
         super.initComponent(conf, entry, logger);
-        volatileStorage.initComponent(core.getConf(), COMPONENT_ENABLE_VOLATILE_STORAGE, core.getLogger());
-        simpleStorage.initComponent(core.getConf(), COMPONENT_ENABLE_SIMPLE_STORAGE, core.getLogger());
+        volatileStorage
+                .initComponent(core.getConf(), COMPONENT_ENABLE_VOLATILE_STORAGE, core.getLogger());
+        simpleStorage
+                .initComponent(core.getConf(), COMPONENT_ENABLE_SIMPLE_STORAGE, core.getLogger());
     }
 
     @Override
@@ -114,7 +124,7 @@ public class Storage extends CoreComponent implements StorageAPI {
 
     @Override
     public BlobFactory getBlobFactory() {
-        if(!isEnabled()) {
+        if (!isEnabled()) {
             return NullBlob::new;
         }
         return blobFactory;
@@ -153,7 +163,7 @@ public class Storage extends CoreComponent implements StorageAPI {
 
     @Override
     public int count() {
-        if(!isEnabled()) {
+        if (!isEnabled()) {
             return 0;
         }
 
@@ -162,7 +172,7 @@ public class Storage extends CoreComponent implements StorageAPI {
 
     @Override
     public boolean contains(BundleId bid) {
-        if(!isEnabled()) {
+        if (!isEnabled()) {
             return false;
         }
 
@@ -170,28 +180,28 @@ public class Storage extends CoreComponent implements StorageAPI {
     }
 
     /**
-     * check if a Bundle is stored in volatile storage
+     * check if a Bundle is stored in volatile storage.
      *
      * @param bid of the bundle
      * @return true if the Bundle is stored in volatile storage, false otherwise
      */
-    public boolean containsVolatile(BundleId bid) {
+    boolean containsVolatile(BundleId bid) {
         return index.containsKey(bid) && index.get(bid).isVolatile;
     }
 
     /**
-     * check if a Bundle is stored in persistent storage
+     * check if a Bundle is stored in persistent storage.
      *
      * @param bid of the bundle
      * @return true if the Bundle is stored in persistent storage, false otherwise
      */
-    public boolean containsPersistent(BundleId bid) {
+    boolean containsPersistent(BundleId bid) {
         return index.containsKey(bid) && index.get(bid).isPersistent;
     }
 
     @Override
     public Single<Bundle> store(Bundle bundle) {
-        if(!isEnabled()) {
+        if (!isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
@@ -225,7 +235,7 @@ public class Storage extends CoreComponent implements StorageAPI {
 
     @Override
     public Single<Bundle> getMeta(BundleId id) {
-        if(!isEnabled()) {
+        if (!isEnabled()) {
             return Single.error(new ComponentIsDownException(getComponentName()));
         }
 
@@ -238,7 +248,7 @@ public class Storage extends CoreComponent implements StorageAPI {
 
     @Override
     public Single<Bundle> get(BundleId id) {
-        if(!isEnabled()) {
+        if (!isEnabled()) {
             return Single.error(new StorageUnavailableException());
         }
 
@@ -266,7 +276,7 @@ public class Storage extends CoreComponent implements StorageAPI {
 
     @Override
     public Completable remove(BundleId id) {
-        if(!isEnabled()) {
+        if (!isEnabled()) {
             return Completable.error(new StorageUnavailableException());
         }
 
@@ -297,7 +307,7 @@ public class Storage extends CoreComponent implements StorageAPI {
         index.forEach((bid, entry) -> {
             String dest = entry.bundle.getDestination().getEidString();
             String vol = entry.isVolatile ? "V" : "";
-            String per = entry.isPersistent ? "P=" + entry.bundle_path : "";
+            String per = entry.isPersistent ? "P=" + entry.bundlePath : "";
             sb.append(bid.getBidString() + "  -  " + dest + "  -  " + vol + " " + per + "\n");
         });
         sb.append("\n");

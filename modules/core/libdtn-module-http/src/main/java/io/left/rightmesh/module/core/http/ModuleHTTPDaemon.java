@@ -1,7 +1,7 @@
 package io.left.rightmesh.module.core.http;
 
-import io.left.rightmesh.libdtn.core.api.CoreAPI;
-import io.left.rightmesh.libdtn.core.spi.core.CoreModuleSPI;
+import io.left.rightmesh.libdtn.core.api.CoreApi;
+import io.left.rightmesh.libdtn.core.spi.core.CoreModuleSpi;
 import io.left.rightmesh.module.core.http.nettyrouter.Router;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -15,11 +15,11 @@ import static io.left.rightmesh.module.core.http.nettyrouter.Dispatch.using;
 /**
  * @author Lucien Loiseau on 13/10/18.
  */
-public class ModuleHTTPDaemon implements CoreModuleSPI {
+public class ModuleHTTPDaemon implements CoreModuleSpi {
 
     private static final String TAG = "http";
 
-    private CoreAPI core;
+    private CoreApi core;
     private HttpServer<ByteBuf, ByteBuf> server;
 
     public ModuleHTTPDaemon() {
@@ -31,7 +31,7 @@ public class ModuleHTTPDaemon implements CoreModuleSPI {
     }
 
     @Override
-    public void init(CoreAPI api) {
+    public void init(CoreApi api) {
         this.core = api;
         RequestConfiguration configurationAPI = new RequestConfiguration(core);
         RequestRegistration registrationAPI = new RequestRegistration(core);

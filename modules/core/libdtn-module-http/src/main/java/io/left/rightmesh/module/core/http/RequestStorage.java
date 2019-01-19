@@ -1,6 +1,6 @@
 package io.left.rightmesh.module.core.http;
 
-import io.left.rightmesh.libdtn.core.api.CoreAPI;
+import io.left.rightmesh.libdtn.core.api.CoreApi;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
 import static rx.Observable.just;
@@ -10,9 +10,9 @@ import static rx.Observable.just;
  */
 public class RequestStorage {
 
-    private CoreAPI core;
+    private CoreApi core;
 
-    RequestStorage(CoreAPI core) {
+    RequestStorage(CoreApi core) {
         this.core = core;
     }
 

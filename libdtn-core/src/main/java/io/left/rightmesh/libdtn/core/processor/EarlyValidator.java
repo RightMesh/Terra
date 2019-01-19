@@ -1,16 +1,16 @@
 package io.left.rightmesh.libdtn.core.processor;
 
-import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BlockProcessorFactory;
-import io.left.rightmesh.libdtn.core.api.ConfigurationAPI;
-import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
+import static io.left.rightmesh.libdtn.common.data.BlockHeader.BlockV7Flags.DELETE_BUNDLE_IF_NOT_PROCESSED;
+
 import io.left.rightmesh.libdtn.common.data.BlockHeader;
+import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
+import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
+import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BlockProcessorFactory;
 import io.left.rightmesh.libdtn.common.data.bundlev7.processor.ProcessingException;
 import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
-import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
-import io.left.rightmesh.libdtn.core.api.CoreAPI;
+import io.left.rightmesh.libdtn.core.api.ConfigurationApi;
+import io.left.rightmesh.libdtn.core.api.CoreApi;
 import io.left.rightmesh.libdtn.core.utils.ClockUtil;
-
-import static io.left.rightmesh.libdtn.common.data.BlockHeader.BlockV7Flags.DELETE_BUNDLE_IF_NOT_PROCESSED;
 
 /**
  * EarlyValidator processes a Bundle during the different step of its lifetime.
@@ -36,9 +36,9 @@ public class EarlyValidator {
         }
     }
 
-    private CoreAPI core;
+    private CoreApi core;
 
-    public EarlyValidator(CoreAPI core) {
+    public EarlyValidator(CoreApi core) {
         this.core = core;
     }
 
@@ -53,24 +53,27 @@ public class EarlyValidator {
             throw new RejectedException("bundle is expired");
         }
 
-        if (!core.getConf().<Boolean>get(ConfigurationAPI.CoreEntry.ALLOW_RECEIVE_ANONYMOUS_BUNDLE).value()
+        if (!core.getConf()
+                .<Boolean>get(ConfigurationApi.CoreEntry.ALLOW_RECEIVE_ANONYMOUS_BUNDLE).value()
                 && block.getSource().equals(DtnEid.nullEid())) {
             throw new RejectedException("forbidden anonnymous source");
         }
 
-        if (!core.getLocalEID().isLocal(block.getDestination())
-                && !core.getConf().<Boolean>get(ConfigurationAPI.CoreEntry.ENABLE_FORWARDING).value()) {
+        if (!core.getLocalEid().isLocal(block.getDestination())
+                && !core.getConf()
+                .<Boolean>get(ConfigurationApi.CoreEntry.ENABLE_FORWARDING).value()) {
             throw new RejectedException("forward isn't enabled and bundle is not local");
         }
 
-        long max_lifetime = core.getConf().<Long>get(ConfigurationAPI.CoreEntry.MAX_LIFETIME).value();
-        if (block.getLifetime() > max_lifetime) {
-            throw new RejectedException("lifetime="+block.getLifetime()+" max="+max_lifetime);
+        long maxLifetime = core.getConf()
+                .<Long>get(ConfigurationApi.CoreEntry.MAX_LIFETIME).value();
+        if (block.getLifetime() > maxLifetime) {
+            throw new RejectedException("lifetime=" + block.getLifetime() + " max=" + maxLifetime);
         }
 
-        long max_timestamp_futur = core.getConf().<Long>get(ConfigurationAPI.CoreEntry.MAX_TIMESTAMP_FUTURE).value();
-        if (max_timestamp_futur > 0
-                && (block.getCreationTimestamp() > ClockUtil.getCurrentTime() + max_timestamp_futur)) {
+        long maxTimestampFutur = ClockUtil.getCurrentTime()
+                + core.getConf().<Long>get(ConfigurationApi.CoreEntry.MAX_TIMESTAMP_FUTURE).value();
+        if (maxTimestampFutur > 0 && (block.getCreationTimestamp() > maxTimestampFutur)) {
             throw new RejectedException("timestamp too far in the future");
         }
     }
@@ -83,7 +86,7 @@ public class EarlyValidator {
      */
     public void onDeserialized(BlockHeader block) throws RejectedException {
         if (block.dataSize
-                > core.getConf().<Long>get(ConfigurationAPI.CoreEntry.LIMIT_BLOCKSIZE).value()) {
+                > core.getConf().<Long>get(ConfigurationApi.CoreEntry.LIMIT_BLOCKSIZE).value()) {
             throw new RejectedException("block size exceed limit");
         }
     }

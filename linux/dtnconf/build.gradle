@@ -2,7 +2,7 @@ plugins {
     id("application")
 }
 
-mainClassName="io.left.rightmesh.dtnconf.DTNConf"
+mainClassName="io.left.rightmesh.dtnconf.DtnConf"
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])

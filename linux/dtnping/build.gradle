@@ -2,7 +2,7 @@ plugins {
     id("application")
 }
 
-mainClassName="io.left.rightmesh.dtnping.DTNPing"
+mainClassName="io.left.rightmesh.dtnping.DtnPing"
 
 repositories {
     google()

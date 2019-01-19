@@ -14,8 +14,8 @@ jar {
     dependsOn(':libldcp:jar')
     // META-INF/services to load module with ServiceLoader
     serviceLoader {
-        serviceInterface 'io.left.rightmesh.libdtn.core.spi.aa.ApplicationAgentAdapterSPI'
-        serviceInterface 'io.left.rightmesh.core.module.aa.ldcp.AAModuleLDCP'
+        serviceInterface 'io.left.rightmesh.libdtn.core.spi.aa.ApplicationAgentAdapterSpi'
+        serviceInterface 'io.left.rightmesh.core.module.aa.ldcp.AaModuleLdcp'
     }
 
     // fat jar dependency, exclude those already in libdtn-core

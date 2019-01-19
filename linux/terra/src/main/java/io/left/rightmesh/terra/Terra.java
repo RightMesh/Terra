@@ -1,21 +1,21 @@
 package io.left.rightmesh.terra;
 
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_AA_MODULES;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_AUTO_CONNECT_FOR_BUNDLE;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_CLA_MODULES;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_CORE_MODULES;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_FORWARDING;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.ENABLE_STATUS_REPORTING;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.LOCAL_EID;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.LOG_LEVEL;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_AA_PATH;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_CLA_PATH;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.MODULES_CORE_PATH;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.SIMPLE_STORAGE_PATH;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationAPI.CoreEntry.VOLATILE_BLOB_STORAGE_MAX_CAPACITY;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.ENABLE_AA_MODULES;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.ENABLE_AUTO_CONNECT_FOR_BUNDLE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.ENABLE_CLA_MODULES;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.ENABLE_CORE_MODULES;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.ENABLE_FORWARDING;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.ENABLE_STATUS_REPORTING;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.LOCAL_EID;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.LOG_LEVEL;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.MODULES_AA_PATH;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.MODULES_CLA_PATH;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.MODULES_CORE_PATH;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.SIMPLE_STORAGE_PATH;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.VOLATILE_BLOB_STORAGE_MAX_CAPACITY;
 import static io.left.rightmesh.terra.Terra.StorageOption.BOTH;
 import static io.left.rightmesh.terra.Terra.StorageOption.NONE;
 import static io.left.rightmesh.terra.Terra.StorageOption.SIMPLE;
@@ -26,8 +26,8 @@ import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.core.CoreConfiguration;
-import io.left.rightmesh.libdtn.core.DTNCore;
-import io.left.rightmesh.libdtn.core.api.CoreAPI;
+import io.left.rightmesh.libdtn.core.DtnCore;
+import io.left.rightmesh.libdtn.core.api.CoreApi;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -131,7 +131,7 @@ public class Terra implements Callable<Void> {
                 Eid eid = new BaseEidFactory().create(localEID);
                 conf.get(LOCAL_EID).update(eid);
             } catch(EidFormatException efe) {
-                throw new Exception("localEID is not a valid Endpoint ID: "+efe.getMessage());
+                throw new Exception("localEid is not a valid Endpoint ID: "+efe.getMessage());
             }
         }
 
@@ -196,8 +196,8 @@ public class Terra implements Callable<Void> {
         conf.getModuleConf("stcp","cla_stcp_port", 4556).update(stcpPort);
         conf.getModuleConf("http","module_http_port", 8080).update(httpPort);
 
-        CoreAPI core = new DTNCore(conf);
-        ((DTNCore) core).init();
+        CoreApi core = new DtnCore(conf);
+        ((DtnCore) core).init();
         return null;
     }
 

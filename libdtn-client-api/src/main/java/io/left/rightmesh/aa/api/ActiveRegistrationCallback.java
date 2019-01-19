@@ -4,6 +4,9 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.reactivex.Completable;
 
 /**
+ * ActiveRegistrationCallback describe the signature of the callback that must be passed to
+ * a registration to be able to receive Bundle.
+ *
  * @author Lucien Loiseau on 26/10/18.
  */
 public interface ActiveRegistrationCallback {
