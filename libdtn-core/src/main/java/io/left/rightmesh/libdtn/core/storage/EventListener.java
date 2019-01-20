@@ -5,6 +5,7 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPO
 import io.left.rightmesh.libdtn.common.data.BundleId;
 import io.left.rightmesh.libdtn.core.CoreComponent;
 import io.left.rightmesh.libdtn.core.api.CoreApi;
+import io.left.rightmesh.libdtn.core.api.EventListenerApi;
 import io.left.rightmesh.libdtn.core.events.BundleDeleted;
 import io.left.rightmesh.librxbus.RxBus;
 import io.left.rightmesh.librxbus.Subscribe;
@@ -74,13 +75,13 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Lucien Loiseau on 14/10/18.
  */
-public abstract class EventListener<T> extends CoreComponent {
+public abstract class EventListener<T> extends CoreComponent implements EventListenerApi<T> {
 
     private static final String TAG = "EventListener";
 
     private final Object lock = new Object();
     private Map<T, Set<BundleId>> watchList;
-    private CoreApi core;
+    protected CoreApi core;
 
     /**
      * Constructor.
@@ -112,13 +113,7 @@ public abstract class EventListener<T> extends CoreComponent {
         }
     }
 
-    /**
-     * Add bundle to a watchlist.
-     *
-     * @param key key identifying the bundle
-     * @param bid bundle id
-     * @return true if the bundle was added to the watchlist, false othewise
-     */
+    @Override
     public boolean watch(T key, BundleId bid) {
         if (!isEnabled()) {
             return false;
@@ -131,11 +126,7 @@ public abstract class EventListener<T> extends CoreComponent {
         }
     }
 
-    /**
-     * remove bundle from all watchlist.
-     *
-     * @param bid bundle id
-     */
+    @Override
     public void unwatch(BundleId bid) {
         if (!isEnabled()) {
             return;
@@ -153,13 +144,7 @@ public abstract class EventListener<T> extends CoreComponent {
         }
     }
 
-    /**
-     * remove bundle from all watchlist, specifying the key.
-     *
-     * @param key key of the watchlist
-     * @param bid bundle id
-     * @return true if the bundle was successfully removed, false otherwise
-     */
+    @Override
     public boolean unwatch(T key, BundleId bid) {
         if (!isEnabled()) {
             return false;
@@ -176,12 +161,7 @@ public abstract class EventListener<T> extends CoreComponent {
         }
     }
 
-    /**
-     * get all the bundles that matches a key.
-     *
-     * @param key key of the watchlist
-     * @return an observable of bundle ids
-     */
+    @Override
     public Observable<BundleId> getBundlesOfInterest(T key) {
         if (!isEnabled()) {
             return Observable.empty();

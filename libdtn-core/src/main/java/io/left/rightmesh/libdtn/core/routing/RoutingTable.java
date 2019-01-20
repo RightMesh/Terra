@@ -8,6 +8,8 @@ import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.left.rightmesh.libdtn.core.CoreComponent;
 import io.left.rightmesh.libdtn.core.api.CoreApi;
 import io.left.rightmesh.libdtn.core.api.RoutingTableApi;
+import io.left.rightmesh.libdtn.core.spi.cla.ClaChannelSpi;
+import io.reactivex.Maybe;
 import io.reactivex.Observable;
 
 import java.util.Collections;
@@ -16,8 +18,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Static Routing is a routing component that uses the static route table to take
- * forwarding decisions.
+ * RoutingTable is the default routing table used to take forwarding decisions. It contains
+ * static mapping and up-to-date information about the connected neighborhood.
  *
  * @author Lucien Loiseau on 24/08/18.
  */
@@ -110,6 +112,7 @@ public class RoutingTable extends CoreComponent implements RoutingTableApi {
         }
         return resolveEid(destination, Observable.empty());
     }
+
 
     @Override
     public void addRoute(Eid to, Eid nextHop) {

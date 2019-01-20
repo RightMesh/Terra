@@ -2,6 +2,7 @@ package io.left.rightmesh.libdtn.common.data;
 
 import io.left.rightmesh.libdtn.common.data.eid.Eid;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 /**
@@ -16,9 +17,9 @@ import java.util.LinkedList;
  *
  * @author Lucien Loiseau on 16/07/18.
  */
-public class Bundle extends PrimaryBlock {
+public class Bundle extends PrimaryBlock implements BundleApi {
 
-    public LinkedList<CanonicalBlock> blocks = new LinkedList<>();
+    public ArrayList<CanonicalBlock> blocks = new ArrayList<>();
     private int blockNumber = 1;
 
     /**
@@ -58,9 +59,7 @@ public class Bundle extends PrimaryBlock {
         super(destination, lifetime);
     }
 
-    /**
-     * clear all extension from this bundle.
-     */
+    @Override
     public void clearBundle() {
         for (Block block : blocks) {
             block.clearBlock();
@@ -68,21 +67,33 @@ public class Bundle extends PrimaryBlock {
         blocks.clear();
     }
 
-    /**
-     * return the list of {@link CanonicalBlock} that are encapsulated in this current Bundle.
-     *
-     * @return list of extension
-     */
-    public LinkedList<CanonicalBlock> getBlocks() {
-        return blocks;
+    @Override
+    public boolean hasBlock(int blockType) {
+        for (CanonicalBlock block : blocks) {
+            if (block.type == blockType) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    /**
-     * Get a specific block by its block number.
-     *
-     * @param blockNumber of the block to query.
-     * @return a Block if found, null otherwise.
-     */
+    @Override
+    public LinkedList<CanonicalBlock> getBlocks() {
+        return new LinkedList<>(blocks);
+    }
+
+    @Override
+    public LinkedList<CanonicalBlock> getBlocks(int blockType) {
+        LinkedList<CanonicalBlock> ret = new LinkedList<>();
+        for (CanonicalBlock block : blocks) {
+            if (block.type == blockType) {
+                ret.add(block);
+            }
+        }
+        return ret;
+    }
+
+    @Override
     public CanonicalBlock getBlock(int blockNumber) {
         for (CanonicalBlock block : blocks) {
             if (block.number == blockNumber) {
@@ -92,12 +103,7 @@ public class Bundle extends PrimaryBlock {
         return null;
     }
 
-    /**
-     * Replace a specific block with another.
-     *
-     * @param blockNumber of the block to query.
-     * @param block replacement block.
-     */
+    @Override
     public void updateBlock(int blockNumber, CanonicalBlock block) {
         int nb = -1;
         boolean found = false;
@@ -113,11 +119,7 @@ public class Bundle extends PrimaryBlock {
         }
     }
 
-    /**
-     * adds a {@link CanonicalBlock} to the current Bundle.
-     *
-     * @param block to be added
-     */
+    @Override
     public void addBlock(CanonicalBlock block) {
         // there can be only one payload block
         if ((getPayloadBlock() != null) && (block.type == PayloadBlock.PAYLOAD_BLOCK_TYPE)) {
@@ -134,21 +136,12 @@ public class Bundle extends PrimaryBlock {
         blocks.add(block);
     }
 
-    /**
-     * delete a {@link CanonicalBlock} to the current Bundle.
-     *
-     * @param block to be deleted
-     */
+    @Override
     public void delBlock(CanonicalBlock block) {
         blocks.remove(block);
     }
 
-    /**
-     * getPayloadBlock return the bundle's payload bundle or null if no payload block exists.
-     * Per the RFC, there is only one payload block per bundle.
-     *
-     * @return PayloadBlock
-     */
+    @Override
     public PayloadBlock getPayloadBlock() {
         for (CanonicalBlock block : blocks) {
             if (block.type == PayloadBlock.PAYLOAD_BLOCK_TYPE) {

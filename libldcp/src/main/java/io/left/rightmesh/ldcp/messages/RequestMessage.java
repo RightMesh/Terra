@@ -1,8 +1,5 @@
 package io.left.rightmesh.ldcp.messages;
 
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
@@ -16,7 +13,12 @@ import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BundleV7Serializ
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.reactivex.Flowable;
 
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+
 /**
+ * LDCP RequestMessage data structure.
+ *
  * @author Lucien Loiseau on 12/10/18.
  */
 public class RequestMessage {
@@ -33,6 +35,12 @@ public class RequestMessage {
             this.code = id;
         }
 
+        /**
+         * return the code that matches an Id.
+         *
+         * @param id of the request
+         * @return RequestCode
+         */
         public static RequestCode fromId(int id) {
             for (RequestCode type : values()) {
                 if (type.code == id) {
@@ -53,6 +61,11 @@ public class RequestMessage {
         this.code = code;
     }
 
+    /**
+     * Encode an RequestMessage in its CBOR representation.
+     *
+     * @return encoded message
+     */
     public Flowable<ByteBuffer> encode() {
         try {
             CborEncoder enc = CBOR.encoder()
@@ -77,13 +90,21 @@ public class RequestMessage {
         }
     }
 
+    /**
+     * get the parser to parse an encoded request message.
+     *
+     * @param logger      logger
+     * @param toolbox     toolbox to parse bundle
+     * @param blobFactory blob factory to parse bundle
+     * @return parser
+     */
     public static CborParser getParser(Log logger,
                                        ExtensionToolbox toolbox,
                                        BlobFactory blobFactory) {
         return CBOR.parser()
-                .cbor_parse_int((__, ___, i) -> { /* version */
+                .cbor_parse_int((p, t, i) -> { /* version */
                 })
-                .cbor_parse_int((p, ___, i) -> {
+                .cbor_parse_int((p, t, i) -> {
                     RequestMessage.RequestCode code = RequestMessage.RequestCode.fromId((int) i);
                     if (code == null) {
                         throw new RxParserException("wrong request code");

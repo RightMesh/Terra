@@ -8,6 +8,7 @@ import io.left.rightmesh.libdtn.common.data.FlowLabelBlock;
 import io.left.rightmesh.libdtn.common.data.ManifestBlock;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.PreviousNodeBlock;
+import io.left.rightmesh.libdtn.common.data.RoutingBlock;
 import io.left.rightmesh.libdtn.common.data.ScopeControlHopLimitBlock;
 import io.left.rightmesh.libdtn.common.data.UnknownExtensionBlock;
 import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
@@ -35,6 +36,9 @@ public class BaseBlockDataParserFactory implements BlockDataParserFactory {
             case PayloadBlock.PAYLOAD_BLOCK_TYPE:
                 return BlockBlobParser
                         .getParser((BlockBlob) block, blobFactory, logger);
+            case RoutingBlock.ROUTING_BLOCK_TYPE:
+                return RoutingBlockParser
+                        .getParser((RoutingBlock) block, logger);
             case ManifestBlock.MANIFEST_BLOCK_TYPE:
                 return ManifestBlockParser
                         .getParser((ManifestBlock) block, logger);

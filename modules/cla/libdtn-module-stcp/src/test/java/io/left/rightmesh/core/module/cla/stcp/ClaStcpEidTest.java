@@ -1,22 +1,25 @@
 package io.left.rightmesh.core.module.cla.stcp;
 
-import org.junit.Test;
-
-import io.left.rightmesh.libdtn.common.data.eid.BaseClaEid;
-import io.left.rightmesh.libdtn.common.data.eid.Eid;
-import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import io.left.rightmesh.libdtn.common.data.eid.BaseClaEid;
+import io.left.rightmesh.libdtn.common.data.eid.Eid;
+import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
+
+import org.junit.Test;
+
 /**
+ * Test class for the ClaStcpEid.
+ *
  * @author Lucien Loiseau on 28/11/18.
  */
 public class ClaStcpEidTest {
 
     @Test
-    public void testEIDCLA() {
+    public void testClaStcpEid() {
         System.out.println("[+] eid: testing BaseClaEid Scheme");
 
         try {

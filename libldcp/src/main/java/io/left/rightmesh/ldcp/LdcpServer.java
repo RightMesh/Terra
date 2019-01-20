@@ -10,6 +10,8 @@ import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.librxtcp.RxTCP;
 
 /**
+ * LdcpServer can serve LdcpRequest from client host.
+ *
  * @author Lucien Loiseau on 25/10/18.
  */
 public class LdcpServer {
@@ -22,7 +24,20 @@ public class LdcpServer {
         return server.getPort();
     }
 
-    public void start(int port, ExtensionToolbox toolbox, BlobFactory factory, Log logger, RequestHandler action) {
+    /**
+     * Start a TCP server and listen for LdcpRequest.
+     *
+     * @param port    port to listen to
+     * @param toolbox toolbox to parse/serialize bundle
+     * @param factory blob factory to receive bundle
+     * @param logger  logger
+     * @param action  router
+     */
+    public void start(int port,
+                      ExtensionToolbox toolbox,
+                      BlobFactory factory,
+                      Log logger,
+                      RequestHandler action) {
         server = new RxTCP.Server<>(port);
         server.start().subscribe(
                 con -> {
@@ -31,9 +46,10 @@ public class LdcpServer {
                             buf -> {
                                 try {
                                     while (buf.hasRemaining() && !parser.isDone()) {
-                                        if(parser.read(buf)) {
+                                        if (parser.read(buf)) {
                                             RequestMessage req = parser.getReg(0);
-                                            logger.v(TAG, con.getRemoteHost()+" "+req.code.name()+" "+req.path);
+                                            logger.v(TAG, con.getRemoteHost() + " "
+                                                    + req.code.name() + " " + req.path);
                                             ResponseMessage res = new ResponseMessage();
                                             action.handle(req, res).subscribe(
                                                     () -> LdcpResponse
@@ -46,7 +62,8 @@ public class LdcpServer {
                                         }
                                     }
                                 } catch (RxParserException rpe) {
-                                    logger.w(TAG, "request parser exception: "+rpe.getMessage());
+                                    logger.w(TAG, "request parser exception: "
+                                            + rpe.getMessage());
                                     con.closeNow();
                                 }
                             },

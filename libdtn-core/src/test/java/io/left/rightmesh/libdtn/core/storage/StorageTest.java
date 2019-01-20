@@ -1,13 +1,10 @@
 package io.left.rightmesh.libdtn.core.storage;
 
-import org.junit.Test;
-
-import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.SIMPLE_STORAGE_PATH;
+import static org.junit.Assert.assertEquals;
 
 import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BaseBlockProcessorFactory;
 import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BlockProcessorFactory;
@@ -25,19 +22,25 @@ import io.left.rightmesh.libdtn.core.api.ConfigurationApi;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 
-import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_STORAGE;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.SIMPLE_STORAGE_PATH;
-import static org.junit.Assert.assertEquals;
+import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
+import org.junit.Test;
 
 /**
+ * Test class for Storage.
+ *
  * @author Lucien Loiseau on 14/10/18.
  */
 public class StorageTest {
 
-    static final Object lock = new Object();
-    static final AtomicReference<CountDownLatch> waitLock = new AtomicReference<>(new CountDownLatch(1));
+    static final Object LOCK = new Object();
+    static final AtomicReference<CountDownLatch> WAIT_LOCK
+            = new AtomicReference<>(new CountDownLatch(1));
     private File dir = new File(System.getProperty("path") + "/bundle/");
     private Storage storage;
     private CoreApi mockCore = mockCore();
@@ -81,26 +84,20 @@ public class StorageTest {
 
     @Test
     public void testStoreBundleBothStorage() {
-        synchronized (lock) {
+        synchronized (LOCK) {
             System.out.println("[+] Meta Storage ");
 
             storage = new Storage(mockCore());
-            storage.initComponent(mockCore.getConf(), COMPONENT_ENABLE_STORAGE, mockCore.getLogger());
-
-            Bundle[] bundles = {
-                    TestBundle.testBundle1(),
-                    TestBundle.testBundle2(),
-                    TestBundle.testBundle3(),
-                    TestBundle.testBundle4(),
-                    TestBundle.testBundle5(),
-                    TestBundle.testBundle6()
-            };
+            storage.initComponent(
+                    mockCore.getConf(),
+                    COMPONENT_ENABLE_STORAGE,
+                    mockCore.getLogger());
 
             System.out.println("[.] clear Storage");
             cockLock();
             storage.clear().subscribe(
-                    () -> waitLock.get().countDown(),
-                    e -> waitLock.get().countDown()
+                    () -> WAIT_LOCK.get().countDown(),
+                    e -> WAIT_LOCK.get().countDown()
             );
             waitFinish();
 
@@ -111,12 +108,21 @@ public class StorageTest {
 
             System.out.println("[.] store bundle in Storage");
 
+            Bundle[] bundles = {
+                    TestBundle.testBundle1(),
+                    TestBundle.testBundle2(),
+                    TestBundle.testBundle3(),
+                    TestBundle.testBundle4(),
+                    TestBundle.testBundle5(),
+                    TestBundle.testBundle6()
+            };
+
             cockLock();
             Observable.fromArray(bundles).flatMapCompletable(
                     b -> Completable.fromSingle(storage.store(b)))
                     .subscribe(
-                            () -> waitLock.get().countDown(),
-                            e -> waitLock.get().countDown());
+                            () -> WAIT_LOCK.get().countDown(),
+                            e -> WAIT_LOCK.get().countDown());
             waitFinish();
 
             assertEquals(bundles.length, storage.count());
@@ -127,8 +133,8 @@ public class StorageTest {
             System.out.println("[.] clear Storage");
             cockLock();
             storage.clear().subscribe(
-                    () -> waitLock.get().countDown(),
-                    e -> waitLock.get().countDown()
+                    () -> WAIT_LOCK.get().countDown(),
+                    e -> WAIT_LOCK.get().countDown()
             );
             waitFinish();
 
@@ -144,12 +150,12 @@ public class StorageTest {
     }
 
     static void cockLock() {
-        waitLock.set(new CountDownLatch(1));
+        WAIT_LOCK.set(new CountDownLatch(1));
     }
 
     static void waitFinish() {
         try {
-            waitLock.get().await(2000, TimeUnit.MILLISECONDS);
+            WAIT_LOCK.get().await(2000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException ie) {
             // ignore
         }

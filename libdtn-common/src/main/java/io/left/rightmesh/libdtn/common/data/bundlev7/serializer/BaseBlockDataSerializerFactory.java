@@ -8,6 +8,7 @@ import io.left.rightmesh.libdtn.common.data.FlowLabelBlock;
 import io.left.rightmesh.libdtn.common.data.ManifestBlock;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.PreviousNodeBlock;
+import io.left.rightmesh.libdtn.common.data.RoutingBlock;
 import io.left.rightmesh.libdtn.common.data.ScopeControlHopLimitBlock;
 import io.left.rightmesh.libdtn.common.data.security.AbstractSecurityBlock;
 import io.left.rightmesh.libdtn.common.data.security.BlockAuthenticationBlock;
@@ -28,6 +29,9 @@ public class BaseBlockDataSerializerFactory implements BlockDataSerializerFactor
             case PayloadBlock.PAYLOAD_BLOCK_TYPE:
                 return BlockBlobSerializer
                         .encode((BlockBlob) block);
+            case RoutingBlock.ROUTING_BLOCK_TYPE:
+                return RoutingBlockSerializer
+                        .encode((RoutingBlock) block);
             case ManifestBlock.MANIFEST_BLOCK_TYPE:
                 return ManifestBlockSerializer
                         .encode((ManifestBlock) block);

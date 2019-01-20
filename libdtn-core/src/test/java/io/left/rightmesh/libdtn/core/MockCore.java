@@ -17,17 +17,17 @@ import io.left.rightmesh.libdtn.common.data.eid.EidFactory;
 import io.left.rightmesh.libdtn.common.data.eid.EidSspParser;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
+import io.left.rightmesh.libdtn.core.api.BundleProtocolApi;
 import io.left.rightmesh.libdtn.core.api.ClaManagerApi;
 import io.left.rightmesh.libdtn.core.api.CoreApi;
 import io.left.rightmesh.libdtn.core.api.DeliveryApi;
 import io.left.rightmesh.libdtn.core.api.ExtensionManagerApi;
-import io.left.rightmesh.libdtn.core.api.BundleProcessorApi;
 import io.left.rightmesh.libdtn.core.api.ConfigurationApi;
-import io.left.rightmesh.libdtn.core.api.LinkLocalRoutingApi;
+import io.left.rightmesh.libdtn.core.api.LinkLocalTableApi;
 import io.left.rightmesh.libdtn.core.api.LocalEidApi;
 import io.left.rightmesh.libdtn.core.api.ModuleLoaderApi;
 import io.left.rightmesh.libdtn.core.api.RegistrarApi;
-import io.left.rightmesh.libdtn.core.api.RoutingApi;
+import io.left.rightmesh.libdtn.core.api.RoutingEngineApi;
 import io.left.rightmesh.libdtn.core.api.RoutingTableApi;
 import io.left.rightmesh.libdtn.core.api.StorageApi;
 
@@ -97,7 +97,7 @@ public class MockCore implements CoreApi {
     }
 
     @Override
-    public RoutingApi getRoutingEngine() {
+    public RoutingEngineApi getRoutingEngine() {
         return null;
     }
 
@@ -112,7 +112,7 @@ public class MockCore implements CoreApi {
     }
 
     @Override
-    public BundleProcessorApi getBundleProcessor() {
+    public BundleProtocolApi getBundleProtocol() {
         return null;
     }
 
@@ -127,7 +127,7 @@ public class MockCore implements CoreApi {
     }
 
     @Override
-    public LinkLocalRoutingApi getLinkLocalRouting() {
+    public LinkLocalTableApi getLinkLocalTable() {
         return null;
     }
 

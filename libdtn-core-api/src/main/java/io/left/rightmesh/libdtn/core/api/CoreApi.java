@@ -22,19 +22,19 @@ public interface CoreApi {
 
     ExtensionManagerApi getExtensionManager();
 
-    RoutingApi getRoutingEngine();
+    RoutingEngineApi getRoutingEngine();
 
     RegistrarApi getRegistrar();
 
     DeliveryApi getDelivery();
 
-    BundleProcessorApi getBundleProcessor();
+    BundleProtocolApi getBundleProtocol();
 
     StorageApi getStorage();
 
     ClaManagerApi getClaManager();
 
-    LinkLocalRoutingApi getLinkLocalRouting();
+    LinkLocalTableApi getLinkLocalTable();
 
     RoutingTableApi getRoutingTable();
 

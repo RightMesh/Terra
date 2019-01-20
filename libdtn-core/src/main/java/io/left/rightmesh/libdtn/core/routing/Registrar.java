@@ -22,7 +22,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Registrar Routing keeps track of the registered application agent.
+ * Registrar Routing keeps track of all the registered application agent.
  *
  * @author Lucien Loiseau on 24/08/18.
  */
@@ -73,7 +73,7 @@ public class Registrar extends CoreComponent implements RegistrarApi, DeliveryAp
     protected void componentDown() {
     }
 
-    /* ---- helper method ---- */
+    /* ---- helper methods ---- */
 
     private void checkEnable() throws RegistrarDisabled {
         if (!isEnabled()) {
@@ -186,7 +186,7 @@ public class Registrar extends CoreComponent implements RegistrarApi, DeliveryAp
         checkEnable();
         checkArgumentNotNull(bundle);
         replaceApiMe(bundle);
-        core.getBundleProcessor().bundleDispatching(bundle);
+        core.getBundleProtocol().bundleDispatching(bundle);
         return true;
     }
 
@@ -196,7 +196,7 @@ public class Registrar extends CoreComponent implements RegistrarApi, DeliveryAp
         checkRegisteredSink(sink, cookie);
         checkArgumentNotNull(bundle);
         replaceApiMe(bundle);
-        core.getBundleProcessor().bundleDispatching(bundle);
+        core.getBundleProtocol().bundleDispatching(bundle);
         return true;
     }
 
@@ -317,10 +317,10 @@ public class Registrar extends CoreComponent implements RegistrarApi, DeliveryAp
                                 bundle -> event.cb.recv(bundle).subscribe(
                                         () -> {
                                             listener.unwatch(event.sink, bundle.bid);
-                                            core.getBundleProcessor()
+                                            core.getBundleProtocol()
                                                     .bundleLocalDeliverySuccessful(bundle);
                                         },
-                                        e -> core.getBundleProcessor()
+                                        e -> core.getBundleProtocol()
                                                 .bundleLocalDeliveryFailure(event.sink, bundle)),
                                 e -> {
                                 });

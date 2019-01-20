@@ -47,6 +47,6 @@ public class LocalEidTable implements LocalEidApi {
                 return alias;
             }
         }
-        return core.getLinkLocalRouting().isEidLinkLocal(eid);
+        return core.getLinkLocalTable().isEidLinkLocal(eid);
     }
 }

@@ -97,7 +97,7 @@ public class RequestBundle {
                             },
                             s::onError))
                     .flatMap((bundle) -> res.write(nettyBLOB(bundle.getPayloadBlock().data)
-                                    .doOnCompleted(() -> core.getBundleProcessor().bundleLocalDeliverySuccessful(bundle))));
+                                    .doOnCompleted(() -> core.getBundleProtocol().bundleLocalDeliverySuccessful(bundle))));
         } else {
             return res.writeString(just("no such bundle"));
         }
@@ -127,7 +127,7 @@ public class RequestBundle {
                         wblob.close();
                         bundle.addBlock(new PayloadBlock(blob));
                         res.setStatus(HttpResponseStatus.OK);
-                        core.getBundleProcessor().bundleDispatching(bundle);
+                        core.getBundleProtocol().bundleDispatching(bundle);
                         return res;
                     });
         } catch (BadRequestException | EidFormatException | NumberFormatException bre) {

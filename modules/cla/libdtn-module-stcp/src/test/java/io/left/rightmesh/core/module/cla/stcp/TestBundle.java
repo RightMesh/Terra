@@ -1,5 +1,7 @@
 package io.left.rightmesh.core.module.cla.stcp;
 
+import static org.junit.Assert.assertEquals;
+
 import io.left.rightmesh.libdtn.common.data.AgeBlock;
 import io.left.rightmesh.libdtn.common.data.BlockHeader;
 import io.left.rightmesh.libdtn.common.data.Bundle;
@@ -12,15 +14,20 @@ import io.left.rightmesh.libdtn.common.data.ScopeControlHopLimitBlock;
 import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
 import io.left.rightmesh.libdtn.common.data.eid.EidIpn;
 
-import static org.junit.Assert.assertEquals;
-
 /**
+ * Utility class to generate bundles for test purposes.
+ *
  * @author Lucien Loiseau on 21/10/18.
  */
 public class TestBundle {
 
     public static String testPayload = "This is a test for bundle serialization";
 
+    /**
+     * generate a simple bundle.
+     *
+     * @return test bundle
+     */
     public static Bundle testBundle0() {
         Bundle bundle = new Bundle();
         bundle.setDestination(new EidIpn(5, 12));
@@ -30,18 +37,33 @@ public class TestBundle {
         return bundle;
     }
 
+    /**
+     * generate a simple bundle with payload.
+     *
+     * @return test bundle
+     */
     public static Bundle testBundle1() {
         Bundle bundle = testBundle0();
         bundle.addBlock(new PayloadBlock(new String(testPayload)));
         return bundle;
     }
 
+    /**
+     * generate a simple bundle with payload and ageblock.
+     *
+     * @return test bundle
+     */
     public static Bundle testBundle2() {
         Bundle bundle = testBundle1();
         bundle.addBlock(new AgeBlock());
         return bundle;
     }
 
+    /**
+     * generate a simple bundle with payload, ageblock and hop limit.
+     *
+     * @return test bundle
+     */
     public static Bundle testBundle3() {
         Bundle bundle = testBundle1();
         bundle.addBlock(new AgeBlock());
@@ -49,6 +71,11 @@ public class TestBundle {
         return bundle;
     }
 
+    /**
+     * generate a simple bundle with payload, ageblock, hop limit and previous.
+     *
+     * @return test bundle
+     */
     public static Bundle testBundle4() {
         Bundle bundle = testBundle1();
         bundle.addBlock(new AgeBlock());
@@ -57,7 +84,11 @@ public class TestBundle {
         return bundle;
     }
 
-
+    /**
+     * generate a simple bundle with payload, ageblock, hoplimit, previous and crc on primary.
+     *
+     * @return test bundle
+     */
     public static Bundle testBundle5() {
         Bundle bundle = testBundle1();
         bundle.addBlock(new AgeBlock());
@@ -67,18 +98,25 @@ public class TestBundle {
         return bundle;
     }
 
+    /**
+     * generate a simple bundle with payload, ageblock, hoplimit, previous and crc.
+     *
+     * @return test bundle
+     */
     public static Bundle testBundle6() {
         Bundle bundle = testBundle0();
         bundle.setCrcType(PrimaryBlock.CrcFieldType.CRC_32);
 
         CanonicalBlock age = new AgeBlock();
-        CanonicalBlock scope = new ScopeControlHopLimitBlock();
-        CanonicalBlock payload = new PayloadBlock(testPayload);
-        CanonicalBlock previous = new PreviousNodeBlock();
-
         age.crcType = BlockHeader.CrcFieldType.CRC_16;
+
+        CanonicalBlock scope = new ScopeControlHopLimitBlock();
         scope.crcType = BlockHeader.CrcFieldType.CRC_16;
+
+        CanonicalBlock payload = new PayloadBlock(testPayload);
         payload.crcType = BlockHeader.CrcFieldType.CRC_32;
+
+        CanonicalBlock previous = new PreviousNodeBlock();
         previous.crcType = BlockHeader.CrcFieldType.CRC_32;
 
         bundle.addBlock(age);
@@ -88,7 +126,11 @@ public class TestBundle {
         return bundle;
     }
 
-
+    /**
+     * check a test bundle payload.
+     * 
+     * @param bundle
+     */
     public static void checkBundlePayload(Bundle bundle) {
         // assert
         assertEquals(true, bundle != null);

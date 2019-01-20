@@ -27,30 +27,38 @@ public class RequestNetwork {
     private String dumpNetworkParameters() {
         StringBuilder sb = new StringBuilder("Routing Engine parameters:\n");
         sb.append("--------------------------\n\n");
-        sb.append("forwarding: "+
-                (core.getConf().<Boolean>get(ENABLE_FORWARDING).value() ? "enabled" : "disabled") + "\n");
-        sb.append("libdetect: "+
-                (core.getConf().<Boolean>get(ENABLE_COMPONENT_DETECT_PEER_ON_LAN).value() ? "enabled" : "disabled") + "\n");
-        sb.append("libdetect auto-connect: "+
-                (core.getConf().<Boolean>get(ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT).value() ? "enabled" : "disabled") + "\n");
-        sb.append("bundle auto-connect: "+
-                (core.getConf().<Boolean>get(ENABLE_AUTO_CONNECT_FOR_BUNDLE).value() ? "enabled" : "disabled") + "\n");
+        sb.append("forwarding: "
+                + (core.getConf().<Boolean>get(ENABLE_FORWARDING).value()
+                ? "enabled"
+                : "disabled") + "\n");
+        sb.append("libdetect: "
+                + (core.getConf().<Boolean>get(ENABLE_COMPONENT_DETECT_PEER_ON_LAN).value()
+                ? "enabled"
+                : "disabled") + "\n");
+        sb.append("libdetect auto-connect: "
+                + (core.getConf().<Boolean>get(ENABLE_AUTO_CONNECT_FOR_DETECT_EVENT).value()
+                ? "enabled"
+                : "disabled") + "\n");
+        sb.append("bundle auto-connect: "
+                + (core.getConf().<Boolean>get(ENABLE_AUTO_CONNECT_FOR_BUNDLE).value()
+                ? "enabled"
+                : "disabled") + "\n");
         sb.append("\n");
         return sb.toString();
     }
 
     private Action dumpNetworkTables = (params, req, res) -> {
-        final String linkLocal = core.getRoutingEngine().printLinkLocalTable();
-        final String routingTable = core.getRoutingEngine().printRoutingTable();
+        final String linkLocal = printLinkLocalTable();
+        final String routingTable = printRoutingTable();
         final String netparams = dumpNetworkParameters();
         return res.setStatus(HttpResponseStatus.OK).writeString(just(linkLocal, routingTable, netparams));
     };
 
     private Action dumpLinkLayerTable = (params, req, res) ->
-        res.setStatus(HttpResponseStatus.OK).writeString(just(core.getRoutingEngine().printLinkLocalTable()));
+            res.setStatus(HttpResponseStatus.OK).writeString(just(printLinkLocalTable()));
 
     private Action dumpRoutingTable = (params, req, res) ->
-            res.setStatus(HttpResponseStatus.OK).writeString(just(core.getRoutingEngine().printRoutingTable()));
+            res.setStatus(HttpResponseStatus.OK).writeString(just(printRoutingTable()));
 
     Action networkAction = (params, req, res) -> using(new Router<ByteBuf, ByteBuf>()
             .GET("/network/", dumpNetworkTables)
@@ -58,4 +66,13 @@ public class RequestNetwork {
             .GET("/network/routing/", dumpRoutingTable))
             .handle(req, res);
 
+    private String printLinkLocalTable() {
+        core.getLinkLocalTable().dumpTable();
+        return "";
+    }
+
+    private String printRoutingTable() {
+        core.getLinkLocalTable().dumpTable();
+        return "";
+    }
 }

@@ -7,10 +7,10 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
  *
  * @author Lucien Loiseau on 25/10/18.
  */
-public interface BundleProcessorApi {
+public interface BundleProtocolApi {
 
     /**
-     * Process Bundle following a send order (from either an AA or a BaseClaEid).
+     * Process a bundle for transmission.
      *
      * @param bundle to process
      */
@@ -58,12 +58,4 @@ public interface BundleProcessorApi {
      * @param bundle to process
      */
     void bundleForwardingSuccessful(Bundle bundle);
-
-    /**
-     * Call this method if another component attempted to forward this bundle but failed.
-     *
-     * @param bundle to process
-     */
-    void bundleForwardingContraindicated(Bundle bundle);
-
 }

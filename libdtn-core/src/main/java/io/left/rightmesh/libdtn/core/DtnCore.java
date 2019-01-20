@@ -7,28 +7,32 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPO
 import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_STORAGE;
 
 import io.left.rightmesh.libdtn.common.utils.Log;
-import io.left.rightmesh.libdtn.core.api.BundleProcessorApi;
+import io.left.rightmesh.libdtn.core.api.BundleProtocolApi;
 import io.left.rightmesh.libdtn.core.api.ClaManagerApi;
 import io.left.rightmesh.libdtn.core.api.ConfigurationApi;
 import io.left.rightmesh.libdtn.core.api.CoreApi;
 import io.left.rightmesh.libdtn.core.api.DeliveryApi;
+import io.left.rightmesh.libdtn.core.api.DirectRoutingStrategyApi;
+import io.left.rightmesh.libdtn.core.api.EventListenerApi;
 import io.left.rightmesh.libdtn.core.api.ExtensionManagerApi;
-import io.left.rightmesh.libdtn.core.api.LinkLocalRoutingApi;
+import io.left.rightmesh.libdtn.core.api.LinkLocalTableApi;
 import io.left.rightmesh.libdtn.core.api.LocalEidApi;
 import io.left.rightmesh.libdtn.core.api.ModuleLoaderApi;
 import io.left.rightmesh.libdtn.core.api.RegistrarApi;
-import io.left.rightmesh.libdtn.core.api.RoutingApi;
+import io.left.rightmesh.libdtn.core.api.RoutingEngineApi;
 import io.left.rightmesh.libdtn.core.api.RoutingTableApi;
 import io.left.rightmesh.libdtn.core.api.StorageApi;
 import io.left.rightmesh.libdtn.core.events.BundleIndexed;
 import io.left.rightmesh.libdtn.core.extension.ExtensionManager;
 import io.left.rightmesh.libdtn.core.network.ClaManager;
-import io.left.rightmesh.libdtn.core.processor.BundleProcessor;
-import io.left.rightmesh.libdtn.core.routing.LinkLocalRouting;
+import io.left.rightmesh.libdtn.core.processor.BundleProtocol;
+import io.left.rightmesh.libdtn.core.routing.LinkLocalTable;
 import io.left.rightmesh.libdtn.core.routing.LocalEidTable;
+import io.left.rightmesh.libdtn.core.routing.RoutingTable;
 import io.left.rightmesh.libdtn.core.routing.Registrar;
 import io.left.rightmesh.libdtn.core.routing.RoutingEngine;
-import io.left.rightmesh.libdtn.core.routing.RoutingTable;
+import io.left.rightmesh.libdtn.core.routing.strategies.direct.DirectRoutingListener;
+import io.left.rightmesh.libdtn.core.routing.strategies.direct.DirectRoutingStrategy;
 import io.left.rightmesh.libdtn.core.services.NullAa;
 import io.left.rightmesh.libdtn.core.spi.aa.ApplicationAgentSpi;
 import io.left.rightmesh.libdtn.core.storage.Storage;
@@ -50,12 +54,14 @@ public class DtnCore implements CoreApi {
     private Log logger;
     private LocalEidApi localEidTable;
     private ExtensionManagerApi extensionManager;
-    private LinkLocalRoutingApi linkLocalRouting;
+    private LinkLocalTableApi linkLocalRouting;
     private RoutingTableApi routingTable;
-    private RoutingApi routingEngine;
+    private DirectRoutingStrategyApi directRouting;
+    private EventListenerApi directListener;
+    private RoutingEngineApi routingEngine;
     private Registrar registrar;
     private StorageApi storage;
-    private BundleProcessorApi bundleProcessor;
+    private BundleProtocolApi bundleProcessor;
     private ClaManagerApi claManager;
     private ModuleLoaderApi moduleLoader;
 
@@ -74,13 +80,15 @@ public class DtnCore implements CoreApi {
         this.extensionManager = new ExtensionManager(logger);
 
         /* routing */
-        this.linkLocalRouting = new LinkLocalRouting(this);
+        this.linkLocalRouting = new LinkLocalTable(this);
         this.routingTable = new RoutingTable(this);
-        this.routingEngine = new RoutingEngine(this);
+        this.directListener = new DirectRoutingListener(this);
+        this.directRouting = new DirectRoutingStrategy(this, directListener);
+        this.routingEngine = new RoutingEngine(this, directRouting);
         this.registrar = new Registrar(this);
 
         /* bundle processor */
-        this.bundleProcessor = new BundleProcessor(this);
+        this.bundleProcessor = new BundleProtocol(this);
 
         /* network cla */
         this.claManager = new ClaManager(this);
@@ -142,7 +150,7 @@ public class DtnCore implements CoreApi {
     }
 
     @Override
-    public BundleProcessorApi getBundleProcessor() {
+    public BundleProtocolApi getBundleProtocol() {
         return bundleProcessor;
     }
 
@@ -157,12 +165,12 @@ public class DtnCore implements CoreApi {
     }
 
     @Override
-    public RoutingApi getRoutingEngine() {
+    public RoutingEngineApi getRoutingEngine() {
         return routingEngine;
     }
 
     @Override
-    public LinkLocalRoutingApi getLinkLocalRouting() {
+    public LinkLocalTableApi getLinkLocalTable() {
         return linkLocalRouting;
     }
 

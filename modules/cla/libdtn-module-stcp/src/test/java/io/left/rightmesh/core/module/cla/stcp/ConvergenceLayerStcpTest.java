@@ -1,9 +1,6 @@
 package io.left.rightmesh.core.module.cla.stcp;
 
-import org.junit.Test;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import static junit.framework.TestCase.fail;
 
 import io.left.rightmesh.libdtn.common.BaseExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.Bundle;
@@ -16,9 +13,14 @@ import io.left.rightmesh.libdtn.core.api.ConfigurationApi;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 
-import static junit.framework.TestCase.fail;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.Test;
 
 /**
+ * Test class for the ConvergenceLayerStcp.
+ *
  * @author Lucien Loiseau on 26/09/18.
  */
 public class ConvergenceLayerStcpTest {
@@ -155,9 +157,7 @@ public class ConvergenceLayerStcpTest {
                                     new BaseExtensionToolbox(),
                                     new BaseBlobFactory().enableVolatile(1000000)).subscribe(
                                     TestBundle::checkBundlePayload,
-                                    e -> {
-                                        lock.countDown();
-                                    },
+                                    e -> lock.countDown(),
                                     lock::countDown);
                         },
                         e -> {

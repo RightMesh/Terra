@@ -1,6 +1,10 @@
 package io.left.rightmesh.libdtn.core.storage;
 
-import org.junit.Test;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_STORAGE;
+import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BaseBlockProcessorFactory;
 import io.left.rightmesh.libdtn.common.data.bundlev7.processor.BlockProcessorFactory;
@@ -16,13 +20,11 @@ import io.left.rightmesh.libdtn.core.api.CoreApi;
 import io.left.rightmesh.libdtn.core.api.ExtensionManagerApi;
 import io.left.rightmesh.libdtn.core.api.ConfigurationApi;
 
-import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_SIMPLE_STORAGE;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_STORAGE;
-import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_VOLATILE_STORAGE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import org.junit.Test;
 
 /**
+ * Test class for VolatileStorage.
+ *
  * @author Lucien Loiseau on 27/09/18.
  */
 public class VolatileStorageTest {
@@ -48,6 +50,7 @@ public class VolatileStorageTest {
                     public BlockDataSerializerFactory getBlockDataSerializerFactory() {
                         return new BaseBlockDataSerializerFactory();
                     }
+
                     @Override
                     public BlockProcessorFactory getBlockProcessorFactory() {
                         return new BaseBlockProcessorFactory();
@@ -64,10 +67,18 @@ public class VolatileStorageTest {
 
     @Test
     public void testVolatileStoreBundle() {
-        synchronized (StorageTest.lock) {
+        synchronized (StorageTest.LOCK) {
             System.out.println("[+] Volatile Storage");
             Storage storage = new Storage(mockCore);
-            storage.initComponent(mockCore.getConf(), COMPONENT_ENABLE_STORAGE, mockCore.getLogger());
+            storage.initComponent(
+                    mockCore.getConf(),
+                    COMPONENT_ENABLE_STORAGE,
+                    mockCore.getLogger());
+
+
+            System.out.println("[.] clear VolatileStorage");
+            storage.getVolatileStorage().clear().subscribe();
+            assertEquals(0, storage.getVolatileStorage().count());
 
             Bundle[] bundles = {
                     TestBundle.testBundle1(),
@@ -77,10 +88,6 @@ public class VolatileStorageTest {
                     TestBundle.testBundle5(),
                     TestBundle.testBundle6()
             };
-
-            System.out.println("[.] clear VolatileStorage");
-            storage.getVolatileStorage().clear().subscribe();
-            assertEquals(0, storage.getVolatileStorage().count());
 
             System.out.println("[.] store bundle in VolatileStorage");
             for (int i = 0; i < bundles.length; i++) {

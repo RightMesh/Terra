@@ -12,6 +12,8 @@ import io.left.rightmesh.librxtcp.RxTCP;
 import io.reactivex.Single;
 
 /**
+ * LdcpRequest is used to send an LDCP request to a remote host.
+ *
  * @author Lucien Loiseau on 26/10/18.
  */
 public class LdcpRequest {
@@ -24,17 +26,33 @@ public class LdcpRequest {
         this.requestMessage = requestMessage;
     }
 
+    /**
+     * configure a GET request.
+     *
+     * @param path of the request
+     * @return this LdcpRequest
+     */
+    // CHECKSTYLE IGNORE AbbreviationAsWordInName MethodName
     public static LdcpRequest GET(String path) {
         RequestMessage message = new RequestMessage(RequestMessage.RequestCode.GET);
         message.path = path;
         return new LdcpRequest(message);
     }
+    // CHECKSTYLE END IGNORE
 
+    /**
+     * configure a POST request.
+     *
+     * @param path of the request
+     * @return this LdcpRequest
+     */
+    // CHECKSTYLE IGNORE AbbreviationAsWordInName MethodName
     public static LdcpRequest POST(String path) {
         RequestMessage message = new RequestMessage(RequestMessage.RequestCode.POST);
         message.path = path;
         return new LdcpRequest(message);
     }
+    // CHECKSTYLE END IGNORE
 
     public LdcpRequest setHeader(String field, String value) {
         requestMessage.fields.put(field, value);
@@ -51,21 +69,38 @@ public class LdcpRequest {
         return this;
     }
 
-    public Single<ResponseMessage> send(String host, int port, ExtensionToolbox toolbox, BlobFactory factory, Log logger) {
+    /**
+     * initiate a TCP connection and send the LdcpRequest to a remote host. The connection will
+     * be closed upon reception of the LdcpResponse.
+     *
+     * @param host    host to connect to
+     * @param port    port to connect to
+     * @param toolbox toolbox to serialize the bundle
+     * @param factory blob factory to receive the response.
+     * @param logger  logger
+     * @return the LdcpResponse
+     */
+    public Single<ResponseMessage> send(String host,
+                                        int port,
+                                        ExtensionToolbox toolbox,
+                                        BlobFactory factory,
+                                        Log logger) {
         return Single.create(s -> new RxTCP.ConnectionRequest<>(host, port)
                 .connect()
                 .subscribe(
                         c -> {
-                            logger.d(TAG, "connected to: "+host+":"+port);
+                            logger.d(TAG, "connected to: " + host + ":" + port);
                             c.order(requestMessage.encode()).track().ignoreElements().subscribe(
                                     () -> {
                                         logger.d(TAG, "request sent, waiting for response");
                                         c.recv().subscribe(
                                                 buf -> {
-                                                    CborParser parser = ResponseMessage.getParser(logger, toolbox, factory);
+                                                    CborParser parser = ResponseMessage
+                                                            .getParser(logger, toolbox, factory);
                                                     try {
-                                                        while (buf.hasRemaining() && !parser.isDone()) {
-                                                            if(parser.read(buf)) {
+                                                        while (buf.hasRemaining()
+                                                                && !parser.isDone()) {
+                                                            if (parser.read(buf)) {
                                                                 c.closeNow();
                                                                 s.onSuccess(parser.getReg(0));
                                                             }

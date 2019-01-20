@@ -4,7 +4,7 @@ import io.left.rightmesh.libdtn.common.data.eid.ClaEid;
 import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.left.rightmesh.libdtn.core.CoreComponent;
 import io.left.rightmesh.libdtn.core.api.CoreApi;
-import io.left.rightmesh.libdtn.core.api.LinkLocalRoutingApi;
+import io.left.rightmesh.libdtn.core.api.LinkLocalTableApi;
 import io.left.rightmesh.libdtn.core.events.ChannelClosed;
 import io.left.rightmesh.libdtn.core.events.ChannelOpened;
 import io.left.rightmesh.libdtn.core.events.LinkLocalEntryDown;
@@ -20,19 +20,19 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * LinkLocalRouting is the link-local routing linkLocalTable. It contains all the linklocal Eid
+ * LinkLocalTable is the link-local routing linkLocalTable. It contains all the linklocal Eid
  * associated with their ClaChannelSpi.
  *
  * @author Lucien Loiseau on 24/08/18.
  */
-public class LinkLocalRouting extends CoreComponent implements LinkLocalRoutingApi {
+public class LinkLocalTable extends CoreComponent implements LinkLocalTableApi {
 
-    private static final String TAG = "LinkLocalRouting";
+    private static final String TAG = "LinkLocalTable";
 
     private Set<ClaChannelSpi> linkLocalTable;
     private CoreApi core;
 
-    public LinkLocalRouting(CoreApi core) {
+    public LinkLocalTable(CoreApi core) {
         this.core = core;
         linkLocalTable = new HashSet<>();
     }
@@ -64,7 +64,7 @@ public class LinkLocalRouting extends CoreComponent implements LinkLocalRoutingA
                                         + " received a new bundle from "
                                         + b.getSource().getEidString());
                                 b.tag("cla-origin-iid", channel.channelEid());
-                                core.getBundleProcessor().bundleReception(b);
+                                core.getBundleProtocol().bundleReception(b);
                             },
                             e -> channelClosed(channel),
                             () -> channelClosed(channel));

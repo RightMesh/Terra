@@ -7,6 +7,7 @@ import io.left.rightmesh.libdtn.common.data.FlowLabelBlock;
 import io.left.rightmesh.libdtn.common.data.ManifestBlock;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.PreviousNodeBlock;
+import io.left.rightmesh.libdtn.common.data.RoutingBlock;
 import io.left.rightmesh.libdtn.common.data.ScopeControlHopLimitBlock;
 import io.left.rightmesh.libdtn.common.utils.Log;
 
@@ -51,6 +52,7 @@ public class BaseBlockProcessorFactory implements BlockProcessorFactory {
 
     static Integer[] basicBlockTypes = {
             PayloadBlock.PAYLOAD_BLOCK_TYPE,
+            RoutingBlock.ROUTING_BLOCK_TYPE,
             ManifestBlock.MANIFEST_BLOCK_TYPE,
             FlowLabelBlock.FLOW_LABEL_BLOCK_TYPE,
             PreviousNodeBlock.PREVIOUS_NODE_BLOCK_TYPE,

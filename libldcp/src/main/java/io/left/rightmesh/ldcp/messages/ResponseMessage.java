@@ -1,8 +1,5 @@
 package io.left.rightmesh.ldcp.messages;
 
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
@@ -16,7 +13,12 @@ import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BundleV7Serializ
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.reactivex.Flowable;
 
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+
 /**
+ * LDCP ResponseMessage data structure.
+ *
  * @author Lucien Loiseau on 12/10/18.
  */
 public class ResponseMessage {

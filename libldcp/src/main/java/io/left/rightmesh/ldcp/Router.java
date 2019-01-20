@@ -1,12 +1,14 @@
 package io.left.rightmesh.ldcp;
 
-import java.util.HashMap;
-
 import io.left.rightmesh.ldcp.messages.RequestMessage;
 import io.left.rightmesh.ldcp.messages.ResponseMessage;
 import io.reactivex.Completable;
 
+import java.util.HashMap;
+
 /**
+ * A Router maps a LDCP request path to a RequestHandler.
+ *
  * @author Lucien Loiseau on 26/10/18.
  */
 public class Router implements RequestHandler {
@@ -41,7 +43,7 @@ public class Router implements RequestHandler {
             }
             res.code = ResponseMessage.ResponseCode.ERROR;
             return Completable.complete();
-        } catch(Exception e) {
+        } catch (Exception e) {
             return Completable.error(e);
         }
     }

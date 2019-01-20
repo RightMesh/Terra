@@ -10,3 +10,4 @@ build/
 /modules-link
 deploy.sh
 linux-dtn.tar.gz
+linux-dtn/

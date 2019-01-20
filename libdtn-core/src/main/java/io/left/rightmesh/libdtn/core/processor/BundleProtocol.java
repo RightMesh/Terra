@@ -30,7 +30,7 @@ import io.left.rightmesh.libdtn.common.data.bundlev7.processor.ProcessingExcepti
 import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.AdministrativeRecordSerializer;
 import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
 import io.left.rightmesh.libdtn.common.data.eid.Eid;
-import io.left.rightmesh.libdtn.core.api.BundleProcessorApi;
+import io.left.rightmesh.libdtn.core.api.BundleProtocolApi;
 import io.left.rightmesh.libdtn.core.api.CoreApi;
 import io.left.rightmesh.libdtn.core.utils.ClockUtil;
 
@@ -39,18 +39,18 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * BundleProcessor is the entry point of all Bundle (either from Application Agent or
+ * BundleProtocol is the entry point of all Bundle (either from Application Agent or
  * Convergence Layer) and follows the processing instruction described in the RFC.
  *
  * @author Lucien Loiseau on 28/09/18.
  */
-public class BundleProcessor implements BundleProcessorApi {
+public class BundleProtocol implements BundleProtocolApi {
 
-    private static final String TAG = "BundleProcessor";
+    private static final String TAG = "BundleProtocol";
 
     private CoreApi core;
 
-    public BundleProcessor(CoreApi core) {
+    public BundleProtocol(CoreApi core) {
         this.core = core;
     }
 
@@ -98,61 +98,31 @@ public class BundleProcessor implements BundleProcessorApi {
     }
 
     /* 5.4 */
-    // CHECKSTYLE IGNORE LineLength
     private void bundleForwarding(Bundle bundle) {
         core.getLogger().d(TAG, "forwarding bundle: " + bundle.bid.getBidString());
 
         /* 5.4 - step 1 */
-        core.getLogger().v(TAG, "5.4-1 " + bundle.bid.getBidString());
         bundle.removeTag("dispatch_pending");
         bundle.tag("forward_pending");
 
         /* 5.4 - step 2 */
-        core.getLogger().v(TAG, "5.4-2 " + bundle.bid.getBidString());
-        core.getRoutingEngine()
-                .findOpenedChannelTowards(bundle.getDestination())
-                .concatMapMaybe(
-                        claChannel ->
-                                claChannel.sendBundle(bundle, core.getExtensionManager().getBlockDataSerializerFactory())  /* 5.4 - step 4 */
-                                        .doOnSubscribe((d) -> {
-                                            core.getLogger().v(TAG, "5.4-4 "
-                                                    + bundle.bid.getBidString() + " -> "
-                                                    + claChannel.channelEid().getEidString());
-
-                                            /* call block-specific routine for transmission */
-                                            for (CanonicalBlock block : bundle.getBlocks()) {
-                                                try {
-                                                    core.getExtensionManager().getBlockProcessorFactory()
-                                                            .create(block.type)
-                                                            .onPrepareForTransmission(block, bundle, core.getLogger());
-                                                } catch (ProcessingException pe) {
-                                                    /* ignore */
-                                                }
-                                            }
-                                        })
-                                        .lastElement()
-                                        .onErrorComplete())
-                .firstElement()
-                .subscribe(
-                        (i) -> {
-                            /* 5.4 - step 5 */
-                            core.getLogger().v(TAG, "5.4-5 " + bundle.bid.getBidString());
+        core.getRoutingEngine().route(bundle).subscribe(
+                (routingResult) -> {
+                    switch (routingResult) {
+                        case Forwarded:
                             bundleForwardingSuccessful(bundle);
-                        },
-                        e -> {
-                            /* 5.4 - step 3 */
-                            core.getLogger().v(TAG, "5.4-3 " + bundle.bid.getBidString());
-                            bundle.tag("reason_code", NoKnownRouteForDestination);
-                            bundleForwardingContraindicated(bundle);
-                        },
-                        () -> {
-                            /* 5.4 - step 3 */
-                            core.getLogger().v(TAG, "5.4-3 " + bundle.bid.getBidString());
-                            bundle.tag("reason_code", NoKnownRouteForDestination);
-                            bundleForwardingContraindicated(bundle);
-                        });
+                            break;
+                        case CustodyRefused:
+                            bundleForwardingFailed(bundle);
+                            break;
+                        case CustodyAccepted:
+                            endProcessing(bundle);
+                            break;
+                        default:
+                    }
+                },
+                routingError -> bundleForwardingFailed(bundle));
     }
-    // CHECKSTYLE END IGNORE LineLength
 
     /* 5.4 - step 5 */
     @Override
@@ -161,61 +131,6 @@ public class BundleProcessor implements BundleProcessorApi {
         bundle.removeTag("forward_pending");
         createStatusReport(ReportingNodeForwardedBundle, bundle, NoAdditionalInformation);
         bundleDiscarding(bundle);
-    }
-
-    /* 5.4.1 */
-    @Override
-    public void bundleForwardingContraindicated(Bundle bundle) {
-        core.getLogger().d(TAG, "forwarding contraindicated ("
-                + bundle.<StatusReport.ReasonCode>getTagAttachment("reason_code") + "): "
-                + bundle.bid.getBidString());
-
-        /* 5.4.1 - step 1 */
-        core.getLogger().v(TAG, "5.4.1-1 " + bundle.bid.getBidString());
-        boolean isFailure;
-        switch (bundle.<StatusReport.ReasonCode>getTagAttachment("reason_code")) {
-            case DepletedStorage:
-            case DestinationEIDUnintellegible:
-            case BlockUnintelligible:
-            case HopLimitExceeded:
-            case LifetimeExpired:
-                isFailure = true;
-                break;
-            case NoAdditionalInformation:
-            case ForwardedOverUnidirectionalLink:
-            case TransmissionCancelled:
-            case NoKnownRouteForDestination:
-            case NoTimelyContactWithNextNodeOnRoute:
-            default:
-                bundle.removeTag("reason_code");
-                isFailure = false;
-                break;
-        }
-
-        /* 5.4.1 - step 2 */
-        core.getLogger().v(TAG, "5.4.1-2 " + bundle.bid.getBidString());
-        if (isFailure) {
-            bundleForwardingFailed(bundle);
-        } else {
-            if (!bundle.isTagged("in_storage")) {
-                core.getStorage().store(bundle).subscribe(
-                        b -> {
-                            /* 5.4.1 - step 3 - in Storage, defer forwarding */
-                            core.getLogger().v(TAG, "5.4.1-3 " + bundle.bid.getBidString());
-                            core.getRoutingEngine().forwardLater(b);
-                            endProcessing(bundle);
-                        },
-                        storageFailure -> {
-                            /* 5.4.1 - step 2 -  Storage failed, abandon forwarding */
-                            core.getLogger().v(TAG, "5.4.1-2 storage failure: "
-                                    + storageFailure.getMessage());
-                            bundleForwardingFailed(bundle);
-                        }
-                );
-            } else {
-                core.getRoutingEngine().forwardLater(bundle);
-            }
-        }
     }
 
     /* 5.4.2 */

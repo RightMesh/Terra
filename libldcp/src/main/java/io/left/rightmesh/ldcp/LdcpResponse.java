@@ -5,6 +5,8 @@ import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.librxtcp.RxTCP;
 
 /**
+ * LdcpRequest is used to send an LDCP response to a client.
+ *
  * @author Lucien Loiseau on 29/10/18.
  */
 public class LdcpResponse {
@@ -19,16 +21,29 @@ public class LdcpResponse {
         return new LdcpResponse(responseMessage);
     }
 
-
+    /**
+     * Configure the response to be OK.
+     *
+     * @return this LdcpResponse
+     */
+    // CHECKSTYLE IGNORE AbbreviationAsWordInName MethodName
     public static LdcpResponse OK() {
         ResponseMessage responseMessage = new ResponseMessage(ResponseMessage.ResponseCode.OK);
         return new LdcpResponse(responseMessage);
     }
+    // CHECKSTYLE END IGNORE
 
+    /**
+     * Configure the response to be an ERROR.
+     *
+     * @return this LdcpResponse
+     */
+    // CHECKSTYLE IGNORE AbbreviationAsWordInName MethodName
     public static LdcpResponse ERROR() {
         ResponseMessage responseMessage = new ResponseMessage(ResponseMessage.ResponseCode.ERROR);
         return new LdcpResponse(responseMessage);
     }
+    // CHECKSTYLE END IGNORE
 
     public LdcpResponse setHeader(String field, String value) {
         responseMessage.fields.put(field, value);

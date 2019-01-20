@@ -34,18 +34,11 @@ import java.nio.ByteBuffer;
 public class CoreModuleHello implements CoreModuleSpi {
 
     private static final String TAG = "HelloModule";
-
-    private static class RequestException extends Exception {
-        RequestException(String msg) {
-            super("Request: " + msg);
-        }
-    }
+    private static final String HELLO_SINK = "/hello/";
 
     private CoreApi coreApi;
     private Bundle helloBundle;
-
-    public CoreModuleHello() {
-    }
+    private String cookie;
 
     @Override
     public String getModuleName() {
@@ -87,7 +80,7 @@ public class CoreModuleHello implements CoreModuleSpi {
         prepareHelloBundle();
 
         try {
-            api.getRegistrar().register("/hello/", (bundle) -> {
+            this.cookie = api.getRegistrar().register(HELLO_SINK, (bundle) -> {
                 if (bundle.getTagAttachment("cla-origin-iid") != null) {
                     coreApi.getLogger().i(TAG, "received hello message from: "
                             + bundle.getSource().getEidString()
@@ -146,17 +139,22 @@ public class CoreModuleHello implements CoreModuleSpi {
             coreApi.getLogger().i(TAG, "sending hello message to: " + eid.getEidString());
             helloBundle.setDestination(eid);
             up.channel.sendBundle(helloBundle,
-                    coreApi.getExtensionManager().getBlockDataSerializerFactory()
-            ).subscribe(
-                    i -> { /* ignore */ },
-                    e -> coreApi.getLogger().i(
-                            TAG, "fail to send hello message: "
-                                    + eid.getEidString()),
-                    () -> { /* ignore */ }
-            );
-        } catch (EidFormatException efe) {
-            coreApi.getLogger().e(TAG, "Cannot append /hello/ to IID: "
-                    + up.channel.channelEid() + " reason=" + efe.getMessage());
+                    coreApi.getExtensionManager().getBlockDataSerializerFactory())
+                    .subscribe(
+                            b -> {
+                                /* ignore */
+                            },
+                            err -> {
+                                coreApi.getLogger().v(TAG, "hello failed to be sent to: "
+                                        + eid.getEidString());
+                            },
+                            () -> {
+                                coreApi.getLogger().v(TAG, "hello sent to: "
+                                        + eid.getEidString());
+                            });
+        } catch (EidFormatException err) {
+            coreApi.getLogger().e(TAG, "Could not send the hello bundle "
+                    + err.getMessage());
         }
     }
 

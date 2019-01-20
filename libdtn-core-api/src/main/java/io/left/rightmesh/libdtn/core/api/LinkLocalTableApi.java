@@ -12,7 +12,7 @@ import java.util.Set;
  *
  * @author Lucien Loiseau on 27/11/18.
  */
-public interface LinkLocalRoutingApi extends CoreComponentApi {
+public interface LinkLocalTableApi extends CoreComponentApi {
 
     /**
      * Check if an Eid is a local link-local Eid.

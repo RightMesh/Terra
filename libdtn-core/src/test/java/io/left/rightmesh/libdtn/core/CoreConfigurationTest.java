@@ -1,20 +1,19 @@
 package io.left.rightmesh.libdtn.core;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
 import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
 import io.left.rightmesh.libdtn.core.api.ConfigurationApi;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 /**
  * @author Lucien Loiseau on 28/09/18.
  */
 public class CoreConfigurationTest {
-
-
+    
     @Test
     public void testLocalEIDConfiguration() {
         try {
