@@ -33,5 +33,5 @@ cp modules/core/libdtn-module-ipdiscovery/build/libs/libdtn-module-ipdiscovery.j
 
 # tar
 tar cvzf ./linux-dtn.tar.gz ./linux-dtn/
-rm -rf ./linux-dtn
+rm -rf linux-dtn/
 

@@ -46,7 +46,7 @@ public class ApplicationAgent implements ApplicationAgentApi {
                 host,
                 port,
                 new BaseExtensionToolbox(),
-                new BaseBlobFactory().enableVolatile(10000),
+                new BaseBlobFactory().enableVolatile(1000000),
                 new NullLogger());
     }
 
