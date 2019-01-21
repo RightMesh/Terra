@@ -1,6 +1,7 @@
 package io.left.rightmesh.dtncat;
 
 import io.left.rightmesh.aa.api.ActiveRegistrationCallback;
+import io.left.rightmesh.aa.api.ApplicationAgentApi;
 import io.left.rightmesh.aa.ldcp.ApplicationAgent;
 import io.left.rightmesh.libdtn.common.BaseExtensionToolbox;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
@@ -68,7 +69,7 @@ public class DtnCat implements Callable<Void> {
     @CommandLine.Option(names = {"--crc-32"}, description = "use Crc-32")
     private boolean crc32 = false;
 
-    private ApplicationAgent agent;
+    private ApplicationAgentApi agent;
     private ExtensionToolbox toolbox;
     private BlobFactory factory;
 
@@ -122,7 +123,7 @@ public class DtnCat implements Callable<Void> {
                     }
                 });
 
-        agent = new ApplicationAgent(dtnhost, dtnport, toolbox, factory);
+        agent = ApplicationAgent.create(dtnhost, dtnport, toolbox, factory);
         if (cookie == null) {
             agent.register(sink, cb).subscribe(
                     cookie -> {
@@ -134,7 +135,7 @@ public class DtnCat implements Callable<Void> {
                         System.exit(1);
                     });
         } else {
-            agent = new ApplicationAgent(dtnhost, dtnport, toolbox, factory);
+            agent = ApplicationAgent.create(dtnhost, dtnport, toolbox, factory);
             agent.reAttach(sink, cookie, cb).subscribe(
                     b -> System.err.println("re-attach to registered sink"),
                     e -> {
@@ -157,7 +158,7 @@ public class DtnCat implements Callable<Void> {
                 bundle.setReportto(reportTo);
             }
 
-            agent = new ApplicationAgent(dtnhost, dtnport, toolbox, null);
+            agent = ApplicationAgent.create(dtnhost, dtnport, toolbox, null);
             agent.send(createBundleFromStdin(bundle)).subscribe(
                     isSent -> {
                         if (isSent) {

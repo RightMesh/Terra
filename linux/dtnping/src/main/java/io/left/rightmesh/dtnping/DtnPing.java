@@ -1,6 +1,7 @@
 package io.left.rightmesh.dtnping;
 
 import io.left.rightmesh.aa.api.ActiveRegistrationCallback;
+import io.left.rightmesh.aa.api.ApplicationAgentApi;
 import io.left.rightmesh.aa.ldcp.ApplicationAgent;
 import io.left.rightmesh.libdtn.common.BaseExtensionToolbox;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
@@ -65,7 +66,7 @@ public class DtnPing implements Callable<Void> {
             + "debug (-v -vv -vvv).")
     private boolean[] verbose = new boolean[0];
 
-    private ApplicationAgent agent;
+    private ApplicationAgentApi agent;
     private String sink;
     private Log logger;
 
@@ -116,7 +117,7 @@ public class DtnPing implements Callable<Void> {
         ExtensionToolbox toolbox = new BaseExtensionToolbox();
         BlobFactory factory = new BaseBlobFactory().enableVolatile(10000);
         if (cookie == null) {
-            agent = new ApplicationAgent(dtnhost, dtnport, toolbox, factory, logger);
+            agent = ApplicationAgent.create(dtnhost, dtnport, toolbox, factory, logger);
             agent.register(sink, cb).subscribe(
                     cookie -> {
                         System.err.println("sink registered. cookie: " + cookie);
@@ -127,7 +128,7 @@ public class DtnPing implements Callable<Void> {
                         System.exit(1);
                     });
         } else {
-            agent = new ApplicationAgent(dtnhost, dtnport, toolbox, factory);
+            agent = ApplicationAgent.create(dtnhost, dtnport, toolbox, factory);
             agent.reAttach(sink, cookie, cb).subscribe(
                     b -> System.err.println("re-attach to registered sink"),
                     e -> {

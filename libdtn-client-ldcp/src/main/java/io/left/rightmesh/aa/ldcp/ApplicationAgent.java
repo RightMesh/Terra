@@ -36,53 +36,85 @@ public class ApplicationAgent implements ApplicationAgentApi {
 
     /**
      * Constructor.
+     *
      * @param host host of the LDCP server running on the registrar
      * @param port port of the LDCP server running on the registrar
      */
-    public ApplicationAgent(String host,
-                            int port) {
-        this(host, port, new BaseExtensionToolbox(), new BaseBlobFactory(), new NullLogger());
+    public static ApplicationAgentApi create(String host,
+                                      int port) {
+        return new ApplicationAgent(
+                host,
+                port,
+                new BaseExtensionToolbox(),
+                new BaseBlobFactory().enableVolatile(10000),
+                new NullLogger());
     }
 
     /**
      * Constructor.
-     * @param host host of the LDCP server running on the registrar
-     * @param port port of the LDCP server running on the registrar
-     * @param toolbox Blocks and Eids factory
+     *
+     * @param host    host of the LDCP server running on the registrar
+     * @param port    port of the LDCP server running on the registrar
+     * @param factory Blob factory
      */
-    public ApplicationAgent(String host,
-                            int port,
-                            ExtensionToolbox toolbox) {
-        this(host, port, toolbox, new BaseBlobFactory(), new NullLogger());
+    public static ApplicationAgentApi create(String host,
+                                      int port,
+                                      BlobFactory factory) {
+        return new ApplicationAgent(
+                host,
+                port,
+                new BaseExtensionToolbox(),
+                factory,
+                new NullLogger());
     }
 
     /**
      * Constructor.
-     * @param host host of the LDCP server running on the registrar
-     * @param port port of the LDCP server running on the registrar
+     *
+     * @param host    host of the LDCP server running on the registrar
+     * @param port    port of the LDCP server running on the registrar
      * @param toolbox Blocks and Eids factory
      * @param factory Blob factory
      */
-    public ApplicationAgent(String host,
-                            int port,
-                            ExtensionToolbox toolbox,
-                            BlobFactory factory) {
-        this(host, port, toolbox, factory, new NullLogger());
+    public static ApplicationAgentApi create(String host,
+                                      int port,
+                                      ExtensionToolbox toolbox,
+                                      BlobFactory factory) {
+        return new ApplicationAgent(
+                host,
+                port,
+                toolbox,
+                factory,
+                new NullLogger());
     }
 
     /**
      * Constructor.
-     * @param host host of the LDCP server running on the registrar
-     * @param port port of the LDCP server running on the registrar
+     *
+     * @param host    host of the LDCP server running on the registrar
+     * @param port    port of the LDCP server running on the registrar
      * @param toolbox Blocks and Eids factory
      * @param factory Blob factory
-     * @param logger logging service
+     * @param logger  logging service
      */
-    public ApplicationAgent(String host,
-                            int port,
-                            ExtensionToolbox toolbox,
-                            BlobFactory factory,
-                            Log logger) {
+    public static ApplicationAgentApi create(String host,
+                                       int port,
+                                       ExtensionToolbox toolbox,
+                                       BlobFactory factory,
+                                       Log logger) {
+        return new ApplicationAgent(
+                host,
+                port,
+                toolbox,
+                factory,
+                logger);
+    }
+
+    private ApplicationAgent(String host,
+                             int port,
+                             ExtensionToolbox toolbox,
+                             BlobFactory factory,
+                             Log logger) {
         this.host = host;
         this.port = port;
         this.toolbox = toolbox;

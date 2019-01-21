@@ -28,7 +28,7 @@ import io.left.rightmesh.libdtn.core.network.ClaManager;
 import io.left.rightmesh.libdtn.core.processor.BundleProtocol;
 import io.left.rightmesh.libdtn.core.routing.LinkLocalTable;
 import io.left.rightmesh.libdtn.core.routing.LocalEidTable;
-import io.left.rightmesh.libdtn.core.routing.Registrar;
+import io.left.rightmesh.libdtn.core.aa.Registrar;
 import io.left.rightmesh.libdtn.core.routing.RoutingEngine;
 import io.left.rightmesh.libdtn.core.routing.RoutingTable;
 import io.left.rightmesh.libdtn.core.routing.strategies.direct.DirectRoutingListener;

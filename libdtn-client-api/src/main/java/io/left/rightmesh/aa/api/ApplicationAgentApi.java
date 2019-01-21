@@ -49,10 +49,10 @@ public interface ApplicationAgentApi {
      *
      * @param sink identifying this AA
      * @return true if the AA is registered, false otherwise
-     * @throws RegistrarDisabled if the registration service is disabled
-     * @throws NullArgument if sink is null
+     * @rxthrows RegistrarDisabled if the registration service is disabled
+     * @rxthrows NullArgument if sink is null
      */
-    Single<Boolean> isRegistered(String sink) throws RegistrarDisabled, NullArgument;
+    Single<Boolean> isRegistered(String sink);
 
     /**
      * Register a passive pull-based registration. A cookie is returned that can be used
@@ -60,12 +60,11 @@ public interface ApplicationAgentApi {
      *
      * @param sink to register
      * @return a RegistrationHandler if registered, nu
-     * @throws RegistrarDisabled if the registration service is disabled
-     * @throws SinkAlreadyRegistered if the sink is already registered by another AA
-     * @throws NullArgument if sink is null
+     * @rxthrows RegistrarDisabled if the registration service is disabled
+     * @rxthrows SinkAlreadyRegistered if the sink is already registered by another AA
+     * @rxthrows NullArgument if sink is null
      */
-    Single<String> register(String sink)
-            throws RegistrarDisabled, SinkAlreadyRegistered, NullArgument;
+    Single<String> register(String sink);
 
     /**
      * Register an active registration. The cookie for this registration is returned.
@@ -73,12 +72,11 @@ public interface ApplicationAgentApi {
      * @param sink to register
      * @param cb registration callback
      * @return a RegistrationHandler if registered
-     * @throws RegistrarDisabled if the registration service is disabled
-     * @throws SinkAlreadyRegistered if the sink is already registered by another AA
-     * @throws NullArgument if sink or the cb is null
+     * @rxthrows RegistrarDisabled if the registration service is disabled
+     * @rxthrows SinkAlreadyRegistered if the sink is already registered by another AA
+     * @rxthrows NullArgument if sink or the cb is null
      */
-    Single<String> register(String sink, ActiveRegistrationCallback cb)
-            throws RegistrarDisabled, SinkAlreadyRegistered, NullArgument;
+    Single<String> register(String sink, ActiveRegistrationCallback cb);
 
     /**
      * Unregister an application agent.
@@ -86,13 +84,12 @@ public interface ApplicationAgentApi {
      * @param sink identifying the AA to be unregistered
      * @param cookie cookie for this registration
      * @return true if the AA was unregister, false otherwise
-     * @throws RegistrarDisabled if the registration service is disabled
-     * @throws SinkNotRegistered if the sink does not exist
-     * @throws BadCookie if the cookie supplied is invalid
-     * @throws NullArgument if sink is null or the cookie is null
+     * @rxthrows RegistrarDisabled if the registration service is disabled
+     * @rxthrows SinkNotRegistered if the sink does not exist
+     * @rxthrows BadCookie if the cookie supplied is invalid
+     * @rxthrows NullArgument if sink is null or the cookie is null
      */
-    Single<Boolean> unregister(String sink, String cookie)
-            throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument;
+    Single<Boolean> unregister(String sink, String cookie);
 
     /**
      * Send data using the services of the Bundle Protocol from a registered application-agent.
@@ -101,13 +98,12 @@ public interface ApplicationAgentApi {
      * @param cookie for the registration
      * @param bundle to send
      * @return true if the bundle is queued, false otherwise
-     * @throws RegistrarDisabled if the registration service is disabled
-     * @throws SinkNotRegistered if the sink does not exist
-     * @throws BadCookie if the cookie supplied is invalid
-     * @throws NullArgument if sink is null or the cookie is null
+     * @rxthrows RegistrarDisabled if the registration service is disabled
+     * @rxthrows SinkNotRegistered if the sink does not exist
+     * @rxthrows BadCookie if the cookie supplied is invalid
+     * @rxthrows NullArgument if sink is null or the cookie is null
      */
-    Single<Boolean> send(String sink, String cookie, Bundle bundle)
-            throws RegistrarDisabled, BadCookie, SinkNotRegistered, NullArgument;
+    Single<Boolean> send(String sink, String cookie, Bundle bundle);
 
     /**
      * Send data using the services of the Bundle Protocol from an anonymous application-agent.
@@ -123,13 +119,12 @@ public interface ApplicationAgentApi {
      * @param sink to check
      * @param cookie that was returned upon registration.
      * @return a list with all the bundle ids.
-     * @throws RegistrarDisabled if the registration service is disabled
-     * @throws SinkNotRegistered if the sink does not exist
-     * @throws BadCookie if the cookie supplied is invalid
-     * @throws NullArgument if sink or the cookie is null
+     * @rxthrows RegistrarDisabled if the registration service is disabled
+     * @rxthrows SinkNotRegistered if the sink does not exist
+     * @rxthrows BadCookie if the cookie supplied is invalid
+     * @rxthrows NullArgument if sink or the cookie is null
      */
-    Set<BundleId> checkInbox(String sink, String cookie)
-            throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument;
+    Set<BundleId> checkInbox(String sink, String cookie);
 
     /**
      * get a specific bundle but does not mark it as delivered.
@@ -138,14 +133,13 @@ public interface ApplicationAgentApi {
      * @param cookie that was returned upon registration.
      * @param bundleId id of the bundle to request
      * @return number of data waiting to be retrieved
-     * @throws RegistrarDisabled if the registration service is disabled
-     * @throws SinkNotRegistered if the sink does not exist
-     * @throws BadCookie if the cookie supplied is invalid
-     * @throws BundleNotFound if the bundle does not exist
-     * @throws NullArgument if sink or the cookie is null
+     * @rxthrows RegistrarDisabled if the registration service is disabled
+     * @rxthrows SinkNotRegistered if the sink does not exist
+     * @rxthrows BadCookie if the cookie supplied is invalid
+     * @rxthrows BundleNotFound if the bundle does not exist
+     * @rxthrows NullArgument if sink or the cookie is null
      */
-    Single<Bundle> get(String sink, String cookie, BundleId bundleId)
-            throws RegistrarDisabled, SinkNotRegistered, BadCookie, BundleNotFound, NullArgument;
+    Single<Bundle> get(String sink, String cookie, BundleId bundleId);
 
     /**
      * fetch a specific bundle and mark it as delivered.
@@ -154,14 +148,13 @@ public interface ApplicationAgentApi {
      * @param cookie that was returned upon registration.
      * @param bundleId id of the bundle to request
      * @return number of data waiting to be retrieved
-     * @throws RegistrarDisabled if the registration service is disabled
-     * @throws SinkNotRegistered if the sink does not exist
-     * @throws BadCookie if the cookie supplied is invalid
-     * @throws BundleNotFound if the bundle does not exist
-     * @throws NullArgument if sink or the cookie is null
+     * @rxthrows RegistrarDisabled if the registration service is disabled
+     * @rxthrows SinkNotRegistered if the sink does not exist
+     * @rxthrows BadCookie if the cookie supplied is invalid
+     * @rxthrows BundleNotFound if the bundle does not exist
+     * @rxthrows NullArgument if sink or the cookie is null
      */
-    Single<Bundle> fetch(String sink, String cookie, BundleId bundleId)
-            throws RegistrarDisabled, SinkNotRegistered, BadCookie, BundleNotFound, NullArgument;
+    Single<Bundle> fetch(String sink, String cookie, BundleId bundleId);
 
     /**
      * Turn a registration active. If the registration was already active it does nothing,
@@ -172,13 +165,12 @@ public interface ApplicationAgentApi {
      * @param cookie of the registration
      * @param cb the callback for the active registration
      * @return true if the registration was successfully activated, false otherwise.
-     * @throws RegistrarDisabled if the registration service is disabled
-     * @throws SinkNotRegistered if the sink does not exist
-     * @throws BadCookie if the cookie supplied is invalid
-     * @throws NullArgument if sink or the cookie is null
+     * @rxthrows RegistrarDisabled if the registration service is disabled
+     * @rxthrows SinkNotRegistered if the sink does not exist
+     * @rxthrows BadCookie if the cookie supplied is invalid
+     * @rxthrows NullArgument if sink or the cookie is null
      */
-    Single<Boolean> reAttach(String sink, String cookie, ActiveRegistrationCallback cb)
-            throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument;
+    Single<Boolean> reAttach(String sink, String cookie, ActiveRegistrationCallback cb);
 
     /**
      * Turn a registration passive. If the registration was already passive it does nothing,
@@ -187,12 +179,11 @@ public interface ApplicationAgentApi {
      * @param sink to the registration
      * @param cookie of the registration
      * @return true if the registration was successfully activated, false otherwise.
-     * @throws RegistrarDisabled if the registration service is disabled
-     * @throws SinkNotRegistered if the sink does not exist
-     * @throws BadCookie if the cookie supplied is invalid
-     * @throws NullArgument if sink or the cookie is null
+     * @rxthrows RegistrarDisabled if the registration service is disabled
+     * @rxthrows SinkNotRegistered if the sink does not exist
+     * @rxthrows BadCookie if the cookie supplied is invalid
+     * @rxthrows NullArgument if sink or the cookie is null
      */
-    Single<Boolean> setPassive(String sink, String cookie)
-            throws RegistrarDisabled, SinkNotRegistered, BadCookie, NullArgument;
+    Single<Boolean> setPassive(String sink, String cookie);
 }
 

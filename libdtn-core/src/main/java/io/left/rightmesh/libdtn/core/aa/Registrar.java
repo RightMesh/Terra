@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.core.routing;
+package io.left.rightmesh.libdtn.core.aa;
 
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleId;
