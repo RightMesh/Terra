@@ -1,7 +1,5 @@
 package io.left.rightmesh.libdtn.core.routing;
 
-import static io.left.rightmesh.libdtn.core.api.RoutingStrategyApi.RoutingStrategyResult.CustodyAccepted;
-
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.data.RoutingBlock;
@@ -15,10 +13,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * RoutingEngine forward bundles toward their destination. It first invoke the service of the
- * direct routing strategy that will try to to use a next hop that is directly available over one
+ * RoutingEngine is a meta-routing strategy. It first invoke the service of the
+ * direct routing strategy that will try to use a next hop that is directly available over one
  * of the connected channel (if any). If no next-hop are available, routing engine will choose the
- * appropriate routing strategy (using the RoutingBlock in the bundle) and invoke its services.
+ * appropriate routing strategy (using the RoutingBlock in the bundle) and invoke its services
+ * if such strategy is found. Otherwise, it falls back on direct routing listener that will register
+ * the bundle for futur delivery and listens for network opportunity.
  *
  * @author Lucien Loiseau on 19/01/19.
  */
@@ -54,27 +54,8 @@ public class RoutingEngine implements RoutingEngineApi {
     }
 
     @Override
-    public Single<RoutingStrategyResult> route(Bundle bundle) {
-        return directStrategy.route(bundle)
-                .flatMap(
-                        directRoutingResult -> {
-                            switch (directRoutingResult) {
-                                case Forwarded:
-                                    return Single.just(directRoutingResult);
-                                case CustodyAccepted:
-                                    return Single.error(new IllegalRoutingResult());
-                                case CustodyRefused:
-                                default:
-                                    // try to find alternate strategy
-                            }
-
-                            try {
-                                return findAlternateStrategy(bundle)
-                                        .route(bundle);
-                            } catch (NoAlternateStrategyFound nasf) {
-                                return directStrategy.routeLater(bundle);
-                            }
-                        });
+    public String getRoutingStrategyName() {
+        return TAG;
     }
 
     @Override
@@ -86,6 +67,32 @@ public class RoutingEngine implements RoutingEngineApi {
         additionalStrategies.put(routingStrategy.getRoutingStrategyId(), routingStrategy);
     }
 
+    @Override
+    public Single<RoutingStrategyResult> route(Bundle bundle) {
+        return directStrategy.route(bundle)
+                .flatMap(
+                        directRoutingResult -> {
+                            switch (directRoutingResult) {
+                                case Forwarded:
+                                    return Single.just(directRoutingResult);
+                                case CustodyAccepted:
+                                    return Single.error(new IllegalRoutingResult());
+                                case CustodyRefused:
+                                default:
+                                    return directForwardingContraindicated(bundle);
+                            }
+                        });
+    }
+
+    private Single<RoutingStrategyResult> directForwardingContraindicated(Bundle bundle) {
+        try {
+            return findAlternateStrategy(bundle).route(bundle);
+        } catch (NoAlternateStrategyFound nasf) {
+            core.getLogger().d(TAG,
+                    "falling back on direct strategy");
+            return directStrategy.routeLater(bundle);
+        }
+    }
 
     private RoutingStrategyApi findAlternateStrategy(Bundle bundle)
             throws NoAlternateStrategyFound {
@@ -93,7 +100,14 @@ public class RoutingEngine implements RoutingEngineApi {
             for (CanonicalBlock block : bundle.getBlocks(RoutingBlock.ROUTING_BLOCK_TYPE)) {
                 RoutingBlock rb = (RoutingBlock) block;
                 if (additionalStrategies.containsKey(rb.strategyId)) {
+                    core.getLogger().i(TAG,
+                            "using routing block strategy id: "
+                                    + rb.strategyId);
                     return additionalStrategies.get(rb.strategyId);
+                } else {
+                    core.getLogger().i(TAG,
+                            "routing block strategy id unknown: "
+                                    + rb.strategyId);
                 }
             }
         }

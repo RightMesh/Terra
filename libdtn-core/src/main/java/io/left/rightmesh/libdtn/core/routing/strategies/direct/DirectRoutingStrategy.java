@@ -15,8 +15,6 @@ import io.reactivex.Maybe;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 
-import static io.left.rightmesh.libdtn.core.api.RoutingStrategyApi.RoutingStrategyResult.CustodyAccepted;
-
 /**
  * DirectRoutingStrategy will try to forward a bundle using a directly connected peer
  * after resolving the destination Eid against the link-local table and main routing table.
@@ -25,7 +23,7 @@ import static io.left.rightmesh.libdtn.core.api.RoutingStrategyApi.RoutingStrate
  */
 public class DirectRoutingStrategy implements DirectRoutingStrategyApi {
 
-    private static final String TAG = "default";
+    private static final String TAG = "DirectRouting";
     public static final int MAIN_ROUTING_STRATEGY_ID = 1;
 
     private CoreApi core;
@@ -39,6 +37,11 @@ public class DirectRoutingStrategy implements DirectRoutingStrategyApi {
     @Override
     public int getRoutingStrategyId() {
         return MAIN_ROUTING_STRATEGY_ID;
+    }
+
+    @Override
+    public String getRoutingStrategyName() {
+        return TAG;
     }
 
     @Override
@@ -134,7 +137,7 @@ public class DirectRoutingStrategy implements DirectRoutingStrategyApi {
                             /* ignore */
                         });
 
-        return Single.just(CustodyAccepted);
+        return Single.just(RoutingStrategyResult.CustodyAccepted);
     }
 
 }

@@ -24,6 +24,13 @@ public interface RoutingStrategyApi {
     int getRoutingStrategyId();
 
     /**
+     * returns the stategy name in human readable form.
+     *
+     * @return name of the routing strategy
+     */
+    String getRoutingStrategyName();
+
+    /**
      * Route a Bundle by executing the routing strategy.
      *
      * @param bundle to route
