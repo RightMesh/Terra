@@ -32,17 +32,6 @@ dependencies {
 
     implementation project(path: ':libdtn-core-api')
 
-    implementation project(path: ':libdtn-common')
-
-    // libcbor for bundlev7
-    implementation 'com.github.RightMesh:libcbor:6e5ca8868f'
-
-    // RxBus for the event bus
-    implementation 'com.github.RightMesh:librxbus:8abd695a02'
-
-    // RxJava library for reactive programming
-    implementation 'io.reactivex.rxjava2:rxjava:2.2.3'
-
     // jUnit
     testImplementation 'junit:junit:4.12'
 

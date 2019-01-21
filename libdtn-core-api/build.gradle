@@ -15,14 +15,17 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    // libcbor for block extension parser/serializer
-    implementation 'com.github.RightMesh:libcbor:6e5ca8868f'
-
     // libdtn-common for data
-    implementation project(path: ':libdtn-common')
+    api project(path: ':libdtn-common')
+
+    // RxBus for the event bus
+    api 'com.github.RightMesh:librxbus:8abd695a02'
+
+    // libcbor for block extension parser/serializer
+    api 'com.github.RightMesh:libcbor:6e5ca8868f'
 
     // RxJava library for reactive programming
-    implementation 'io.reactivex.rxjava2:rxjava:2.2.3'
+    api 'io.reactivex.rxjava2:rxjava:2.2.3'
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8

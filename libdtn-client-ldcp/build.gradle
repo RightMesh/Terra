@@ -32,12 +32,6 @@ dependencies {
     // ldcp request / response protocol
     implementation project(path: ':libldcp')
 
-    // Bundle data
-    implementation project(path: ':libdtn-common')
-
-    // RxJava library for reactive programming
-    implementation 'io.reactivex.rxjava2:rxjava:2.2.3'
-
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8

@@ -39,15 +39,6 @@ dependencies {
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    // RxBus for the event bus
-    implementation 'com.github.RightMesh:librxbus:8abd695a02'
-
-    // CBOR for encoding/parsing
-    implementation 'com.github.RightMesh:libcbor:6e5ca8868f'
-
-    // Bundle data
-    implementation project(path: ':libdtn-common')
-
     // interface spi
     implementation project(path: ':libdtn-core-api')
 

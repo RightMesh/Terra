@@ -55,14 +55,8 @@ dependencies {
     // note: we need to use compile keyword to add in the fatjar, implementation/api doesn't work
     compile 'com.github.RightMesh:librxtcp:65e2cb0ab8'
 
-    // libdtn-common for data
-    implementation project(path: ':libdtn-common')
-
     // libdtn-core-api for module
     implementation project(path: ':libdtn-core-api')
-
-    // libcbor for encoding/parsing
-    implementation 'com.github.RightMesh:libcbor:6e5ca8868f'
 
     // jUnit
     testImplementation 'junit:junit:4.12'

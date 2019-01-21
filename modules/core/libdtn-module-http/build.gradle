@@ -30,14 +30,8 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    // lib common and api for the module
-    implementation project(path: ':libdtn-common')
-
     // interface spi
     implementation project(path: ':libdtn-core-api')
-
-    // RxJava library for reactive programming
-    implementation 'io.reactivex.rxjava2:rxjava:2.2.3'
 
     // lib rx netty for http ApiEid
     // note: we need to use compile keyword to add in the fatjar, implementation/api doesn't work

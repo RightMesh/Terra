@@ -13,15 +13,11 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation project(path: ':libdtn-common')
-
+    // AA interface with Terra
     implementation project(path: ':libdtn-client-ldcp')
 
     // CBOR for parsing StatusReport
     implementation 'com.github.RightMesh:libcbor:-SNAPSHOT'
-
-    // RxJava library for reactive programming
-    implementation 'io.reactivex.rxjava2:rxjava:2.2.3'
 
     // picocli framework for RequestMessage Line Interface
     compile 'info.picocli:picocli:3.6.1'

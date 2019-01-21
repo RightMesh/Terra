@@ -6,9 +6,11 @@ import io.left.rightmesh.ldcp.LdcpRequest;
 import io.left.rightmesh.ldcp.LdcpServer;
 import io.left.rightmesh.ldcp.Router;
 import io.left.rightmesh.ldcp.messages.ResponseMessage;
+import io.left.rightmesh.libdtn.common.BaseExtensionToolbox;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleId;
+import io.left.rightmesh.libdtn.common.data.blob.BaseBlobFactory;
 import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
@@ -32,6 +34,35 @@ public class ApplicationAgent implements ApplicationAgentApi {
     private ExtensionToolbox toolbox;
     private Log logger;
 
+    /**
+     * Constructor.
+     * @param host host of the LDCP server running on the registrar
+     * @param port port of the LDCP server running on the registrar
+     */
+    public ApplicationAgent(String host,
+                            int port) {
+        this(host, port, new BaseExtensionToolbox(), new BaseBlobFactory(), new NullLogger());
+    }
+
+    /**
+     * Constructor.
+     * @param host host of the LDCP server running on the registrar
+     * @param port port of the LDCP server running on the registrar
+     * @param toolbox Blocks and Eids factory
+     */
+    public ApplicationAgent(String host,
+                            int port,
+                            ExtensionToolbox toolbox) {
+        this(host, port, toolbox, new BaseBlobFactory(), new NullLogger());
+    }
+
+    /**
+     * Constructor.
+     * @param host host of the LDCP server running on the registrar
+     * @param port port of the LDCP server running on the registrar
+     * @param toolbox Blocks and Eids factory
+     * @param factory Blob factory
+     */
     public ApplicationAgent(String host,
                             int port,
                             ExtensionToolbox toolbox,
