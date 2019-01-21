@@ -51,7 +51,7 @@ public class ApiEid extends BaseEid {
             this.ssp = "me";
             this.path = m.group(1) == null ? "" : m.group(1);
         } else {
-            throw new EidFormatException("not an ApiEid:ME");
+            throw new EidFormatException("not an ApiEid");
         }
         checkValidity();
     }

@@ -137,6 +137,18 @@ public class Terra implements Callable<Void> {
             description = "do not try to create opportunity with detected peers.")
     private int httpPort = 8080;
 
+    @Option(names = {"--enable-modules"},
+            arity = "1..*",
+            description = "whitelisted modules")
+    private String[] whitelistModules = new String[0];
+
+    @Option(names = {"--disable-modules"},
+            arity = "1..*",
+            description = "blacklisted modules")
+    private String[] blacklistModules = new String[0];
+
+
+
     @Override
     public Void call() throws Exception {
         CoreConfiguration conf = new CoreConfiguration();
@@ -202,11 +214,12 @@ public class Terra implements Callable<Void> {
         }
 
         /* module configuration */
-        conf.getModuleEnabled("stcp", true).update(true);
-        conf.getModuleEnabled("ldcp", true).update(true);
-        conf.getModuleEnabled("hello", true).update(true);
-        conf.getModuleEnabled("ipdiscovery", true).update(true);
-        conf.getModuleEnabled("http", false).update(false);
+        for(String enableModule : whitelistModules) {
+            conf.getModuleEnabled(enableModule, true).update(true);
+        }
+        for(String disableModule : blacklistModules) {
+            conf.getModuleEnabled(disableModule, false).update(false);
+        }
 
         conf.getModuleConf("ldcp", "ldcp_tcp_port", 4557)
                 .update(ldcpPort);

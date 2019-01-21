@@ -61,6 +61,6 @@ public interface ExtensionManagerApi extends ExtensionToolbox {
      * @param parser scheme specific parser
      * @throws ClaNameAlreadyManaged if the Eid is already managed
      */
-    void addExtensionCla(String clName,
-                         ClaEidParser parser) throws ClaNameAlreadyManaged;
+    void addExtensionClaEid(String clName,
+                            ClaEidParser parser) throws ClaNameAlreadyManaged;
 }

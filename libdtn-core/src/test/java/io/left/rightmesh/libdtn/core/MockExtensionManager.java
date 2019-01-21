@@ -53,7 +53,7 @@ public class MockExtensionManager implements ExtensionManagerApi {
     }
 
     @Override
-    public void addExtensionCla(String clName, ClaEidParser parser) {
+    public void addExtensionClaEid(String clName, ClaEidParser parser) {
     }
 
     @Override

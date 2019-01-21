@@ -34,7 +34,7 @@ public class ClaManager implements ClaManagerApi {
     @Override
     public void addCla(ConvergenceLayerSpi cla) {
         try {
-            core.getExtensionManager().addExtensionCla(cla.getModuleName(), cla.getClaEidParser());
+            core.getExtensionManager().addExtensionClaEid(cla.getModuleName(), cla.getClaEidParser());
             clas.add(cla);
             cla.start(core.getConf(), core.getLogger()).subscribe(
                     dtnChannel -> {

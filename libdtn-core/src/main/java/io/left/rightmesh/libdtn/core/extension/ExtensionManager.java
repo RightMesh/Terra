@@ -216,7 +216,7 @@ public class ExtensionManager implements ExtensionManagerApi {
     }
 
     @Override
-    public void addExtensionCla(String clName, ClaEidParser parser) throws ClaNameAlreadyManaged {
+    public void addExtensionClaEid(String clName, ClaEidParser parser) throws ClaNameAlreadyManaged {
         if (extensionClaEidParser.containsKey(clName)) {
             throw new ClaNameAlreadyManaged();
         }
