@@ -12,7 +12,7 @@ import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.left.rightmesh.libdtn.common.data.eid.EidFactory;
 import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
 import io.left.rightmesh.libdtn.common.data.eid.EidIpn;
-import io.left.rightmesh.libdtn.common.data.eid.UnknowEid;
+import io.left.rightmesh.libdtn.common.data.eid.UnknownEid;
 import io.left.rightmesh.libdtn.common.utils.Log;
 
 /**
@@ -93,7 +93,7 @@ public class EidItem implements CborParser.ParseableItem {
                         } catch (EidFactory.UnknownIanaNumber | EidFactory.UnknownEidScheme uin) {
                             logger.v(TAG, ".. unknown Eid=" + ianaNumber + " ssp=" + ssp);
                             try {
-                                eid = new UnknowEid(ianaNumber, ssp);
+                                eid = new UnknownEid(ianaNumber, ssp);
                             } catch (EidFormatException efe) {
                                 throw new RxParserException("error parsing Eid: "
                                         + efe.getMessage());

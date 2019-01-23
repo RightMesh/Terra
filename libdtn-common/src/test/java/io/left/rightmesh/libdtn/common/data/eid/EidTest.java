@@ -164,4 +164,9 @@ public class EidTest {
             // This should happen
         }
     }
+
+    @Test
+    public void testUnknownEid() {
+
+    }
 }

@@ -6,7 +6,7 @@ package io.left.rightmesh.libdtn.common.data.eid;
  *
  * @author Lucien Loiseau on 17/10/18.
  */
-public class UnknowEid extends BaseEid {
+public class UnknownEid extends BaseEid {
 
     public static final String EID_UNK_SCHEME = "unk";
 
@@ -15,7 +15,7 @@ public class UnknowEid extends BaseEid {
     private String ssp;
 
     /* unsafe constructor - no validity check */
-    private UnknowEid() {
+    private UnknownEid() {
     }
 
     /**
@@ -25,7 +25,7 @@ public class UnknowEid extends BaseEid {
      * @param ssp scheme-specific part of the unknow eid.
      * @throws EidFormatException if the scheme-specific part is invalid.
      */
-    public UnknowEid(int ianaValue, String ssp) throws EidFormatException {
+    public UnknownEid(int ianaValue, String ssp) throws EidFormatException {
         this.iana = ianaValue;
         this.scheme = EID_UNK_SCHEME;
         this.ssp = ssp;
@@ -36,7 +36,7 @@ public class UnknowEid extends BaseEid {
 
     @Override
     public Eid copy() {
-        UnknowEid ret = new UnknowEid();
+        UnknownEid ret = new UnknownEid();
         ret.iana = iana;
         ret.scheme = scheme;
         ret.ssp = ssp;
@@ -63,7 +63,7 @@ public class UnknowEid extends BaseEid {
         if (other == null) {
             return false;
         }
-        return scheme.equals(((UnknowEid) other).scheme)
-                && ssp.equals(((UnknowEid) other).ssp);
+        return scheme.equals(((UnknownEid) other).scheme)
+                && ssp.equals(((UnknownEid) other).ssp);
     }
 }
