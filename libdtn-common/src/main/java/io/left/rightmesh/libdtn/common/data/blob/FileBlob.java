@@ -47,6 +47,7 @@ public class FileBlob extends Tag implements Blob {
      */
     public FileBlob(String absolutePath) throws IOException {
         file = new File(absolutePath);
+        file.createNewFile();
         if (!file.exists()) {
             throw new IOException("Can't access file: " + absolutePath);
         }
