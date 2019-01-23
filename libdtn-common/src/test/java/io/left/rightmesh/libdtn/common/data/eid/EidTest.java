@@ -1,12 +1,5 @@
 package io.left.rightmesh.libdtn.common.data.eid;
 
-import io.left.rightmesh.libdtn.common.data.eid.BaseEidFactory;
-import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
-import io.left.rightmesh.libdtn.common.data.eid.Eid;
-import io.left.rightmesh.libdtn.common.data.eid.EidFactory;
-import io.left.rightmesh.libdtn.common.data.eid.EidFormatException;
-import io.left.rightmesh.libdtn.common.data.eid.EidIpn;
-
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -175,7 +168,5 @@ public class EidTest {
         } catch (EidFormatException efe) {
             fail();
         }
-
-
     }
 }
