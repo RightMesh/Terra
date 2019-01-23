@@ -4,8 +4,14 @@ plugins {
 }
 
 group='com.github.RightMesh.Terra'
+
 task ApiDoc(type: Javadoc) {
     source = sourceSets.main.allJava
+}
+
+// enabling parameter name for auto completion
+tasks.withType(JavaCompile) {
+    options.compilerArgs << '-parameters'
 }
 
 repositories {

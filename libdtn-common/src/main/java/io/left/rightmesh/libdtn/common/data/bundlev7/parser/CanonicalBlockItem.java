@@ -67,8 +67,8 @@ public class CanonicalBlockItem implements CborParser.ParseableItem {
                         throw new RxParserException("wrong number of element in canonical block");
                     }
                 })
-                .cbor_parse_int((p, t, i) -> { // block PAYLOAD_BLOCK_TYPE
-                    logger.v(TAG, ". PAYLOAD_BLOCK_TYPE=" + i);
+                .cbor_parse_int((p, t, i) -> { // block type
+                    logger.v(TAG, ". type=" + i);
                     try {
                         block = toolbox.getBlockFactory().create((int) i);
                     } catch (BlockFactory.UnknownBlockTypeException ubte) {
