@@ -99,7 +99,7 @@ public class EidTest {
         try {
             Eid cla = exceptionThrowerFactory.create(eidString);
         } catch (ClaEidParser.UnknownClaName e) {
-            assertTrue(e.getMessage().contains("claName unknown"));
+            assertTrue(e.getMessage().contains("unknown"));
         } catch (EidFormatException efe) {
             fail();
         }
@@ -109,11 +109,43 @@ public class EidTest {
 
     @Test
     public void testApiEid() {
+        System.out.println("[+] eid: testing ApiEid Scheme");
+        String eidString = "api:me";
 
+        try {
+            Eid apiEid = eidFactory.create(eidString);
+            assertEquals(eidString, apiEid.getEidString());
+            assertFalse(apiEid.matches(null));
+            assertTrue(apiEid.matches(apiEid));
+
+            Eid apiEid2 = apiEid.copy();
+            assertEquals("", ((ApiEid) apiEid2).getPath());
+            assertEquals(ApiEid.EID_API_IANA_VALUE, apiEid2.ianaNumber());
+
+            Eid otherEid = eidFactory.create("dtn:marsOrbital");
+            assertFalse(apiEid.matches(otherEid));
+
+        } catch (EidFormatException efe) {
+            fail();
+        }
     }
 
     @Test
     public void testBaseEidFactory() {
+        try {
+            assertEquals(ApiEid.EID_API_SCHEME, eidFactory.getIanaScheme(ApiEid.EID_API_IANA_VALUE));
+            assertEquals(DtnEid.EID_DTN_SCHEME, eidFactory.getIanaScheme(DtnEid.EID_DTN_IANA_VALUE));
+            assertEquals(EidIpn.EID_IPN_SCHEME, eidFactory.getIanaScheme(EidIpn.EID_IPN_IANA_VALUE));
+            assertEquals(ClaEid.EID_CLA_SCHEME, eidFactory.getIanaScheme(ClaEid.EID_CLA_IANA_VALUE));
+        } catch (EidFactory.UnknownIanaNumber uin) {
+            fail();
+        }
 
+        try {
+            eidFactory.getIanaScheme(-1);
+            fail();
+        } catch (EidFactory.UnknownIanaNumber uin) {
+            // This should happen
+        }
     }
 }

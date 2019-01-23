@@ -95,7 +95,7 @@ public class BaseEidFactory implements EidFactory, ClaEidParser {
     public ClaEid create(String claName, String claSpecific, String claSink)
             throws EidFormatException {
         if (throwExceptionForUnknownClaEid) {
-            throw new UnknownClaName("claName unknown: " + claName);
+            throw new UnknownClaName(" : " + claName);
         } else {
             return new UnknownClaEid(claName, claSpecific, claSink);
         }
