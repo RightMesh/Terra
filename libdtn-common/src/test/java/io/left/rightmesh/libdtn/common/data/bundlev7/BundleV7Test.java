@@ -8,24 +8,21 @@ import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libcbor.rxparser.RxParserException;
 import io.left.rightmesh.libdtn.common.BaseExtensionToolbox;
-import io.left.rightmesh.libdtn.common.data.AgeBlock;
-import io.left.rightmesh.libdtn.common.data.BlockHeader;
-import io.left.rightmesh.libdtn.common.data.Bundle;
-import io.left.rightmesh.libdtn.common.data.BundleId;
-import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
-import io.left.rightmesh.libdtn.common.data.PayloadBlock;
-import io.left.rightmesh.libdtn.common.data.PreviousNodeBlock;
-import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
-import io.left.rightmesh.libdtn.common.data.ScopeControlHopLimitBlock;
+import io.left.rightmesh.libdtn.common.data.*;
 import io.left.rightmesh.libdtn.common.data.blob.BaseBlobFactory;
 import io.left.rightmesh.libdtn.common.data.bundlev7.parser.BundleV7Item;
+import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.AdministrativeRecordSerializer;
 import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BaseBlockDataSerializerFactory;
 import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.BundleV7Serializer;
+import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.StatusReportSerializer;
 import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
 import io.left.rightmesh.libdtn.common.data.eid.EidIpn;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
 
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.nio.ByteBuffer;
 
 /**
  * Test class to test serialization and parsing of a Bundle.
@@ -134,6 +131,39 @@ public class BundleV7Test {
         bundle.addBlock(previous);
         return bundle;
     }
+
+
+    /*
+     * Unit test for the AdministrativeRecordSerializer.
+     * Tests the serializer by creating a report with each type of 'reason'
+     * followed by an observation that the report exists/was created.
+     */
+    @Test
+    public void testAdministrativeRecordSerializer() {
+
+        for (StatusReport.ReasonCode reason: StatusReport.ReasonCode.values()) {
+            Bundle bundle = new Bundle();
+            String payload = "This is a test for testing block operations";
+
+            bundle.addBlock(new PayloadBlock(payload));
+            bundle.addBlock(new AgeBlock());
+            bundle.addBlock(new ScopeControlHopLimitBlock());
+
+            StatusReport statusReport = new StatusReport(reason);
+            statusReport.source = bundle.getSource();
+            statusReport.creationTimestamp = bundle.getCreationTimestamp();
+
+            CborEncoder enc = AdministrativeRecordSerializer.encode(statusReport);
+
+            long size = enc.observe()
+                    .map(ByteBuffer::remaining)
+                    .reduce(0, (a, b) -> a + b)
+                    .blockingGet();
+
+            Assert.assertTrue("Serialized object has no serialized data", size > 0);
+        }
+    }
+
 
     @Test
     public void testSimpleBundleSerialization() {
