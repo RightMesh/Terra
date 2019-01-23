@@ -28,14 +28,30 @@ public class EidTest {
         assertEquals(0, eidIpn.nodeNumber);
         assertEquals(0, eidIpn.serviceNumber);
 
-        eidIpn = new EidIpn(15, 32);
-        assertEquals("ipn:15.32", eidIpn.getEidString());
-        assertEquals(15, eidIpn.nodeNumber);
-        assertEquals(32, eidIpn.serviceNumber);
+        EidIpn eidIpn2 = new EidIpn(15, 32);
+        assertEquals("ipn:15.32", eidIpn2.getEidString());
+        assertEquals(15, eidIpn2.nodeNumber);
+        assertEquals(15, eidIpn2.getNodeNumber());
+        assertEquals(32, eidIpn2.serviceNumber);
+        assertEquals(32, eidIpn2.getServiceNumber());
+        assertFalse(eidIpn2.matches(null));
+        assertFalse(eidIpn2.equals(null));
+        assertTrue(eidIpn2.matches(eidIpn2));
+        assertTrue(eidIpn2.equals(eidIpn2));
+        assertFalse(eidIpn.matches(eidIpn2));
+        assertFalse(eidIpn.equals(eidIpn2));
+
+        assertEquals((17 * 31 + eidIpn2.getNodeNumber()) * 31 + eidIpn2.getServiceNumber(), eidIpn2.hashCode());
+        assertEquals("ipn:15.32", eidIpn2.toString());
 
         try {
             Eid eid = eidFactory.create("ipn:0.0");
+            Eid otherEid = eidFactory.create("dtn:marsOrbital");
             assertEquals("ipn:0.0", eid.getEidString());
+            assertFalse(eid.matches(otherEid));
+            assertFalse(eid.equals(otherEid));
+            otherEid = eid.copy();
+            assertTrue(eid.matches(otherEid));
         } catch (EidFormatException eid) {
             fail(eid.getMessage());
         }
