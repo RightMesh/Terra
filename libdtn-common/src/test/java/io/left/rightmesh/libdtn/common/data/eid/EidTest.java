@@ -25,14 +25,12 @@ public class EidTest {
         System.out.println("[+] eid: testing EidIpn Scheme");
         EidIpn eidIpn = new EidIpn(0, 0);
         assertEquals("ipn:0.0", eidIpn.getEidString());
-        assertEquals(0, eidIpn.nodeNumber);
-        assertEquals(0, eidIpn.serviceNumber);
+        assertEquals(0, eidIpn.getNodeNumber());
+        assertEquals(0, eidIpn.getServiceNumber());
 
         EidIpn eidIpn2 = new EidIpn(15, 32);
         assertEquals("ipn:15.32", eidIpn2.getEidString());
-        assertEquals(15, eidIpn2.nodeNumber);
         assertEquals(15, eidIpn2.getNodeNumber());
-        assertEquals(32, eidIpn2.serviceNumber);
         assertEquals(32, eidIpn2.getServiceNumber());
         assertFalse(eidIpn2.matches(null));
         assertFalse(eidIpn2.equals(null));

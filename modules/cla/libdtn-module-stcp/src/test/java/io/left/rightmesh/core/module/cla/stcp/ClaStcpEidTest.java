@@ -25,9 +25,9 @@ public class ClaStcpEidTest {
         try {
             BaseClaEid cla = new ClaStcpEid("google.com", 4556, "/");
             assertEquals("cla:stcp:google.com:4556/", cla.getEidString());
-            assertEquals("stcp", cla.claName);
-            assertEquals("google.com:4556", cla.claSpecific);
-            assertEquals("/", cla.claSink);
+            assertEquals("stcp", cla.getClaName());
+            assertEquals("google.com:4556", cla.getClaSpecificPart());
+            assertEquals("/", cla.getPath());
 
             Eid eid = (new ClaStcpEidParser()).create("stcp","google.com:4556", "");
             Eid path = (new ClaStcpEidParser()).create("stcp", "google.com:4556", "/pingservice");

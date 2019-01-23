@@ -33,6 +33,8 @@ public class EidItem implements CborParser.ParseableItem {
     public Eid eid;
     public int ianaNumber;
 
+    private int nodeVal;
+
     @Override
     public CborParser getItemParser() {
         return CBOR.parser()
@@ -55,8 +57,8 @@ public class EidItem implements CborParser.ParseableItem {
 
     private CborParser parseIpn = CBOR.parser()
             .cbor_open_array(2)
-            .cbor_parse_int((p, t, node) -> eid = new EidIpn((int) node, 0))
-            .cbor_parse_int((p, t, service) -> ((EidIpn) eid).serviceNumber = (int) service);
+            .cbor_parse_int((p, t, node) -> nodeVal = (int) node)
+            .cbor_parse_int((p, t, service) -> eid = new EidIpn(nodeVal, (int) service));
 
     private CborParser parseDtn = CBOR.parser()
             .cbor_or(

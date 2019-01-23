@@ -14,8 +14,8 @@ public class EidIpn extends BaseEid {
     public static final int EID_IPN_IANA_VALUE = 2;
     public static final String EID_IPN_SCHEME = "ipn";
 
-    public int nodeNumber;
-    public int serviceNumber;
+    private int nodeNumber;
+    private int serviceNumber;
 
     /**
      * Class to create a new IpnEid after parsing the ipn specific part.

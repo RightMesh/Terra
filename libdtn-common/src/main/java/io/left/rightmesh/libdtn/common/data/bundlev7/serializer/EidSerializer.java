@@ -33,8 +33,8 @@ public class EidSerializer {
                     .cbor_start_array(2)
                     .cbor_encode_int(eid.ianaNumber())
                     .cbor_start_array(2)
-                    .cbor_encode_int(((EidIpn) eid).nodeNumber)
-                    .cbor_encode_int(((EidIpn) eid).serviceNumber);
+                    .cbor_encode_int(((EidIpn) eid).getNodeNumber())
+                    .cbor_encode_int(((EidIpn) eid).getServiceNumber());
         }
         return CBOR.encoder()
                 .cbor_start_array(2)

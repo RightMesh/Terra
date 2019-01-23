@@ -7,9 +7,9 @@ package io.left.rightmesh.libdtn.common.data.eid;
  */
 public class BaseClaEid extends BaseEid implements ClaEid {
 
-    public String claName;
-    public String claSpecific;
-    public String claSink;
+    private String claName;
+    private String claSpecific;
+    private String claSink;
 
     // should only be called by safe constructor, no validity check
     protected BaseClaEid(String claName, String claSpecific) {

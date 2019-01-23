@@ -47,8 +47,12 @@ public class ClaStcpEid extends BaseClaEid {
 
     @Override
     public Eid copy() {
-        ClaStcpEid ret = new ClaStcpEid(host, port);
-        ret.claSink = this.claSink;
+        ClaStcpEid ret;
+        try {
+            ret = new ClaStcpEid(host, port, this.getPath());
+        } catch (EidFormatException efe) {
+            ret = new ClaStcpEid(host, port);
+        }
         return ret;
     }
 
