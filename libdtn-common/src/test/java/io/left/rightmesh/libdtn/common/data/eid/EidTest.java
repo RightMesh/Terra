@@ -22,7 +22,6 @@ public class EidTest {
 
     @Test
     public void testIpnEid() {
-        System.out.println("[+] eid: testing EidIpn Scheme");
         EidIpn eidIpn = new EidIpn(0, 0);
         assertEquals("ipn:0.0", eidIpn.getEidString());
         assertEquals(0, eidIpn.getNodeNumber());
@@ -57,7 +56,6 @@ public class EidTest {
 
     @Test
     public void testDtnEid() {
-        System.out.println("[+] eid: testing DtnEid Scheme");
         try {
             Eid dtn = new DtnEid("marsOrbital");
             Eid dtnping = new DtnEid("marsOrbital/pingservice");
@@ -74,7 +72,6 @@ public class EidTest {
 
     @Test
     public void testClaEid() {
-        System.out.println("[+] eid: testing ClaEid Scheme");
         String eidString = "cla:stcp:1.2.3.4:4557";
         try {
             Eid cla = eidFactory.create(eidString);
@@ -123,7 +120,6 @@ public class EidTest {
 
     @Test
     public void testApiEid() {
-        System.out.println("[+] eid: testing ApiEid Scheme");
         String eidString = "api:me";
 
         try {
