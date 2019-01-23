@@ -167,6 +167,21 @@ public class EidTest {
 
     @Test
     public void testUnknownEid() {
+        String ssp = "1.2.3.9";
+        try {
+            UnknownEid ueid = new UnknownEid(17, ssp);
+            assertEquals(17, ueid.ianaNumber());
+            assertEquals(UnknownEid.EID_UNK_SCHEME, ueid.getScheme());
+            assertEquals(ssp, ueid.getSsp());
+
+            Eid ueid2 = ueid.copy();
+            assertFalse(ueid.matches(null));
+            assertTrue(ueid.matches(ueid));
+            assertTrue(ueid2.matches(ueid));
+        } catch (EidFormatException efe) {
+            fail();
+        }
+
 
     }
 }
