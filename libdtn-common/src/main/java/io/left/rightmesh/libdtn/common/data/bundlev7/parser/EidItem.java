@@ -6,7 +6,8 @@ import static io.left.rightmesh.libdtn.common.data.eid.EidIpn.EID_IPN_IANA_VALUE
 
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
-import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libcbor.parser.RxParserException;
+import io.left.rightmesh.libcbor.parser.items.ParseableItem;
 import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
 import io.left.rightmesh.libdtn.common.data.eid.Eid;
 import io.left.rightmesh.libdtn.common.data.eid.EidFactory;
@@ -16,11 +17,11 @@ import io.left.rightmesh.libdtn.common.data.eid.UnknownEid;
 import io.left.rightmesh.libdtn.common.utils.Log;
 
 /**
- * EidItem is a CborParser.ParseableItem for an {@link Eid}.
+ * EidItem is a ParseableItem for an {@link Eid}.
  *
  * @author Lucien Loiseau on 04/11/18.
  */
-public class EidItem implements CborParser.ParseableItem {
+public class EidItem implements ParseableItem {
 
     public EidItem(EidFactory eidFactory, Log logger) {
         this.eidFactory = eidFactory;

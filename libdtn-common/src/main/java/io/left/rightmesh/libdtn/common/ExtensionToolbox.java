@@ -11,7 +11,7 @@ import io.left.rightmesh.libdtn.common.data.eid.EidFactory;
  * Introducing a new Block thus requires the following:
  *
  * <ul>
- * <li>Being able to instantiate a new block given its PAYLOAD_BLOCK_TYPE</li>
+ * <li>Being able to instantiate a new block given its type</li>
  * <li>Being able to parse the block data specific part</li>
  * <li>Being able to serialize the block data specific part</li>
  * <li>Being able to process the block during the bundle lifecycle</li>

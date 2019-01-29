@@ -16,6 +16,9 @@ public interface BlockDataParserFactory {
     class UnknownBlockTypeException extends Exception{
     }
 
+    class UnstructuredPayloadException extends Exception{
+    }
+
     /**
      * returns a parser for newly instantiated ExtensionBlock.
      *
@@ -25,13 +28,14 @@ public interface BlockDataParserFactory {
      * @param eidFactory {@link Eid} factory
      * @param logger logger
      * @return CborParser
+     * @throws UnstructuredPayloadException if data are not cbor encoded
      * @throws UnknownBlockTypeException if type is unknown
      */
     CborParser create(int type,
                       CanonicalBlock block,
                       BlobFactory blobFactory,
                       EidFactory eidFactory,
-                      Log logger) throws UnknownBlockTypeException;
+                      Log logger) throws UnknownBlockTypeException, UnstructuredPayloadException;
 
 
 }

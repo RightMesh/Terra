@@ -3,7 +3,7 @@ package io.left.rightmesh.ldcp;
 import io.left.rightmesh.ldcp.messages.RequestMessage;
 import io.left.rightmesh.ldcp.messages.ResponseMessage;
 import io.left.rightmesh.libcbor.CborParser;
-import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libcbor.parser.RxParserException;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;

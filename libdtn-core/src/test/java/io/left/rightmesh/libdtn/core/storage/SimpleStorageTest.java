@@ -53,7 +53,6 @@ public class SimpleStorageTest {
     public static final AtomicReference<CountDownLatch> WAIT_LOCK = new AtomicReference<>(new CountDownLatch(1));
     private Set<String> paths = new HashSet<>();
     private CoreConfiguration conf = new CoreConfiguration();
-    private File dir = new File(System.getProperty("path") + "/bundle/");
     private Storage storage;
     private CoreApi mockCore = mockCore();
 
@@ -67,7 +66,7 @@ public class SimpleStorageTest {
                 conf.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(true);
 
                 Set<String> paths = new HashSet<>();
-                paths.add(System.getProperty("path"));
+                paths.add("/tmp/");
                 conf.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
                 return conf;
             }
@@ -112,6 +111,7 @@ public class SimpleStorageTest {
     @Test
     public void testSimpleStoreBundle() {
         synchronized (StorageTest.LOCK) {
+            File dir = new File("/tmp/bundle/");
             System.out.println("[+] SimpleStorage");
             storage = new Storage(mockCore);
             storage.initComponent(mockCore.getConf(), COMPONENT_ENABLE_STORAGE, mockCore.getLogger());
@@ -158,6 +158,7 @@ public class SimpleStorageTest {
                                         s.onComplete();
                                     },
                                     e -> {
+                                        e.printStackTrace();
                                         System.out.println("error pulling bundle: " + e.getMessage());
                                         s.onComplete();
                                     })))
@@ -198,7 +199,7 @@ public class SimpleStorageTest {
 
             /* check indexing new path */
             System.out.println("[.] add path to SimpleStorage configuration for indexing");
-            paths.add(System.getProperty("path"));
+            paths.add("/tmp/");
             conf.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
             try {
                 // give it time to index

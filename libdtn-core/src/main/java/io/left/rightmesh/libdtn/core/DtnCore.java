@@ -7,6 +7,7 @@ import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPO
 import static io.left.rightmesh.libdtn.core.api.ConfigurationApi.CoreEntry.COMPONENT_ENABLE_STORAGE;
 
 import io.left.rightmesh.libdtn.common.utils.Log;
+import io.left.rightmesh.libdtn.core.aa.Registrar;
 import io.left.rightmesh.libdtn.core.api.BundleProtocolApi;
 import io.left.rightmesh.libdtn.core.api.ClaManagerApi;
 import io.left.rightmesh.libdtn.core.api.ConfigurationApi;
@@ -24,11 +25,10 @@ import io.left.rightmesh.libdtn.core.api.RoutingTableApi;
 import io.left.rightmesh.libdtn.core.api.StorageApi;
 import io.left.rightmesh.libdtn.core.events.BundleIndexed;
 import io.left.rightmesh.libdtn.core.extension.ExtensionManager;
-import io.left.rightmesh.libdtn.core.network.ClaManager;
+import io.left.rightmesh.libdtn.core.cla.ClaManager;
 import io.left.rightmesh.libdtn.core.processor.BundleProtocol;
 import io.left.rightmesh.libdtn.core.routing.LinkLocalTable;
 import io.left.rightmesh.libdtn.core.routing.LocalEidTable;
-import io.left.rightmesh.libdtn.core.aa.Registrar;
 import io.left.rightmesh.libdtn.core.routing.RoutingEngine;
 import io.left.rightmesh.libdtn.core.routing.RoutingTable;
 import io.left.rightmesh.libdtn.core.routing.strategies.direct.DirectRoutingListener;

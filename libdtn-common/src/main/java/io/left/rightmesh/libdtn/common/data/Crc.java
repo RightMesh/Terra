@@ -152,7 +152,7 @@ public abstract class Crc {
 
 
     /**
-     * returns a new crc instance based on the PAYLOAD_BLOCK_TYPE supplied.
+     * returns a new crc instance based on the type supplied.
      *
      * @param crcType can either be CRC16 or CRC32
      * @return a new Crc object

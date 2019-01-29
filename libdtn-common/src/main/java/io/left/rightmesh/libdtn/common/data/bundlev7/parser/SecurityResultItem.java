@@ -5,16 +5,17 @@ import static io.left.rightmesh.libdtn.common.data.security.CipherSuites.BIB_SHA
 
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
+import io.left.rightmesh.libcbor.parser.items.ParseableItem;
 import io.left.rightmesh.libdtn.common.data.security.IntegrityResult;
 import io.left.rightmesh.libdtn.common.data.security.SecurityResult;
 import io.left.rightmesh.libdtn.common.utils.Log;
 
 /**
- * SecurityResultItem is a CborParser.ParseableItem for a SecurityResult.
+ * SecurityResultItem is a ParseableItem for a SecurityResult.
  *
  * @author Lucien Loiseau on 06/11/18.
  */
-public class SecurityResultItem implements CborParser.ParseableItem {
+public class SecurityResultItem implements ParseableItem {
 
     SecurityResultItem(int cipherId, int resultId, Log logger) {
         this.cipherId = cipherId;

@@ -6,7 +6,7 @@ import static io.left.rightmesh.core.module.cla.stcp.Configuration.CLA_STCP_LIST
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
-import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libcbor.parser.RxParserException;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;

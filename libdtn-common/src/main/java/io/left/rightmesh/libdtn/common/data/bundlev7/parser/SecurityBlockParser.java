@@ -4,6 +4,7 @@ import static io.left.rightmesh.libdtn.common.data.bundlev7.parser.BundleV7Item.
 
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
+import io.left.rightmesh.libcbor.parser.items.IntegerItem;
 import io.left.rightmesh.libdtn.common.data.eid.EidFactory;
 import io.left.rightmesh.libdtn.common.data.security.AbstractSecurityBlock;
 import io.left.rightmesh.libdtn.common.data.security.SecurityBlock;
@@ -22,7 +23,7 @@ public class SecurityBlockParser {
         return CBOR.parser()
                 .cbor_open_array(5)
                 .cbor_parse_linear_array(
-                        CBOR.IntegerItem::new,
+                        IntegerItem::new,
                         (p, t, i) -> {
                             logger.v(TAG, ".. nb_of_targets=" + i);
                         },

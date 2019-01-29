@@ -2,7 +2,8 @@ package io.left.rightmesh.libdtn.common.data.bundlev7.parser;
 
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
-import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libcbor.parser.items.ParseableItem;
+import io.left.rightmesh.libcbor.parser.RxParserException;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
@@ -11,11 +12,11 @@ import io.left.rightmesh.libdtn.common.data.bundlev7.processor.ProcessingExcepti
 import io.left.rightmesh.libdtn.common.utils.Log;
 
 /**
- * BundleV7Item is a CborParser.ParseableItem for {@link Bundle}.
+ * BundleV7Item is a ParseableItem for {@link Bundle}.
  *
  * @author Lucien Loiseau on 10/09/18.
  */
-public class BundleV7Item implements CborParser.ParseableItem {
+public class BundleV7Item implements ParseableItem {
 
     static final String TAG = "BundleV7Item";
 

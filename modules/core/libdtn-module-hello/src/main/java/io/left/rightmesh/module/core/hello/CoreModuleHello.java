@@ -2,7 +2,7 @@ package io.left.rightmesh.module.core.hello;
 
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
-import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libcbor.parser.RxParserException;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.blob.UntrackedByteBufferBlob;

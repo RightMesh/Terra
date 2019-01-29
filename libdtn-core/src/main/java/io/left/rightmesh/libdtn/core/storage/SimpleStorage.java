@@ -7,7 +7,8 @@ import static io.left.rightmesh.libdtn.common.utils.FileUtil.spaceLeft;
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
-import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libcbor.parser.RxParserException;
+import io.left.rightmesh.libcbor.parser.items.ParseableItem;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.BundleId;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
@@ -606,7 +607,7 @@ public class SimpleStorage extends CoreComponent {
                 .onErrorComplete();
     }
 
-    private static class FileHeaderItem implements CborParser.ParseableItem {
+    private static class FileHeaderItem implements ParseableItem {
 
         boolean hasBlob;
         String blobPath;

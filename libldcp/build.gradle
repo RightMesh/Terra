@@ -30,7 +30,7 @@ dependencies {
     implementation project(path: ':libdtn-common')
 
     // CBOR for encoding/parsing
-    implementation 'com.github.RightMesh:libcbor:6e5ca8868f'
+    implementation 'com.github.RightMesh:libcbor:c10a5aa415'
 
     // RxTCP for communication between daemon/api
     implementation 'com.github.RightMesh:librxtcp:65e2cb0ab8'

@@ -1,4 +1,4 @@
-package io.left.rightmesh.libdtn.core.network;
+package io.left.rightmesh.libdtn.core.cla;
 
 import io.left.rightmesh.libdtn.common.data.eid.ClaEid;
 import io.left.rightmesh.libdtn.core.api.ClaManagerApi;
@@ -34,7 +34,8 @@ public class ClaManager implements ClaManagerApi {
     @Override
     public void addCla(ConvergenceLayerSpi cla) {
         try {
-            core.getExtensionManager().addExtensionClaEid(cla.getModuleName(), cla.getClaEidParser());
+            core.getExtensionManager()
+                    .addExtensionClaEid(cla.getModuleName(), cla.getClaEidParser());
             clas.add(cla);
             cla.start(core.getConf(), core.getLogger()).subscribe(
                     dtnChannel -> {

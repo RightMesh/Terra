@@ -27,13 +27,18 @@ public class CanonicalBlockSerializer {
     public static CborEncoder encode(CanonicalBlock block, BlockDataSerializerFactory factory) {
         CborEncoder enc = BlockHeaderSerializer.encode(block);
 
-        if (block.getV7Flag(BlockHeader.BlockV7Flags.BLOCK_IS_ENCRYPTED)) {
-            enc.merge(BlockBlobSerializer.encode((BlockBlob) block));
+        if (block.getV7Flag(BlockHeader.BlockV7Flags.BLOCK_IS_ENCRYPTED)
+                || block instanceof BlockBlob) {
+            enc.cbor_encode_byte_string(
+                    ((BlockBlob) block).data.size(),
+                    ((BlockBlob) block).data.observe());
         } else {
             try {
-                enc.merge(factory.create(block));
+                enc.cbor_encode_byte_string(factory.create(block).observe(), true);
             } catch (BlockDataSerializerFactory.UnknownBlockTypeException ubte) {
-                enc.merge(CBOR.encoder());
+                // that should never happen. It basically means that we added an extension block
+                // with no serializer which should be forbidden.
+                enc.cbor_encode_byte_string(new byte[]{});
             }
         }
 

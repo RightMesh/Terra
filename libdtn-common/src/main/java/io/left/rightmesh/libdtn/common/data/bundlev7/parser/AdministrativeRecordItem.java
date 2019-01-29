@@ -2,7 +2,8 @@ package io.left.rightmesh.libdtn.common.data.bundlev7.parser;
 
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
-import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libcbor.parser.items.ParseableItem;
+import io.left.rightmesh.libcbor.parser.RxParserException;
 import io.left.rightmesh.libdtn.common.data.AdministrativeRecord;
 import io.left.rightmesh.libdtn.common.data.StatusReport;
 import io.left.rightmesh.libdtn.common.data.eid.EidFactory;
@@ -13,7 +14,7 @@ import io.left.rightmesh.libdtn.common.utils.Log;
  *
  * @author Lucien Loiseau on 10/11/18.
  */
-public class AdministrativeRecordItem implements CborParser.ParseableItem {
+public class AdministrativeRecordItem implements ParseableItem {
 
     static final String TAG = "AdministrativeRecordItem";
 
@@ -36,8 +37,8 @@ public class AdministrativeRecordItem implements CborParser.ParseableItem {
                         throw new RxParserException("wrong number of element in canonical block");
                     }
                 })
-                .cbor_parse_int((parser, tags, i) -> { // block PAYLOAD_BLOCK_TYPE
-                    logger.v(TAG, ". PAYLOAD_BLOCK_TYPE=" + i);
+                .cbor_parse_int((parser, tags, i) -> { // block type
+                    logger.v(TAG, ". adm type=" + i);
                     switch ((int) i) {
                         case StatusReport.STATUS_REPORT_ADM_TYPE:
                             record = new StatusReport();

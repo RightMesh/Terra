@@ -10,7 +10,6 @@ task ApiDoc(type: Javadoc) {
 }
 
 test {
-    systemProperty 'path', '/tmp'
     useJUnit()
     maxHeapSize = '1G'
 

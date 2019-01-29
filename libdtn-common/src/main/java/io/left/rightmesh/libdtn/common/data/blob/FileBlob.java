@@ -212,11 +212,10 @@ public class FileBlob extends Tag implements Blob {
 
         @Override
         public int write(ByteBuffer buffer) throws IOException {
+            open();
             int length = buffer.remaining();
             while (buffer.hasRemaining()) {
-                int b = buffer.get();
-                System.out.println("bundle=" + (char) b);
-                bos.write(b);
+                bos.write(buffer.get());
             }
             return length;
         }

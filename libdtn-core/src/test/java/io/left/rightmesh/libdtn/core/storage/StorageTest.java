@@ -41,7 +41,7 @@ public class StorageTest {
     static final Object LOCK = new Object();
     static final AtomicReference<CountDownLatch> WAIT_LOCK
             = new AtomicReference<>(new CountDownLatch(1));
-    private File dir = new File(System.getProperty("path") + "/bundle/");
+    private File dir = new File("/tmp/bundle/");
     private Storage storage;
     private CoreApi mockCore = mockCore();
 
@@ -56,7 +56,7 @@ public class StorageTest {
                 conf.<Boolean>get(COMPONENT_ENABLE_SIMPLE_STORAGE).update(true);
 
                 Set<String> paths = new HashSet<>();
-                paths.add(System.getProperty("path"));
+                paths.add("/tmp/");
                 conf.<Set<String>>get(SIMPLE_STORAGE_PATH).update(paths);
                 return conf;
             }

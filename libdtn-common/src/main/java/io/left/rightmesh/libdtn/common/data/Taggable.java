@@ -39,10 +39,10 @@ public interface Taggable {
 
     /**
      * get the object attached to a tag Not that it makes no check and is up to the
-     * caller to make sure that the attached object is not null and of correct PAYLOAD_BLOCK_TYPE.
+     * caller to make sure that the attached object is not null and of correct type.
      *
      * @param key for this attachement
-     * @param <T> PAYLOAD_BLOCK_TYPE of the attachement
+     * @param <T> type of the attachement
      * @return the object attaced under this key
      */
     <T> T getTagAttachment(String key);

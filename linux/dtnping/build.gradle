@@ -17,7 +17,7 @@ dependencies {
     implementation project(path: ':libdtn-client-ldcp')
 
     // CBOR for parsing StatusReport
-    implementation 'com.github.RightMesh:libcbor:-SNAPSHOT'
+    implementation 'com.github.RightMesh:libcbor:c10a5aa415'
 
     // picocli framework for RequestMessage Line Interface
     compile 'info.picocli:picocli:3.6.1'

@@ -4,7 +4,8 @@ import static io.left.rightmesh.libdtn.common.data.bundlev7.parser.BundleV7Item.
 
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
-import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libcbor.parser.RxParserException;
+import io.left.rightmesh.libcbor.parser.items.ParseableItem;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.BlockBlob;
 import io.left.rightmesh.libdtn.common.data.BlockFactory;
@@ -13,20 +14,23 @@ import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.data.Crc;
 import io.left.rightmesh.libdtn.common.data.UnknownExtensionBlock;
 import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
+import io.left.rightmesh.libdtn.common.data.blob.NullBlob;
+import io.left.rightmesh.libdtn.common.data.blob.WritableBlob;
 import io.left.rightmesh.libdtn.common.utils.Log;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * CanonicalBlockItem is a CborParser.ParseableItem for a {@link CanonicalBlock}.
+ * CanonicalBlockItem is a ParseableItem for a {@link CanonicalBlock}.
  *
  * @author Lucien Loiseau on 04/11/18.
  */
-public class CanonicalBlockItem implements CborParser.ParseableItem {
+public class CanonicalBlockItem implements ParseableItem {
 
     /**
-     * A BundleItem requires a toolbox to be able to parse extension {@link Block} and
-     * extension {@link Eid}. It also need a BlobFactory to create a new Blob to hold the payload.
+     * A BundleItem requires a toolbox to be able to parse extension Block and
+     * extension Eid. It also need a BlobFactory to create a new Blob to hold the payload.
      *
      * @param logger      to output parsing information
      * @param toolbox     for the data structure factory
@@ -81,9 +85,9 @@ public class CanonicalBlockItem implements CborParser.ParseableItem {
                                 block,
                                 blobFactory,
                                 toolbox.getEidFactory(), logger);
-                    } catch (BlockDataParserFactory.UnknownBlockTypeException ubte) {
-                        payloadParser = BlockBlobParser.getParser(
-                                (BlockBlob) block, blobFactory, logger);
+                    } catch (BlockDataParserFactory.UnknownBlockTypeException
+                            | BlockDataParserFactory.UnstructuredPayloadException ubte) {
+                        payloadParser = null;
                     }
                 })
                 .cbor_parse_int((p, t, i) -> {
@@ -94,8 +98,7 @@ public class CanonicalBlockItem implements CborParser.ParseableItem {
                     logger.v(TAG, ". procV7flags=" + i);
                     block.procV7flags = i;
                     if (block.getV7Flag(BlockHeader.BlockV7Flags.BLOCK_IS_ENCRYPTED)) {
-                        payloadParser = BlockBlobParser.getParser(
-                                (BlockBlob) block, blobFactory, logger);
+                        payloadParser = null;
                     }
                 })
                 .cbor_parse_int((p, t, i) -> {
@@ -117,10 +120,61 @@ public class CanonicalBlockItem implements CborParser.ParseableItem {
                             closeCrc = crc32CloseParser();
                             break;
                         default:
-                            throw new RxParserException("wrong Crc PAYLOAD_BLOCK_TYPE");
+                            throw new RxParserException("wrong Crc type");
                     }
                 })
-                .do_here(p -> p.insert_now(payloadParser))
+                .cbor_parse_byte_string(
+                        (parser, tag, size) -> {
+                            if (size == -1) {
+                                // since bpbis-13
+                                throw new RxParserException("the block payload must be of "
+                                        + "a definite length.");
+                            } else {
+                                logger.v(TAG, ". payload size=" + size);
+                                block.dataSize = size;
+                                if (payloadParser == null) {
+                                    try {
+                                        ((BlockBlob) block).data = blobFactory
+                                                .createBlob((int) size);
+                                    } catch (BlobFactory.BlobFactoryException sfe) {
+                                        logger.v(TAG, ".. payload blob create=NullBlob");
+                                        ((BlockBlob) block).data = new NullBlob();
+                                    }
+                                    parser.setReg(3, ((BlockBlob) block).data.getWritableBlob());
+                                }
+                            }
+                        },
+                        (parser, byteChunk) -> {
+                            if (payloadParser == null) {
+                                logger.v(TAG, ".. payload chunk size=" + byteChunk.remaining());
+                                logger.v(TAG, ".. payload chunk=" + new String(byteChunk.array()));
+                                try {
+                                    parser.<WritableBlob>getReg(3).write(byteChunk);
+                                } catch (WritableBlob.BlobOverflowException | IOException io) {
+                                    logger.v(TAG, ".. payload blob write error=" + io.getMessage());
+                                    parser.<WritableBlob>getReg(3).close();
+                                    parser.setReg(3, null);
+                                }
+                            } else {
+                                while (byteChunk.hasRemaining()) {
+                                    payloadParser.read(byteChunk);
+                                }
+                            }
+                        },
+                        (parser) -> {
+                            if (payloadParser == null) {
+                                if (parser.getReg(3) != null) {
+                                    parser.<WritableBlob>getReg(3).close();
+                                }
+                                logger.v(TAG, ".. payload blob closed");
+                            } else {
+                                if (!payloadParser.isDone()) {
+                                    throw new RxParserException("the block payload is missing data");
+                                } else {
+                                    logger.v(TAG, ".. payload data parsed");
+                                }
+                            }
+                        })
                 .do_here(p -> p.insert_now(closeCrc))  // validate closeCrc
                 .do_here(p -> {
                     logger.v(TAG, ". crc_check=" + crcOk);

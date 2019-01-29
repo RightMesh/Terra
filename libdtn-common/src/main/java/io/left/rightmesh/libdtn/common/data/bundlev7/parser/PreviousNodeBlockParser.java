@@ -6,6 +6,8 @@ import io.left.rightmesh.libdtn.common.data.PreviousNodeBlock;
 import io.left.rightmesh.libdtn.common.data.eid.EidFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;
 
+import static io.left.rightmesh.libdtn.common.data.bundlev7.parser.BundleV7Item.TAG;
+
 /**
  * PreviousNodeBlockParser parses the data-specific part of the PreviousNode block.
  *
@@ -17,7 +19,10 @@ public class PreviousNodeBlockParser {
         return CBOR.parser()
                 .cbor_parse_custom_item(
                         () -> new EidItem(eidFactory, logger),
-                        (p, t, item) -> block.previous = item.eid);
+                        (p, t, item) -> {
+                            logger.v(TAG, ".. previous block="+item.eid.getEidString());
+                            block.previous = item.eid;
+                        });
     }
 
 }

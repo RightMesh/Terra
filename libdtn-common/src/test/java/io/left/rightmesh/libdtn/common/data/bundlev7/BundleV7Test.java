@@ -6,7 +6,7 @@ import static org.junit.Assert.fail;
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
-import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libcbor.parser.RxParserException;
 import io.left.rightmesh.libdtn.common.BaseExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.*;
 import io.left.rightmesh.libdtn.common.data.blob.BaseBlobFactory;
@@ -18,6 +18,7 @@ import io.left.rightmesh.libdtn.common.data.bundlev7.serializer.StatusReportSeri
 import io.left.rightmesh.libdtn.common.data.eid.DtnEid;
 import io.left.rightmesh.libdtn.common.data.eid.EidIpn;
 import io.left.rightmesh.libdtn.common.utils.NullLogger;
+import io.left.rightmesh.libdtn.common.utils.SimpleLogger;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -186,14 +187,9 @@ public class BundleV7Test {
                     new BaseBlockDataSerializerFactory());
 
             // prepare parser
-            BundleV7Item bundleParser = new BundleV7Item(
-                    new NullLogger(),
-                    new BaseExtensionToolbox(),
-                    new BaseBlobFactory().enableVolatile(100000).disablePersistent());
-
             CborParser parser = CBOR.parser().cbor_parse_custom_item(
                     () -> new BundleV7Item(
-                            new NullLogger(),
+                            new SimpleLogger(),
                             new BaseExtensionToolbox(),
                             new BaseBlobFactory().enableVolatile(100000).disablePersistent()),
                     (p, t, item) ->

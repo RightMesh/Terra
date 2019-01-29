@@ -18,7 +18,7 @@ public interface BlockDataSerializerFactory {
      *
      * @param block extension block to serialize
      * @return CborEncoder
-     * @throws UnknownBlockTypeException if PAYLOAD_BLOCK_TYPE is unknown
+     * @throws UnknownBlockTypeException if type is unknown
      */
     CborEncoder create(CanonicalBlock block) throws UnknownBlockTypeException;
 }

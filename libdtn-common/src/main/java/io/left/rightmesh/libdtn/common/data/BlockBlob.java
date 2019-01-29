@@ -15,7 +15,7 @@ public abstract class BlockBlob extends CanonicalBlock {
     /**
      * Constructor: creates an empty PayloadBlock.
      *
-     * @param type block PAYLOAD_BLOCK_TYPE
+     * @param type block type
      */
     public BlockBlob(int type) {
         super(type);
@@ -25,7 +25,7 @@ public abstract class BlockBlob extends CanonicalBlock {
     /**
      * Constructor: creates a PayloadBlock with a Blob as data.
      *
-     * @param type block PAYLOAD_BLOCK_TYPE
+     * @param type block type
      * @param data payload
      */
     public BlockBlob(int type, Blob data) {

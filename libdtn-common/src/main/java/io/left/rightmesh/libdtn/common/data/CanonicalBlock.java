@@ -19,7 +19,7 @@ public abstract class CanonicalBlock extends BlockHeader {
      * CanonicalBlock Factory.
      *
      * @param type of the block to create
-     * @return an instance of a block for the given PAYLOAD_BLOCK_TYPE
+     * @return an instance of a block for the given type
      */
     public static CanonicalBlock create(int type) {
         switch (type) {

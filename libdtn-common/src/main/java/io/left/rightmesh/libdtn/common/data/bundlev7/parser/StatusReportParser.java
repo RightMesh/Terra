@@ -4,7 +4,7 @@ import static io.left.rightmesh.libdtn.common.data.bundlev7.parser.Administrativ
 
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
-import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libcbor.parser.RxParserException;
 import io.left.rightmesh.libdtn.common.data.StatusReport;
 import io.left.rightmesh.libdtn.common.data.eid.EidFactory;
 import io.left.rightmesh.libdtn.common.utils.Log;

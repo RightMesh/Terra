@@ -79,7 +79,8 @@ public class ExtensionManager implements ExtensionManagerApi {
                                  CanonicalBlock block,
                                  BlobFactory blobFactory,
                                  EidFactory eidFactory,
-                                 Log logger) throws UnknownBlockTypeException {
+                                 Log logger)
+                throws UnknownBlockTypeException, UnstructuredPayloadException {
             try {
                 return baseBlockParserFactory.create(type, block, blobFactory, eidFactory, logger);
             } catch (UnknownBlockTypeException ubte) {
@@ -216,7 +217,8 @@ public class ExtensionManager implements ExtensionManagerApi {
     }
 
     @Override
-    public void addExtensionClaEid(String clName, ClaEidParser parser) throws ClaNameAlreadyManaged {
+    public void addExtensionClaEid(String clName, ClaEidParser parser)
+            throws ClaNameAlreadyManaged {
         if (extensionClaEidParser.containsKey(clName)) {
             throw new ClaNameAlreadyManaged();
         }

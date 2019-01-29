@@ -3,7 +3,9 @@ package io.left.rightmesh.ldcp.messages;
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborEncoder;
 import io.left.rightmesh.libcbor.CborParser;
-import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libcbor.encoder.CborEncodingUnknown;
+import io.left.rightmesh.libcbor.parser.RxParserException;
+import io.left.rightmesh.libcbor.parser.items.TextStringItem;
 import io.left.rightmesh.libdtn.common.ExtensionToolbox;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
@@ -98,7 +100,7 @@ public class ResponseMessage {
             enc.cbor_encode_text_string(body);
 
             return enc.observe(1024);
-        } catch (CBOR.CborEncodingUnknown ceu) {
+        } catch (CborEncodingUnknown ceu) {
             return Flowable.error(ceu);
         }
     }
@@ -116,11 +118,11 @@ public class ResponseMessage {
                     p.setReg(0, message);
                 })
                 .cbor_parse_linear_map(
-                        CBOR.TextStringItem::new,
-                        CBOR.TextStringItem::new,
+                        TextStringItem::new,
+                        TextStringItem::new,
                         (p, ___, map) -> {
                             ResponseMessage res = p.getReg(0);
-                            for (CBOR.TextStringItem str : map.keySet()) {
+                            for (TextStringItem str : map.keySet()) {
                                 res.fields.put(str.value(), map.get(str).value());
                             }
                         })

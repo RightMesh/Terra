@@ -4,7 +4,8 @@ import static io.left.rightmesh.libdtn.common.data.bundlev7.parser.BundleV7Item.
 
 import io.left.rightmesh.libcbor.CBOR;
 import io.left.rightmesh.libcbor.CborParser;
-import io.left.rightmesh.libcbor.rxparser.RxParserException;
+import io.left.rightmesh.libcbor.parser.RxParserException;
+import io.left.rightmesh.libcbor.parser.items.ParseableItem;
 import io.left.rightmesh.libdtn.common.data.Bundle;
 import io.left.rightmesh.libdtn.common.data.Crc;
 import io.left.rightmesh.libdtn.common.data.PrimaryBlock;
@@ -14,11 +15,11 @@ import io.left.rightmesh.libdtn.common.utils.Log;
 import java.nio.ByteBuffer;
 
 /**
- * PrimaryBlockItem is a CborParser.ParseableItem for {@link PrimaryBlock}.
+ * PrimaryBlockItem is a ParseableItem for {@link PrimaryBlock}.
  *
  * @author Lucien Loiseau on 04/11/18.
  */
-public class PrimaryBlockItem implements CborParser.ParseableItem {
+public class PrimaryBlockItem implements ParseableItem {
 
     public PrimaryBlockItem(EidFactory eidFactory, Log logger) {
         this.eidFactory = eidFactory;
@@ -80,7 +81,7 @@ public class PrimaryBlockItem implements CborParser.ParseableItem {
                             closeCrc = crc32CloseParser();
                             break;
                         default:
-                            throw new RxParserException("wrong Crc PAYLOAD_BLOCK_TYPE");
+                            throw new RxParserException("wrong Crc type");
                     }
                 })
                 .cbor_parse_custom_item(() -> new EidItem(eidFactory, logger), (p, t, item) -> {

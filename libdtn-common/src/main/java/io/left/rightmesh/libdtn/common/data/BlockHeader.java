@@ -46,7 +46,7 @@ public class BlockHeader extends Block {
 
 
     /**
-     * Constructor creates a BlockHeader of the following PAYLOAD_BLOCK_TYPE.
+     * Constructor creates a BlockHeader of the following type.
      *
      * @param type of the current BlockHeader
      */

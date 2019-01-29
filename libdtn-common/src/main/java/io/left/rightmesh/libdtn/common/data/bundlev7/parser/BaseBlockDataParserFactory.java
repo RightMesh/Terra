@@ -2,7 +2,6 @@ package io.left.rightmesh.libdtn.common.data.bundlev7.parser;
 
 import io.left.rightmesh.libcbor.CborParser;
 import io.left.rightmesh.libdtn.common.data.AgeBlock;
-import io.left.rightmesh.libdtn.common.data.BlockBlob;
 import io.left.rightmesh.libdtn.common.data.CanonicalBlock;
 import io.left.rightmesh.libdtn.common.data.FlowLabelBlock;
 import io.left.rightmesh.libdtn.common.data.ManifestBlock;
@@ -10,7 +9,6 @@ import io.left.rightmesh.libdtn.common.data.PayloadBlock;
 import io.left.rightmesh.libdtn.common.data.PreviousNodeBlock;
 import io.left.rightmesh.libdtn.common.data.RoutingBlock;
 import io.left.rightmesh.libdtn.common.data.ScopeControlHopLimitBlock;
-import io.left.rightmesh.libdtn.common.data.UnknownExtensionBlock;
 import io.left.rightmesh.libdtn.common.data.blob.BlobFactory;
 import io.left.rightmesh.libdtn.common.data.eid.EidFactory;
 import io.left.rightmesh.libdtn.common.data.security.BlockAuthenticationBlock;
@@ -31,11 +29,11 @@ public class BaseBlockDataParserFactory implements BlockDataParserFactory {
                              CanonicalBlock block,
                              BlobFactory blobFactory,
                              EidFactory eidFactory,
-                             Log logger) throws UnknownBlockTypeException {
+                             Log logger)
+            throws UnknownBlockTypeException, UnstructuredPayloadException {
         switch (type) {
             case PayloadBlock.PAYLOAD_BLOCK_TYPE:
-                return BlockBlobParser
-                        .getParser((BlockBlob) block, blobFactory, logger);
+                throw new UnstructuredPayloadException();
             case RoutingBlock.ROUTING_BLOCK_TYPE:
                 return RoutingBlockParser
                         .getParser((RoutingBlock) block, logger);
@@ -64,12 +62,7 @@ public class BaseBlockDataParserFactory implements BlockDataParserFactory {
                 return SecurityBlockParser
                         .getParser((BlockConfidentialityBlock) block, eidFactory, logger);
             default:
-                if (block instanceof UnknownExtensionBlock) {
-                    return BlockBlobParser
-                            .getParser((BlockBlob) block, blobFactory, logger);
-                } else {
                     throw new UnknownBlockTypeException();
-                }
         }
     }
 

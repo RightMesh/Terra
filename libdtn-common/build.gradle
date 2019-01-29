@@ -27,7 +27,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     // libcbor for bundlev7
-    implementation 'com.github.RightMesh:libcbor:6e5ca8868f'
+    implementation 'com.github.RightMesh:libcbor:c10a5aa415'
 
     // RxJava library for reactive programming
     implementation 'io.reactivex.rxjava2:rxjava:2.2.3'
