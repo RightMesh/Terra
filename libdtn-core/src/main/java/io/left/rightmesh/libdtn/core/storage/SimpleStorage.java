@@ -103,8 +103,8 @@ public class SimpleStorage extends CoreComponent {
                             storagePaths.stream()
                                     .filter(p -> !updated_paths.contains(p))
                                     .map(pathsToRemove::add)
-                                    .count();
-                            pathsToRemove.stream().map(this::removePath).count();
+                                    .count();                            
+                            pathsToRemove.forEach(x -> this.removePath(x));
 
                             /* add new path */
                             LinkedList<String> pathsToAdd = new LinkedList<>();
@@ -112,7 +112,7 @@ public class SimpleStorage extends CoreComponent {
                                     .filter(p -> !storagePaths.contains(p))
                                     .map(pathsToAdd::add)
                                     .count();
-                            pathsToAdd.stream().map(this::addPath).count();
+                            pathsToAdd.stream().forEach( x -> this.addPath(x));
                         });
     }
 
@@ -370,13 +370,13 @@ public class SimpleStorage extends CoreComponent {
                     File fbundle;
                     try {
                         fbundle = createBundleFile(bundle.bid, size.get());
-                    } catch (StorageFullException sfe) {
+                    } catch (StorageFullException sfe) {                        
                         if (hasBlob) {
                             bundle.getPayloadBlock().data = blob;
                         }
                         s.onError(new Throwable("storage is full"));
                         return;
-                    }
+                    } 
 
                     /* actual serialization of the bundle */
                     OutputStream out = new BufferedOutputStream(new FileOutputStream(fbundle));
