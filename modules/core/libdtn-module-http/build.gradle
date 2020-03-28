@@ -35,8 +35,16 @@ dependencies {
 
     // lib rx netty for http ApiEid
     // note: we need to use compile keyword to add in the fatjar, implementation/api doesn't work
-    compile "io.reactivex:rxnetty-http:${rxnetty_version}"
+    compile group: 'io.reactivex', name: 'rxnetty-common', version: '0.5.2-rc.2'
+    compile group: 'io.reactivex', name: 'rxnetty-http', version: '0.5.2-rc.2'
+
     compile "tv.cntt:jauter:${jauter_version}"
+    // // https://mvnrepository.com/artifact/io.reactivex/rxjava
+    compile group: 'io.reactivex', name: 'rxjava', version: '1.3.8'
+
+    // https://mvnrepository.com/artifact/io.netty/netty-all
+    compile group: 'io.netty', name: 'netty-all', version: '4.1.48.Final'
+
 
 }
 
