@@ -54,7 +54,7 @@ from the command line so we will first create ad-hoc directories to the module t
 we can then run an instance of Terra like so:
 
 ```
- ./terra/bin/terra -v --module-cla=cla-modules --module-aa=aa-modules --module-core=core-modules \
+ ./terra/bin/terra -v --module-cla=cla-modules --module-aa=aa-modules --module-core=core-modules  \
  --enable-modules=http --enable-modules=ldcp --enable-modules=stcp -d
 ```
 
